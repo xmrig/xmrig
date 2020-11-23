@@ -51,6 +51,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/benchmark/BenchState.h"
+#endif
+
+
 #include <algorithm>
 #include <cinttypes>
 #include <ctime>
@@ -270,24 +275,13 @@ void xmrig::Network::onRequest(IApiRequest &request)
 
 void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 {
-    uint64_t diff       = job.diff();;
-    const char *scale   = NetworkState::scaleDiff(diff);
-
 #   ifdef XMRIG_FEATURE_BENCHMARK
-    const uint32_t size = job.benchSize();
-    if (size) {
-        LOG_NOTICE("%s " MAGENTA_BOLD("start benchmark ") "hashes " CYAN_BOLD("%u%s") " algo " WHITE_BOLD("%s") " print_time " CYAN_BOLD("%us"),
-                   Tags::bench(),
-                   size < 1000000 ? size / 1000 : size / 1000000,
-                   size < 1000000 ? "K" : "M",
-                   job.algorithm().shortName(),
-                   m_controller->config()->printTime());
-
-        LOG_NOTICE("%s " WHITE_BOLD("seed ") BLACK_BOLD("%s"), Tags::bench(), job.seed().toHex().data());
-    }
-    else
+    if (!BenchState::size())
 #   endif
     {
+        uint64_t diff       = job.diff();;
+        const char *scale   = NetworkState::scaleDiff(diff);
+
         LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") " height " WHITE_BOLD("%" PRIu64),
                  Tags::network(), client->pool().host().data(), client->pool().port(), diff, scale, job.algorithm().shortName(), job.height());
     }

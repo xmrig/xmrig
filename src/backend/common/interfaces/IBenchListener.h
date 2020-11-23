@@ -1,6 +1,4 @@
 /* XMRig
- * Copyright (c) 2015-2020 libuv project contributors.
- * Copyright (c) 2020      cohcho      <https://github.com/cohcho>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -18,42 +16,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ASYNC_H
-#define XMRIG_ASYNC_H
+#ifndef XMRIG_IBENCHLISTENER_H
+#define XMRIG_IBENCHLISTENER_H
 
 
 #include "base/tools/Object.h"
 
 
-#include <functional>
-
-
 namespace xmrig {
 
 
-class AsyncPrivate;
-class IAsyncListener;
+class IBackend;
 
 
-class Async
+class IBenchListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Async)
+    XMRIG_DISABLE_COPY_MOVE(IBenchListener)
 
-    using Callback = std::function<void()>;
+    IBenchListener()            = default;
+    virtual ~IBenchListener()   = default;
 
-    Async(Callback callback);
-    Async(IAsyncListener *listener);
-    ~Async();
-
-    void send();
-
-private:
-    AsyncPrivate *d_ptr;
+    virtual void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts)               = 0;
+    virtual void onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend)   = 0;
 };
 
 
-} // namespace xmrig
+} /* namespace xmrig */
 
 
-#endif /* XMRIG_ASYNC_H */
+#endif // XMRIG_IBENCHLISTENER_H

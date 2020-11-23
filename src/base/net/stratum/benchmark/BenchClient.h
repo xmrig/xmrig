@@ -20,27 +20,28 @@
 #define XMRIG_BENCHCLIENT_H
 
 
-#include "base/net/stratum/Client.h"
+#include "backend/common/interfaces/IBenchListener.h"
+#include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
+#include "base/net/stratum/Client.h"
 
 
 namespace xmrig {
 
 
-class BenchClient : public IClient, public IHttpListener
+class BenchClient : public IClient, public IHttpListener, public IBenchListener, public IDnsListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
 
     BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener);
-    ~BenchClient() override = default;
+    ~BenchClient() override;
 
     inline bool disconnect() override                                               { return true; }
     inline bool hasExtension(Extension) const noexcept override                     { return false; }
     inline bool isEnabled() const override                                          { return true; }
     inline bool isTLS() const override                                              { return false; }
     inline const char *mode() const override                                        { return "benchmark"; }
-    inline const char *tag() const override                                         { return "null"; }
     inline const char *tlsFingerprint() const override                              { return nullptr; }
     inline const char *tlsVersion() const override                                  { return nullptr; }
     inline const Job &job() const override                                          { return m_job; }
@@ -52,7 +53,7 @@ public:
     inline int64_t sequence() const override                                        { return 0; }
     inline int64_t submit(const JobResult &) override                               { return 0; }
     inline void connect(const Pool &pool) override                                  { setPool(pool); }
-    inline void deleteLater() override                                              {}
+    inline void deleteLater() override                                              { delete this; }
     inline void setAlgo(const Algorithm &algo) override                             {}
     inline void setEnabled(bool enabled) override                                   {}
     inline void setProxy(const ProxyUrl &proxy) override                            {}
@@ -61,11 +62,15 @@ public:
     inline void setRetryPause(uint64_t ms) override                                 {}
     inline void tick(uint64_t now) override                                         {}
 
+    const char *tag() const override;
     void connect() override;
     void setPool(const Pool &pool) override;
 
 protected:
+    void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts) override;
+    void onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
+    void onResolved(const Dns &dns, int status) override;
 
 private:
     enum Mode : uint32_t {
@@ -75,24 +80,47 @@ private:
         ONLINE_VERIFY
     };
 
+    enum Request : uint32_t {
+        NO_REQUEST,
+        GET_BENCH,
+        CREATE_BENCH,
+        START_BENCH,
+        DONE_BENCH
+    };
+
+    bool setSeed(const char *seed);
+    uint64_t referenceHash() const;
+    void printExit();
     void start();
 
 #   ifdef XMRIG_FEATURE_HTTP
-    void createBench();
-    void createHttpListener();
-    void getBench();
-    void setError(const char *message);
-    void startBench(const rapidjson::Value &value);
-    void startVerify(const rapidjson::Value &value);
+    void onCreateReply(const rapidjson::Value &value);
+    void onDoneReply(const rapidjson::Value &value);
+    void onGetReply(const rapidjson::Value &value);
+    void resolve();
+    void send(Request request);
+    void setError(const char *message, const char *label = nullptr);
+    void update(const rapidjson::Value &body);
 #   endif
 
+    const IBackend *m_backend   = nullptr;
     IClientListener* m_listener;
     Job m_job;
+    Mode m_mode                 = STATIC_BENCH;
     Pool m_pool;
+    Request m_request           = NO_REQUEST;
     std::shared_ptr<BenchConfig> m_benchmark;
+    std::shared_ptr<Dns> m_dns;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
-    Mode m_mode = STATIC_BENCH;
+    String m_token;
+    uint32_t m_threads          = 0;
+    uint64_t m_diff             = 0;
+    uint64_t m_doneTime         = 0;
+    uint64_t m_hash             = 0;
+    uint64_t m_readyTime        = 0;
+    uint64_t m_result           = 0;
+    uint64_t m_startTime        = 0;
 };
 
 
