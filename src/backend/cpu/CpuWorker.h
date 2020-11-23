@@ -82,6 +82,7 @@ private:
     const CnHash::AlgoVariant m_av;
     const int m_astrobwtMaxSize;
     const Miner *m_miner;
+    const size_t m_threads;
     const uint32_t m_benchSize;
     cryptonight_ctx *m_ctx[N];
     VirtualMemory *m_memory = nullptr;
@@ -89,6 +90,11 @@ private:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     randomx_vm *m_vm = nullptr;
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint64_t m_benchData    = 0;
+    uint64_t m_benchDiff    = 0;
 #   endif
 };
 

@@ -1,6 +1,4 @@
 /* XMRig
- * Copyright (c) 2015-2020 libuv project contributors.
- * Copyright (c) 2020      cohcho      <https://github.com/cohcho>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -18,42 +16,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ASYNC_H
-#define XMRIG_ASYNC_H
+#ifndef XMRIG_BENCHSTATE_H
+#define XMRIG_BENCHSTATE_H
 
 
-#include "base/tools/Object.h"
-
-
-#include <functional>
+#include <cstddef>
+#include <cstdint>
 
 
 namespace xmrig {
 
 
-class AsyncPrivate;
-class IAsyncListener;
+class Algorithm;
+class IBackend;
+class IBenchListener;
 
 
-class Async
+class BenchState
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Async)
+    static bool isDone();
+    static uint64_t referenceHash(const Algorithm &algo, uint32_t size, uint32_t threads);
+    static uint64_t start(size_t threads, const IBackend *backend);
+    static void destroy();
+    static void done(uint64_t data, uint64_t diff, uint64_t ts);
 
-    using Callback = std::function<void()>;
-
-    Async(Callback callback);
-    Async(IAsyncListener *listener);
-    ~Async();
-
-    void send();
+    inline static uint32_t size()                               { return m_size; }
+    inline static void setListener(IBenchListener *listener)    { m_listener = listener; }
+    inline static void setSize(uint32_t size)                   { m_size = size; }
 
 private:
-    AsyncPrivate *d_ptr;
+    static IBenchListener *m_listener;
+    static uint32_t m_size;
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_ASYNC_H */
+#endif /* XMRIG_BENCHSTATE_H */

@@ -23,6 +23,15 @@ set(SOURCES_BACKEND_COMMON
    )
 
 if (WITH_RANDOMX AND WITH_BENCHMARK)
-    list(APPEND HEADERS_BACKEND_COMMON src/backend/common/Benchmark.h)
-    list(APPEND SOURCES_BACKEND_COMMON src/backend/common/Benchmark.cpp)
+    list(APPEND HEADERS_BACKEND_COMMON
+        src/backend/common/benchmark/Benchmark.h
+        src/backend/common/benchmark/BenchState_test.h
+        src/backend/common/benchmark/BenchState.h
+        src/backend/common/interfaces/IBenchListener.h
+        )
+
+    list(APPEND SOURCES_BACKEND_COMMON
+        src/backend/common/benchmark/Benchmark.cpp
+        src/backend/common/benchmark/BenchState.cpp
+        )
 endif()
