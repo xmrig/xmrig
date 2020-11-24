@@ -51,8 +51,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     blob[Job::kMaxSeedSize * 2] = '\0';
     m_job.setSeedHash(blob.data());
 
-    BenchState::setListener(this);
-    BenchState::setSize(m_benchmark->size());
+    BenchState::init(this, m_benchmark->size());
 
 #   ifdef XMRIG_FEATURE_HTTP
     if (m_benchmark->isSubmit()) {
