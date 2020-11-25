@@ -111,6 +111,11 @@ public:
     inline Job &operator=(const Job &other)             { copy(other); return *this; }
     inline Job &operator=(Job &&other) noexcept         { move(std::move(other)); return *this; }
 
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    inline uint32_t benchSize() const                   { return m_benchSize; }
+    inline void setBenchSize(uint32_t size)             { m_benchSize = size; }
+#   endif
+
 private:
     void copy(const Job &other);
     void move(Job &&other);
@@ -134,6 +139,10 @@ private:
     char m_rawBlob[kMaxBlobSize * 2 + 8]{};
     char m_rawTarget[24]{};
     String m_rawSeedHash;
+#   endif
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    uint32_t m_benchSize = 0;
 #   endif
 };
 

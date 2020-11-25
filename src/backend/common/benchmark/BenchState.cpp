@@ -48,12 +48,11 @@ public:
     uint32_t remaining               = 0;
     uint32_t size;
     uint64_t doneTime                = 0;
-    uint64_t result                  = 0;
-    uint64_t topDiff                 = 0;
 };
 
 
 static BenchStatePrivate *d_ptr = nullptr;
+std::atomic<uint64_t> BenchState::m_data{};
 
 
 } // namespace xmrig
@@ -92,7 +91,7 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
     d_ptr->remaining = static_cast<uint32_t>(threads);
 
     d_ptr->async = std::make_shared<Async>([] {
-        d_ptr->listener->onBenchDone(d_ptr->result, d_ptr->topDiff, d_ptr->doneTime);
+        d_ptr->listener->onBenchDone(m_data, 0, d_ptr->doneTime);
 
         destroy();
     });
@@ -111,15 +110,15 @@ void xmrig::BenchState::destroy()
 }
 
 
-void xmrig::BenchState::done(uint64_t data, uint64_t diff, uint64_t ts)
+void xmrig::BenchState::done()
 {
     assert(d_ptr != nullptr && d_ptr->async && d_ptr->remaining > 0);
 
+    const uint64_t ts = Chrono::steadyMSecs();
+
     std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
-    d_ptr->result ^= data;
     d_ptr->doneTime = std::max(d_ptr->doneTime, ts);
-    d_ptr->topDiff  = std::max(d_ptr->topDiff, diff);
     --d_ptr->remaining;
 
     if (d_ptr->remaining == 0) {

@@ -74,6 +74,9 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
         return;
     }
+
+    m_job.setBenchSize(m_benchmark->size());
+
 }
 
 
@@ -218,6 +221,8 @@ bool xmrig::BenchClient::setSeed(const char *seed)
         return false;
     }
 
+    m_job.setBenchSize(BenchState::size());
+
     LOG_NOTICE("%s " WHITE_BOLD("seed ") BLACK_BOLD("%s"), tag(), seed);
 
     return true;
@@ -285,10 +290,10 @@ void xmrig::BenchClient::onGetReply(const rapidjson::Value &value)
         m_hash = strtoull(hash, nullptr, 16);
     }
 
+    BenchState::setSize(Json::getUint(value, BenchConfig::kSize));
+
     m_job.setAlgorithm(Json::getString(value, BenchConfig::kAlgo));
     setSeed(Json::getString(value, BenchConfig::kSeed));
-
-    BenchState::setSize(Json::getUint(value, BenchConfig::kSize));
 
     start();
 }
