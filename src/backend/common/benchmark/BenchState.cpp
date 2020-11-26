@@ -33,17 +33,26 @@
 namespace xmrig {
 
 
-static bool done                        = false;
-static std::mutex mutex;
-static std::shared_ptr<Async> async;
-static uint32_t remaining               = 0;
-static uint64_t doneTime                = 0;
-static uint64_t result                  = 0;
-static uint64_t topDiff                 = 0;
+class BenchStatePrivate
+{
+public:
+    BenchStatePrivate(IBenchListener *listener, uint32_t size) :
+        listener(listener),
+        size(size)
+    {}
 
 
-IBenchListener *BenchState::m_listener  = nullptr;
-uint32_t BenchState::m_size             = 0;
+    IBenchListener *listener;
+    std::mutex mutex;
+    std::shared_ptr<Async> async;
+    uint32_t remaining               = 0;
+    uint32_t size;
+    uint64_t doneTime                = 0;
+};
+
+
+static BenchStatePrivate *d_ptr = nullptr;
+std::atomic<uint64_t> BenchState::m_data{};
 
 
 } // namespace xmrig
@@ -52,7 +61,13 @@ uint32_t BenchState::m_size             = 0;
 
 bool xmrig::BenchState::isDone()
 {
-    return xmrig::done;
+    return d_ptr == nullptr;
+}
+
+
+uint32_t xmrig::BenchState::size()
+{
+    return d_ptr ? d_ptr->size : 0U;
 }
 
 
@@ -71,18 +86,18 @@ uint64_t xmrig::BenchState::referenceHash(const Algorithm &algo, uint32_t size, 
 
 uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
 {
-    assert(m_listener != nullptr);
+    assert(d_ptr != nullptr);
 
-    remaining = static_cast<uint32_t>(threads);
+    d_ptr->remaining = static_cast<uint32_t>(threads);
 
-    async = std::make_shared<Async>([] {
-        m_listener->onBenchDone(result, topDiff, doneTime);
-        async.reset();
-        xmrig::done = true;
+    d_ptr->async = std::make_shared<Async>([] {
+        d_ptr->listener->onBenchDone(m_data, 0, d_ptr->doneTime);
+
+        destroy();
     });
 
     const uint64_t ts = Chrono::steadyMSecs();
-    m_listener->onBenchReady(ts, remaining, backend);
+    d_ptr->listener->onBenchReady(ts, d_ptr->remaining, backend);
 
     return ts;
 }
@@ -90,23 +105,39 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
 
 void xmrig::BenchState::destroy()
 {
-    xmrig::done = true;
-    async.reset();
+    delete d_ptr;
+    d_ptr = nullptr;
 }
 
 
-void xmrig::BenchState::done(uint64_t data, uint64_t diff, uint64_t ts)
+void xmrig::BenchState::done()
 {
-    assert(async && remaining > 0);
+    assert(d_ptr != nullptr && d_ptr->async && d_ptr->remaining > 0);
 
-    std::lock_guard<std::mutex> lock(mutex);
+    const uint64_t ts = Chrono::steadyMSecs();
 
-    result ^= data;
-    doneTime = std::max(doneTime, ts);
-    topDiff  = std::max(topDiff, diff);
-    --remaining;
+    std::lock_guard<std::mutex> lock(d_ptr->mutex);
 
-    if (remaining == 0) {
-        async->send();
+    d_ptr->doneTime = std::max(d_ptr->doneTime, ts);
+    --d_ptr->remaining;
+
+    if (d_ptr->remaining == 0) {
+        d_ptr->async->send();
     }
+}
+
+
+void xmrig::BenchState::init(IBenchListener *listener, uint32_t size)
+{
+    assert(d_ptr == nullptr);
+
+    d_ptr = new BenchStatePrivate(listener, size);
+}
+
+
+void xmrig::BenchState::setSize(uint32_t size)
+{
+    assert(d_ptr != nullptr);
+
+    d_ptr->size = size;
 }
