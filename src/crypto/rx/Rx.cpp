@@ -104,10 +104,6 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
     randomx_set_huge_pages_jit(cpu.isHugePagesJit());
 
-    if (isReady(seed)) {
-        return true;
-    }
-
     if (!msrInitialized) {
         msrEnabled      = msrInit(config, cpu.threads().get(seed.algorithm()).data());
         msrInitialized  = true;
@@ -119,6 +115,10 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
             SelectSoftAESImpl(cpu.threads().get(seed.algorithm()).count());
         }
         osInitialized = true;
+    }
+
+    if (isReady(seed)) {
+        return true;
     }
 
     d_ptr->queue.enqueue(seed, config.nodeset(), config.threads(cpu.limit()), cpu.isHugePages(), config.isOneGbPages(), config.mode(), cpu.priority());
