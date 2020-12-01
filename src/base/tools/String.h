@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,8 +44,9 @@ public:
     inline String(char *str) : m_data(str), m_size(str == nullptr ? 0 : strlen(str))    {}
     inline String(String &&other) noexcept : m_data(other.m_data), m_size(other.m_size) { other.m_data = nullptr; other.m_size = 0; }
 
-    String(const char *str);
     String(const char *str, size_t size);
+    String(const char *str);
+    String(const rapidjson::Value &value);
     String(const String &other);
 
     inline ~String() { delete [] m_data; }
@@ -66,6 +61,7 @@ public:
 
     inline bool isEmpty() const          { return size() == 0; }
     inline bool isNull() const           { return m_data == nullptr; }
+    inline bool isValid() const          { return m_data != nullptr; }
     inline char *data()                  { return m_data; }
     inline const char *data() const      { return m_data; }
     inline size_t size() const           { return m_size; }
@@ -73,7 +69,7 @@ public:
 
     inline bool operator!=(const char *str) const      { return !isEqual(str); }
     inline bool operator!=(const String &other) const  { return !isEqual(other); }
-    inline bool operator<(const String &str) const     { return strcmp(data(), str.data()) < 0; }
+    inline bool operator<(const String &str) const     { return !isEmpty() && !str.isEmpty() && strcmp(data(), str.data()) < 0; }
     inline bool operator==(const char *str) const      { return isEqual(str); }
     inline bool operator==(const String &other) const  { return isEqual(other); }
     inline operator const char*() const                { return m_data; }

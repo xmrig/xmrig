@@ -95,7 +95,7 @@ void xmrig::HttpClient::handshake()
 {
     headers.insert({ "Host",       host() });
     headers.insert({ "Connection", "close" });
-    headers.insert({ "User-Agent", Platform::userAgent() });
+    headers.insert({ "User-Agent", Platform::userAgent().data() });
 
     if (!body.empty()) {
         headers.insert({ "Content-Length", std::to_string(body.size()) });
