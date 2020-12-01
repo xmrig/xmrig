@@ -495,12 +495,10 @@ namespace randomx {
 
 		emit32(instr.getImm32(), code, codePos);
 		emitByte(0x25, code, codePos);
-		if (instr.getModCond() < StoreL3Condition) {
-			emit32(AddressMask[instr.getModMem()], code, codePos);
-		}
-		else {
-			emit32(ScratchpadL3Mask, code, codePos);
-		}
+
+		const uint32_t mask1 = AddressMask[instr.getModMem()];
+		const uint32_t mask2 = ScratchpadL3Mask;
+		emit32((instr.mod < (StoreL3Condition << 4)) ? mask1 : mask2, code, codePos);
 	}
 
 	FORCE_INLINE void JitCompilerX86::genAddressImm(const Instruction& instr, uint8_t* code, uint32_t& codePos) {

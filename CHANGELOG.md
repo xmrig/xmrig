@@ -1,3 +1,8 @@
+# v6.6.2
+- [#1958](https://github.com/xmrig/xmrig/pull/1958) Added example mining scripts to help new miners.
+- [#1959](https://github.com/xmrig/xmrig/pull/1959) Optimized JIT compiler.
+- [#1960](https://github.com/xmrig/xmrig/pull/1960) Fixed RandomX init when switching to other algo and back.
+
 # v6.6.1
 - Fixed, benchmark validation on NUMA hardware produced incorrect results in some conditions.
 
