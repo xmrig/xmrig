@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,6 +51,7 @@ public:
 
     static void add(ILogBackend *backend);
     static void destroy();
+    static void init();
     static void print(const char *fmt, ...);
     static void print(Level level, const char *fmt, ...);
 
@@ -71,9 +66,8 @@ public:
 private:
     static bool m_background;
     static bool m_colors;
-    static uint32_t m_verbose;
-
     static LogPrivate *d;
+    static uint32_t m_verbose;
 };
 
 

@@ -166,6 +166,7 @@ private:
 xmrig::Base::Base(Process *process)
     : d_ptr(new BasePrivate(process))
 {
+    Log::init();
 }
 
 
