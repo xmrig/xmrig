@@ -31,6 +31,7 @@
 #include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/benchmark/BenchConfig.h"
+#include "base/tools/Cvt.h"
 #include "version.h"
 
 
@@ -217,7 +218,7 @@ bool xmrig::BenchClient::setSeed(const char *seed)
         return false;
     }
 
-    if (!Buffer::fromHex(seed, size * 2, m_job.blob())) {
+    if (!Cvt::fromHex(m_job.blob(), m_job.size(), seed, size * 2)) {
         return false;
     }
 

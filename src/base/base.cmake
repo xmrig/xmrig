@@ -67,6 +67,7 @@ set(HEADERS_BASE
     src/base/tools/Baton.h
     src/base/tools/Buffer.h
     src/base/tools/Chrono.h
+    src/base/tools/Cvt.h
     src/base/tools/Handle.h
     src/base/tools/String.h
     src/base/tools/Timer.h
@@ -114,7 +115,7 @@ set(SOURCES_BASE
     src/base/net/tools/LineReader.cpp
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
-    src/base/tools/Buffer.cpp
+    src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
    )

@@ -31,7 +31,7 @@
 
 #include "base/net/https/HttpsClient.h"
 #include "base/io/log/Log.h"
-#include "base/tools/Buffer.h"
+#include "base/tools/Cvt.h"
 
 
 #ifdef _MSC_VER
@@ -182,7 +182,7 @@ bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
         return false;
     }
 
-    Buffer::toHex(md, 32, m_fingerprint);
+    Cvt::toHex(m_fingerprint, sizeof(m_fingerprint), md, 32);
 
     return req().fingerprint.isNull() || strncasecmp(m_fingerprint, req().fingerprint.data(), 64) == 0;
 }
