@@ -16,32 +16,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NETBUFFER_H
-#define XMRIG_NETBUFFER_H
-
-
-struct uv_buf_t;
-using uv_handle_t = struct uv_handle_s;
+#ifndef XMRIG_CONSTANTS_H
+#define XMRIG_CONSTANTS_H
 
 
 #include <cstddef>
+#include <cstdint>
 
 
-namespace xmrig {
+constexpr size_t      XMRIG_NET_BUFFER_CHUNK_SIZE           = 64 * 1024;
+constexpr size_t      XMRIG_NET_BUFFER_INIT_CHUNKS          = 4;
 
 
-class NetBuffer
-{
-public:
-    static char *allocate();
-    static void destroy();
-    static void onAlloc(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-    static void release(const char *buf);
-    static void release(const uv_buf_t *buf);
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_NETBUFFER_H */
+#endif /* XMRIG_CONSTANTS_H */

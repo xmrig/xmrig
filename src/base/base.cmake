@@ -22,6 +22,7 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/config/Title.h
+    src/base/kernel/constants.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IAsyncListener.h
     src/base/kernel/interfaces/IBaseListener.h

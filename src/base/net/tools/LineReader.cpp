@@ -19,8 +19,9 @@
 
 
 #include "base/net/tools/LineReader.h"
-#include "base/net/tools/NetBuffer.h"
+#include "base/kernel/constants.h"
 #include "base/kernel/interfaces/ILineListener.h"
+#include "base/net/tools/NetBuffer.h"
 
 #include <cassert>
 #include <cstring>
@@ -55,7 +56,7 @@ void xmrig::LineReader::reset()
 
 void xmrig::LineReader::add(const char *data, size_t size)
 {
-    if (size > NetBuffer::kChunkSize - m_pos) {
+    if (size > XMRIG_NET_BUFFER_CHUNK_SIZE - m_pos) {
         // it breakes correctness silently for long lines
         return;
     }
