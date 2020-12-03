@@ -32,6 +32,9 @@
 #include "base/tools/Object.h"
 
 
+#include <memory>
+
+
 namespace xmrig {
 
 
@@ -60,9 +63,9 @@ private:
     bool background(int &rc);
     void close();
 
-    Console *m_console          = nullptr;
-    Controller *m_controller    = nullptr;
-    Signals *m_signals          = nullptr;
+    std::shared_ptr<Console> m_console;
+    std::shared_ptr<Controller> m_controller;
+    std::shared_ptr<Signals> m_signals;
 };
 
 
