@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -181,6 +175,28 @@ const rapidjson::Value &xmrig::JsonChain::getValue(const char *key) const
 }
 
 
+
+const rapidjson::Value &xmrig::JsonChain::object() const
+{
+    assert(false);
+
+    return m_chain.back();
+}
+
+
+double xmrig::JsonChain::getDouble(const char *key, double defaultValue) const
+{
+    for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
+        auto i = it->FindMember(key);
+        if (i != it->MemberEnd() && (i->value.IsDouble() || i->value.IsLosslessDouble())) {
+            return i->value.GetDouble();
+        }
+    }
+
+    return defaultValue;
+}
+
+
 int xmrig::JsonChain::getInt(const char *key, int defaultValue) const
 {
     for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
@@ -204,6 +220,24 @@ int64_t xmrig::JsonChain::getInt64(const char *key, int64_t defaultValue) const
     }
 
     return defaultValue;
+}
+
+
+
+xmrig::String xmrig::JsonChain::getString(const char *key, size_t maxSize) const
+{
+    for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
+        auto i = it->FindMember(key);
+        if (i != it->MemberEnd() && i->value.IsString()) {
+            if (maxSize == 0 || i->value.GetStringLength() <= maxSize) {
+                return i->value.GetString();
+            }
+
+            return { i->value.GetString(), maxSize };
+        }
+    }
+
+    return {};
 }
 
 

@@ -168,7 +168,7 @@ else()
     endif()
 endif()
 
-add_definitions(-DXMRIG_MINER_PROJECT)
+add_definitions(-DXMRIG_MINER_PROJECT -DXMRIG_JSON_SINGLE_LINE_ARRAY)
 add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE)
 
 find_package(UV REQUIRED)
