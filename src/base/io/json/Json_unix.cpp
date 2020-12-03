@@ -52,7 +52,7 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
 
 #   ifdef XMRIG_JSON_SINGLE_LINE_ARRAY
-    writer.SetFormatOptions(kFormatSingleLineArray);
+    writer.SetFormatOptions(rapidjson::kFormatSingleLineArray);
 #   endif
 
     doc.Accept(writer);
