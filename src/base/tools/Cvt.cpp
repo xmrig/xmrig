@@ -237,6 +237,24 @@ xmrig::Buffer xmrig::Cvt::randomBytes(const size_t size)
 }
 
 
+rapidjson::Value xmrig::Cvt::toHex(const Buffer &data, rapidjson::Document &doc)
+{
+    return toHex(data.data(), data.size(), doc);
+}
+
+
+rapidjson::Value xmrig::Cvt::toHex(const std::string &data, rapidjson::Document &doc)
+{
+    return toHex(reinterpret_cast<const uint8_t *>(data.data()), data.size(), doc);
+}
+
+
+rapidjson::Value xmrig::Cvt::toHex(const uint8_t *in, size_t size, rapidjson::Document &doc)
+{
+    return toHex(in, size).toJSON(doc);
+}
+
+
 xmrig::String xmrig::Cvt::toHex(const uint8_t *in, size_t size)
 {
     assert(in != nullptr && size > 0);

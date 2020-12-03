@@ -48,6 +48,9 @@ public:
     static bool toHex(char *hex, size_t hex_maxlen, const uint8_t *bin, size_t bin_len);
     static Buffer fromHex(const char *in, size_t size);
     static Buffer randomBytes(size_t size);
+    static rapidjson::Value toHex(const Buffer &data, rapidjson::Document &doc);
+    static rapidjson::Value toHex(const std::string &data, rapidjson::Document &doc);
+    static rapidjson::Value toHex(const uint8_t *in, size_t size, rapidjson::Document &doc);
     static String toHex(const uint8_t *in, size_t size);
 };
 

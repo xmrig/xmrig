@@ -28,6 +28,12 @@ using uv_handle_t   = struct uv_handle_s;
 using uv_stream_t   = struct uv_stream_s;
 using uv_tty_t      = struct uv_tty_s;
 
+#ifdef XMRIG_OS_WIN
+using ssize_t = intptr_t;
+#else
+#   include <sys/types.h>
+#endif
+
 
 namespace xmrig {
 
