@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -58,10 +58,11 @@ public:
     String host;
     String path;
     uint16_t port       = 0;
+    uint64_t timeout    = 0;
 };
 
 
-void fetch(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type = 0);
+void fetch(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type = 0, uint64_t rpcId = 0);
 
 
 } // namespace xmrig
