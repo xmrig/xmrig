@@ -38,12 +38,10 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
-#include "base/tools/Profiler.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/Nonce.h"
-#include "crypto/rx/Rx.h"
 #include "version.h"
 
 
@@ -64,6 +62,8 @@
 
 
 #ifdef XMRIG_ALGO_RANDOMX
+#   include "crypto/rx/Profiler.h"
+#   include "crypto/rx/Rx.h"
 #   include "crypto/rx/RxConfig.h"
 #endif
 

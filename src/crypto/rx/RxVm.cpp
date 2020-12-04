@@ -1,14 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +19,7 @@
 
 
 #include "crypto/randomx/randomx.h"
+#include "backend/cpu/Cpu.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
@@ -36,7 +30,7 @@ extern "C" uint32_t rx_blake2b_use_sse41;
 #endif
 
 
-randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, xmrig::Assembly assembly, uint32_t node)
+randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node)
 {
     int flags = 0;
 
@@ -52,11 +46,8 @@ randomx_vm* xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
         flags |= RANDOMX_FLAG_JIT;
     }
 
-    if (assembly == Assembly::AUTO) {
-        assembly = Cpu::info()->assembly();
-    }
-
-    if ((assembly == Assembly::RYZEN) || (assembly == Assembly::BULLDOZER)) {
+    const auto asmId = assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly.id();
+    if ((asmId == Assembly::RYZEN) || (asmId == Assembly::BULLDOZER)) {
         flags |= RANDOMX_FLAG_AMD;
     }
 

@@ -232,13 +232,6 @@ if (WITH_KAWPOW)
         )
 endif()
 
-if (WITH_PROFILING)
-    add_definitions(/DXMRIG_FEATURE_PROFILING)
-
-    list(APPEND HEADERS_BASE src/base/tools/Profiler.h)
-    list(APPEND SOURCES_BASE src/base/tools/Profiler.cpp)
-endif()
-
 
 if (WITH_RANDOMX AND WITH_BENCHMARK)
     add_definitions(/DXMRIG_FEATURE_BENCHMARK)
