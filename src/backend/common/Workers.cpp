@@ -58,20 +58,6 @@ public:
 };
 
 
-template<class T>
-inline static void getHashrateData(IWorker *worker, uint64_t &hashCount, uint64_t &timeStamp)
-{
-    worker->getHashrateData(hashCount, timeStamp);
-}
-
-
-template<>
-inline void getHashrateData<xmrig::CpuLaunchData>(IWorker *worker, uint64_t &hashCount, uint64_t &)
-{
-    hashCount = worker->rawHashes();
-}
-
-
 } // namespace xmrig
 
 
@@ -100,19 +86,20 @@ bool xmrig::Workers<T>::tick(uint64_t)
     uint64_t ts             = Chrono::steadyMSecs();
     bool totalAvailable     = true;
     uint64_t totalHashCount = 0;
+    uint64_t hashCount      = 0;
+    uint64_t rawHashes      = 0;
 
     for (Thread<T> *handle : m_workers) {
         IWorker *worker = handle->worker();
         if (worker) {
-            uint64_t hashCount;
-            getHashrateData<T>(worker, hashCount, ts);
+            worker->hashrateData(hashCount, ts, rawHashes);
             d_ptr->hashrate->add(handle->id() + 1, hashCount, ts);
 
-            const uint64_t n = worker->rawHashes();
-            if (n == 0) {
+            if (rawHashes == 0) {
                 totalAvailable = false;
             }
-            totalHashCount += n;
+
+            totalHashCount += rawHashes;
         }
     }
 

@@ -16,53 +16,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CUDAWORKER_H
-#define XMRIG_CUDAWORKER_H
+#ifndef XMRIG_GPUWORKER_H
+#define XMRIG_GPUWORKER_H
 
 
-#include "backend/common/GpuWorker.h"
-#include "backend/common/WorkerJob.h"
-#include "backend/cuda/CudaLaunchData.h"
-#include "base/tools/Object.h"
-#include "net/JobResult.h"
+#include <atomic>
+
+
+#include "backend/common/HashrateInterpolator.h"
+#include "backend/common/Worker.h"
 
 
 namespace xmrig {
 
 
-class ICudaRunner;
-
-
-class CudaWorker : public GpuWorker
+class GpuWorker : public Worker
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CudaWorker)
-
-    CudaWorker(size_t id, const CudaLaunchData &data);
-
-    ~CudaWorker() override;
-
-    void jobEarlyNotification(const Job &job) override;
-
-    static std::atomic<bool> ready;
+    GpuWorker(size_t id, int64_t affinity, int priority, uint32_t m_deviceIndex);
 
 protected:
-    bool selfTest() override;
-    size_t intensity() const override;
-    void start() override;
+    inline const VirtualMemory *memory() const override     { return nullptr; }
+    inline uint32_t deviceIndex() const                     { return m_deviceIndex; }
 
-private:
-    bool consumeJob();
+    void hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const override;
+
+protected:
     void storeStats();
 
-    const Algorithm m_algorithm;
-    const Miner *m_miner;
-    ICudaRunner *m_runner = nullptr;
-    WorkerJob<1> m_job;
+    const uint32_t m_deviceIndex;
+    HashrateInterpolator m_hashrateData;
+    std::atomic<uint32_t> m_index   = {};
+    uint64_t m_hashCount[2]         = {};
+    uint64_t m_timestamp[2]         = {};
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_CUDAWORKER_H */
+#endif /* XMRIG_GPUWORKER_H */
