@@ -266,6 +266,12 @@ bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
 }
 
 
+bool xmrig::CpuBackend::tick(uint64_t ticks)
+{
+    return d_ptr->workers.tick(ticks);
+}
+
+
 const xmrig::Hashrate *xmrig::CpuBackend::hashrate() const
 {
     return d_ptr->workers.hashrate();
@@ -402,12 +408,6 @@ void xmrig::CpuBackend::stop()
     d_ptr->threads.clear();
 
     LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), Tags::cpu(), Chrono::steadyMSecs() - ts);
-}
-
-
-bool xmrig::CpuBackend::tick(uint64_t ticks)
-{
-    return d_ptr->workers.tick(ticks);
 }
 
 
