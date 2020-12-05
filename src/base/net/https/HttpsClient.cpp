@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +25,7 @@
 
 #include "base/net/https/HttpsClient.h"
 #include "base/io/log/Log.h"
-#include "base/tools/Buffer.h"
+#include "base/tools/Cvt.h"
 
 
 #ifdef _MSC_VER
@@ -39,8 +33,8 @@
 #endif
 
 
-xmrig::HttpsClient::HttpsClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
-    HttpClient(std::move(req), listener)
+xmrig::HttpsClient::HttpsClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
+    HttpClient(tag, std::move(req), listener)
 {
     m_ctx = SSL_CTX_new(SSLv23_method());
     assert(m_ctx != nullptr);
@@ -182,7 +176,7 @@ bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
         return false;
     }
 
-    Buffer::toHex(md, 32, m_fingerprint);
+    Cvt::toHex(m_fingerprint, sizeof(m_fingerprint), md, 32);
 
     return req().fingerprint.isNull() || strncasecmp(m_fingerprint, req().fingerprint.data(), 64) == 0;
 }

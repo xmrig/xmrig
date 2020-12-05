@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,10 +20,11 @@
 #define XMRIG_IBACKEND_H
 
 
-#include <cstdint>
-
-
 #include "3rdparty/rapidjson/fwd.h"
+#include "base/tools/Object.h"
+
+
+#include <cstdint>
 
 
 namespace xmrig {
@@ -47,10 +42,14 @@ class String;
 class IBackend
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(IBackend)
+
+    IBackend()          = default;
     virtual ~IBackend() = default;
 
     virtual bool isEnabled() const                                      = 0;
     virtual bool isEnabled(const Algorithm &algorithm) const            = 0;
+    virtual bool tick(uint64_t ticks)                                   = 0;
     virtual const Hashrate *hashrate() const                            = 0;
     virtual const String &profileName() const                           = 0;
     virtual const String &type() const                                  = 0;
@@ -61,7 +60,6 @@ public:
     virtual void setJob(const Job &job)                                 = 0;
     virtual void start(IWorker *worker, bool ready)                     = 0;
     virtual void stop()                                                 = 0;
-    virtual bool tick(uint64_t ticks)                                   = 0;
 
 #   ifdef XMRIG_FEATURE_API
     virtual rapidjson::Value toJSON(rapidjson::Document &doc) const     = 0;

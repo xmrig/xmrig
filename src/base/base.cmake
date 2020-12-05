@@ -22,6 +22,7 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/config/Title.h
+    src/base/kernel/constants.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IAsyncListener.h
     src/base/kernel/interfaces/IBaseListener.h
@@ -66,6 +67,7 @@ set(HEADERS_BASE
     src/base/tools/Baton.h
     src/base/tools/Buffer.h
     src/base/tools/Chrono.h
+    src/base/tools/Cvt.h
     src/base/tools/Handle.h
     src/base/tools/String.h
     src/base/tools/Timer.h
@@ -113,7 +115,7 @@ set(SOURCES_BASE
     src/base/net/tools/LineReader.cpp
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
-    src/base/tools/Buffer.cpp
+    src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
    )
@@ -228,13 +230,6 @@ if (WITH_KAWPOW)
         src/base/net/stratum/AutoClient.cpp
         src/base/net/stratum/EthStratumClient.cpp
         )
-endif()
-
-if (WITH_PROFILING)
-    add_definitions(/DXMRIG_FEATURE_PROFILING)
-
-    list(APPEND HEADERS_BASE src/base/tools/Profiler.h)
-    list(APPEND SOURCES_BASE src/base/tools/Profiler.cpp)
 endif()
 
 

@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +23,7 @@
 
 
 #include "base/kernel/interfaces/IDnsListener.h"
+#include "base/kernel/interfaces/ITimerListener.h"
 #include "base/net/http/Fetch.h"
 #include "base/net/http/HttpContext.h"
 #include "base/tools/Object.h"
@@ -40,22 +35,24 @@ namespace xmrig {
 class String;
 
 
-class HttpClient : public HttpContext, public IDnsListener
+class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpClient);
 
-    HttpClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
-    ~HttpClient() override;
+    HttpClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
+    ~HttpClient() override = default;
 
     inline bool isQuiet() const                 { return m_req.quiet; }
     inline const char *host() const override    { return m_req.host; }
+    inline const char *tag() const              { return m_tag; }
     inline uint16_t port() const override       { return m_req.port; }
 
     bool connect();
 
 protected:
     void onResolved(const Dns &dns, int status) override;
+    void onTimer(const Timer *timer) override;
 
     virtual void handshake();
     virtual void read(const char *data, size_t size);
@@ -66,8 +63,10 @@ protected:
 private:
     static void onConnect(uv_connect_t *req, int status);
 
-    Dns *m_dns;
+    const char *m_tag;
     FetchRequest m_req;
+    std::shared_ptr<Dns> m_dns;
+    std::shared_ptr<Timer> m_timer;
 };
 
 

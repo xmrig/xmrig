@@ -54,6 +54,7 @@ protected:
 
     bool isEnabled() const override;
     bool isEnabled(const Algorithm &algorithm) const override;
+    bool tick(uint64_t ticks) override;
     const Hashrate *hashrate() const override;
     const String &profileName() const override;
     const String &type() const override;
@@ -63,7 +64,6 @@ protected:
     void setJob(const Job &job) override;
     void start(IWorker *worker, bool ready) override;
     void stop() override;
-    bool tick(uint64_t ticks) override;
 
 #   ifdef XMRIG_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const override;

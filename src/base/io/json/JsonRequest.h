@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,10 +29,31 @@ namespace xmrig {
 class JsonRequest
 {
 public:
+    static const char *k2_0;
+    static const char *kId;
+    static const char *kJsonRPC;
+    static const char *kMethod;
+    static const char *kOK;
     static const char *kParams;
+    static const char *kResult;
+    static const char *kStatus;
 
+    static const char *kParseError;
+    static const char *kInvalidRequest;
+    static const char *kMethodNotFound;
+    static const char *kInvalidParams;
+    static const char *kInternalError;
+
+    constexpr static int kParseErrorCode        = -32700;
+    constexpr static int kInvalidRequestCode    = -32600;
+    constexpr static int kMethodNotFoundCode    = -32601;
+    constexpr static int kInvalidParamsCode     = -32602;
+    constexpr static int kInternalErrorCode     = -32603;
+
+    static rapidjson::Document create(const char *method);
     static rapidjson::Document create(int64_t id, const char *method);
-    static void create(rapidjson::Document &doc, int64_t id, const char *method, rapidjson::Value &params);
+    static uint64_t create(rapidjson::Document &doc, const char *method, rapidjson::Value &params);
+    static uint64_t create(rapidjson::Document &doc, int64_t id, const char *method, rapidjson::Value &params);
 };
 
 

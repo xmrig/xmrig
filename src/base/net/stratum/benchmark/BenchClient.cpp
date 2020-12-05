@@ -31,6 +31,7 @@
 #include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/benchmark/BenchConfig.h"
+#include "base/tools/Cvt.h"
 #include "version.h"
 
 
@@ -217,7 +218,7 @@ bool xmrig::BenchClient::setSeed(const char *seed)
         return false;
     }
 
-    if (!Buffer::fromHex(seed, size * 2, m_job.blob())) {
+    if (!Cvt::fromHex(m_job.blob(), m_job.size(), seed, size * 2)) {
         return false;
     }
 
@@ -321,7 +322,7 @@ void xmrig::BenchClient::send(Request request)
     case GET_BENCH:
         {
             FetchRequest req(HTTP_GET, m_ip, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), BenchConfig::kApiTLS, true);
-            fetch(std::move(req), m_httpListener);
+            fetch(tag(), std::move(req), m_httpListener);
         }
         break;
 
@@ -335,7 +336,7 @@ void xmrig::BenchClient::send(Request request)
             doc.AddMember("cpu",                            Cpu::toJSON(doc), allocator);
 
             FetchRequest req(HTTP_POST, m_ip, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
-            fetch(std::move(req), m_httpListener);
+            fetch(tag(), std::move(req), m_httpListener);
         }
         break;
 
@@ -374,6 +375,6 @@ void xmrig::BenchClient::update(const rapidjson::Value &body)
     FetchRequest req(HTTP_PATCH, m_ip, BenchConfig::kApiPort, fmt::format("/1/benchmark/{}", m_job.id()).c_str(), body, BenchConfig::kApiTLS, true);
     req.headers.insert({ "Authorization", fmt::format("Bearer {}", m_token)});
 
-    fetch(std::move(req), m_httpListener);
+    fetch(tag(), std::move(req), m_httpListener);
 }
 #endif

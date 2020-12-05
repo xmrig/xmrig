@@ -160,11 +160,11 @@ static void print_threads(Config *config)
 static void print_commands(Config *)
 {
     if (Log::isColors()) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG(WHITE_BOLD_S "h") WHITE_BOLD("ashrate, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume, ")
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG_BOLD("h") WHITE_BOLD("ashrate, ")
+                                                                 MAGENTA_BG_BOLD("p") WHITE_BOLD("ause, ")
+                                                                 MAGENTA_BG_BOLD("r") WHITE_BOLD("esume, ")
                                                                  WHITE_BOLD("re") MAGENTA_BG(WHITE_BOLD_S "s") WHITE_BOLD("ults, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "c") WHITE_BOLD("onnection")
+                                                                 MAGENTA_BG_BOLD("c") WHITE_BOLD("onnection")
                    );
     }
     else {

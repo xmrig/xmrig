@@ -31,13 +31,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 #include <atomic>
 #include "crypto/randomx/jit_compiler_x86.hpp"
+#include "backend/cpu/Cpu.h"
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
-#include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
+#include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/virtual_memory.hpp"
-#include "base/tools/Profiler.h"
-#include "backend/cpu/Cpu.h"
+#include "crypto/rx/Profiler.h"
 
 #ifdef XMRIG_FIX_RYZEN
 #   include "crypto/rx/Rx.h"

@@ -108,6 +108,13 @@ if (WITH_RANDOMX)
         remove_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=OFF")
     endif()
+
+    if (WITH_PROFILING)
+        add_definitions(/DXMRIG_FEATURE_PROFILING)
+
+        list(APPEND HEADERS_CRYPTO src/crypto/rx/Profiler.h)
+        list(APPEND SOURCES_CRYPTO src/crypto/rx/Profiler.cpp)
+    endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)
 endif()

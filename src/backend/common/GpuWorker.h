@@ -1,5 +1,4 @@
 /* XMRig
- * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -17,49 +16,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSOLELOG_H
-#define XMRIG_CONSOLELOG_H
+#ifndef XMRIG_GPUWORKER_H
+#define XMRIG_GPUWORKER_H
 
 
-using uv_stream_t = struct uv_stream_s;
-using uv_tty_t    = struct uv_tty_s;
+#include <atomic>
 
 
-#include "base/kernel/interfaces/ILogBackend.h"
-#include "base/tools/Object.h"
+#include "backend/common/HashrateInterpolator.h"
+#include "backend/common/Worker.h"
 
 
 namespace xmrig {
 
 
-class Title;
-
-
-class ConsoleLog : public ILogBackend
+class GpuWorker : public Worker
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ConsoleLog)
-
-    ConsoleLog(const Title &title);
-    ~ConsoleLog() override;
+    GpuWorker(size_t id, int64_t affinity, int priority, uint32_t m_deviceIndex);
 
 protected:
-    void print(uint64_t timestamp, int level, const char *line, size_t offset, size_t size, bool colors) override;
+    inline const VirtualMemory *memory() const override     { return nullptr; }
+    inline uint32_t deviceIndex() const                     { return m_deviceIndex; }
 
-private:
-    bool isSupported() const;
+    void hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const override;
 
-    uv_tty_t *m_tty = nullptr;
+protected:
+    void storeStats();
 
-#   ifdef XMRIG_OS_WIN
-    bool isWritable() const;
-
-    uv_stream_t *m_stream = nullptr;
-#   endif
+    const uint32_t m_deviceIndex;
+    HashrateInterpolator m_hashrateData;
+    std::atomic<uint32_t> m_index   = {};
+    uint64_t m_hashCount[2]         = {};
+    uint64_t m_timestamp[2]         = {};
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_CONSOLELOG_H */
+#endif /* XMRIG_GPUWORKER_H */

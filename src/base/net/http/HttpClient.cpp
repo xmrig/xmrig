@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,6 +24,7 @@
 #include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/tools/NetBuffer.h"
+#include "base/tools/Timer.h"
 
 
 #include <sstream>
@@ -44,21 +39,20 @@ static const char *kCRLF = "\r\n";
 } // namespace xmrig
 
 
-xmrig::HttpClient::HttpClient(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
+xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
     HttpContext(HTTP_RESPONSE, listener),
+    m_tag(tag),
     m_req(std::move(req))
 {
     method  = m_req.method;
     url     = std::move(m_req.path);
     body    = std::move(m_req.body);
     headers = std::move(m_req.headers);
-    m_dns   = new Dns(this);
-}
+    m_dns   = std::make_shared<Dns>(this);
 
-
-xmrig::HttpClient::~HttpClient()
-{
-    delete m_dns;
+    if (m_req.timeout) {
+        m_timer = std::make_shared<Timer>(this, m_req.timeout, 0);
+    }
 }
 
 
@@ -74,7 +68,7 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
 
     if (status < 0 && dns.isEmpty()) {
         if (!isQuiet()) {
-            LOG_ERR("[%s:%d] DNS error: \"%s\"", dns.host().data(), port(), uv_strerror(status));
+            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
         }
 
         return;
@@ -88,6 +82,12 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
     uv_tcp_connect(req, m_tcp, addr, onConnect);
 
     delete addr;
+}
+
+
+void xmrig::HttpClient::onTimer(const Timer *)
+{
+    close(UV_ETIMEDOUT);
 }
 
 
@@ -135,8 +135,12 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
     }
 
     if (status < 0) {
+        if (status == UV_ECANCELED) {
+            status = UV_ETIMEDOUT;
+        }
+
         if (!client->isQuiet()) {
-            LOG_ERR("[%s:%d] connect error: \"%s\"", client->m_dns->host().data(), client->port(), uv_strerror(status));
+            LOG_ERR("%s " RED("connect error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
         }
 
         return client->close(status);
@@ -151,7 +155,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
                 client->read(buf->base, static_cast<size_t>(nread));
             } else {
                 if (!client->isQuiet() && nread != UV_EOF) {
-                    LOG_ERR("[%s:%d] read error: \"%s\"", client->m_dns->host().data(), client->port(), uv_strerror(static_cast<int>(nread)));
+                    LOG_ERR("%s " RED("read error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(static_cast<int>(nread)));
                 }
 
                 client->close(static_cast<int>(nread));

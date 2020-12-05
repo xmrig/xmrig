@@ -122,7 +122,7 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
         }
 #       endif
 
-        const uint32_t mode = static_cast<uint32_t>(Json::getInt(value, kScratchpadPrefetchMode, static_cast<int>(m_scratchpadPrefetchMode)));
+        const auto mode = static_cast<uint32_t>(Json::getInt(value, kScratchpadPrefetchMode, static_cast<int>(m_scratchpadPrefetchMode)));
         if (mode < ScratchpadPrefetchMax) {
             m_scratchpadPrefetchMode = static_cast<ScratchpadPrefetchMode>(mode);
         }

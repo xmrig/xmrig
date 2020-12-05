@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,20 +29,13 @@ namespace xmrig {
 class HttpListener : public IHttpListener
 {
 public:
-    inline HttpListener(IHttpListener *listener, const char *tag = nullptr) :
-#       ifdef APP_DEBUG
-        m_tag(tag),
-#       endif
-        m_listener(listener)
-    {}
+    inline HttpListener(IHttpListener *listener, const char *tag = nullptr) : m_tag(tag), m_listener(listener) {}
 
 protected:
     void onHttpData(const HttpData &data) override;
 
 private:
-#   ifdef APP_DEBUG
     const char *m_tag;
-#   endif
     IHttpListener *m_listener;
 };
 
