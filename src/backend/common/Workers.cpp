@@ -93,7 +93,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
         IWorker *worker = handle->worker();
         if (worker) {
             worker->hashrateData(hashCount, ts, rawHashes);
-            d_ptr->hashrate->add(handle->id() + 1, hashCount, ts);
+            d_ptr->hashrate->add(handle->id(), hashCount, ts);
 
             if (rawHashes == 0) {
                 totalAvailable = false;
@@ -104,7 +104,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
     }
 
     if (totalAvailable) {
-        d_ptr->hashrate->add(0, totalHashCount, Chrono::steadyMSecs());
+        d_ptr->hashrate->add(totalHashCount, Chrono::steadyMSecs());
     }
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
