@@ -169,9 +169,6 @@ void xmrig::Api::exec(IApiRequest &request)
 #       ifdef XMRIG_FEATURE_HTTP
         features.PushBack("http", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_LIBCPUID
-        features.PushBack("cpuid", allocator);
-#       endif
 #       ifdef XMRIG_FEATURE_HWLOC
         features.PushBack("hwloc", allocator);
 #       endif
