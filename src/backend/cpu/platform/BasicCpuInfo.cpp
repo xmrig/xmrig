@@ -52,8 +52,8 @@
 namespace xmrig {
 
 
-constexpr size_t kCpuFlagsSize                                  = 12;
-static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3" };
+constexpr size_t kCpuFlagsSize                                  = 13;
+static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3", "vm" };
 static_assert(kCpuFlagsSize == ICpuInfo::FLAG_MAX, "kCpuFlagsSize and FLAG_MAX mismatch");
 
 
@@ -148,6 +148,7 @@ static inline bool has_sse41()      { return has_feature(PROCESSOR_INFO,        
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
 static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
 static inline bool has_cat_l3()     { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 15) && has_feature(0x10, EBX_Reg, 1 << 1); }
+static inline bool is_vm()          { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 31); }
 
 
 } // namespace xmrig
@@ -185,6 +186,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_XOP,     has_xop());
     m_flags.set(FLAG_POPCNT,  has_popcnt());
     m_flags.set(FLAG_CAT_L3,  has_cat_l3());
+    m_flags.set(FLAG_VM,      is_vm());
 
 #   ifdef XMRIG_FEATURE_ASM
     if (hasAES()) {

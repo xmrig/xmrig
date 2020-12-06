@@ -88,12 +88,13 @@ static void print_cpu(Config *)
 {
     const auto info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES%s",
                "CPU",
                info->brand(),
                info->packages(),
                info->isX64()          ? GREEN_BOLD_S : RED_BOLD_S "-",
-               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-"
+               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->isVM()           ? RED_BOLD_S " VM" : ""
                );
 #   if defined(XMRIG_FEATURE_HWLOC)
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
