@@ -110,7 +110,7 @@ private:
     alignas(16) uint8_t m_blobs[2][Job::kMaxBlobSize * N]{};
     Job m_jobs[2];
     uint32_t m_rounds[2] = { 0, 0 };
-    uint64_t m_nonce_mask[2];
+    uint64_t m_nonce_mask[2] = { 0, 0 };
     uint64_t m_sequence  = 0;
     uint8_t m_index      = 0;
 };

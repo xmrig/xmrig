@@ -173,7 +173,7 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 
 bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
 {
-	uint8_t key[32];
+	alignas(8) uint8_t key[32];
 	uint8_t* scratchpad_ptr = (uint8_t*)(scratchpad) + 64;
 	uint8_t* stage1_output = scratchpad_ptr;
 	uint8_t* stage2_output = scratchpad_ptr;

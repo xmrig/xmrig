@@ -168,7 +168,7 @@ typedef uint64_t state_t[25];
 void xmrig::keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 {
     state_t st;
-    uint8_t temp[144];
+    alignas(8) uint8_t temp[144];
     int i, rsiz, rsizw;
 
     rsiz = sizeof(state_t) == mdlen ? HASH_DATA_AREA : 200 - 2 * mdlen;

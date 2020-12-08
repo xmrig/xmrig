@@ -46,7 +46,7 @@ public:
     HwlocCpuInfo();
     ~HwlocCpuInfo() override;
 
-    static inline bool has(Feature feature)                     { return m_features & feature; }
+    static inline bool hasFeature(Feature feature)              { return m_features & feature; }
 
     inline const std::vector<uint32_t> &nodeset() const         { return m_nodeset; }
     inline hwloc_topology_t topology() const                    { return m_topology; }

@@ -43,6 +43,9 @@
 namespace xmrig {
 
 
+constexpr size_t BLOB_SIZE = 40;
+
+
 OclKawPowRunner::OclKawPowRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
     switch (data.thread.worksize())
@@ -82,7 +85,7 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
     const size_t global_work_offset = nonce;
     const size_t global_work_size = m_intensity - (m_intensity % m_workGroupSize);
 
-    enqueueWriteBuffer(m_input, CL_FALSE, 0, 40, m_blob);
+    enqueueWriteBuffer(m_input, CL_FALSE, 0, BLOB_SIZE, m_blob);
 
     const uint32_t zero[2] = {};
     enqueueWriteBuffer(m_output, CL_FALSE, 0, sizeof(uint32_t), zero);
@@ -177,7 +180,7 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
     OclLib::setKernelArg(m_searchKernel, 5, sizeof(m_stop), &m_stop);
 
     m_blob = blob;
-    enqueueWriteBuffer(m_input, CL_TRUE, 0, sizeof(m_blob), m_blob);
+    enqueueWriteBuffer(m_input, CL_TRUE, 0, BLOB_SIZE, m_blob);
 }
 
 

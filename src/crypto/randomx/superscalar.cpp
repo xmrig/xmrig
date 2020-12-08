@@ -196,7 +196,7 @@ namespace randomx {
 		int latency_;
 		int resultOp_ = 0;
 		int dstOp_ = 0;
-		int srcOp_;
+		int srcOp_ = 0;
 
 		SuperscalarInstructionInfo(const char* name)
 			: name_(name), type_(SuperscalarInstructionType::INVALID), latency_(0) {}
