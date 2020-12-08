@@ -103,7 +103,7 @@ static bool wrmsr_on_cpu(uint32_t reg, uint32_t cpu, uint64_t value, uint64_t ma
 
     char msr_file_name[64]{};
 
-    sprintf(msr_file_name, "/dev/cpu/%d/msr", cpu);
+    sprintf(msr_file_name, "/dev/cpu/%u/msr", cpu);
     int fd = open(msr_file_name, O_WRONLY);
     if (fd < 0) {
         return false;

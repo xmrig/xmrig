@@ -68,11 +68,11 @@ namespace randomx {
 
 		alignas(64) static InstructionGeneratorX86 engine[256];
 
-		int registerUsage[RegistersCount];
-		uint8_t* code;
-		uint32_t codePos;
-		uint32_t codePosFirst;
-		uint32_t vm_flags;
+		int registerUsage[RegistersCount] = {};
+		uint8_t* code = nullptr;
+		uint32_t codePos = 0;
+		uint32_t codePosFirst = 0;
+		uint32_t vm_flags = 0;
 
 #		ifdef XMRIG_FIX_RYZEN
 		std::pair<const void*, const void*> mainLoopBounds;
