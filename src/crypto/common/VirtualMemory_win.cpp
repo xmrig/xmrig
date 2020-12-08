@@ -63,7 +63,7 @@ Return value: TRUE indicates success, FALSE failure.
 static BOOL SetLockPagesPrivilege() {
     HANDLE token;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) != TRUE) {
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) {
         return FALSE;
     }
 
@@ -71,12 +71,12 @@ static BOOL SetLockPagesPrivilege() {
     tp.PrivilegeCount = 1;
     tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
+    if (!LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid))) {
         return FALSE;
     }
 
     BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, nullptr, nullptr);
-    if (rc != TRUE || GetLastError() != ERROR_SUCCESS) {
+    if (!rc || GetLastError() != ERROR_SUCCESS) {
         return FALSE;
     }
 
@@ -101,7 +101,7 @@ static BOOL ObtainLockPagesPrivilege() {
     HANDLE token;
     PTOKEN_USER user = nullptr;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE) {
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
         DWORD size = 0;
 
         GetTokenInformation(token, TokenUser, nullptr, 0, &size);

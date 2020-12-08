@@ -1076,7 +1076,7 @@ namespace randomx {
 			pos += 2;
 		}
 		else {
-			*(uint64_t*)(p + pos) = 0x840f + ((static_cast<int64_t>(jmp_offset) - 4) << 16);
+			*(uint64_t*)(p + pos) = 0x840f + (static_cast<uint64_t>(jmp_offset - 4) << 16);
 			pos += 6;
 		}
 

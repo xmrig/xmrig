@@ -306,7 +306,7 @@ private:
     }
 
 
-    static std::string merge(std::string a, std::string b, uint32_t r)
+    static std::string merge(const std::string& a, const std::string& b, uint32_t r)
     {
         switch (r % 4)
         {
@@ -323,7 +323,7 @@ private:
     }
 
 
-    static std::string math(std::string d, std::string a, std::string b, uint32_t r)
+    static std::string math(const std::string& d, const std::string& a, const std::string& b, uint32_t r)
     {
         switch (r % 11)
         {

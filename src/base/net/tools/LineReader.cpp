@@ -56,8 +56,8 @@ void xmrig::LineReader::reset()
 
 void xmrig::LineReader::add(const char *data, size_t size)
 {
-    if (size > XMRIG_NET_BUFFER_CHUNK_SIZE - m_pos) {
-        // it breakes correctness silently for long lines
+    if (size + m_pos > XMRIG_NET_BUFFER_CHUNK_SIZE) {
+        // it breaks correctness silently for long lines
         return;
     }
 

@@ -155,7 +155,7 @@ void xmrig::RxQueue::backgroundInit()
 
         m_storage->init(item.seed, item.threads, item.hugePages, item.oneGbPages, item.mode, item.priority);
 
-        lock = std::unique_lock<std::mutex>(m_mutex);
+        lock.lock();
 
         if (m_state == STATE_SHUTDOWN || !m_queue.empty()) {
             continue;
