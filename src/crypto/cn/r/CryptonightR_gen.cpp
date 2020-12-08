@@ -76,7 +76,7 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
 
         void_func begin = instructions[c];
 
-        if ((ASM = xmrig::Assembly::BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
+        if ((ASM == xmrig::Assembly::BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
             // AMD Bulldozer has latency 4 for 32-bit IMUL and 6 for 64-bit IMUL
             // Always use 32-bit IMUL for AMD Bulldozer in 32-bit mode - skip prefix 0x48 and change 0x49 to 0x41
             uint8_t* prefix = reinterpret_cast<uint8_t*>(begin);

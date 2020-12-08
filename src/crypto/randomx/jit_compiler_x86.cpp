@@ -411,30 +411,14 @@ namespace randomx {
 			emitByte(instr.getImm32() & 63, code, codePos);
 			break;
 		case randomx::SuperscalarInstructionType::IADD_C7:
-			emit(REX_81, code, codePos);
-			emitByte(0xc0 + instr.dst, code, codePos);
-			emit32(instr.getImm32(), code, codePos);
-			break;
-		case randomx::SuperscalarInstructionType::IXOR_C7:
-			emit(REX_XOR_RI, code, codePos);
-			emitByte(0xf0 + instr.dst, code, codePos);
-			emit32(instr.getImm32(), code, codePos);
-			break;
 		case randomx::SuperscalarInstructionType::IADD_C8:
-			emit(REX_81, code, codePos);
-			emitByte(0xc0 + instr.dst, code, codePos);
-			emit32(instr.getImm32(), code, codePos);
-			break;
-		case randomx::SuperscalarInstructionType::IXOR_C8:
-			emit(REX_XOR_RI, code, codePos);
-			emitByte(0xf0 + instr.dst, code, codePos);
-			emit32(instr.getImm32(), code, codePos);
-			break;
 		case randomx::SuperscalarInstructionType::IADD_C9:
 			emit(REX_81, code, codePos);
 			emitByte(0xc0 + instr.dst, code, codePos);
 			emit32(instr.getImm32(), code, codePos);
 			break;
+		case randomx::SuperscalarInstructionType::IXOR_C7:
+		case randomx::SuperscalarInstructionType::IXOR_C8:
 		case randomx::SuperscalarInstructionType::IXOR_C9:
 			emit(REX_XOR_RI, code, codePos);
 			emitByte(0xf0 + instr.dst, code, codePos);
@@ -1088,7 +1072,7 @@ namespace randomx {
 		pos += 14;
 
 		if (jmp_offset >= -128) {
-			*(uint32_t*)(p + pos) = 0x74 + (jmp_offset << 8);
+			*(uint32_t*)(p + pos) = 0x74 + (static_cast<uint32_t>(jmp_offset) << 8);
 			pos += 2;
 		}
 		else {
