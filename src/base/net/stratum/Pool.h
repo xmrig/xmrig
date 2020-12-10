@@ -72,6 +72,7 @@ public:
     static const char *kPass;
     static const char *kRigId;
     static const char *kSelfSelect;
+    static const char* kSubmitToOrigin;
     static const char *kSOCKS5;
     static const char *kTls;
     static const char *kUrl;
@@ -156,6 +157,7 @@ private:
     uint64_t m_pollInterval         = kDefaultPollInterval;
     Url m_daemon;
     Url m_url;
+    bool m_submit_to_origin         = false;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     std::shared_ptr<BenchConfig> m_benchmark;

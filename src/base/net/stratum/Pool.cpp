@@ -79,6 +79,7 @@ const char *Pool::kNicehash               = "nicehash";
 const char *Pool::kPass                   = "pass";
 const char *Pool::kRigId                  = "rig-id";
 const char *Pool::kSelfSelect             = "self-select";
+const char* Pool::kSubmitToOrigin         = "submit-to-origin";
 const char *Pool::kSOCKS5                 = "socks5";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
@@ -138,6 +139,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 
     if (m_daemon.isValid()) {
         m_mode = MODE_SELF_SELECT;
+        m_submit_to_origin = Json::getBool(object, kSubmitToOrigin, false);
     }
     else if (Json::getBool(object, kDaemon)) {
         m_mode = MODE_DAEMON;
@@ -237,7 +239,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
         client = new DaemonClient(id, listener);
     }
     else if (m_mode == MODE_SELF_SELECT) {
-        client = new SelfSelectClient(id, Platform::userAgent(), listener);
+        client = new SelfSelectClient(id, Platform::userAgent(), listener, m_submit_to_origin);
     }
 #   endif
 #   ifdef XMRIG_ALGO_KAWPOW
@@ -301,6 +303,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     }
     else {
         obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+        obj.AddMember(StringRef(kSubmitToOrigin), m_submit_to_origin, allocator);
     }
 
     return obj;
@@ -319,7 +322,7 @@ std::string xmrig::Pool::printableName() const
     }
 
     if (m_mode == MODE_SELF_SELECT) {
-        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + CLEAR;
+        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + WHITE_BOLD_S + (m_submit_to_origin ? " submit-to-origin" : "") + CLEAR;
     }
 
     return out;

@@ -35,6 +35,7 @@
 
 
 #include <memory>
+#include <map>
 
 
 namespace xmrig {
@@ -45,7 +46,7 @@ class SelfSelectClient : public IClient, public IClientListener, public IHttpLis
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(SelfSelectClient)
 
-    SelfSelectClient(int id, const char *agent, IClientListener *listener);
+    SelfSelectClient(int id, const char *agent, IClientListener *listener, bool submit_to_origin);
     ~SelfSelectClient() override;
 
 protected:
@@ -65,7 +66,7 @@ protected:
     inline int64_t send(const rapidjson::Value &obj, Callback callback) override    { return m_client->send(obj, callback); }
     inline int64_t send(const rapidjson::Value &obj) override                       { return m_client->send(obj); }
     inline int64_t sequence() const override                                        { return m_client->sequence(); }
-    inline int64_t submit(const JobResult &result) override                         { return m_client->submit(result); }
+    inline int64_t submit(const JobResult &result) override;
     inline void connect() override                                                  { m_client->connect(); }
     inline void connect(const Pool &pool) override                                  { m_client->connect(pool); }
     inline void deleteLater() override                                              { m_client->deleteLater(); }
@@ -105,7 +106,7 @@ private:
     void retry();
     void setState(State state);
     void submitBlockTemplate(rapidjson::Value &result);
-
+    inline void submitOriginDaemon(const JobResult &result);
     bool m_active           = false;
     bool m_quiet            = false;
     IClient *m_client;
@@ -115,9 +116,15 @@ private:
     int64_t m_sequence      = 1;
     Job m_job;
     State m_state           = IdleState;
+    String m_blocktemplate;
+    bool m_submit_to_origin = false;
+    std::map<int64_t, SubmitResult> m_results;
     std::shared_ptr<IHttpListener> m_httpListener;
     uint64_t m_retryPause   = 5000;
     uint64_t m_timestamp    = 0;
+    uint64_t m_blockdiff = 0;
+    uint64_t m_origin_submitted = 0;
+    uint64_t m_origin_not_submitted = 0;
 };
 
 
