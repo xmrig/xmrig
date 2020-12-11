@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -30,8 +32,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <climits>
 #include <atomic>
+
 #include "crypto/randomx/jit_compiler_x86.hpp"
 #include "backend/cpu/Cpu.h"
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
@@ -170,16 +174,28 @@ namespace randomx {
 		return codePos < prologueSize ? 0 : codePos - prologueSize;
 	}
 
-    static inline void cpuid(uint32_t level, int32_t output[4])
-    {
-        memset(output, 0, sizeof(int32_t) * 4);
+	void JitCompilerX86::enableAll() {
+		xmrig::VirtualMemory::protectRWX(code, CodeSize);
+	}
 
-#   ifdef _MSC_VER
-        __cpuid(output, static_cast<int>(level));
-#   else
-        __cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
-#   endif
-    }
+	void JitCompilerX86::enableWriting() {
+		xmrig::VirtualMemory::protectRW(code, CodeSize);
+	}
+
+	void JitCompilerX86::enableExecution() {
+		xmrig::VirtualMemory::protectRX(code, CodeSize);
+	}
+
+	static inline void cpuid(uint32_t level, int32_t output[4])
+	{
+		memset(output, 0, sizeof(int32_t) * 4);
+
+#	ifdef _MSC_VER
+		__cpuid(output, static_cast<int>(level));
+#	else
+		__cpuid_count(level, 0, output[0], output[1], output[2], output[3]);
+#	endif
+	}
 
 #	ifdef _MSC_VER
 	static FORCE_INLINE uint32_t rotl32(uint32_t a, int shift) { return _rotl(a, shift); }

@@ -1,6 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
-Copyright (c) 2019, SChernykh    <https://github.com/SChernykh>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -28,9 +29,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "crypto/randomx/jit_compiler_a64.hpp"
-#include "crypto/randomx/superscalar.hpp"
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
+#include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/virtual_memory.hpp"
 
 static bool hugePagesJIT = false;
@@ -355,6 +357,21 @@ DatasetInitFunc* JitCompilerA64::getDatasetInitFunc()
 size_t JitCompilerA64::getCodeSize()
 {
 	return CodeSize;
+}
+
+void JitCompilerA64::enableWriting()
+{
+	xmrig::VirtualMemory::protectRW(code, CodeSize + CalcDatasetItemSize());
+}
+
+void JitCompilerA64::enableExecution()
+{
+	xmrig::VirtualMemory::protectRX(code, CodeSize + CalcDatasetItemSize());
+}
+
+void JitCompilerA64::enableAll()
+{
+	xmrig::VirtualMemory::protectRWX(code, CodeSize + CalcDatasetItemSize());
 }
 
 void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code, uint32_t& codePos)

@@ -36,12 +36,14 @@
 #include "3rdparty/rapidjson/document.h"
 
 
-#ifdef XMRIG_OS_UNIX
+#if defined(XMRIG_OS_UNIX)
 namespace xmrig {
 
 extern String cpu_name_arm();
 
 } // namespace xmrig
+#elif defined(XMRIG_OS_MACOS)
+#   include <sys/sysctl.h>
 #endif
 
 
@@ -62,13 +64,16 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   endif
 #   endif
 
-#   ifdef XMRIG_OS_UNIX
+#   if defined(XMRIG_OS_UNIX)
     auto name = cpu_name_arm();
     if (!name.isNull()) {
         strncpy(m_brand, name, sizeof(m_brand) - 1);
     }
 
     m_flags.set(FLAG_PDPE1GB, std::ifstream("/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages").good());
+#   elif defined(XMRIG_OS_MACOS)
+    size_t buflen = sizeof(m_brand);
+    sysctlbyname("machdep.cpu.brand_string", &m_brand, &buflen, nullptr, 0);
 #   endif
 }
 

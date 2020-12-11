@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -47,7 +49,17 @@ namespace randomx {
 		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
+
+#		ifdef XMRIG_SECURE_JIT
+		compiler.enableWriting();
+#		endif
+
 		compiler.generateProgram(program, config, randomx_vm::getFlags());
+
+#		ifdef XMRIG_SECURE_JIT
+		compiler.enableExecution();
+#		endif
+
 		mem.memory = datasetPtr->memory + datasetOffset;
 		execute();
 	}

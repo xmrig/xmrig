@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -77,16 +79,16 @@ namespace randomx {
 		context.pwdlen = (uint32_t)keySize;
 		context.salt = CONST_CAST(uint8_t *)RandomX_CurrentConfig.ArgonSalt;
 		context.saltlen = (uint32_t)strlen(RandomX_CurrentConfig.ArgonSalt);
-		context.secret = NULL;
+		context.secret = nullptr;
 		context.secretlen = 0;
-		context.ad = NULL;
+		context.ad = nullptr;
 		context.adlen = 0;
 		context.t_cost = RandomX_CurrentConfig.ArgonIterations;
 		context.m_cost = RandomX_CurrentConfig.ArgonMemory;
 		context.lanes = RandomX_CurrentConfig.ArgonLanes;
 		context.threads = 1;
-		context.allocate_cbk = NULL;
-		context.free_cbk = NULL;
+		context.allocate_cbk = nullptr;
+		context.free_cbk = nullptr;
 		context.flags = ARGON2_DEFAULT_FLAGS;
 		context.version = ARGON2_VERSION_NUMBER;
 
@@ -100,8 +102,17 @@ namespace randomx {
 
 	void initCacheCompile(randomx_cache* cache, const void* key, size_t keySize) {
 		initCache(cache, key, keySize);
+
+#		ifdef XMRIG_SECURE_JIT
+		cache->jit->enableWriting();
+#		endif
+
 		cache->jit->generateSuperscalarHash(cache->programs);
 		cache->jit->generateDatasetInitCode();
+
+#		ifdef XMRIG_SECURE_JIT
+		cache->jit->enableExecution();
+#		endif
 	}
 
 	constexpr uint64_t superscalarMul0 = 6364136223846793005ULL;

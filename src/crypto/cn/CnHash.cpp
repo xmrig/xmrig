@@ -219,7 +219,7 @@ static void patchAsmVariants()
         patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
-    VirtualMemory::protectExecutableMemory(base, allocation_size);
+    VirtualMemory::protectRX(base, allocation_size);
     VirtualMemory::flushInstructionCache(base, allocation_size);
 }
 } // namespace xmrig

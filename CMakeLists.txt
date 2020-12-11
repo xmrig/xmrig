@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(xmrig)
 
 option(WITH_HWLOC           "Enable hwloc support" ON)
@@ -25,6 +25,7 @@ option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
 option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
+option(WITH_SECURE_JIT      "Enable secure access to JIT memory" OFF)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
