@@ -106,7 +106,9 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 {
 #   if defined(XMRIG_OS_APPLE)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON | MEXTRA, -1, 0);
+#   ifdef XMRIG_ARM
     pthread_jit_write_protect_np(false);
+#   endif
 #   elif defined(__FreeBSD__)
     void *mem = nullptr;
 
