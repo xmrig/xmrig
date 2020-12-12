@@ -30,6 +30,7 @@
 #ifdef XMRIG_OS_APPLE
 #   include <libkern/OSCacheControl.h>
 #   include <mach/vm_statistics.h>
+#   include <pthread.h>
 #   include <TargetConditionals.h>
 #   ifdef XMRIG_OS_MACOS
 #       define MEXTRA MAP_JIT
@@ -74,7 +75,12 @@ bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 
 bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
 {
+#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+    pthread_jit_write_protect_np(false);
+    return true;
+#   else
     return mprotect(p, size, PROT_READ | PROT_WRITE) == 0;
+#   endif
 }
 
 
@@ -86,14 +92,21 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 
 bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 {
+#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+    pthread_jit_write_protect_np(true);
+    flushInstructionCache(p, size);
+    return true;
+#   else
     return mprotect(p, size, PROT_READ | PROT_EXEC) == 0;
+#   endif
 }
 
 
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
-#   if defined(__APPLE__)
-    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANON | MEXTRA, -1, 0);
+#   if defined(XMRIG_OS_APPLE)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON | MEXTRA, -1, 0);
+    pthread_jit_write_protect_np(false);
 #   elif defined(__FreeBSD__)
     void *mem = nullptr;
 

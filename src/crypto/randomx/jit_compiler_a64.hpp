@@ -80,7 +80,8 @@ namespace randomx {
 		uint32_t reg_changed_offset[8];
 		uint8_t* code;
 		uint32_t literalPos;
-		uint32_t num32bitLiterals;
+		uint32_t num32bitLiterals = 0;
+		size_t allocatedSize = 0;
 
 		static void emit32(uint32_t val, uint8_t* code, uint32_t& codePos)
 		{
