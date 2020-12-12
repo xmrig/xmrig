@@ -42,12 +42,14 @@ public:
     VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node = 0, size_t alignSize = 64);
     ~VirtualMemory();
 
-    inline bool isHugePages() const     { return m_flags.test(FLAG_HUGEPAGES); }
-    inline bool isOneGbPages() const    { return m_flags.test(FLAG_1GB_PAGES); }
-    inline size_t size() const          { return m_size; }
-    inline size_t capacity() const      { return m_capacity; }
-    inline uint8_t *raw() const         { return m_scratchpad; }
-    inline uint8_t *scratchpad() const  { return m_scratchpad; }
+    inline bool isHugePages() const                                 { return m_flags.test(FLAG_HUGEPAGES); }
+    inline bool isOneGbPages() const                                { return m_flags.test(FLAG_1GB_PAGES); }
+    inline size_t size() const                                      { return m_size; }
+    inline size_t capacity() const                                  { return m_capacity; }
+    inline uint8_t *raw() const                                     { return m_scratchpad; }
+    inline uint8_t *scratchpad() const                              { return m_scratchpad; }
+
+    inline static void flushInstructionCache(void *p1, void *p2)    { flushInstructionCache(p1, static_cast<uint8_t*>(p2) - static_cast<uint8_t*>(p1)); }
 
     HugePagesInfo hugePages() const;
 

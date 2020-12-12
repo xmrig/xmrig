@@ -112,21 +112,6 @@ JitCompilerA64::~JitCompilerA64()
 	freePagedMemory(code, CodeSize + CalcDatasetItemSize());
 }
 
-#if defined(ios_HOST_OS) || defined (darwin_HOST_OS)
-void sys_icache_invalidate(void *start, size_t len);
-#endif
-
-static void clear_code_cache(char* p1, char* p2)
-{
-#	if defined(ios_HOST_OS) || defined (darwin_HOST_OS)
-	sys_icache_invalidate(p1, static_cast<size_t>(p2 - p1));
-#	elif defined (HAVE_BUILTIN_CLEAR_CACHE) || defined (__GNUC__)
-	__builtin___clear_cache(p1, p2);
-#	else
-#	error "No clear code cache function found"
-#	endif
-}
-
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
 	uint32_t codePos = MainLoopBegin + 4;
@@ -173,7 +158,7 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	codePos = ((uint8_t*)randomx_program_aarch64_update_spMix1) - ((uint8_t*)randomx_program_aarch64);
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
 
-	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
 }
 
 void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
@@ -228,7 +213,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_LO | 2 | (2 << 5) | (imm_lo << 10), code, codePos);
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
-	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
 }
 
 template<size_t N>
@@ -344,7 +329,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 	memcpy(code + codePos, p1, p2 - p1);
 	codePos += p2 - p1;
 
-	clear_code_cache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
 }
 
 template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES]);

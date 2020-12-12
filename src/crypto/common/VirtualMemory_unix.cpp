@@ -27,9 +27,10 @@
 #include "crypto/common/VirtualMemory.h"
 
 
-#ifdef __APPLE__
-#   include <TargetConditionals.h>
+#ifdef XMRIG_OS_APPLE
+#   include <libkern/OSCacheControl.h>
 #   include <mach/vm_statistics.h>
+#   include <TargetConditionals.h>
 #   ifdef XMRIG_OS_MACOS
 #       define MEXTRA MAP_JIT
 #   else
@@ -178,7 +179,9 @@ void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 
 void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
-#   ifdef HAVE_BUILTIN_CLEAR_CACHE
+#   if defined(XMRIG_OS_APPLE)
+    sys_icache_invalidate(p, size);
+#   elif defined (HAVE_BUILTIN_CLEAR_CACHE) || defined (__GNUC__)
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
 #   endif
 }
