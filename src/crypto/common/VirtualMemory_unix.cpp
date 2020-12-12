@@ -32,7 +32,7 @@
 #   include <mach/vm_statistics.h>
 #   include <pthread.h>
 #   include <TargetConditionals.h>
-#   ifdef XMRIG_OS_MACOS
+#   ifdef XMRIG_ARM
 #       define MEXTRA MAP_JIT
 #   else
 #       define MEXTRA 0
