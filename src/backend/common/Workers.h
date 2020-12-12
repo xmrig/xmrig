@@ -65,7 +65,7 @@ public:
 
 private:
     static IWorker *create(Thread<T> *handle);
-    static void onReady(void *arg);
+    static void *onReady(void *arg);
 
     void start(const std::vector<T> &data, bool sleep);
 

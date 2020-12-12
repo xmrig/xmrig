@@ -174,7 +174,7 @@ xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 
 
 template<class T>
-void xmrig::Workers<T>::onReady(void *arg)
+void *xmrig::Workers<T>::onReady(void *arg)
 {
     auto handle = static_cast<Thread<T>* >(arg);
 
@@ -187,13 +187,15 @@ void xmrig::Workers<T>::onReady(void *arg)
         handle->backend()->start(worker, false);
         delete worker;
 
-        return;
+        return nullptr;
     }
 
     assert(handle->backend() != nullptr);
 
     handle->setWorker(worker);
     handle->backend()->start(worker, true);
+
+    return nullptr;
 }
 
 

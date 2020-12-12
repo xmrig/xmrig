@@ -19,8 +19,6 @@
 
 #include <IOKit/IOKitLib.h>
 #include <IOKit/ps/IOPowerSources.h>
-#include <mach/thread_act.h>
-#include <mach/thread_policy.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/resource.h>
@@ -50,18 +48,10 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-#ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
-    thread_port_t mach_thread;
-    thread_affinity_policy_data_t policy = { static_cast<integer_t>(cpu_id) };
-    mach_thread = pthread_mach_thread_np(pthread_self());
-
-    const bool result = (thread_policy_set(mach_thread, THREAD_AFFINITY_POLICY, (thread_policy_t)&policy, 1) == KERN_SUCCESS);
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
-    return result;
+    return true;
 }
-#endif
 
 
 void xmrig::Platform::setProcessPriority(int)
