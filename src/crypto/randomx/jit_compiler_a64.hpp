@@ -59,16 +59,24 @@ namespace randomx {
 
 		void generateDatasetInitCode() {}
 
-		ProgramFunc* getProgramFunc() { return reinterpret_cast<ProgramFunc*>(code); }
-		DatasetInitFunc* getDatasetInitFunc();
+		inline ProgramFunc *getProgramFunc() const {
+#			ifdef XMRIG_SECURE_JIT
+			enableExecution();
+#			endif
+
+			return reinterpret_cast<ProgramFunc*>(code);
+		}
+
+		DatasetInitFunc* getDatasetInitFunc() const;
 		uint8_t* getCode() { return code; }
 		size_t getCodeSize();
 
-		void enableWriting();
-		void enableExecution();
-		void enableAll();
+		void enableWriting() const;
+		void enableExecution() const;
 
 		static InstructionGeneratorA64 engine[256];
+
+	private:
 		uint32_t reg_changed_offset[8];
 		uint8_t* code;
 		uint32_t literalPos;
@@ -95,6 +103,7 @@ namespace randomx {
 		template<uint32_t tmp_reg_fp>
 		void emitMemLoadFP(uint32_t src, Instruction& instr, uint8_t* code, uint32_t& codePos);
 
+	public:
 		void h_IADD_RS(Instruction&, uint32_t&);
 		void h_IADD_M(Instruction&, uint32_t&);
 		void h_ISUB_R(Instruction&, uint32_t&);

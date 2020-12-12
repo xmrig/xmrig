@@ -174,16 +174,12 @@ namespace randomx {
 		return codePos < prologueSize ? 0 : codePos - prologueSize;
 	}
 
-	void JitCompilerX86::enableAll() {
-		xmrig::VirtualMemory::protectRWX(code, CodeSize);
+	void JitCompilerX86::enableWriting() const {
+		xmrig::VirtualMemory::protectRW(allocatedCode, allocatedSize);
 	}
 
-	void JitCompilerX86::enableWriting() {
-		xmrig::VirtualMemory::protectRW(code, CodeSize);
-	}
-
-	void JitCompilerX86::enableExecution() {
-		xmrig::VirtualMemory::protectRX(code, CodeSize);
+	void JitCompilerX86::enableExecution() const {
+		xmrig::VirtualMemory::protectRX(allocatedCode, allocatedSize);
 	}
 
 	static inline void cpuid(uint32_t level, int32_t output[4])
@@ -216,7 +212,8 @@ namespace randomx {
 		cpuid(0x80000001, info);
 		hasXOP = ((info[2] & (1 << 11)) != 0);
 
-		allocatedCode = (uint8_t*)allocExecutableMemory(CodeSize * 2, hugePagesJIT && hugePagesEnable);
+		allocatedSize = CodeSize * 2;
+		allocatedCode = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePagesJIT && hugePagesEnable));
 
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(codeOffsetIncrement) % CodeSize);
@@ -240,7 +237,7 @@ namespace randomx {
 
 	JitCompilerX86::~JitCompilerX86() {
 		codeOffset.fetch_sub(codeOffsetIncrement);
-		freePagedMemory(allocatedCode, CodeSize);
+		freePagedMemory(allocatedCode, allocatedSize);
 	}
 
 	void JitCompilerX86::prepare() {
@@ -252,6 +249,10 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t flags) {
 		PROFILE_SCOPE(RandomX_JIT_compile);
+
+#		ifdef XMRIG_SECURE_JIT
+		enableWriting();
+#		endif
 
 		vm_flags = flags;
 

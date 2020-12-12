@@ -114,6 +114,10 @@ JitCompilerA64::~JitCompilerA64()
 
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
+#	ifdef XMRIG_SECURE_JIT
+	enableWriting();
+#	endif
+
 	uint32_t codePos = MainLoopBegin + 4;
 
 	// and w16, w10, ScratchpadL3Mask64
@@ -334,8 +338,12 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 
 template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES]);
 
-DatasetInitFunc* JitCompilerA64::getDatasetInitFunc()
+DatasetInitFunc* JitCompilerA64::getDatasetInitFunc() const
 {
+#	ifdef XMRIG_SECURE_JIT
+	enableExecution();
+#	endif
+
 	return (DatasetInitFunc*)(code + (((uint8_t*)randomx_init_dataset_aarch64) - ((uint8_t*)randomx_program_aarch64)));
 }
 
@@ -344,19 +352,14 @@ size_t JitCompilerA64::getCodeSize()
 	return CodeSize;
 }
 
-void JitCompilerA64::enableWriting()
+void JitCompilerA64::enableWriting() const
 {
 	xmrig::VirtualMemory::protectRW(code, CodeSize + CalcDatasetItemSize());
 }
 
-void JitCompilerA64::enableExecution()
+void JitCompilerA64::enableExecution() const
 {
 	xmrig::VirtualMemory::protectRX(code, CodeSize + CalcDatasetItemSize());
-}
-
-void JitCompilerA64::enableAll()
-{
-	xmrig::VirtualMemory::protectRWX(code, CodeSize + CalcDatasetItemSize());
 }
 
 void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code, uint32_t& codePos)

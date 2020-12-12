@@ -74,6 +74,5 @@ namespace randomx {
 		}
 		void enableWriting() {}
 		void enableExecution() {}
-		void enableAll() {}
 	};
 }

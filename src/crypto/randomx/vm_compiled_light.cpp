@@ -44,10 +44,6 @@ namespace randomx {
 #		endif
 
 		compiler.generateSuperscalarHash(cache->programs);
-
-#		ifdef XMRIG_SECURE_JIT
-		compiler.enableExecution();
-#		endif
 	}
 
 	template<int softAes>
@@ -60,10 +56,6 @@ namespace randomx {
 #		endif
 
 		compiler.generateProgramLight(program, config, datasetOffset);
-
-#		ifdef XMRIG_SECURE_JIT
-		compiler.enableExecution();
-#		endif
 
 		CompiledVm<softAes>::execute();
 	}

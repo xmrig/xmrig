@@ -49,17 +49,7 @@ namespace randomx {
 		compiler.prepare();
 		VmBase<softAes>::generateProgram(seed);
 		randomx_vm::initialize();
-
-#		ifdef XMRIG_SECURE_JIT
-		compiler.enableWriting();
-#		endif
-
 		compiler.generateProgram(program, config, randomx_vm::getFlags());
-
-#		ifdef XMRIG_SECURE_JIT
-		compiler.enableExecution();
-#		endif
-
 		mem.memory = datasetPtr->memory + datasetOffset;
 		execute();
 	}
@@ -68,9 +58,9 @@ namespace randomx {
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
-#ifdef XMRIG_ARM
+#		ifdef XMRIG_ARM
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
-#endif
+#		endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);
 	}
 

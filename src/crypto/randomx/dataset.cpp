@@ -61,10 +61,11 @@ namespace randomx {
 
 	template<class Allocator>
 	void deallocCache(randomx_cache* cache) {
-		if (cache->memory != nullptr)
+		if (cache->memory != nullptr) {
 			Allocator::freeMemory(cache->memory, RANDOMX_CACHE_MAX_SIZE);
-		if (cache->jit != nullptr)
-			delete cache->jit;
+		}
+
+		delete cache->jit;
 	}
 
 	template void deallocCache<DefaultAllocator>(randomx_cache* cache);

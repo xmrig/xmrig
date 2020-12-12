@@ -57,22 +57,33 @@ namespace randomx {
 		template<size_t N>
 		void generateSuperscalarHash(SuperscalarProgram (&programs)[N]);
 		void generateDatasetInitCode();
-		ProgramFunc* getProgramFunc() {
-			return (ProgramFunc*)code;
+
+		inline ProgramFunc *getProgramFunc() const {
+#			ifdef XMRIG_SECURE_JIT
+			enableExecution();
+#			endif
+
+			return reinterpret_cast<ProgramFunc*>(code);
 		}
-		DatasetInitFunc* getDatasetInitFunc() {
+
+		inline DatasetInitFunc *getDatasetInitFunc() const {
+# 			ifdef XMRIG_SECURE_JIT
+			enableExecution();
+#			endif
+
 			return (DatasetInitFunc*)code;
 		}
+
 		uint8_t* getCode() {
 			return code;
 		}
 		size_t getCodeSize();
-		void enableWriting();
-		void enableExecution();
-		void enableAll();
+		void enableWriting() const;
+		void enableExecution() const;
 
 		alignas(64) static InstructionGeneratorX86 engine[256];
 
+	private:
 		int registerUsage[RegistersCount] = {};
 		uint8_t* code = nullptr;
 		uint32_t codePos = 0;
@@ -87,7 +98,8 @@ namespace randomx {
 		bool hasAVX;
 		bool hasXOP;
 
-		uint8_t* allocatedCode;
+		uint8_t* allocatedCode = nullptr;
+		size_t allocatedSize = 0;
 
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
@@ -124,6 +136,7 @@ namespace randomx {
 			codePos += count;
 		}
 
+	public:
 		void h_IADD_RS(const Instruction&);
 		void h_IADD_M(const Instruction&);
 		void h_ISUB_R(const Instruction&);
