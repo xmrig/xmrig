@@ -187,6 +187,12 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
             m_nodeset.emplace_back(node->os_index);
         }
     }
+
+#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+    if (L2() == 33554432U && m_cores == 8 && m_cores == m_threads) {
+        m_cache[2] = 16777216U;
+    }
+#   endif
 }
 
 
