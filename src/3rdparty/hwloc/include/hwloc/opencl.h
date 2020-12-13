@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2019 Inria.  All rights reserved.
+ * Copyright © 2012-2020 Inria.  All rights reserved.
  * Copyright © 2013, 2018 Université Bordeaux.  All right reserved.
  * See COPYING in top-level directory.
  */
@@ -109,7 +109,7 @@ hwloc_opencl_get_device_pci_busid(cl_device_id device,
 	return -1;
 }
 
-/** \brief Get the CPU set of logical processors that are physically
+/** \brief Get the CPU set of processors that are physically
  * close to OpenCL device \p device.
  *
  * Return the CPU set describing the locality of the OpenCL device \p device.

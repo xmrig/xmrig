@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -231,7 +231,7 @@ HWLOC_DECLSPEC int hwloc_bitmap_clr_range(hwloc_bitmap_t bitmap, unsigned begin,
 /** \brief Keep a single index among those set in bitmap \p bitmap
  *
  * May be useful before binding so that the process does not
- * have a chance of migrating between multiple logical CPUs
+ * have a chance of migrating between multiple processors
  * in the original mask.
  * Instead of running the task on any PU inside the given CPU set,
  * the operating system scheduler will be forced to run it on a single

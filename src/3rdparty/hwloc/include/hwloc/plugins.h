@@ -313,7 +313,13 @@ struct hwloc_component {
  * @{
  */
 
+/** \brief Check whether insertion errors are hidden */
+HWLOC_DECLSPEC int hwloc_hide_errors(void);
+
 /** \brief Add an object to the topology.
+ *
+ * Insert new object \p obj in the topology starting under existing object \p root
+ * (if \c NULL, the topology root object is used).
  *
  * It is sorted along the tree of other objects according to the inclusion of
  * cpusets, to eventually be added as a child of the smallest object including
@@ -327,32 +333,20 @@ struct hwloc_component {
  *
  * This shall only be called before levels are built.
  *
- * In case of error, hwloc_report_os_error() is called.
- *
  * The caller should check whether the object type is filtered-out before calling this function.
  *
  * The topology cpuset/nodesets will be enlarged to include the object sets.
+ *
+ * \p reason is a unique string identifying where and why this insertion call was performed
+ * (it will be displayed in case of internal insertion error).
  *
  * Returns the object on success.
  * Returns NULL and frees obj on error.
  * Returns another object and frees obj if it was merged with an identical pre-existing object.
  */
-HWLOC_DECLSPEC struct hwloc_obj *hwloc_insert_object_by_cpuset(struct hwloc_topology *topology, hwloc_obj_t obj);
-
-/** \brief Type of error callbacks during object insertion */
-typedef void (*hwloc_report_error_t)(const char * msg, int line);
-/** \brief Report an insertion error from a backend */
-HWLOC_DECLSPEC void hwloc_report_os_error(const char * msg, int line);
-/** \brief Check whether insertion errors are hidden */
-HWLOC_DECLSPEC int hwloc_hide_errors(void);
-
-/** \brief Add an object to the topology and specify which error callback to use.
- *
- * This function is similar to hwloc_insert_object_by_cpuset() but it allows specifying
- * where to start insertion from (if \p root is NULL, the topology root object is used),
- * and specifying the error callback.
- */
-HWLOC_DECLSPEC struct hwloc_obj *hwloc__insert_object_by_cpuset(struct hwloc_topology *topology, hwloc_obj_t root, hwloc_obj_t obj, hwloc_report_error_t report_error);
+HWLOC_DECLSPEC hwloc_obj_t
+hwloc__insert_object_by_cpuset(struct hwloc_topology *topology, hwloc_obj_t root,
+                               hwloc_obj_t obj, const char *reason);
 
 /** \brief Insert an object somewhere in the topology.
  *

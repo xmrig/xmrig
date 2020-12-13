@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2017 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009, 2011 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -17,6 +17,10 @@
 #ifdef HWLOC_DEBUG
 #include <stdarg.h>
 #include <stdio.h>
+#endif
+
+#ifdef ANDROID
+extern void JNIDebug(char *text);
 #endif
 
 /* Compile-time assertion */
@@ -44,9 +48,17 @@ static __hwloc_inline void hwloc_debug(const char *s __hwloc_attribute_unused, .
 {
 #ifdef HWLOC_DEBUG
   if (hwloc_debug_enabled()) {
+#ifdef ANDROID
+    char buffer[256];
+#endif
     va_list ap;
     va_start(ap, s);
+#ifdef ANDROID
+    vsprintf(buffer, s, ap);
+    JNIDebug(buffer);
+#else
     vfprintf(stderr, s, ap);
+#endif
     va_end(ap);
   }
 #endif
@@ -57,21 +69,21 @@ static __hwloc_inline void hwloc_debug(const char *s __hwloc_attribute_unused, .
 if (hwloc_debug_enabled()) { \
   char *s; \
   hwloc_bitmap_asprintf(&s, bitmap); \
-  fprintf(stderr, fmt, s); \
+  hwloc_debug(fmt, s); \
   free(s); \
 } } while (0)
 #define hwloc_debug_1arg_bitmap(fmt, arg1, bitmap) do { \
 if (hwloc_debug_enabled()) { \
   char *s; \
   hwloc_bitmap_asprintf(&s, bitmap); \
-  fprintf(stderr, fmt, arg1, s); \
+  hwloc_debug(fmt, arg1, s); \
   free(s); \
 } } while (0)
 #define hwloc_debug_2args_bitmap(fmt, arg1, arg2, bitmap) do { \
 if (hwloc_debug_enabled()) { \
   char *s; \
   hwloc_bitmap_asprintf(&s, bitmap); \
-  fprintf(stderr, fmt, arg1, arg2, s); \
+  hwloc_debug(fmt, arg1, arg2, s); \
   free(s); \
 } } while (0)
 #else

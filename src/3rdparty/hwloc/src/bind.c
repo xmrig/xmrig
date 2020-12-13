@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012 Université Bordeaux
  * Copyright © 2011-2015 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -921,5 +921,6 @@ hwloc_set_binding_hooks(struct hwloc_topology *topology)
     DO(mem,get_area_membind);
     DO(mem,get_area_memlocation);
     DO(mem,alloc_membind);
+#undef DO
   }
 }

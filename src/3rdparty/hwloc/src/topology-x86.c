@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Inria.  All rights reserved.
+ * Copyright © 2010-2020 Inria.  All rights reserved.
  * Copyright © 2010-2013 Université Bordeaux
  * Copyright © 2010-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -181,6 +181,7 @@ enum hwloc_x86_disc_flags {
 
 #define has_topoext(features) ((features)[6] & (1 << 22))
 #define has_x2apic(features) ((features)[4] & (1 << 21))
+#define has_hybrid(features) ((features)[18] & (1 << 15))
 
 struct cacheinfo {
   hwloc_obj_cache_type_t type;
@@ -217,6 +218,9 @@ struct procinfo {
   unsigned cpustepping;
   unsigned cpumodelnumber;
   unsigned cpufamilynumber;
+
+  unsigned hybridcoretype;
+  unsigned hybridnativemodel;
 };
 
 enum cpuid_type {
@@ -681,6 +685,15 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
     }
   }
 
+  if (highest_cpuid >= 0x1a && has_hybrid(features)) {
+    /* Get hybrid cpu information from cpuid 0x1a */
+    eax = 0x1a;
+    ecx = 0;
+    cpuid_or_from_dump(&eax, &ebx, &ecx, &edx, src_cpuiddump);
+    infos->hybridcoretype = eax >> 24;
+    infos->hybridnativemodel = eax & 0xffffff;
+  }
+
   /*********************************************************************************
    * Get the hierarchy of thread, core, die, package, etc. from CPU-specific leaves
    */
@@ -751,7 +764,13 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
     /* default cacheid value */
     cache->cacheid = infos->apicid / cache->nbthreads_sharing;
 
-    if (cpuid_type == amd) {
+    if (cpuid_type == intel) {
+      /* round nbthreads_sharing to nearest power of two to build a mask (for clearing lower bits) */
+      unsigned bits = hwloc_flsl(cache->nbthreads_sharing-1);
+      unsigned mask = ~((1U<<bits) - 1);
+      cache->cacheid = infos->apicid & mask;
+
+    } else if (cpuid_type == amd) {
       /* AMD quirks */
       if (infos->cpufamilynumber == 0x17
 	  && cache->level == 3 && cache->nbthreads_sharing == 6) {
@@ -872,7 +891,7 @@ hwloc_x86_add_groups(hwloc_topology_t topology,
     obj->attr->group.dont_merge = dont_merge;
     hwloc_debug_2args_bitmap("os %s %u has cpuset %s\n",
 			     subtype, id, obj_cpuset);
-    hwloc_insert_object_by_cpuset(topology, obj);
+    hwloc__insert_object_by_cpuset(topology, NULL, obj, "x86:group");
   }
 }
 
@@ -930,7 +949,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 
 	hwloc_debug_1arg_bitmap("os package %u has cpuset %s\n",
 				packageid, package_cpuset);
-	hwloc_insert_object_by_cpuset(topology, package);
+	hwloc__insert_object_by_cpuset(topology, NULL, package, "x86:package");
 
       } else {
 	/* Annotate packages previously-existing packages */
@@ -986,7 +1005,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
       hwloc_bitmap_set(node->nodeset, nodeid);
       hwloc_debug_1arg_bitmap("os node %u has cpuset %s\n",
           nodeid, node_cpuset);
-      hwloc_insert_object_by_cpuset(topology, node);
+      hwloc__insert_object_by_cpuset(topology, NULL, node, "x86:numa");
       gotnuma++;
     }
   }
@@ -1033,7 +1052,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	      unknown_obj->attr->group.subkind = level;
 	      hwloc_debug_2args_bitmap("os unknown%u %u has cpuset %s\n",
 				       level, unknownid, unknown_cpuset);
-	      hwloc_insert_object_by_cpuset(topology, unknown_obj);
+	      hwloc__insert_object_by_cpuset(topology, NULL, unknown_obj, "x86:group:unknown");
 	    }
 	  }
 	}
@@ -1073,7 +1092,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	die->cpuset = die_cpuset;
 	hwloc_debug_1arg_bitmap("os die %u has cpuset %s\n",
 				dieid, die_cpuset);
-	hwloc_insert_object_by_cpuset(topology, die);
+	hwloc__insert_object_by_cpuset(topology, NULL, die, "x86:die");
       }
     }
   }
@@ -1111,7 +1130,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	core->cpuset = core_cpuset;
 	hwloc_debug_1arg_bitmap("os core %u has cpuset %s\n",
 				coreid, core_cpuset);
-	hwloc_insert_object_by_cpuset(topology, core);
+	hwloc__insert_object_by_cpuset(topology, NULL, core, "x86:core");
       }
     }
   }
@@ -1125,7 +1144,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
        obj->cpuset = hwloc_bitmap_alloc();
        hwloc_bitmap_only(obj->cpuset, i);
        hwloc_debug_1arg_bitmap("PU %u has cpuset %s\n", i, obj->cpuset);
-       hwloc_insert_object_by_cpuset(topology, obj);
+       hwloc__insert_object_by_cpuset(topology, NULL, obj, "x86:pu");
      }
   }
 
@@ -1208,7 +1227,7 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	  hwloc_obj_add_info(cache, "Inclusive", infos[i].cache[l].inclusive ? "1" : "0");
 	  hwloc_debug_2args_bitmap("os L%u cache %u has cpuset %s\n",
 				   level, cacheid, cache_cpuset);
-	  hwloc_insert_object_by_cpuset(topology, cache);
+	  hwloc__insert_object_by_cpuset(topology, NULL, cache, "x86:cache");
 	}
       }
     }
@@ -1274,8 +1293,41 @@ look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long 
     hwloc_bitmap_free(orig_cpuset);
   }
 
-  if (data->apicid_unique)
+  if (data->apicid_unique) {
     summarize(backend, infos, flags);
+
+    if (has_hybrid(features)) {
+      /* use hybrid info for cpukinds */
+      hwloc_bitmap_t atomset = hwloc_bitmap_alloc();
+      hwloc_bitmap_t coreset = hwloc_bitmap_alloc();
+      for(i=0; i<nbprocs; i++) {
+        if (infos[i].hybridcoretype == 0x20)
+          hwloc_bitmap_set(atomset, i);
+        else if (infos[i].hybridcoretype == 0x40)
+          hwloc_bitmap_set(coreset, i);
+      }
+      /* register IntelAtom set if any */
+      if (!hwloc_bitmap_iszero(atomset)) {
+        struct hwloc_info_s infoattr;
+        infoattr.name = (char *) "CoreType";
+        infoattr.value = (char *) "IntelAtom";
+        hwloc_internal_cpukinds_register(topology, atomset, HWLOC_CPUKIND_EFFICIENCY_UNKNOWN, &infoattr, 1, 0);
+        /* the cpuset is given to the callee */
+      } else {
+        hwloc_bitmap_free(atomset);
+      }
+      /* register IntelCore set if any */
+      if (!hwloc_bitmap_iszero(coreset)) {
+        struct hwloc_info_s infoattr;
+        infoattr.name = (char *) "CoreType";
+        infoattr.value = (char *) "IntelCore";
+        hwloc_internal_cpukinds_register(topology, coreset, HWLOC_CPUKIND_EFFICIENCY_UNKNOWN, &infoattr, 1, 0);
+        /* the cpuset is given to the callee */
+      } else {
+        hwloc_bitmap_free(coreset);
+      }
+    }
+  }
   /* if !data->apicid_unique, do nothing and return success, so that the caller does nothing either */
 
   return 0;
@@ -1354,7 +1406,7 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
   unsigned highest_cpuid;
   unsigned highest_ext_cpuid;
   /* This stores cpuid features with the same indexing as Linux */
-  unsigned features[10] = { 0 };
+  unsigned features[19] = { 0 };
   struct procinfo *infos = NULL;
   enum cpuid_type cpuid_type = unknown;
   hwloc_x86_os_state_t os_state;
@@ -1381,6 +1433,9 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
     /* check if binding works */
     memset(&hooks, 0, sizeof(hooks));
     support.membind = &memsupport;
+    /* We could just copy the main hooks (except in some corner cases),
+     * but the current overhead is negligible, so just always reget them.
+     */
     hwloc_set_native_binding_hooks(&hooks, &support);
     if (hooks.get_thisthread_cpubind && hooks.set_thisthread_cpubind) {
       get_cpubind = hooks.get_thisthread_cpubind;
@@ -1451,6 +1506,7 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
     ecx = 0;
     cpuid_or_from_dump(&eax, &ebx, &ecx, &edx, src_cpuiddump);
     features[9] = ebx;
+    features[18] = edx;
   }
 
   if (cpuid_type != intel && highest_ext_cpuid >= 0x80000001) {

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2019 Inria.  All rights reserved.
+ * Copyright © 2013-2020 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -333,10 +333,8 @@ int hwloc_topology_diff_build(hwloc_topology_t topo1,
 
 	if (!err) {
 		if (SETS_DIFFERENT(allowed_cpuset, topo1, topo2)
-		    || SETS_DIFFERENT(allowed_nodeset, topo1, topo2)) {
-			hwloc_append_diff_too_complex(hwloc_get_root_obj(topo1), diffp, &lastdiff);
-			err = 1;
-		}
+		    || SETS_DIFFERENT(allowed_nodeset, topo1, topo2))
+                  goto roottoocomplex;
 	}
 
 	if (!err) {
@@ -346,33 +344,78 @@ int hwloc_topology_diff_build(hwloc_topology_t topo1,
 		dist1 = topo1->first_dist;
 		dist2 = topo2->first_dist;
 		while (dist1 || dist2) {
-			if (!!dist1 != !!dist2) {
-				hwloc_append_diff_too_complex(hwloc_get_root_obj(topo1), diffp, &lastdiff);
-				err = 1;
-				break;
-			}
+			if (!!dist1 != !!dist2)
+                          goto roottoocomplex;
 			if (dist1->unique_type != dist2->unique_type
 			    || dist1->different_types || dist2->different_types /* too lazy to support this case */
 			    || dist1->nbobjs != dist2->nbobjs
 			    || dist1->kind != dist2->kind
-			    || memcmp(dist1->values, dist2->values, dist1->nbobjs * dist1->nbobjs * sizeof(*dist1->values))) {
-				hwloc_append_diff_too_complex(hwloc_get_root_obj(topo1), diffp, &lastdiff);
-				err = 1;
-				break;
-			}
+			    || memcmp(dist1->values, dist2->values, dist1->nbobjs * dist1->nbobjs * sizeof(*dist1->values)))
+                          goto roottoocomplex;
 			for(i=0; i<dist1->nbobjs; i++)
 				/* gp_index isn't enforced above. so compare logical_index instead, which is enforced. requires distances refresh() above */
-				if (dist1->objs[i]->logical_index != dist2->objs[i]->logical_index) {
-					hwloc_append_diff_too_complex(hwloc_get_root_obj(topo1), diffp, &lastdiff);
-					err = 1;
-					break;
-				}
+				if (dist1->objs[i]->logical_index != dist2->objs[i]->logical_index)
+                                  goto roottoocomplex;
 			dist1 = dist1->next;
 			dist2 = dist2->next;
 		}
 	}
 
+        if (!err) {
+          /* memattrs */
+          hwloc_internal_memattrs_refresh(topo1);
+          hwloc_internal_memattrs_refresh(topo2);
+          if (topo1->nr_memattrs != topo2->nr_memattrs)
+            goto roottoocomplex;
+          for(i=0; i<topo1->nr_memattrs; i++) {
+            struct hwloc_internal_memattr_s *imattr1 = &topo1->memattrs[i], *imattr2 = &topo2->memattrs[i];
+            unsigned j;
+           if (strcmp(imattr1->name, imattr2->name)
+                || imattr1->flags != imattr2->flags
+                || imattr1->nr_targets != imattr2->nr_targets)
+              goto roottoocomplex;
+            if (i == HWLOC_MEMATTR_ID_CAPACITY
+                || i == HWLOC_MEMATTR_ID_LOCALITY)
+              /* no need to check virtual attributes, there were refreshed from other topology attributes, checked above */
+              continue;
+            for(j=0; j<imattr1->nr_targets; j++) {
+              struct hwloc_internal_memattr_target_s *imtg1 = &imattr1->targets[j], *imtg2 = &imattr2->targets[j];
+              if (imtg1->type != imtg2->type)
+                goto roottoocomplex;
+              if (imtg1->obj->logical_index != imtg2->obj->logical_index)
+                goto roottoocomplex;
+              if (imattr1->flags & HWLOC_MEMATTR_FLAG_NEED_INITIATOR) {
+                unsigned k;
+                for(k=0; k<imtg1->nr_initiators; k++) {
+                  struct hwloc_internal_memattr_initiator_s *imi1 = &imtg1->initiators[k], *imi2 = &imtg2->initiators[k];
+                  if (imi1->value != imi2->value
+                      || imi1->initiator.type != imi2->initiator.type)
+                    goto roottoocomplex;
+                  if (imi1->initiator.type == HWLOC_LOCATION_TYPE_CPUSET) {
+                    if (!hwloc_bitmap_isequal(imi1->initiator.location.cpuset, imi2->initiator.location.cpuset))
+                      goto roottoocomplex;
+                  } else if (imi1->initiator.type == HWLOC_LOCATION_TYPE_OBJECT) {
+                    if (imi1->initiator.location.object.type != imi2->initiator.location.object.type)
+                      goto roottoocomplex;
+                    if (imi1->initiator.location.object.obj->logical_index != imi2->initiator.location.object.obj->logical_index)
+                      goto roottoocomplex;
+                  } else {
+                    assert(0);
+                  }
+                }
+              } else {
+                if (imtg1->noinitiator_value != imtg2->noinitiator_value)
+                  goto roottoocomplex;
+              }
+            }
+          }
+        }
+
 	return err;
+
+ roottoocomplex:
+  hwloc_append_diff_too_complex(hwloc_get_root_obj(topo1), diffp, &lastdiff);
+  return 1;
 }
 
 /********************
