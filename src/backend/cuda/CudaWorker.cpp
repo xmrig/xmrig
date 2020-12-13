@@ -50,7 +50,6 @@
 namespace xmrig {
 
 
-static constexpr uint32_t kReserveCount = 32768;
 std::atomic<bool> CudaWorker::ready;
 
 

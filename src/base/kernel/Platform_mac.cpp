@@ -36,7 +36,14 @@ char *xmrig::Platform::createUserAgent()
     constexpr const size_t max = 256;
 
     char *buf = new char[max]();
-    int length = snprintf(buf, max, "%s/%s (Macintosh; Intel Mac OS X) libuv/%s", APP_NAME, APP_VERSION, uv_version_string());
+    int length = snprintf(buf, max,
+                          "%s/%s (Macintosh; macOS"
+#                         ifdef XMRIG_ARM
+                          "; arm64"
+#                         else
+                          "; x86_64"
+#                         endif
+                          ") libuv/%s", APP_NAME, APP_VERSION, uv_version_string());
 
 #   ifdef __clang__
     length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);

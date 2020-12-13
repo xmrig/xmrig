@@ -85,20 +85,21 @@ static inline void findByType(hwloc_obj_t obj, hwloc_obj_type_t type, func lambd
 }
 
 
+static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
+{
+    const int count = hwloc_get_nbobjs_by_type(topology, type);
+
+    return count > 0 ? static_cast<size_t>(count) : 0;
+}
+
+
+#ifndef XMRIG_ARM
 static inline std::vector<hwloc_obj_t> findByType(hwloc_obj_t obj, hwloc_obj_type_t type)
 {
     std::vector<hwloc_obj_t> out;
     findByType(obj, type, [&out](hwloc_obj_t found) { out.emplace_back(found); });
 
     return out;
-}
-
-
-static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t type)
-{
-    const int count = hwloc_get_nbobjs_by_type(topology, type);
-
-    return count > 0 ? static_cast<size_t>(count) : 0;
 }
 
 
@@ -116,6 +117,7 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
     const char *value = hwloc_obj_get_info_by_name(obj, "Inclusive");
     return value == nullptr || value[0] != '1';
 }
+#endif
 
 
 } // namespace xmrig

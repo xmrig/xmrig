@@ -92,7 +92,6 @@ private:
     IStrategy *m_strategy   = nullptr;
     NetworkState *m_state   = nullptr;
     Timer *m_timer          = nullptr;
-    uint32_t m_benchSize    = 0;
 };
 
 

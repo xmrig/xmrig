@@ -71,10 +71,13 @@ protected:
     bool m_jccErratum       = false;
 
 private:
+#   ifndef XMRIG_ARM
     uint32_t m_procInfo     = 0;
     uint32_t m_family       = 0;
     uint32_t m_model        = 0;
     uint32_t m_stepping     = 0;
+#   endif
+
     Assembly m_assembly     = Assembly::NONE;
     MsrMod m_msrMod         = MSR_MOD_NONE;
     std::bitset<FLAG_MAX> m_flags;
