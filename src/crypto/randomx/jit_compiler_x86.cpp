@@ -175,11 +175,11 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::enableWriting() const {
-		xmrig::VirtualMemory::protectRW(allocatedCode, allocatedSize);
+		xmrig::VirtualMemory::protectRW(code, CodeSize);
 	}
 
 	void JitCompilerX86::enableExecution() const {
-		xmrig::VirtualMemory::protectRX(allocatedCode, allocatedSize);
+		xmrig::VirtualMemory::protectRX(code, CodeSize);
 	}
 
 	static inline void cpuid(uint32_t level, int32_t output[4])
@@ -213,7 +213,13 @@ namespace randomx {
 		hasXOP = ((info[2] & (1 << 11)) != 0);
 
 		allocatedSize = CodeSize * 2;
-		allocatedCode = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePagesJIT && hugePagesEnable));
+		allocatedCode = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize,
+#			ifdef XMRIG_SECURE_JIT
+			false
+#			else
+			hugePagesJIT && hugePagesEnable
+#			endif
+		));
 
 		// Shift code base address to improve caching - all threads will use different L2/L3 cache sets
 		code = allocatedCode + (codeOffset.fetch_add(codeOffsetIncrement) % CodeSize);
