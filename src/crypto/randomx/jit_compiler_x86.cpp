@@ -170,16 +170,26 @@ namespace randomx {
 		{0x0F, 0x1F, 0x44, 0x00, 0x00, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E, 0x2E},
 	};
 
+	static inline uint8_t* alignToPage(uint8_t* p, size_t pageSize) {
+		size_t k = (size_t) p;
+		k -= k % pageSize;
+		return (uint8_t*) k;
+	}
+
 	size_t JitCompilerX86::getCodeSize() {
 		return codePos < prologueSize ? 0 : codePos - prologueSize;
 	}
 
 	void JitCompilerX86::enableWriting() const {
-		xmrig::VirtualMemory::protectRW(code, CodeSize);
+		uint8_t* p1 = alignToPage(code, 4096);
+		uint8_t* p2 = code + CodeSize;
+		xmrig::VirtualMemory::protectRW(p1, p2 - p1);
 	}
 
 	void JitCompilerX86::enableExecution() const {
-		xmrig::VirtualMemory::protectRX(code, CodeSize);
+		uint8_t* p1 = alignToPage(code, 4096);
+		uint8_t* p2 = code + CodeSize;
+		xmrig::VirtualMemory::protectRX(p1, p2 - p1);
 	}
 
 	static inline void cpuid(uint32_t level, int32_t output[4])
