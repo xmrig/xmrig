@@ -77,11 +77,14 @@ namespace randomx {
 		static InstructionGeneratorA64 engine[256];
 
 	private:
-		uint32_t reg_changed_offset[8];
-		uint8_t* code;
+		const bool hugePages;
+		uint32_t reg_changed_offset[8]{};
+		uint8_t* code = nullptr;
 		uint32_t literalPos;
 		uint32_t num32bitLiterals = 0;
 		size_t allocatedSize = 0;
+
+		void allocate(size_t size);
 
 		static void emit32(uint32_t val, uint8_t* code, uint32_t& codePos)
 		{

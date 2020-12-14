@@ -110,6 +110,7 @@ namespace randomx {
 
 		cache->jit->generateSuperscalarHash(cache->programs);
 		cache->jit->generateDatasetInitCode();
+		cache->datasetInit  = cache->jit->getDatasetInitFunc();
 
 #		ifdef XMRIG_SECURE_JIT
 		cache->jit->enableExecution();

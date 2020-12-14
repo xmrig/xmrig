@@ -98,14 +98,10 @@ static size_t CalcDatasetItemSize()
 
 constexpr uint32_t IntRegMap[8] = { 4, 5, 6, 7, 12, 13, 14, 15 };
 
-JitCompilerA64::JitCompilerA64(bool hugePagesEnable)
-	: literalPos(ImulRcpLiteralsEnd)
+JitCompilerA64::JitCompilerA64(bool hugePagesEnable) :
+	hugePages(hugePagesJIT && hugePagesEnable),
+	literalPos(ImulRcpLiteralsEnd)
 {
-	allocatedSize = CodeSize + CalcDatasetItemSize();
-	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePagesJIT && hugePagesEnable));
-
-	memset(reg_changed_offset, 0, sizeof(reg_changed_offset));
-	memcpy(code, (void*) randomx_program_aarch64, CodeSize);
 }
 
 JitCompilerA64::~JitCompilerA64()
@@ -115,9 +111,14 @@ JitCompilerA64::~JitCompilerA64()
 
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
-#	ifdef XMRIG_SECURE_JIT
-	enableWriting();
-#	endif
+	if (!allocatedSize) {
+		allocate(CodeSize);
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
 
 	uint32_t codePos = MainLoopBegin + 4;
 
@@ -170,6 +171,15 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 
 void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
 {
+	if (!allocatedSize) {
+		allocate(CodeSize);
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
+
 	uint32_t codePos = MainLoopBegin + 4;
 
 	// and w16, w10, ScratchpadL3Mask64
@@ -228,6 +238,15 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 template<size_t N>
 void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
+	if (!allocatedSize) {
+		allocate(CodeSize + CalcDatasetItemSize());
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
+
 	uint32_t codePos = CodeSize;
 
 	uint8_t* p1 = (uint8_t*)randomx_calc_dataset_item_aarch64;
@@ -368,6 +387,16 @@ void JitCompilerA64::enableExecution() const
 {
 	xmrig::VirtualMemory::protectRX(code, allocatedSize);
 }
+
+
+void JitCompilerA64::allocate(size_t size)
+{
+	allocatedSize = size;
+	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
+
+	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+}
+
 
 void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code, uint32_t& codePos)
 {
