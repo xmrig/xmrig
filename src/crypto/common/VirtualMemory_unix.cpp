@@ -59,7 +59,11 @@
 
 bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
+#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+    return false;
+#   else
     return true;
+#   endif
 }
 
 
