@@ -61,7 +61,11 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_a64.cpp
             )
         # cheat because cmake and ccache hate each other
-        set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+        if (CMAKE_GENERATOR STREQUAL Xcode)
+            set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE ASM)
+        else()
+            set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+        endif()
     else()
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_fallback.cpp
