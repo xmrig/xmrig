@@ -77,9 +77,9 @@ public:
     virtual ~ICpuInfo() = default;
 
 #   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
-    inline constexpr static bool isX64() { return true; }
+    inline constexpr static bool is64bit() { return true; }
 #   else
-    inline constexpr static bool isX64() { return false; }
+    inline constexpr static bool is64bit() { return false; }
 #   endif
 
     virtual Assembly::Id assembly() const                                           = 0;

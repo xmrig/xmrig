@@ -88,11 +88,11 @@ static void print_cpu(Config *)
 {
     const auto info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %s64-bit %sAES",
                "CPU",
                info->brand(),
                info->packages(),
-               info->isX64()          ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->is64bit()        ? GREEN_BOLD_S : RED_BOLD_S "-",
                info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-"
                );
 #   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
