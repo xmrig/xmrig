@@ -100,7 +100,8 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("brand",      StringRef(brand()), allocator);
     out.AddMember("aes",        hasAES(), allocator);
     out.AddMember("avx2",       false, allocator);
-    out.AddMember("x64",        isX64(), allocator);
+    out.AddMember("x64",        is64bit(), allocator); // DEPRECATED will be removed in the next major release.
+    out.AddMember("64_bit",     is64bit(), allocator);
     out.AddMember("l2",         static_cast<uint64_t>(L2()), allocator);
     out.AddMember("l3",         static_cast<uint64_t>(L3()), allocator);
     out.AddMember("cores",      static_cast<uint64_t>(cores()), allocator);
