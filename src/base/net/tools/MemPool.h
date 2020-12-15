@@ -24,6 +24,7 @@
 #include <set>
 #include <array>
 #include <cassert>
+#include <cstddef>
 
 
 namespace xmrig {
