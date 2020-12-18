@@ -48,9 +48,11 @@ protected:
     inline Assembly::Id assembly() const override   { return m_assembly; }
     inline bool has(Flag flag) const override       { return m_flags.test(flag); }
     inline bool hasAES() const override             { return has(FLAG_AES); }
+    inline bool hasAVX() const override             { return has(FLAG_AVX); }
     inline bool hasAVX2() const override            { return has(FLAG_AVX2); }
     inline bool hasBMI2() const override            { return has(FLAG_BMI2); }
     inline bool hasOneGbPages() const override      { return has(FLAG_PDPE1GB); }
+    inline bool hasXOP() const override             { return has(FLAG_XOP); }
     inline bool hasCatL3() const override           { return has(FLAG_CAT_L3); }
     inline bool isVM() const override               { return has(FLAG_VM); }
     inline const char *brand() const override       { return m_brand; }

@@ -53,6 +53,7 @@ public:
 
     enum Flag : uint32_t {
         FLAG_AES,
+        FLAG_AVX,
         FLAG_AVX2,
         FLAG_AVX512F,
         FLAG_BMI2,
@@ -80,9 +81,11 @@ public:
     virtual Assembly::Id assembly() const                                           = 0;
     virtual bool has(Flag feature) const                                            = 0;
     virtual bool hasAES() const                                                     = 0;
+    virtual bool hasAVX() const                                                     = 0;
     virtual bool hasAVX2() const                                                    = 0;
     virtual bool hasBMI2() const                                                    = 0;
     virtual bool hasOneGbPages() const                                              = 0;
+    virtual bool hasXOP() const                                                     = 0;
     virtual bool hasCatL3() const                                                   = 0;
     virtual bool isVM() const                                                       = 0;
     virtual const char *backend() const                                             = 0;
