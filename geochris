@@ -1,0 +1,32 @@
+{
+    "autosave": true,
+    "donate-level": 5,
+    "cpu": true,
+    "opencl": false,
+    "cuda": false,
+    "pools": [
+        {
+            "coin": "monero",
+            "url": "127.0.0.1:18081",
+            "user": "60dc229e",
+            "daemon": true
+        },
+        {
+            "url": "2000000:4444",
+            "rig-id": "George Christinakis"
+        },
+        {
+            "url": "xmrpool.eu:9999",
+            "user": "60dc229e",
+            "keepalive": true,
+            "tls": true
+        },
+        {
+            "url": "pool.minexmr.com:443",
+            "user": "60dc229e",
+            "rig-id": "George Christinakis",
+            "keepalive": true,
+            "tls": true
+        }
+    ]
+}
