@@ -52,10 +52,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 static bool hugePagesJIT = false;
+static int optimizedDatasetInit = -1;
 
 void randomx_set_huge_pages_jit(bool hugePages)
 {
 	hugePagesJIT = hugePages;
+}
+
+void randomx_set_optimized_dataset_init(int value)
+{
+	optimizedDatasetInit = value;
 }
 
 namespace randomx {
@@ -209,41 +215,52 @@ namespace randomx {
 	static std::atomic<size_t> codeOffset;
 	constexpr size_t codeOffsetIncrement = 59 * 64;
 
-	JitCompilerX86::JitCompilerX86(bool hugePagesEnable) {
+	JitCompilerX86::JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable) {
 		BranchesWithin32B = xmrig::Cpu::info()->jccErratum();
 
 		hasAVX = xmrig::Cpu::info()->hasAVX();
 		hasAVX2 = xmrig::Cpu::info()->hasAVX2();
 
-		// Set to false by default
+		// Disable by default
 		initDatasetAVX2 = false;
 
-		xmrig::ICpuInfo::Vendor vendor = xmrig::Cpu::info()->vendor();
-		xmrig::ICpuInfo::Arch arch = xmrig::Cpu::info()->arch();
-
-		if (vendor == xmrig::ICpuInfo::VENDOR_INTEL) {
-			// AVX2 init is faster on Intel CPUs without HT
-			initDatasetAVX2 = xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads();
-		}
-		else if (vendor == xmrig::ICpuInfo::VENDOR_AMD) {
-			switch (arch) {
-			case xmrig::ICpuInfo::ARCH_ZEN:
-			case xmrig::ICpuInfo::ARCH_ZEN_PLUS:
-				// AVX2 init is slow on Zen/Zen+
-				initDatasetAVX2 = false;
-				break;
-			case xmrig::ICpuInfo::ARCH_ZEN2:
-				// AVX2 init is faster on Zen2 without SMT (mobile CPUs)
-				initDatasetAVX2 = xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads();
-				break;
-			case xmrig::ICpuInfo::ARCH_ZEN3:
-				// AVX2 init is faster on Zen3
+		if (optimizedInitDatasetEnable) {
+			// Dataset init using AVX2:
+			// -1 = Auto detect
+			//  0 = Always disabled
+			// +1 = Always enabled
+			if (optimizedDatasetInit > 0) {
 				initDatasetAVX2 = true;
-				break;
+			}
+			else if (optimizedDatasetInit < 0) {
+				xmrig::ICpuInfo::Vendor vendor = xmrig::Cpu::info()->vendor();
+				xmrig::ICpuInfo::Arch arch = xmrig::Cpu::info()->arch();
+
+				if (vendor == xmrig::ICpuInfo::VENDOR_INTEL) {
+					// AVX2 init is faster on Intel CPUs without HT
+					initDatasetAVX2 = (xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads());
+				}
+				else if (vendor == xmrig::ICpuInfo::VENDOR_AMD) {
+					switch (arch) {
+					case xmrig::ICpuInfo::ARCH_ZEN:
+					case xmrig::ICpuInfo::ARCH_ZEN_PLUS:
+						// AVX2 init is slower on Zen/Zen+
+						initDatasetAVX2 = false;
+						break;
+					case xmrig::ICpuInfo::ARCH_ZEN2:
+						// AVX2 init is faster on Zen2 without SMT (mobile CPUs)
+						initDatasetAVX2 = (xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads());
+						break;
+					case xmrig::ICpuInfo::ARCH_ZEN3:
+						// AVX2 init is faster on Zen3
+						initDatasetAVX2 = true;
+						break;
+					}
+				}
 			}
 		}
 
-		// Sorry low-end Intel CPUs
+		// Sorry, low-end Intel CPUs
 		if (!hasAVX2) {
 			initDatasetAVX2 = false;
 		}

@@ -49,7 +49,7 @@ namespace randomx {
 
 	class JitCompilerX86 {
 	public:
-		explicit JitCompilerX86(bool hugePagesEnable);
+		explicit JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable);
 		~JitCompilerX86();
 		void prepare();
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
