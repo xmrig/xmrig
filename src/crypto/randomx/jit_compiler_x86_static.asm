@@ -195,7 +195,7 @@ randomx_dataset_init_avx2_prologue PROC
 	mov rsi, rdx					;# dataset
 	mov rbp, r8						;# block index
 	push r9							;# max. block index
-	sub rsp, 32
+	sub rsp, 40
 
 	jmp loop_begin
 	include asm/program_sshash_avx2_constants.inc
@@ -223,9 +223,8 @@ loop_begin:
 	xor r15, r8
 
 	;# init AVX registers (lanes 1-4)
-	vpxor ymm0, ymm0, ymm0
-	movq xmm0, rbp
-	vpbroadcastq ymm0, xmm0
+	mov qword ptr [rsp+32], rbp
+	vbroadcastsd ymm0, qword ptr [rsp+32]
 	vpaddq ymm0, ymm0, ymmword ptr [r0_avx2_increments]
 
 	;# ymm0 *= r0_avx2_mul
