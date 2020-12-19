@@ -244,7 +244,9 @@ namespace randomx {
 					switch (arch) {
 					case xmrig::ICpuInfo::ARCH_ZEN:
 					case xmrig::ICpuInfo::ARCH_ZEN_PLUS:
+					default:
 						// AVX2 init is slower on Zen/Zen+
+						// Also disable it for other unknown architectures
 						initDatasetAVX2 = false;
 						break;
 					case xmrig::ICpuInfo::ARCH_ZEN2:
