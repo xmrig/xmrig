@@ -212,7 +212,7 @@ DECL(randomx_dataset_init_avx2_prologue):
 	mov rbp, rdx  ;# block index
 	push rcx      ;# max. block index
 #endif
-	sub rsp, 32
+	sub rsp, 40
 
 	jmp randomx_dataset_init_avx2_prologue_loop_begin
 	#include "asm/program_sshash_avx2_constants.inc"
@@ -240,9 +240,8 @@ randomx_dataset_init_avx2_prologue_loop_begin:
 	xor r15, r8
 
 	;# init AVX registers (lanes 1-4)
-	vpxor ymm0, ymm0, ymm0
-	movq xmm0, rbp
-	vpbroadcastq ymm0, xmm0
+	mov qword ptr [rsp+32], rbp
+	vbroadcastsd ymm0, qword ptr [rsp+32]
 	vpaddq ymm0, ymm0, ymmword ptr [r0_avx2_increments+rip]
 
 	;# ymm0 *= r0_avx2_mul

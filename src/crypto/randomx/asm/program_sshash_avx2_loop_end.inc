@@ -34,5 +34,5 @@
 
 	add rbp, 5
 	add rsi, 320
-	cmp rbp, qword ptr [rsp+32]
+	cmp rbp, qword ptr [rsp+40]
 	db 15, 130, 0, 0, 0, 0		;# jb rel32
