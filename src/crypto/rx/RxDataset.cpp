@@ -19,6 +19,7 @@
 
 
 #include "crypto/rx/RxDataset.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
@@ -39,7 +40,13 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
 {
     Platform::setThreadPriority(priority);
 
-    randomx_init_dataset(dataset, cache, startItem, itemCount);
+    if (Cpu::info()->hasAVX2() && (itemCount % 5)) {
+        randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 5));
+        randomx_init_dataset(dataset, cache, startItem + itemCount - 5, 5);
+    }
+    else {
+        randomx_init_dataset(dataset, cache, startItem, itemCount);
+    }
 }
 
 

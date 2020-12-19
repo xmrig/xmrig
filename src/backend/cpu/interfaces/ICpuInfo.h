@@ -40,6 +40,14 @@ public:
         VENDOR_AMD
     };
 
+    enum Arch : uint32_t {
+        ARCH_UNKNOWN,
+        ARCH_ZEN,
+        ARCH_ZEN_PLUS,
+        ARCH_ZEN2,
+        ARCH_ZEN3
+    };
+
     enum MsrMod : uint32_t {
         MSR_MOD_NONE,
         MSR_MOD_RYZEN_17H,
@@ -53,6 +61,7 @@ public:
 
     enum Flag : uint32_t {
         FLAG_AES,
+        FLAG_AVX,
         FLAG_AVX2,
         FLAG_AVX512F,
         FLAG_BMI2,
@@ -80,9 +89,11 @@ public:
     virtual Assembly::Id assembly() const                                           = 0;
     virtual bool has(Flag feature) const                                            = 0;
     virtual bool hasAES() const                                                     = 0;
+    virtual bool hasAVX() const                                                     = 0;
     virtual bool hasAVX2() const                                                    = 0;
     virtual bool hasBMI2() const                                                    = 0;
     virtual bool hasOneGbPages() const                                              = 0;
+    virtual bool hasXOP() const                                                     = 0;
     virtual bool hasCatL3() const                                                   = 0;
     virtual bool isVM() const                                                       = 0;
     virtual const char *backend() const                                             = 0;
@@ -97,6 +108,7 @@ public:
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
+    virtual Arch arch() const                                                       = 0;
     virtual bool jccErratum() const                                                 = 0;
 };
 

@@ -49,7 +49,7 @@ namespace randomx {
 
 	class JitCompilerX86 {
 	public:
-		explicit JitCompilerX86(bool hugePagesEnable);
+		explicit JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable);
 		~JitCompilerX86();
 		void prepare();
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
@@ -96,6 +96,8 @@ namespace randomx {
 
 		bool BranchesWithin32B = false;
 		bool hasAVX;
+		bool hasAVX2;
+		bool initDatasetAVX2;
 		bool hasXOP;
 
 		uint8_t* allocatedCode = nullptr;
@@ -107,9 +109,10 @@ namespace randomx {
 		static void genAddressReg(const Instruction&, const uint32_t src, uint8_t* code, uint32_t& codePos);
 		static void genAddressRegDst(const Instruction&, uint8_t* code, uint32_t& codePos);
 		static void genAddressImm(const Instruction&, uint8_t* code, uint32_t& codePos);
-		static void genSIB(int scale, int index, int base, uint8_t* code, uint32_t& codePos);
+		static uint32_t genSIB(int scale, int index, int base) { return (scale << 6) | (index << 3) | base; }
 
-		void generateSuperscalarCode(Instruction &);
+		template<bool AVX2>
+		void generateSuperscalarCode(Instruction& inst, uint8_t* code, uint32_t& codePos);
 
 		static void emitByte(uint8_t val, uint8_t* code, uint32_t& codePos) {
 			code[codePos] = val;

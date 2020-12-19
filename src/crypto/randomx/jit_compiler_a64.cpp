@@ -36,10 +36,16 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/virtual_memory.hpp"
 
 static bool hugePagesJIT = false;
+static int optimizedDatasetInit = -1;
 
 void randomx_set_huge_pages_jit(bool hugePages)
 {
 	hugePagesJIT = hugePages;
+}
+
+void randomx_set_optimized_dataset_init(int value)
+{
+	optimizedDatasetInit = value;
 }
 
 namespace ARMV8A {
@@ -98,7 +104,7 @@ static size_t CalcDatasetItemSize()
 
 constexpr uint32_t IntRegMap[8] = { 4, 5, 6, 7, 12, 13, 14, 15 };
 
-JitCompilerA64::JitCompilerA64(bool hugePagesEnable) :
+JitCompilerA64::JitCompilerA64(bool hugePagesEnable, bool) :
 	hugePages(hugePagesJIT && hugePagesEnable),
 	literalPos(ImulRcpLiteralsEnd)
 {

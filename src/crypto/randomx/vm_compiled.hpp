@@ -59,7 +59,7 @@ namespace randomx {
 	protected:
 		void execute();
 
-		JitCompiler compiler{ true };
+		JitCompiler compiler{ true, false };
 	};
 
 	using CompiledVmDefault = CompiledVm<1>;
