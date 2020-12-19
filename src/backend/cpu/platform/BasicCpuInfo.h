@@ -64,12 +64,14 @@ protected:
     inline size_t packages() const override         { return 1; }
     inline size_t threads() const override          { return m_threads; }
     inline Vendor vendor() const override           { return m_vendor; }
+    inline Arch arch() const override               { return m_arch; }
     inline bool jccErratum() const override         { return m_jccErratum; }
 
 protected:
     char m_brand[64 + 6]{};
     size_t m_threads;
     Vendor m_vendor         = VENDOR_UNKNOWN;
+    Arch m_arch             = ARCH_UNKNOWN;
     bool m_jccErratum       = false;
 
 private:

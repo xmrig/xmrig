@@ -97,6 +97,7 @@ namespace randomx {
 		bool BranchesWithin32B = false;
 		bool hasAVX;
 		bool hasAVX2;
+		bool initDatasetAVX2;
 		bool hasXOP;
 
 		uint8_t* allocatedCode = nullptr;

@@ -40,6 +40,14 @@ public:
         VENDOR_AMD
     };
 
+    enum Arch : uint32_t {
+        ARCH_UNKNOWN,
+        ARCH_ZEN,
+        ARCH_ZEN_PLUS,
+        ARCH_ZEN2,
+        ARCH_ZEN3
+    };
+
     enum MsrMod : uint32_t {
         MSR_MOD_NONE,
         MSR_MOD_RYZEN_17H,
@@ -100,6 +108,7 @@ public:
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
+    virtual Arch arch() const                                                       = 0;
     virtual bool jccErratum() const                                                 = 0;
 };
 

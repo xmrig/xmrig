@@ -214,9 +214,43 @@ namespace randomx {
 
 		hasAVX = xmrig::Cpu::info()->hasAVX();
 		hasAVX2 = xmrig::Cpu::info()->hasAVX2();
+
+		// Set to false by default
+		initDatasetAVX2 = false;
+
+		xmrig::ICpuInfo::Vendor vendor = xmrig::Cpu::info()->vendor();
+		xmrig::ICpuInfo::Arch arch = xmrig::Cpu::info()->arch();
+
+		if (vendor == xmrig::ICpuInfo::VENDOR_INTEL) {
+			// AVX2 init is faster on Intel CPUs without HT
+			initDatasetAVX2 = xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads();
+		}
+		else if (vendor == xmrig::ICpuInfo::VENDOR_AMD) {
+			switch (arch) {
+			case xmrig::ICpuInfo::ARCH_ZEN:
+			case xmrig::ICpuInfo::ARCH_ZEN_PLUS:
+				// AVX2 init is slow on Zen/Zen+
+				initDatasetAVX2 = false;
+				break;
+			case xmrig::ICpuInfo::ARCH_ZEN2:
+				// AVX2 init is faster on Zen2 without SMT (mobile CPUs)
+				initDatasetAVX2 = xmrig::Cpu::info()->cores() == xmrig::Cpu::info()->threads();
+				break;
+			case xmrig::ICpuInfo::ARCH_ZEN3:
+				// AVX2 init is faster on Zen3
+				initDatasetAVX2 = true;
+				break;
+			}
+		}
+
+		// Sorry low-end Intel CPUs
+		if (!hasAVX2) {
+			initDatasetAVX2 = false;
+		}
+
 		hasXOP = xmrig::Cpu::info()->hasXOP();
 
-		allocatedSize = hasAVX2 ? (CodeSize * 4) : (CodeSize * 2);
+		allocatedSize = initDatasetAVX2 ? (CodeSize * 4) : (CodeSize * 2);
 		allocatedCode = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize,
 #			ifdef XMRIG_SECURE_JIT
 			false
@@ -299,7 +333,7 @@ namespace randomx {
 	template<size_t N>
 	void JitCompilerX86::generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
 		uint8_t* p = code;
-		if (hasAVX2) {
+		if (initDatasetAVX2) {
 			codePos = 0;
 			emit(codeDatasetInitAVX2_prologue, datasetInitAVX2_prologue_size, code, codePos);
 
@@ -356,7 +390,7 @@ namespace randomx {
 
 	void JitCompilerX86::generateDatasetInitCode() {
 		// AVX2 code is generated in generateSuperscalarHash()
-		if (!hasAVX2) {
+		if (!initDatasetAVX2) {
 			memcpy(code, codeDatasetInit, datasetInitSize);
 		}
 	}

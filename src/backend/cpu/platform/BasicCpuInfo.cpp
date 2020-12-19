@@ -217,9 +217,27 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                 switch (m_family) {
                 case 0x17:
                     m_msrMod = MSR_MOD_RYZEN_17H;
+                    switch (m_model) {
+                    case 1:
+                    case 17:
+                    case 32:
+                        m_arch = ARCH_ZEN;
+                        break;
+                    case 8:
+                    case 24:
+                        m_arch = ARCH_ZEN_PLUS;
+                        break;
+                    case 49:
+                    case 96:
+                    case 113:
+                    case 144:
+                        m_arch = ARCH_ZEN2;
+                        break;
+                    }
                     break;
 
                 case 0x19:
+                    m_arch = ARCH_ZEN3;
                     m_msrMod = MSR_MOD_RYZEN_19H;
                     break;
 
