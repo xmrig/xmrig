@@ -60,7 +60,9 @@ bool xmrig::Job::setBlob(const char *blob)
     }
 
     m_size /= 2;
-    if (m_size < 76 || m_size >= sizeof(m_blob)) {
+
+    const size_t minSize = nonceOffset() + nonceSize();
+    if (m_size < minSize || m_size >= sizeof(m_blob)) {
         return false;
     }
 
