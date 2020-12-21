@@ -1,5 +1,5 @@
 # v6.7.0
-- **Added Apple M1 processor support.**
+- **[#1991](https://github.com/xmrig/xmrig/issues/1991) Added Apple M1 processor support.**
 - **[#1986](https://github.com/xmrig/xmrig/pull/1986) Up to 20-30% faster RandomX dataset initialization with AVX2 on some CPUs.**
 - [#1964](https://github.com/xmrig/xmrig/pull/1964) Cleanup and refactoring.
 - [#1966](https://github.com/xmrig/xmrig/pull/1966) Removed libcpuid support.
