@@ -1,7 +1,7 @@
-include (src/backend/cpu/cpu.cmake)
-include (src/backend/opencl/opencl.cmake)
-include (src/backend/cuda/cuda.cmake)
-include (src/backend/common/common.cmake)
+include(src/backend/cpu/cpu.cmake)
+include(src/backend/opencl/opencl.cmake)
+include(src/backend/cuda/cuda.cmake)
+include(src/backend/common/common.cmake)
 
 
 set(HEADERS_BACKEND

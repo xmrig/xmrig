@@ -836,7 +836,13 @@ xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id
         return String();
     }
 
-    char *log = new char[size + 1]();
+    char* log = nullptr;
+    try {
+        log = new char[size + 1]();
+    }
+    catch (...) {
+        return String();
+    }
 
     if (getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, size, log, nullptr) != CL_SUCCESS) {
         delete [] log;

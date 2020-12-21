@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -818,7 +818,7 @@ int hwloc_bitmap_nr_ulongs(const struct hwloc_bitmap_s *set)
 		return -1;
 
 	last = hwloc_bitmap_last(set);
-	return (last + HWLOC_BITS_PER_LONG-1)/HWLOC_BITS_PER_LONG;
+	return (last + HWLOC_BITS_PER_LONG)/HWLOC_BITS_PER_LONG;
 }
 
 int hwloc_bitmap_only(struct hwloc_bitmap_s * set, unsigned cpu)

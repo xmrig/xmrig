@@ -30,6 +30,7 @@
 #include "base/io/Async.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/tools/Cvt.h"
 #include "crypto/rx/RxBasicStorage.h"
 
 
@@ -149,12 +150,12 @@ void xmrig::RxQueue::backgroundInit()
                  item.nodeset.size() > 1 ? "s" : "",
                  item.seed.algorithm().shortName(),
                  item.threads,
-                 Buffer::toHex(item.seed.data().data(), 8).data()
+                 Cvt::toHex(item.seed.data().data(), 8).data()
                  );
 
         m_storage->init(item.seed, item.threads, item.hugePages, item.oneGbPages, item.mode, item.priority);
 
-        lock = std::unique_lock<std::mutex>(m_mutex);
+        lock.lock();
 
         if (m_state == STATE_SHUTDOWN || !m_queue.empty()) {
             continue;

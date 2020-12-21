@@ -52,6 +52,11 @@
 .global DECL(randomx_program_loop_store)
 .global DECL(randomx_program_loop_end)
 .global DECL(randomx_dataset_init)
+.global DECL(randomx_dataset_init_avx2_prologue)
+.global DECL(randomx_dataset_init_avx2_loop_end)
+.global DECL(randomx_dataset_init_avx2_epilogue)
+.global DECL(randomx_dataset_init_avx2_ssh_load)
+.global DECL(randomx_dataset_init_avx2_ssh_prefetch)
 .global DECL(randomx_program_epilogue)
 .global DECL(randomx_sshash_load)
 .global DECL(randomx_sshash_prefetch)
@@ -191,6 +196,97 @@ call_offset:
 	pop rbp
 	pop rbx
 	ret
+
+.balign 64
+DECL(randomx_dataset_init_avx2_prologue):
+	#include "asm/program_sshash_avx2_save_registers.inc"
+
+#if defined(WINABI)
+	mov rdi, qword ptr [rcx] ;# cache->memory
+	mov rsi, rdx ;# dataset
+	mov rbp, r8  ;# block index
+	push r9      ;# max. block index
+#else
+	mov rdi, qword ptr [rdi] ;# cache->memory
+	;# dataset in rsi
+	mov rbp, rdx  ;# block index
+	push rcx      ;# max. block index
+#endif
+	sub rsp, 40
+
+	jmp randomx_dataset_init_avx2_prologue_loop_begin
+	#include "asm/program_sshash_avx2_constants.inc"
+
+.balign 64
+randomx_dataset_init_avx2_prologue_loop_begin:
+	#include "asm/program_sshash_avx2_loop_begin.inc"
+
+	;# init integer registers (lane 0)
+	lea r8, [rbp+1]
+	imul r8, qword ptr [r0_avx2_mul+rip]
+	mov r9, qword ptr [r1_avx2_add+rip]
+	xor r9, r8
+	mov r10, qword ptr [r2_avx2_add+rip]
+	xor r10, r8
+	mov r11, qword ptr [r3_avx2_add+rip]
+	xor r11, r8
+	mov r12, qword ptr [r4_avx2_add+rip]
+	xor r12, r8
+	mov r13, qword ptr [r5_avx2_add+rip]
+	xor r13, r8
+	mov r14, qword ptr [r6_avx2_add+rip]
+	xor r14, r8
+	mov r15, qword ptr [r7_avx2_add+rip]
+	xor r15, r8
+
+	;# init AVX registers (lanes 1-4)
+	mov qword ptr [rsp+32], rbp
+	vbroadcastsd ymm0, qword ptr [rsp+32]
+	vpaddq ymm0, ymm0, ymmword ptr [r0_avx2_increments+rip]
+
+	;# ymm0 *= r0_avx2_mul
+	vbroadcastsd ymm1, qword ptr [r0_avx2_mul+rip]
+	vpsrlq ymm8, ymm0, 32
+	vpsrlq ymm9, ymm1, 32
+	vpmuludq ymm10, ymm0, ymm1
+	vpmuludq ymm11, ymm9, ymm0
+	vpmuludq ymm0, ymm8, ymm1
+	vpsllq ymm11, ymm11, 32
+	vpsllq ymm0, ymm0, 32
+	vpaddq ymm10, ymm10, ymm11
+	vpaddq ymm0, ymm10, ymm0
+
+	vbroadcastsd ymm1, qword ptr [r1_avx2_add+rip]
+	vpxor ymm1, ymm0, ymm1
+	vbroadcastsd ymm2, qword ptr [r2_avx2_add+rip]
+	vpxor ymm2, ymm0, ymm2
+	vbroadcastsd ymm3, qword ptr [r3_avx2_add+rip]
+	vpxor ymm3, ymm0, ymm3
+	vbroadcastsd ymm4, qword ptr [r4_avx2_add+rip]
+	vpxor ymm4, ymm0, ymm4
+	vbroadcastsd ymm5, qword ptr [r5_avx2_add+rip]
+	vpxor ymm5, ymm0, ymm5
+	vbroadcastsd ymm6, qword ptr [r6_avx2_add+rip]
+	vpxor ymm6, ymm0, ymm6
+	vbroadcastsd ymm7, qword ptr [r7_avx2_add+rip]
+	vpxor ymm7, ymm0, ymm7
+
+	vbroadcastsd ymm15, qword ptr [mul_hi_avx2_data+rip] ;# carry_bit (bit 32)
+	vpsllq ymm14, ymm15, 31                              ;# sign64 (bit 63)
+
+	;# generated SuperscalarHash code goes here
+
+DECL(randomx_dataset_init_avx2_loop_end):
+	#include "asm/program_sshash_avx2_loop_end.inc"
+
+DECL(randomx_dataset_init_avx2_epilogue):
+	#include "asm/program_sshash_avx2_epilogue.inc"
+
+DECL(randomx_dataset_init_avx2_ssh_load):
+	#include "asm/program_sshash_avx2_ssh_load.inc"
+
+DECL(randomx_dataset_init_avx2_ssh_prefetch):
+	#include "asm/program_sshash_avx2_ssh_prefetch.inc"
 
 .balign 64
 DECL(randomx_program_epilogue):

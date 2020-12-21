@@ -28,12 +28,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <thread>
 #include <vector>
+#include <array>
 
 #include "crypto/randomx/aes_hash.hpp"
-#include "crypto/randomx/soft_aes.h"
-#include "crypto/randomx/randomx.h"
 #include "base/tools/Chrono.h"
-#include "base/tools/Profiler.h"
+#include "crypto/randomx/randomx.h"
+#include "crypto/randomx/soft_aes.h"
+#include "crypto/rx/Profiler.h"
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
 #define AES_HASH_1R_STATE1 0xace78057, 0xf59e125a, 0x15c7b798, 0x338d996e
@@ -371,7 +372,7 @@ hashAndFillAes1Rx4_impl* softAESImpl = &hashAndFillAes1Rx4<1,1>;
 void SelectSoftAESImpl(size_t threadsCount)
 {
   constexpr int test_length_ms = 100;
-  const std::vector<hashAndFillAes1Rx4_impl *> impl = {
+  const std::array<hashAndFillAes1Rx4_impl *, 4> impl = {
     &hashAndFillAes1Rx4<1,1>,
     &hashAndFillAes1Rx4<2,1>,
     &hashAndFillAes1Rx4<2,2>,

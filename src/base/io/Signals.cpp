@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,23 +17,30 @@
  */
 
 
-#include <uv.h>
-
-
-#include "base/io/Signals.h"
 #include "base/kernel/interfaces/ISignalListener.h"
+#include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
+#include "base/io/Signals.h"
 #include "base/tools/Handle.h"
 
 
+#ifdef SIGUSR1
+static const int signums[xmrig::Signals::kSignalsCount] = { SIGHUP, SIGINT, SIGTERM, SIGUSR1 };
+#else
 static const int signums[xmrig::Signals::kSignalsCount] = { SIGHUP, SIGINT, SIGTERM };
+#endif
 
 
 xmrig::Signals::Signals(ISignalListener *listener)
     : m_listener(listener)
 {
+#   ifndef XMRIG_OS_WIN
+    signal(SIGPIPE, SIG_IGN);
+#   endif
+
     for (size_t i = 0; i < kSignalsCount; ++i) {
-        uv_signal_t *signal = new uv_signal_t;
-        signal->data        = this;
+        auto signal  = new uv_signal_t;
+        signal->data = this;
 
         m_signals[i] = signal;
 
@@ -51,24 +52,37 @@ xmrig::Signals::Signals(ISignalListener *listener)
 
 xmrig::Signals::~Signals()
 {
-    stop();
-}
-
-
-void xmrig::Signals::stop()
-{
-    if (!m_signals[0]) {
-        return;
-    }
-
-    for (size_t i = 0; i < kSignalsCount; ++i) {
-        Handle::close(m_signals[i]);
-        m_signals[i] = nullptr;
+    for (auto signal : m_signals) {
+        Handle::close(signal);
     }
 }
 
 
 void xmrig::Signals::onSignal(uv_signal_t *handle, int signum)
 {
+    switch (signum)
+    {
+    case SIGHUP:
+        LOG_WARN("%s " YELLOW("SIGHUP received, exiting"), Tags::signal());
+        break;
+
+    case SIGTERM:
+        LOG_WARN("%s " YELLOW("SIGTERM received, exiting"), Tags::signal());
+        break;
+
+    case SIGINT:
+        LOG_WARN("%s " YELLOW("SIGINT received, exiting"), Tags::signal());
+        break;
+
+#   ifdef SIGUSR1
+    case SIGUSR1:
+        LOG_V5("%s " WHITE_BOLD("SIGUSR1 received"), Tags::signal());
+        break;
+#   endif
+
+    default:
+        break;
+    }
+
     static_cast<Signals *>(handle->data)->m_listener->onSignal(signum);
 }

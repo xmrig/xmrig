@@ -196,7 +196,7 @@ namespace randomx {
 		int latency_;
 		int resultOp_ = 0;
 		int dstOp_ = 0;
-		int srcOp_;
+		int srcOp_ = 0;
 
 		SuperscalarInstructionInfo(const char* name)
 			: name_(name), type_(SuperscalarInstructionType::INVALID), latency_(0) {}
@@ -282,11 +282,11 @@ namespace randomx {
 			return fetchNextDefault(gen);
 		}
 	private:
-		const char* name_;
-		int index_;
-		const int* counts_;
-		int opsCount_;
-		DecoderBuffer() : index_(-1) {}
+		const char* name_ = nullptr;
+		int index_ = -1;
+		const int* counts_ = nullptr;
+		int opsCount_ = 0;
+		DecoderBuffer() = default;
 		static const DecoderBuffer decodeBuffer484;
 		static const DecoderBuffer decodeBuffer7333;
 		static const DecoderBuffer decodeBuffer3733;
@@ -555,10 +555,10 @@ namespace randomx {
 		const SuperscalarInstructionInfo* info_;
 		int src_ = -1;
 		int dst_ = -1;
-		int mod_;
-		uint32_t imm32_;
-		SuperscalarInstructionType opGroup_;
-		int opGroupPar_;
+		int mod_ = 0;
+		uint32_t imm32_ = 0;
+		SuperscalarInstructionType opGroup_ = SuperscalarInstructionType::INVALID;
+		int opGroupPar_ = 0;
 		bool canReuse_ = false;
 		bool groupParIsSource_ = false;
 

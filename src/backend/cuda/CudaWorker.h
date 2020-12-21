@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,8 +20,7 @@
 #define XMRIG_CUDAWORKER_H
 
 
-#include "backend/common/HashrateInterpolator.h"
-#include "backend/common/Worker.h"
+#include "backend/common/GpuWorker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/cuda/CudaLaunchData.h"
 #include "base/tools/Object.h"
@@ -41,7 +33,7 @@ namespace xmrig {
 class ICudaRunner;
 
 
-class CudaWorker : public Worker
+class CudaWorker : public GpuWorker
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(CudaWorker)
@@ -50,8 +42,7 @@ public:
 
     ~CudaWorker() override;
 
-    uint64_t rawHashes() const override;
-    void jobEarlyNotification(const Job&) override;
+    void jobEarlyNotification(const Job &job) override;
 
     static std::atomic<bool> ready;
 
@@ -68,9 +59,6 @@ private:
     const Miner *m_miner;
     ICudaRunner *m_runner = nullptr;
     WorkerJob<1> m_job;
-    uint32_t m_deviceIndex;
-
-    HashrateInterpolator m_hashrateData;
 };
 
 

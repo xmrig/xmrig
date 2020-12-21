@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -47,7 +49,7 @@ namespace randomx {
 
 	class JitCompilerX86 {
 	public:
-		explicit JitCompilerX86(bool hugePagesEnable);
+		explicit JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable);
 		~JitCompilerX86();
 		void prepare();
 		void generateProgram(Program&, ProgramConfiguration&, uint32_t);
@@ -55,24 +57,38 @@ namespace randomx {
 		template<size_t N>
 		void generateSuperscalarHash(SuperscalarProgram (&programs)[N]);
 		void generateDatasetInitCode();
-		ProgramFunc* getProgramFunc() {
-			return (ProgramFunc*)code;
+
+		inline ProgramFunc *getProgramFunc() const {
+#			ifdef XMRIG_SECURE_JIT
+			enableExecution();
+#			endif
+
+			return reinterpret_cast<ProgramFunc*>(code);
 		}
-		DatasetInitFunc* getDatasetInitFunc() {
+
+		inline DatasetInitFunc *getDatasetInitFunc() const {
+# 			ifdef XMRIG_SECURE_JIT
+			enableExecution();
+#			endif
+
 			return (DatasetInitFunc*)code;
 		}
+
 		uint8_t* getCode() {
 			return code;
 		}
 		size_t getCodeSize();
+		void enableWriting() const;
+		void enableExecution() const;
 
 		alignas(64) static InstructionGeneratorX86 engine[256];
 
-		int registerUsage[RegistersCount];
-		uint8_t* code;
-		uint32_t codePos;
-		uint32_t codePosFirst;
-		uint32_t vm_flags;
+	private:
+		int registerUsage[RegistersCount] = {};
+		uint8_t* code = nullptr;
+		uint32_t codePos = 0;
+		uint32_t codePosFirst = 0;
+		uint32_t vm_flags = 0;
 
 #		ifdef XMRIG_FIX_RYZEN
 		std::pair<const void*, const void*> mainLoopBounds;
@@ -80,9 +96,12 @@ namespace randomx {
 
 		bool BranchesWithin32B = false;
 		bool hasAVX;
+		bool hasAVX2;
+		bool initDatasetAVX2;
 		bool hasXOP;
 
-		uint8_t* allocatedCode;
+		uint8_t* allocatedCode = nullptr;
+		size_t allocatedSize = 0;
 
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
@@ -90,9 +109,10 @@ namespace randomx {
 		static void genAddressReg(const Instruction&, const uint32_t src, uint8_t* code, uint32_t& codePos);
 		static void genAddressRegDst(const Instruction&, uint8_t* code, uint32_t& codePos);
 		static void genAddressImm(const Instruction&, uint8_t* code, uint32_t& codePos);
-		static void genSIB(int scale, int index, int base, uint8_t* code, uint32_t& codePos);
+		static uint32_t genSIB(int scale, int index, int base) { return (scale << 6) | (index << 3) | base; }
 
-		void generateSuperscalarCode(Instruction &);
+		template<bool AVX2>
+		void generateSuperscalarCode(Instruction& inst, uint8_t* code, uint32_t& codePos);
 
 		static void emitByte(uint8_t val, uint8_t* code, uint32_t& codePos) {
 			code[codePos] = val;
@@ -119,6 +139,7 @@ namespace randomx {
 			codePos += count;
 		}
 
+	public:
 		void h_IADD_RS(const Instruction&);
 		void h_IADD_M(const Instruction&);
 		void h_ISUB_R(const Instruction&);

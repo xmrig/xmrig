@@ -1,6 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
-Copyright (c) 2019, SChernykh    <https://github.com/SChernykh>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -28,16 +29,23 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "crypto/randomx/jit_compiler_a64.hpp"
-#include "crypto/randomx/superscalar.hpp"
+#include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
+#include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/virtual_memory.hpp"
 
 static bool hugePagesJIT = false;
+static int optimizedDatasetInit = -1;
 
 void randomx_set_huge_pages_jit(bool hugePages)
 {
 	hugePagesJIT = hugePages;
+}
+
+void randomx_set_optimized_dataset_init(int value)
+{
+	optimizedDatasetInit = value;
 }
 
 namespace ARMV8A {
@@ -96,37 +104,28 @@ static size_t CalcDatasetItemSize()
 
 constexpr uint32_t IntRegMap[8] = { 4, 5, 6, 7, 12, 13, 14, 15 };
 
-JitCompilerA64::JitCompilerA64(bool hugePagesEnable)
-	: code((uint8_t*) allocExecutableMemory(CodeSize + CalcDatasetItemSize(), hugePagesJIT && hugePagesEnable))
-	, literalPos(ImulRcpLiteralsEnd)
-	, num32bitLiterals(0)
+JitCompilerA64::JitCompilerA64(bool hugePagesEnable, bool) :
+	hugePages(hugePagesJIT && hugePagesEnable),
+	literalPos(ImulRcpLiteralsEnd)
 {
-	memset(reg_changed_offset, 0, sizeof(reg_changed_offset));
-	memcpy(code, (void*) randomx_program_aarch64, CodeSize);
 }
 
 JitCompilerA64::~JitCompilerA64()
 {
-	freePagedMemory(code, CodeSize + CalcDatasetItemSize());
-}
-
-#if defined(ios_HOST_OS) || defined (darwin_HOST_OS)
-void sys_icache_invalidate(void *start, size_t len);
-#endif
-
-static void clear_code_cache(char* p1, char* p2)
-{
-#	if defined(ios_HOST_OS) || defined (darwin_HOST_OS)
-	sys_icache_invalidate(p1, static_cast<size_t>(p2 - p1));
-#	elif defined (HAVE_BUILTIN_CLEAR_CACHE) || defined (__GNUC__)
-	__builtin___clear_cache(p1, p2);
-#	else
-#	error "No clear code cache function found"
-#	endif
+	freePagedMemory(code, allocatedSize);
 }
 
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
+	if (!allocatedSize) {
+		allocate(CodeSize);
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
+
 	uint32_t codePos = MainLoopBegin + 4;
 
 	// and w16, w10, ScratchpadL3Mask64
@@ -171,11 +170,22 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	codePos = ((uint8_t*)randomx_program_aarch64_update_spMix1) - ((uint8_t*)randomx_program_aarch64);
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
 
-	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+#	ifndef XMRIG_OS_APPLE
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+#	endif
 }
 
 void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
 {
+	if (!allocatedSize) {
+		allocate(CodeSize);
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
+
 	uint32_t codePos = MainLoopBegin + 4;
 
 	// and w16, w10, ScratchpadL3Mask64
@@ -226,12 +236,23 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_LO | 2 | (2 << 5) | (imm_lo << 10), code, codePos);
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
-	clear_code_cache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+#	ifndef XMRIG_OS_APPLE
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+#	endif
 }
 
 template<size_t N>
 void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
+	if (!allocatedSize) {
+		allocate(CodeSize + CalcDatasetItemSize());
+	}
+#ifdef XMRIG_SECURE_JIT
+	else {
+		enableWriting();
+	}
+#endif
+
 	uint32_t codePos = CodeSize;
 
 	uint8_t* p1 = (uint8_t*)randomx_calc_dataset_item_aarch64;
@@ -342,13 +363,19 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 	memcpy(code + codePos, p1, p2 - p1);
 	codePos += p2 - p1;
 
-	clear_code_cache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
+#	ifndef XMRIG_OS_APPLE
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
+#	endif
 }
 
 template void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[RANDOMX_CACHE_MAX_ACCESSES]);
 
-DatasetInitFunc* JitCompilerA64::getDatasetInitFunc()
+DatasetInitFunc* JitCompilerA64::getDatasetInitFunc() const
 {
+#	ifdef XMRIG_SECURE_JIT
+	enableExecution();
+#	endif
+
 	return (DatasetInitFunc*)(code + (((uint8_t*)randomx_init_dataset_aarch64) - ((uint8_t*)randomx_program_aarch64)));
 }
 
@@ -356,6 +383,26 @@ size_t JitCompilerA64::getCodeSize()
 {
 	return CodeSize;
 }
+
+void JitCompilerA64::enableWriting() const
+{
+	xmrig::VirtualMemory::protectRW(code, allocatedSize);
+}
+
+void JitCompilerA64::enableExecution() const
+{
+	xmrig::VirtualMemory::protectRX(code, allocatedSize);
+}
+
+
+void JitCompilerA64::allocate(size_t size)
+{
+	allocatedSize = size;
+	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
+
+	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+}
+
 
 void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code, uint32_t& codePos)
 {

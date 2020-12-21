@@ -1,14 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,6 +27,13 @@
 #include "base/io/log/Log.h"
 #include "crypto/common/portable/mm_malloc.h"
 #include "crypto/common/VirtualMemory.h"
+
+
+#ifdef XMRIG_SECURE_JIT
+#   define SECURE_PAGE_EXECUTE_READWRITE PAGE_READWRITE
+#else
+#   define SECURE_PAGE_EXECUTE_READWRITE PAGE_EXECUTE_READWRITE
+#endif
 
 
 namespace xmrig {
@@ -63,7 +63,7 @@ Return value: TRUE indicates success, FALSE failure.
 static BOOL SetLockPagesPrivilege() {
     HANDLE token;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token) != TRUE) {
+    if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &token)) {
         return FALSE;
     }
 
@@ -71,12 +71,12 @@ static BOOL SetLockPagesPrivilege() {
     tp.PrivilegeCount = 1;
     tp.Privileges[0].Attributes = SE_PRIVILEGE_ENABLED;
 
-    if (LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid)) != TRUE) {
+    if (!LookupPrivilegeValue(nullptr, SE_LOCK_MEMORY_NAME, &(tp.Privileges[0].Luid))) {
         return FALSE;
     }
 
     BOOL rc = AdjustTokenPrivileges(token, FALSE, (PTOKEN_PRIVILEGES) &tp, 0, nullptr, nullptr);
-    if (rc != TRUE || GetLastError() != ERROR_SUCCESS) {
+    if (!rc || GetLastError() != ERROR_SUCCESS) {
         return FALSE;
     }
 
@@ -101,7 +101,7 @@ static BOOL ObtainLockPagesPrivilege() {
     HANDLE token;
     PTOKEN_USER user = nullptr;
 
-    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token) == TRUE) {
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &token)) {
         DWORD size = 0;
 
         GetTokenInformation(token, TokenUser, nullptr, 0, &size);
@@ -162,16 +162,40 @@ bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 }
 
 
+bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
+{
+    DWORD oldProtect;
+
+    return VirtualProtect(p, size, PAGE_READWRITE, &oldProtect) != 0;
+}
+
+
+bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
+{
+    DWORD oldProtect;
+
+    return VirtualProtect(p, size, PAGE_EXECUTE_READWRITE, &oldProtect) != 0;
+}
+
+
+bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+{
+    DWORD oldProtect;
+
+    return VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect) != 0;
+}
+
+
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
     void* result = nullptr;
 
     if (hugePages) {
-        result = VirtualAlloc(nullptr, align(size), MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, PAGE_EXECUTE_READWRITE);
+        result = VirtualAlloc(nullptr, align(size), MEM_COMMIT | MEM_RESERVE | MEM_LARGE_PAGES, SECURE_PAGE_EXECUTE_READWRITE);
     }
 
     if (!result) {
-        result = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+        result = VirtualAlloc(nullptr, size, MEM_COMMIT | MEM_RESERVE, SECURE_PAGE_EXECUTE_READWRITE);
     }
 
     return result;
@@ -206,20 +230,6 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t)
 {
     VirtualFree(p, 0, MEM_RELEASE);
-}
-
-
-void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
-{
-    DWORD oldProtect;
-    VirtualProtect(p, size, PAGE_EXECUTE_READ, &oldProtect);
-}
-
-
-void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
-{
-    DWORD oldProtect;
-    VirtualProtect(p, size, PAGE_EXECUTE_READWRITE, &oldProtect);
 }
 
 

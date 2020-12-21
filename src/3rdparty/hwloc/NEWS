@@ -2,6 +2,7 @@ Copyright © 2009 CNRS
 Copyright © 2009-2020 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
+Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
 
 $COPYRIGHT$
 
@@ -14,6 +15,76 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.4.0
+-------------
+* API
+  + Add hwloc/cpukinds.h for reporting information about hybrid CPUs.
+    - Use Linux cpufreq frequencies to rank cores by efficiency.
+    - Use x86 CPUID hybrid leaf and future Linux kernels sysfs CPU type
+      files to identify Intel Atom and Core cores.
+    - Use the Windows native EfficiencyClass to separate kinds.
+* Backends
+  + Properly handle Linux kernel 5.10+ exposing ACPI HMAT information
+    with knowledge of Generic Initiators.
+* Tools
+  + lstopo has new --cpukinds and --no-cpukinds options for showing
+    CPU kinds or not in textual and graphical modes respectively.
+  + hwloc-calc has a new --cpukind option for filtering PUs by kind.
+  + hwloc-annotate has a new cpukind command for modifying CPU kinds.
+* Misc
+  + Fix hwloc_bitmap_nr_ulongs(), thanks to Norbert Eicker.
+  + Add a documentation section about
+    "Topology Attributes: Distances, Memory Attributes and CPU Kinds".
+  + Silence some spurious warnings in the OpenCL backend and when showing
+    process binding with lstopo --ps.
+
+
+Version 2.3.0
+-------------
+* API
+  + Add hwloc/memattrs.h for exposing latency/bandwidth information
+    between initiators (CPU sets for now) and target NUMA nodes,
+    typically on heterogeneous platforms.
+    - When available, bandwidths and latencies are read from the ACPI HMAT
+      table exposed by Linux kernel 5.2+.
+    - Attributes may also be customized to expose user-defined performance
+      information.
+  + Add hwloc_get_local_numanode_objs() for listing NUMA nodes that are
+    local to some locality.
+  + The new topology flag HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT causes
+    support arrays to be loaded from XML exported with hwloc 2.3+.
+    - hwloc_topology_get_support() now returns an additional "misc"
+      array with feature "imported_support" set when support was imported.
+  + Add hwloc_topology_refresh() to refresh internal caches after modifying
+    the topology and before consulting the topology in a multithread context.
+* Backends
+  + Add a ROCm SMI backend and a hwloc/rsmi.h helper file for getting
+    the locality of AMD GPUs, now exposed as "rsmi" OS devices.
+    Thanks to Mike Li.
+  + Remove POWER device-tree-based topology on Linux,
+    (it was disabled by default since 2.1).
+* Tools
+  + Command-line options for specifying flags now understand comma-separated
+    lists of flag names (substrings).
+  + hwloc-info and hwloc-calc have new --local-memory --local-memory-flags
+    and --best-memattr options for reporting local memory nodes and filtering
+    by memory attributes.
+  + hwloc-bind has a new --best-memattr option for filtering by memory attributes
+    among the memory binding set.
+  + Tools that have a --restrict option may now receive a nodeset or
+    some custom flags for restricting the topology.
+  + lstopo now has a --thickness option for changing line thickness in the
+    graphical output.
+  + Fix lstopo drawing when autoresizing on Windows 10.
+  + Pressing the F5 key in lstopo X11 and Windows graphical/interactive outputs
+    now refreshes the display according to the current topology and binding.
+  + Add a tikz lstopo graphical backend to generate picture easily included into
+    LaTeX documents. Thanks to Clement Foyer.
+* Misc
+  + The default installation path of the Bash completion file has changed to
+    ${datadir}/bash-completion/completions/hwloc. Thanks to Tomasz Kłoczko.
 
 
 Version 2.2.0

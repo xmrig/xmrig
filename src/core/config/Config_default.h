@@ -50,6 +50,7 @@ R"===(
     "colors": true,
     "randomx": {
         "init": -1,
+        "init-avx2": -1,
         "mode": "auto",
         "1gb-pages": false,
         "rdmsr": true,

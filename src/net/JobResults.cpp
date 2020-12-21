@@ -123,6 +123,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
         RxDataset *dataset = Rx::dataset(bundle.job, 0);
         if (dataset == nullptr) {
             errors += bundle.nonces.size();
+            delete memory;
 
             return;
         }

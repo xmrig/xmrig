@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,9 +20,6 @@
 #define XMRIG_WORKER_H
 
 
-#include <atomic>
-
-
 #include "backend/common/interfaces/IWorker.h"
 
 
@@ -41,23 +31,17 @@ class Worker : public IWorker
 public:
     Worker(size_t id, int64_t affinity, int priority);
 
-    inline const VirtualMemory *memory() const override   { return nullptr; }
-    inline size_t id() const override                     { return m_id; }
-    inline uint64_t rawHashes() const override            { return m_count; }
-    inline void jobEarlyNotification(const Job&) override {}
-
-    void getHashrateData(uint64_t& hashCount, uint64_t& timeStamp) const override;
-
 protected:
-    void storeStats();
+    inline int64_t affinity() const                         { return m_affinity; }
+    inline size_t id() const override                       { return m_id; }
+    inline uint32_t node() const                            { return m_node; }
 
+    uint64_t m_count                = 0;
+
+private:
     const int64_t m_affinity;
     const size_t m_id;
-    std::atomic<uint32_t> m_index   = {};
     uint32_t m_node                 = 0;
-    uint64_t m_count                = 0;
-    uint64_t m_hashCount[2]         = {};
-    uint64_t m_timestamp[2]         = {};
 };
 
 

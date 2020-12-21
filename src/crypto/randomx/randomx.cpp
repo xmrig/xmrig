@@ -47,7 +47,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cassert>
 
-#include "base/tools/Profiler.h"
+#include "crypto/rx/Profiler.h"
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
@@ -381,9 +381,9 @@ extern "C" {
 					break;
 
 				case RANDOMX_FLAG_JIT:
-					cache->jit          = new randomx::JitCompiler(false);
+					cache->jit          = new randomx::JitCompiler(false, true);
 					cache->initialize   = &randomx::initCacheCompile;
-					cache->datasetInit  = cache->jit->getDatasetInitFunc();
+					cache->datasetInit  = nullptr;
 					cache->memory       = memory;
 					break;
 

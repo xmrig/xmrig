@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -471,7 +471,7 @@ hwloc_backend_synthetic_init(struct hwloc_synthetic_backend_data_s *data,
     /* initialize parent arity to 0 so that the levels are not infinite */
     data->level[count-1].arity = 0;
 
-    while (*pos == ' ')
+    while (*pos == ' ' || *pos == '\n')
       pos++;
 
     if (!*pos)
@@ -912,7 +912,7 @@ hwloc_synthetic_insert_attached(struct hwloc_topology *topology,
 
   hwloc_synthetic_set_attr(&attached->attr, child);
 
-  hwloc_insert_object_by_cpuset(topology, child);
+  hwloc__insert_object_by_cpuset(topology, NULL, child, "synthetic:attached");
 
   hwloc_synthetic_insert_attached(topology, data, attached->next, set);
 }
@@ -964,7 +964,7 @@ hwloc__look_synthetic(struct hwloc_topology *topology,
 
     hwloc_synthetic_set_attr(&curlevel->attr, obj);
 
-    hwloc_insert_object_by_cpuset(topology, obj);
+    hwloc__insert_object_by_cpuset(topology, NULL, obj, "synthetic");
   }
 
   hwloc_synthetic_insert_attached(topology, data, curlevel->attached, set);

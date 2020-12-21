@@ -31,6 +31,7 @@
 
 #include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
+#include "base/tools/Cvt.h"
 
 
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
@@ -59,11 +60,13 @@ bool xmrig::Job::setBlob(const char *blob)
     }
 
     m_size /= 2;
-    if (m_size < 76 || m_size >= sizeof(m_blob)) {
+
+    const size_t minSize = nonceOffset() + nonceSize();
+    if (m_size < minSize || m_size >= sizeof(m_blob)) {
         return false;
     }
 
-    if (!Buffer::fromHex(blob, m_size * 2, m_blob)) {
+    if (!Cvt::fromHex(m_blob, sizeof(m_blob), blob, m_size * 2)) {
         return false;
     }
 
@@ -90,9 +93,9 @@ bool xmrig::Job::setSeedHash(const char *hash)
     m_rawSeedHash = hash;
 #   endif
 
-    m_seed = Buffer::fromHex(hash, kMaxSeedSize * 2);
+    m_seed = Cvt::fromHex(hash, kMaxSeedSize * 2);
 
-    return !m_seed.isEmpty();
+    return !m_seed.empty();
 }
 
 
@@ -102,27 +105,14 @@ bool xmrig::Job::setTarget(const char *target)
         return false;
     }
 
-    const size_t len = strlen(target);
+    const auto raw    = Cvt::fromHex(target, strlen(target));
+    const size_t size = raw.size();
 
-    if (len <= 8) {
-        uint32_t tmp = 0;
-        char str[8];
-        memcpy(str, target, len);
-
-        if (!Buffer::fromHex(str, 8, reinterpret_cast<uint8_t *>(&tmp)) || tmp == 0) {
-            return false;
-        }
-
-        m_target = 0xFFFFFFFFFFFFFFFFULL / (0xFFFFFFFFULL / static_cast<uint64_t>(tmp));
+    if (size == 4) {
+        m_target = 0xFFFFFFFFFFFFFFFFULL / (0xFFFFFFFFULL / uint64_t(*reinterpret_cast<const uint32_t *>(raw.data())));
     }
-    else if (len <= 16) {
-        m_target = 0;
-        char str[16];
-        memcpy(str, target, len);
-
-        if (!Buffer::fromHex(str, 16, reinterpret_cast<uint8_t *>(&m_target)) || m_target == 0) {
-            return false;
-        }
+    else if (size == 8) {
+        m_target = *reinterpret_cast<const uint64_t *>(raw.data());
     }
     else {
         return false;

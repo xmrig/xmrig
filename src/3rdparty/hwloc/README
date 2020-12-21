@@ -23,9 +23,9 @@ APIs are documented after these sections.
 
 Installation
 
-hwloc (http://www.open-mpi.org/projects/hwloc/) is available under the BSD
-license. It is hosted as a sub-project of the overall Open MPI project (http://
-www.open-mpi.org/). Note that hwloc does not require any functionality from
+hwloc (https://www.open-mpi.org/projects/hwloc/) is available under the BSD
+license. It is hosted as a sub-project of the overall Open MPI project (https:/
+/www.open-mpi.org/). Note that hwloc does not require any functionality from
 Open MPI -- it is a wholly separate (and much smaller!) project and code base.
 It just happens to be hosted as part of the overall Open MPI project.
 
@@ -75,7 +75,7 @@ Bugs should be reported in the tracker (https://github.com/open-mpi/hwloc/
 issues). Opening a new issue automatically displays lots of hints about how to
 debug and report issues.
 
-Questions may be sent to the users or developers mailing lists (http://
+Questions may be sent to the users or developers mailing lists (https://
 www.open-mpi.org/community/lists/hwloc.php).
 
 There is also a #hwloc IRC channel on Freenode (irc.freenode.net).

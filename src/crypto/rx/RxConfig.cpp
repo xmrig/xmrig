@@ -47,6 +47,7 @@
 namespace xmrig {
 
 const char *RxConfig::kInit                     = "init";
+const char *RxConfig::kInitAVX2                 = "init-avx2";
 const char *RxConfig::kField                    = "randomx";
 const char *RxConfig::kMode                     = "mode";
 const char *RxConfig::kOneGbPages               = "1gb-pages";
@@ -86,9 +87,10 @@ static_assert (kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MO
 bool xmrig::RxConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
-        m_threads    = Json::getInt(value, kInit, m_threads);
-        m_mode       = readMode(Json::getValue(value, kMode));
-        m_rdmsr      = Json::getBool(value, kRdmsr, m_rdmsr);
+        m_threads         = Json::getInt(value, kInit, m_threads);
+        m_initDatasetAVX2 = Json::getInt(value, kInitAVX2, m_initDatasetAVX2);
+        m_mode            = readMode(Json::getValue(value, kMode));
+        m_rdmsr           = Json::getBool(value, kRdmsr, m_rdmsr);
 
 #       ifdef XMRIG_FEATURE_MSR
         readMSR(Json::getValue(value, kWrmsr));
@@ -122,7 +124,7 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
         }
 #       endif
 
-        const uint32_t mode = static_cast<uint32_t>(Json::getInt(value, kScratchpadPrefetchMode, static_cast<int>(m_scratchpadPrefetchMode)));
+        const auto mode = static_cast<uint32_t>(Json::getInt(value, kScratchpadPrefetchMode, static_cast<int>(m_scratchpadPrefetchMode)));
         if (mode < ScratchpadPrefetchMax) {
             m_scratchpadPrefetchMode = static_cast<ScratchpadPrefetchMode>(mode);
         }
@@ -141,6 +143,7 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
     obj.AddMember(StringRef(kInit),         m_threads, allocator);
+    obj.AddMember(StringRef(kInitAVX2),     m_initDatasetAVX2, allocator);
     obj.AddMember(StringRef(kMode),         StringRef(modeName()), allocator);
     obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
     obj.AddMember(StringRef(kRdmsr),        m_rdmsr, allocator);

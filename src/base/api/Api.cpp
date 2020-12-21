@@ -34,8 +34,8 @@
 #include "base/io/Env.h"
 #include "base/io/json/Json.h"
 #include "base/kernel/Base.h"
-#include "base/tools/Buffer.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/Cvt.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "version.h"
@@ -169,9 +169,6 @@ void xmrig::Api::exec(IApiRequest &request)
 #       ifdef XMRIG_FEATURE_HTTP
         features.PushBack("http", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_LIBCPUID
-        features.PushBack("cpuid", allocator);
-#       endif
 #       ifdef XMRIG_FEATURE_HWLOC
         features.PushBack("hwloc", allocator);
 #       endif
@@ -222,13 +219,13 @@ void xmrig::Api::genId(const String &id)
             const size_t inSize   = (sizeof(APP_KIND) - 1) + addrSize + sizeof(uint16_t);
             const auto port       = static_cast<uint16_t>(m_base->config()->http().port());
 
-            auto*input = new uint8_t[inSize]();
+            auto *input = new uint8_t[inSize]();
             memcpy(input, &port, sizeof(uint16_t));
             memcpy(input + sizeof(uint16_t), interfaces[i].phys_addr, addrSize);
             memcpy(input + sizeof(uint16_t) + addrSize, APP_KIND, (sizeof(APP_KIND) - 1));
 
             keccak(input, inSize, hash);
-            Buffer::toHex(hash, 8, m_id);
+            Cvt::toHex(m_id, sizeof(m_id), hash, 8);
 
             delete [] input;
             break;

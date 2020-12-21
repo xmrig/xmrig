@@ -48,7 +48,7 @@ struct randomx_cache {
 	randomx::DatasetInitFunc* datasetInit;
 	randomx::SuperscalarProgram programs[RANDOMX_CACHE_MAX_ACCESSES];
 
-	bool isInitialized() {
+	bool isInitialized() const {
 		return programs[0].getSize() != 0;
 	}
 };

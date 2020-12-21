@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Inria.  All rights reserved.
+ * Copyright © 2010-2020 Inria.  All rights reserved.
  * Copyright © 2011-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -526,36 +526,6 @@ int hwloc_distances_add(hwloc_topology_t topology,
  * Refresh objects in distances
  */
 
-static hwloc_obj_t hwloc_find_obj_by_depth_and_gp_index(hwloc_topology_t topology, unsigned depth, uint64_t gp_index)
-{
-  hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, depth, 0);
-  while (obj) {
-    if (obj->gp_index == gp_index)
-      return obj;
-    obj = obj->next_cousin;
-  }
-  return NULL;
-}
-
-static hwloc_obj_t hwloc_find_obj_by_type_and_gp_index(hwloc_topology_t topology, hwloc_obj_type_t type, uint64_t gp_index)
-{
-  int depth = hwloc_get_type_depth(topology, type);
-  if (depth == HWLOC_TYPE_DEPTH_UNKNOWN)
-    return NULL;
-  if (depth == HWLOC_TYPE_DEPTH_MULTIPLE) {
-    int topodepth = hwloc_topology_get_depth(topology);
-    for(depth=0; depth<topodepth; depth++) {
-      if (hwloc_get_depth_type(topology, depth) == type) {
-	hwloc_obj_t obj = hwloc_find_obj_by_depth_and_gp_index(topology, depth, gp_index);
-	if (obj)
-	  return obj;
-      }
-    }
-    return NULL;
-  }
-  return hwloc_find_obj_by_depth_and_gp_index(topology, depth, gp_index);
-}
-
 static void
 hwloc_internal_distances_restrict(hwloc_obj_t *objs,
 				  uint64_t *indexes,
@@ -612,7 +582,7 @@ hwloc_internal_distances_refresh_one(hwloc_topology_t topology,
       else
 	abort();
     } else {
-      obj = hwloc_find_obj_by_type_and_gp_index(topology, different_types ? different_types[i] : unique_type, indexes[i]);
+      obj = hwloc_get_obj_by_type_and_gp_index(topology, different_types ? different_types[i] : unique_type, indexes[i]);
     }
     objs[i] = obj;
     if (!obj)
@@ -874,26 +844,6 @@ hwloc_distances_get_by_type(hwloc_topology_t topology, hwloc_obj_type_t type,
  * Grouping objects according to distances
  */
 
-static void hwloc_report_user_distance_error(const char *msg, int line)
-{
-  static int reported = 0;
-
-  if (!reported && !hwloc_hide_errors()) {
-    fprintf(stderr, "****************************************************************************\n");
-    fprintf(stderr, "* hwloc %s was given invalid distances by the user.\n", HWLOC_VERSION);
-    fprintf(stderr, "*\n");
-    fprintf(stderr, "* %s\n", msg);
-    fprintf(stderr, "* Error occurred in topology.c line %d\n", line);
-    fprintf(stderr, "*\n");
-    fprintf(stderr, "* Please make sure that distances given through the programming API\n");
-    fprintf(stderr, "* do not contradict any other topology information.\n");
-    fprintf(stderr, "* \n");
-    fprintf(stderr, "* hwloc will now ignore this invalid topology information and continue.\n");
-    fprintf(stderr, "****************************************************************************\n");
-    reported = 1;
-  }
-}
-
 static int hwloc_compare_values(uint64_t a, uint64_t b, float accuracy)
 {
   if (accuracy != 0.0f && fabsf((float)a-(float)b) < (float)a * accuracy)
@@ -1086,7 +1036,7 @@ hwloc__groups_by_distances(struct hwloc_topology *topology,
           hwloc_debug_1arg_bitmap("adding Group object with %u objects and cpuset %s\n",
                                   groupsizes[i], group_obj->cpuset);
           res_obj = hwloc__insert_object_by_cpuset(topology, NULL, group_obj,
-						   (kind & HWLOC_DISTANCES_KIND_FROM_USER) ? hwloc_report_user_distance_error : hwloc_report_os_error);
+                                                   (kind & HWLOC_DISTANCES_KIND_FROM_USER) ? "distances:fromuser:group" : "distances:group");
 	  /* res_obj may be NULL on failure to insert. */
 	  if (!res_obj)
 	    failed++;

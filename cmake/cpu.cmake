@@ -18,7 +18,6 @@ endif()
 
 if (ARM_TARGET AND ARM_TARGET GREATER 6)
     set(XMRIG_ARM     ON)
-    set(WITH_LIBCPUID OFF)
     add_definitions(/DXMRIG_ARM)
 
     message(STATUS "Use ARM_TARGET=${ARM_TARGET} (${CMAKE_SYSTEM_PROCESSOR})")

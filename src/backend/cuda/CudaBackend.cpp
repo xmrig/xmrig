@@ -409,9 +409,9 @@ void xmrig::CudaBackend::printHashrate(bool details)
          Log::print("| %8zu | %8" PRId64 " | %8s | %8s | %8s |" CYAN_BOLD(" #%u") YELLOW(" %s") GREEN(" %s"),
                     i,
                     data.thread.affinity(),
-                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::MediumInterval) * scale, num + 16,      sizeof num / 3),
-                    Hashrate::format(hashrate()->calc(i + 1, Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::MediumInterval) * scale, num + 16,      sizeof num / 3),
+                    Hashrate::format(hashrate()->calc(i, Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3),
                     data.device.index(),
                     data.device.topology().toString().data(),
                     data.device.name().data()

@@ -93,7 +93,7 @@ xmrig::OclAstroBWTRunner::~OclAstroBWTRunner()
     OclLib::release(m_tmp_indices);
     OclLib::release(m_filtered_hashes);
 
-    delete m_bwt_data_sizes_host;
+    delete [] m_bwt_data_sizes_host;
 }
 
 
