@@ -1,3 +1,15 @@
+# v6.7.0
+- **Added Apple M1 processor support.**
+- **[#1986](https://github.com/xmrig/xmrig/pull/1986) Up to 20-30% faster RandomX dataset initialization with AVX2 on some CPUs.**
+- [#1964](https://github.com/xmrig/xmrig/pull/1964) Cleanup and refactoring.
+- [#1966](https://github.com/xmrig/xmrig/pull/1966) Removed libcpuid support.
+- [#1968](https://github.com/xmrig/xmrig/pull/1968) Added virtual machine detection.
+- [#1969](https://github.com/xmrig/xmrig/pull/1969) [#1970](https://github.com/xmrig/xmrig/pull/1970) Fixed errors found by static analysis.
+- [#1977](https://github.com/xmrig/xmrig/pull/1977) Fixed: secure JIT and huge pages are incompatible on Windows.
+- [#1979](https://github.com/xmrig/xmrig/pull/1979) Term `x64` replaced to `64-bit`.
+- [#1980](https://github.com/xmrig/xmrig/pull/1980) Fixed build on gcc 11.
+- [#1989](https://github.com/xmrig/xmrig/pull/1989) Fixed broken Dero solo mining.
+
 # v6.6.2
 - [#1958](https://github.com/xmrig/xmrig/pull/1958) Added example mining scripts to help new miners.
 - [#1959](https://github.com/xmrig/xmrig/pull/1959) Optimized JIT compiler.
