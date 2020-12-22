@@ -76,7 +76,12 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(BasePrivate)
 
 
-    inline BasePrivate(Process *process) : config(load(process)) {}
+    inline BasePrivate(Process *process)
+    {
+        Log::init();
+
+        config = load(process);
+    }
 
 
     inline ~BasePrivate()
@@ -166,7 +171,7 @@ private:
 xmrig::Base::Base(Process *process)
     : d_ptr(new BasePrivate(process))
 {
-    Log::init();
+
 }
 
 
