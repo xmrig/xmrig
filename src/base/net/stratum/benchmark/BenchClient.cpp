@@ -126,7 +126,8 @@ void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts
     const uint64_t ref = referenceHash();
     const char *color  = ref ? ((result == ref) ? GREEN_BOLD_S : RED_BOLD_S) : BLACK_BOLD_S;
 
-    LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, tag(), static_cast<double>(ts - m_readyTime) / 1000.0, color, result);
+    const double dt = static_cast<int64_t>(ts - m_readyTime) / 1000.0;
+    LOG_NOTICE("%s " WHITE_BOLD("benchmark finished in ") CYAN_BOLD("%.3f seconds (%.1f h/s)") WHITE_BOLD_S " hash sum = " CLEAR "%s%016" PRIX64 CLEAR, tag(), dt, BenchState::size() / dt, color, result);
 
     if (m_token.isEmpty()) {
         printExit();
