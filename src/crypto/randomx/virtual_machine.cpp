@@ -30,13 +30,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iomanip>
 #include <stdexcept>
 #include "crypto/randomx/virtual_machine.hpp"
-#include "crypto/randomx/common.hpp"
 #include "crypto/randomx/aes_hash.hpp"
-#include "crypto/randomx/blake2/blake2.h"
-#include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/allocator.hpp"
+#include "crypto/randomx/blake2/blake2.h"
+#include "crypto/randomx/common.hpp"
+#include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/soft_aes.h"
-#include "base/tools/Profiler.h"
+#include "crypto/rx/Profiler.h"
 
 randomx_vm::~randomx_vm() {
 

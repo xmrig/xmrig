@@ -213,7 +213,7 @@ hwloc__nolibxml_import_close_child(hwloc__xml_import_state_t state)
 
 static int
 hwloc__nolibxml_import_get_content(hwloc__xml_import_state_t state,
-				   char **beginp, size_t expected_length)
+				   const char **beginp, size_t expected_length)
 {
   hwloc__nolibxml_import_state_data_t nstate = (void*) state->data;
   char *buffer = nstate->tagbuffer;
@@ -224,7 +224,7 @@ hwloc__nolibxml_import_get_content(hwloc__xml_import_state_t state,
   if (nstate->closed) {
     if (expected_length)
       return -1;
-    *beginp = (char *) "";
+    *beginp = "";
     return 0;
   }
 

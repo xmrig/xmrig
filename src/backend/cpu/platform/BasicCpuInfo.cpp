@@ -52,8 +52,8 @@
 namespace xmrig {
 
 
-constexpr size_t kCpuFlagsSize                                  = 12;
-static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3" };
+constexpr size_t kCpuFlagsSize                                  = 14;
+static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx", "avx2", "avx512f", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "xop", "popcnt", "cat_l3", "vm" };
 static_assert(kCpuFlagsSize == ICpuInfo::FLAG_MAX, "kCpuFlagsSize and FLAG_MAX mismatch");
 
 
@@ -134,11 +134,12 @@ static inline uint64_t xgetbv()
 #endif
 }
 
-static inline bool has_xcr_avx2()   { return (xgetbv() & 0x06) == 0x06; }
+static inline bool has_xcr_avx()    { return (xgetbv() & 0x06) == 0x06; }
 static inline bool has_xcr_avx512() { return (xgetbv() & 0xE6) == 0xE6; }
 static inline bool has_osxsave()    { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 27); }
 static inline bool has_aes_ni()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 25); }
-static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave() && has_xcr_avx2(); }
+static inline bool has_avx()        { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 28) && has_osxsave() && has_xcr_avx(); }
+static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave() && has_xcr_avx(); }
 static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave() && has_xcr_avx512(); }
 static inline bool has_bmi2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 8); }
 static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    EDX_Reg, 1 << 26); }
@@ -148,6 +149,7 @@ static inline bool has_sse41()      { return has_feature(PROCESSOR_INFO,        
 static inline bool has_xop()        { return has_feature(0x80000001,            ECX_Reg, 1 << 11); }
 static inline bool has_popcnt()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 23); }
 static inline bool has_cat_l3()     { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 15) && has_feature(0x10, EBX_Reg, 1 << 1); }
+static inline bool is_vm()          { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 31); }
 
 
 } // namespace xmrig
@@ -174,6 +176,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     cpu_brand_string(m_brand);
 
     m_flags.set(FLAG_AES,     has_aes_ni());
+    m_flags.set(FLAG_AVX,     has_avx());
     m_flags.set(FLAG_AVX2,    has_avx2());
     m_flags.set(FLAG_AVX512F, has_avx512f());
     m_flags.set(FLAG_BMI2,    has_bmi2());
@@ -185,6 +188,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     m_flags.set(FLAG_XOP,     has_xop());
     m_flags.set(FLAG_POPCNT,  has_popcnt());
     m_flags.set(FLAG_CAT_L3,  has_cat_l3());
+    m_flags.set(FLAG_VM,      is_vm());
 
 #   ifdef XMRIG_FEATURE_ASM
     if (hasAES()) {
@@ -213,9 +217,27 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                 switch (m_family) {
                 case 0x17:
                     m_msrMod = MSR_MOD_RYZEN_17H;
+                    switch (m_model) {
+                    case 1:
+                    case 17:
+                    case 32:
+                        m_arch = ARCH_ZEN;
+                        break;
+                    case 8:
+                    case 24:
+                        m_arch = ARCH_ZEN_PLUS;
+                        break;
+                    case 49:
+                    case 96:
+                    case 113:
+                    case 144:
+                        m_arch = ARCH_ZEN2;
+                        break;
+                    }
                     break;
 
                 case 0x19:
+                    m_arch = ARCH_ZEN3;
                     m_msrMod = MSR_MOD_RYZEN_19H;
                     break;
 
@@ -353,7 +375,8 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("proc_info",  m_procInfo, allocator);
     out.AddMember("aes",        hasAES(), allocator);
     out.AddMember("avx2",       hasAVX2(), allocator);
-    out.AddMember("x64",        isX64(), allocator);
+    out.AddMember("x64",        is64bit(), allocator); // DEPRECATED will be removed in the next major release.
+    out.AddMember("64_bit",     is64bit(), allocator);
     out.AddMember("l2",         static_cast<uint64_t>(L2()), allocator);
     out.AddMember("l3",         static_cast<uint64_t>(L3()), allocator);
     out.AddMember("cores",      static_cast<uint64_t>(cores()), allocator);

@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -43,7 +37,7 @@ bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
     rapidjson::IStreamWrapper isw(ifs);
     doc.ParseStream<rapidjson::kParseCommentsFlag | rapidjson::kParseTrailingCommasFlag>(isw);
 
-    return !doc.HasParseError() && doc.IsObject();
+    return !doc.HasParseError() && (doc.IsObject() || doc.IsArray());
 }
 
 
@@ -56,7 +50,10 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 
     rapidjson::OStreamWrapper osw(ofs);
     rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
+
+#   ifdef XMRIG_JSON_SINGLE_LINE_ARRAY
     writer.SetFormatOptions(rapidjson::kFormatSingleLineArray);
+#   endif
 
     doc.Accept(writer);
 

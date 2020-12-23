@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -59,8 +53,11 @@ protected:
     const rapidjson::Value &getArray(const char *key) const override;
     const rapidjson::Value &getObject(const char *key) const override;
     const rapidjson::Value &getValue(const char *key) const override;
+    const rapidjson::Value &object() const override;
+    double getDouble(const char *key, double defaultValue = 0) const override;
     int getInt(const char *key, int defaultValue = 0) const override;
     int64_t getInt64(const char *key, int64_t defaultValue = 0) const override;
+    String getString(const char *key, size_t maxSize) const override;
     uint64_t getUint64(const char *key, uint64_t defaultValue = 0) const override;
     unsigned getUint(const char *key, unsigned defaultValue = 0) const override;
 

@@ -67,7 +67,11 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_a64.cpp
             )
         # cheat because cmake and ccache hate each other
-        set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+        if (CMAKE_GENERATOR STREQUAL Xcode)
+            set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE ASM)
+        else()
+            set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
+        endif()
     else()
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_fallback.cpp
@@ -113,6 +117,13 @@ if (WITH_RANDOMX)
         remove_definitions(/DXMRIG_FEATURE_MSR)
         remove_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=OFF")
+    endif()
+
+    if (WITH_PROFILING)
+        add_definitions(/DXMRIG_FEATURE_PROFILING)
+
+        list(APPEND HEADERS_CRYPTO src/crypto/rx/Profiler.h)
+        list(APPEND SOURCES_CRYPTO src/crypto/rx/Profiler.cpp)
     endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)

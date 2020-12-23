@@ -77,36 +77,34 @@ jobs:
           name: macos_build
           path: macos_build.tar.gz
 
-  build_lin_rh6:
-    name: Build CentOS 6 artifacts
+  build_lin_rh7:
+    name: Build CentOS 7 artifacts
     runs-on: ubuntu-latest
-    container: centos:6
+    container: centos:7
     steps:
-      - name: Prepare CentOS 6 tools
+      - name: Prepare CentOS 7 tools
         run: |
-          yum install -y git cmake nasm openssl-devel libmicrohttpd-devel centos-release-scl-rh
-          yum install -y --nogpgcheck devtoolset-7-gcc devtoolset-7-binutils devtoolset-7-gcc-c++
-          rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-1.8.0-1.el6.x86_64.rpm
-          rpm -i https://github.com/sipcapture/captagent/raw/master/dependency/centos/6/libuv-devel-1.8.0-1.el6.x86_64.rpm
+          yum install -y epel-release
+          yum install -y git cmake gcc gcc-c++ libstdc++-static make openssl-devel libmicrohttpd-devel libuv-devel
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout ${GITHUB_REF:10}
-      - name: Build project on CentOS 6
+      - name: Build project on CentOS 7
         run: |
-          scl enable devtoolset-7 "cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DCMAKE_ASM_MASM_COMPILER=nasm"
-          scl enable devtoolset-7 "make -j$(nproc)"
+          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF
+          make -j$(nproc)
           cp src/config.json .
           mv xmrig-notls xmrig
-          tar cfz centos6_build.tar.gz xmrig config.json
-      - name: Upload CentOS 6 build artifacts
+          tar cfz centos7_build.tar.gz xmrig config.json
+      - name: Upload CentOS 7 build artifacts
         uses: actions/upload-artifact@v1
         with:
-          name: centos6_build
-          path: centos6_build.tar.gz
+          name: centos7_build
+          path: centos7_build.tar.gz
 
   deploy:
-    needs: [build_win, build_lin, build_macos, build_lin_rh6]
+    needs: [build_win, build_lin, build_macos, build_lin_rh7]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -135,10 +133,10 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: macos_build
-      - name: Download CentOS 6 build artifacts
+      - name: Download CentOS 7 build artifacts
         uses: actions/download-artifact@v1
         with:
-          name: centos6_build
+          name: centos7_build
       - name: Upload Windows build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
@@ -166,13 +164,13 @@ jobs:
           asset_path: macos_build/macos_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac64.tar.gz
           asset_content_type: application/zip
-      - name: Upload CentOS 6 build release asset
+      - name: Upload CentOS 7 build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: centos6_build/centos6_build.tar.gz
+          asset_path: centos7_build/centos7_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64-compat.tar.gz
           asset_content_type: application/zip
       - name: Update xmrig_setup repo
@@ -181,7 +179,7 @@ jobs:
           cd xmrig_setup
           git config user.name  MoneroOcean
           git config user.email support@moneroocean.stream
-          mv ../centos6_build/centos6_build.tar.gz xmrig.tar.gz
+          mv ../centos7_build/centos7_build.tar.gz xmrig.tar.gz
           mv ../windows_build/windows_build.zip xmrig.zip
           unzip xmrig.zip
           zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys

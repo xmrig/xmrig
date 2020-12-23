@@ -50,7 +50,7 @@
 #include "base/net/dns/Dns.h"
 #include "base/net/stratum/Socks5.h"
 #include "base/net/tools/NetBuffer.h"
-#include "base/tools/Buffer.h"
+#include "base/tools/Cvt.h"
 #include "base/tools/Chrono.h"
 #include "net/JobResult.h"
 
@@ -204,11 +204,8 @@ int64_t xmrig::Client::submit(const JobResult &result)
     char *nonce = m_sendBuf.data();
     char *data  = m_sendBuf.data() + 16;
 
-    Buffer::toHex(reinterpret_cast<const char*>(&result.nonce), 4, nonce);
-    nonce[8] = '\0';
-
-    Buffer::toHex(result.result(), 32, data);
-    data[64] = '\0';
+    Cvt::toHex(nonce, sizeof(uint32_t) * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), sizeof(uint32_t));
+    Cvt::toHex(data, 65, result.result(), 32);
 #   endif
 
     Document doc(kObjectType);

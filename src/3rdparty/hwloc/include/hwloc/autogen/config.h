@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -11,9 +11,9 @@
 #ifndef HWLOC_CONFIG_H
 #define HWLOC_CONFIG_H
 
-#define HWLOC_VERSION "2.2.0"
+#define HWLOC_VERSION "2.4.0"
 #define HWLOC_VERSION_MAJOR 2
-#define HWLOC_VERSION_MINOR 2
+#define HWLOC_VERSION_MINOR 4
 #define HWLOC_VERSION_RELEASE 0
 #define HWLOC_VERSION_GREEK ""
 

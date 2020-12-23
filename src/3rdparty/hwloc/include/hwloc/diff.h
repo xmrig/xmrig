@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2018 Inria.  All rights reserved.
+ * Copyright © 2013-2020 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -110,7 +110,7 @@ union hwloc_topology_diff_obj_attr_u {
  */
 typedef enum hwloc_topology_diff_type_e {
   /** \brief An object attribute was changed.
-   * The union is a hwloc_topology_diff_obj_attr_u::hwloc_topology_diff_obj_attr_s.
+   * The union is a hwloc_topology_diff_u::hwloc_topology_diff_obj_attr_s.
    */
   HWLOC_TOPOLOGY_DIFF_OBJ_ATTR,
 
@@ -119,7 +119,7 @@ typedef enum hwloc_topology_diff_type_e {
    * this object has not been checked.
    * hwloc_topology_diff_build() will return 1.
    *
-   * The union is a hwloc_topology_diff_obj_attr_u::hwloc_topology_diff_too_complex_s.
+   * The union is a hwloc_topology_diff_u::hwloc_topology_diff_too_complex_s.
    */
   HWLOC_TOPOLOGY_DIFF_TOO_COMPLEX
 } hwloc_topology_diff_type_t;

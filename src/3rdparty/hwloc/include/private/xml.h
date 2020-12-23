@@ -46,7 +46,7 @@ struct hwloc_xml_backend_data_s {
   int (*find_child)(struct hwloc__xml_import_state_s * state, struct hwloc__xml_import_state_s * childstate, char **tagp);
   int (*close_tag)(struct hwloc__xml_import_state_s * state); /* look for an explicit closing tag </name> */
   void (*close_child)(struct hwloc__xml_import_state_s * state);
-  int (*get_content)(struct hwloc__xml_import_state_s * state, char **beginp, size_t expected_length); /* return 0 on empty content (and sets beginp to empty string), 1 on actual content, -1 on error or unexpected content length */
+  int (*get_content)(struct hwloc__xml_import_state_s * state, const char **beginp, size_t expected_length); /* return 0 on empty content (and sets beginp to empty string), 1 on actual content, -1 on error or unexpected content length */
   void (*close_content)(struct hwloc__xml_import_state_s * state);
   char * msgprefix;
   void *data; /* libxml2 doc, or nolibxml buffer */

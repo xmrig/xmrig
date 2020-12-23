@@ -1,12 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +21,7 @@
 #define XMRIG_HASHRATE_H
 
 
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 
@@ -42,7 +38,7 @@ class Hashrate
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Hashrate)
 
-    enum Intervals {
+    enum Intervals : size_t {
         ShortInterval  = 10000,
         MediumInterval = 60000,
         LargeInterval  = 900000
@@ -50,11 +46,12 @@ public:
 
     Hashrate(size_t threads);
     ~Hashrate();
-    double calc(size_t ms) const;
-    double calc(size_t threadId, size_t ms) const;
-    void add(size_t threadId, uint64_t count, uint64_t timestamp);
 
-    inline size_t threads() const { return m_threads; }
+    inline double calc(size_t ms) const                                     { const double data = hashrate(0U, ms); return std::isnormal(data) ? data : 0.0; }
+    inline double calc(size_t threadId, size_t ms) const                    { return hashrate(threadId + 1, ms); }
+    inline size_t threads() const                                           { return m_threads > 0U ? m_threads - 1U : 0U; }
+    inline void add(size_t threadId, uint64_t count, uint64_t timestamp)    { addData(threadId + 1U, count, timestamp); }
+    inline void add(uint64_t count, uint64_t timestamp)                     { addData(0U, count, timestamp); }
 
     static const char *format(double h, char *buf, size_t size);
     static rapidjson::Value normalize(double d);
@@ -65,6 +62,9 @@ public:
 #   endif
 
 private:
+    double hashrate(size_t index, size_t ms) const;
+    void addData(size_t index, uint64_t count, uint64_t timestamp);
+
     constexpr static size_t kBucketSize = 2 << 11;
     constexpr static size_t kBucketMask = kBucketSize - 1;
 

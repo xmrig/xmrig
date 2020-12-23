@@ -1,14 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,8 +27,18 @@
 #include "crypto/common/VirtualMemory.h"
 
 
-#if defined(__APPLE__)
+#ifdef XMRIG_OS_APPLE
+#   include <libkern/OSCacheControl.h>
 #   include <mach/vm_statistics.h>
+#   include <pthread.h>
+#   include <TargetConditionals.h>
+#   ifdef XMRIG_ARM
+#       define MEXTRA MAP_JIT
+#   else
+#       define MEXTRA 0
+#   endif
+#else
+#   define MEXTRA 0
 #endif
 
 
@@ -47,9 +50,20 @@
 #endif
 
 
+#ifdef XMRIG_SECURE_JIT
+#   define SECURE_PROT_EXEC 0
+#else
+#   define SECURE_PROT_EXEC PROT_EXEC
+#endif
+
+
 bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
+#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+    return false;
+#   else
     return true;
+#   endif
 }
 
 
@@ -63,19 +77,51 @@ bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 }
 
 
+bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
+{
+#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+    pthread_jit_write_protect_np(false);
+    return true;
+#   else
+    return mprotect(p, size, PROT_READ | PROT_WRITE) == 0;
+#   endif
+}
+
+
+bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
+{
+    return mprotect(p, size, PROT_READ | PROT_WRITE | PROT_EXEC) == 0;
+}
+
+
+bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+{
+#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+    pthread_jit_write_protect_np(true);
+    flushInstructionCache(p, size);
+    return true;
+#   else
+    return mprotect(p, size, PROT_READ | PROT_EXEC) == 0;
+#   endif
+}
+
+
 void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
-#   if defined(__APPLE__)
-    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON, -1, 0);
+#   if defined(XMRIG_OS_APPLE)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON | MEXTRA, -1, 0);
+#   ifdef XMRIG_ARM
+    pthread_jit_write_protect_np(false);
+#   endif
 #   elif defined(__FreeBSD__)
     void *mem = nullptr;
 
     if (hugePages) {
-        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
     }
 
     if (!mem) {
-        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
 
 #   else
@@ -91,11 +137,11 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
     void *mem = nullptr;
 
     if (hugePages) {
-        mem = mmap(0, align(size), PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | flag_2mb, -1, 0);
+        mem = mmap(0, align(size), PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | flag_2mb, -1, 0);
     }
 
     if (!mem) {
-        mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+        mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
 
 #   endif
@@ -152,7 +198,9 @@ void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 
 void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
-#   ifdef HAVE_BUILTIN_CLEAR_CACHE
+#   if defined(XMRIG_OS_APPLE)
+    sys_icache_invalidate(p, size);
+#   elif defined (HAVE_BUILTIN_CLEAR_CACHE) || defined (__GNUC__)
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
 #   endif
 }
@@ -161,18 +209,6 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 {
     munmap(p, size);
-}
-
-
-void xmrig::VirtualMemory::protectExecutableMemory(void *p, size_t size)
-{
-    mprotect(p, size, PROT_READ | PROT_EXEC);
-}
-
-
-void xmrig::VirtualMemory::unprotectExecutableMemory(void *p, size_t size)
-{
-    mprotect(p, size, PROT_WRITE | PROT_EXEC);
 }
 
 

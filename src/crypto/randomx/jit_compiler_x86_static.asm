@@ -41,6 +41,11 @@ PUBLIC randomx_program_read_dataset_ryzen
 PUBLIC randomx_program_read_dataset_sshash_init
 PUBLIC randomx_program_read_dataset_sshash_fin
 PUBLIC randomx_dataset_init
+PUBLIC randomx_dataset_init_avx2_prologue
+PUBLIC randomx_dataset_init_avx2_loop_end
+PUBLIC randomx_dataset_init_avx2_epilogue
+PUBLIC randomx_dataset_init_avx2_ssh_load
+PUBLIC randomx_dataset_init_avx2_ssh_prefetch
 PUBLIC randomx_program_loop_store
 PUBLIC randomx_program_loop_end
 PUBLIC randomx_program_epilogue
@@ -183,6 +188,94 @@ init_block_loop:
 randomx_dataset_init ENDP
 
 ALIGN 64
+randomx_dataset_init_avx2_prologue PROC
+	include asm/program_sshash_avx2_save_registers.inc
+
+	mov rdi, qword ptr [rcx]		;# cache->memory
+	mov rsi, rdx					;# dataset
+	mov rbp, r8						;# block index
+	push r9							;# max. block index
+	sub rsp, 40
+
+	jmp loop_begin
+	include asm/program_sshash_avx2_constants.inc
+
+ALIGN 64
+loop_begin:
+	include asm/program_sshash_avx2_loop_begin.inc
+
+	;# init integer registers (lane 0)
+	lea r8, [rbp+1]
+	imul r8, qword ptr [r0_avx2_mul]
+	mov r9, qword ptr [r1_avx2_add]
+	xor r9, r8
+	mov r10, qword ptr [r2_avx2_add]
+	xor r10, r8
+	mov r11, qword ptr [r3_avx2_add]
+	xor r11, r8
+	mov r12, qword ptr [r4_avx2_add]
+	xor r12, r8
+	mov r13, qword ptr [r5_avx2_add]
+	xor r13, r8
+	mov r14, qword ptr [r6_avx2_add]
+	xor r14, r8
+	mov r15, qword ptr [r7_avx2_add]
+	xor r15, r8
+
+	;# init AVX registers (lanes 1-4)
+	mov qword ptr [rsp+32], rbp
+	vbroadcastsd ymm0, qword ptr [rsp+32]
+	vpaddq ymm0, ymm0, ymmword ptr [r0_avx2_increments]
+
+	;# ymm0 *= r0_avx2_mul
+	vbroadcastsd ymm1, qword ptr [r0_avx2_mul]
+	vpsrlq ymm8, ymm0, 32
+	vpsrlq ymm9, ymm1, 32
+	vpmuludq ymm10, ymm0, ymm1
+	vpmuludq ymm11, ymm9, ymm0
+	vpmuludq ymm0, ymm8, ymm1
+	vpsllq ymm11, ymm11, 32
+	vpsllq ymm0, ymm0, 32
+	vpaddq ymm10, ymm10, ymm11
+	vpaddq ymm0, ymm10, ymm0
+
+	vbroadcastsd ymm1, qword ptr [r1_avx2_add]
+	vpxor ymm1, ymm0, ymm1
+	vbroadcastsd ymm2, qword ptr [r2_avx2_add]
+	vpxor ymm2, ymm0, ymm2
+	vbroadcastsd ymm3, qword ptr [r3_avx2_add]
+	vpxor ymm3, ymm0, ymm3
+	vbroadcastsd ymm4, qword ptr [r4_avx2_add]
+	vpxor ymm4, ymm0, ymm4
+	vbroadcastsd ymm5, qword ptr [r5_avx2_add]
+	vpxor ymm5, ymm0, ymm5
+	vbroadcastsd ymm6, qword ptr [r6_avx2_add]
+	vpxor ymm6, ymm0, ymm6
+	vbroadcastsd ymm7, qword ptr [r7_avx2_add]
+	vpxor ymm7, ymm0, ymm7
+
+	vbroadcastsd ymm15, qword ptr [mul_hi_avx2_data] ;# carry_bit (bit 32)
+	vpsllq ymm14, ymm15, 31                          ;# sign64 (bit 63)
+randomx_dataset_init_avx2_prologue ENDP
+
+	;# generated SuperscalarHash code goes here
+
+randomx_dataset_init_avx2_loop_end PROC
+	include asm/program_sshash_avx2_loop_end.inc
+randomx_dataset_init_avx2_loop_end ENDP
+
+randomx_dataset_init_avx2_epilogue PROC
+	include asm/program_sshash_avx2_epilogue.inc
+randomx_dataset_init_avx2_epilogue ENDP
+
+randomx_dataset_init_avx2_ssh_load PROC
+	include asm/program_sshash_avx2_ssh_load.inc
+randomx_dataset_init_avx2_ssh_load ENDP
+
+randomx_dataset_init_avx2_ssh_prefetch PROC
+	include asm/program_sshash_avx2_ssh_prefetch.inc
+randomx_dataset_init_avx2_ssh_prefetch ENDP
+
 randomx_program_epilogue PROC
 	include asm/program_epilogue_store.inc
 	include asm/program_epilogue_win64.inc

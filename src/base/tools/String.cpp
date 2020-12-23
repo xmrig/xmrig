@@ -125,7 +125,7 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
 
     for (pos = 0; pos < m_size; ++pos) {
         if (m_data[pos] == sep) {
-            if ((pos - start) > 0) {
+            if (pos > start) {
                 out.emplace_back(m_data + start, pos - start);
             }
 
@@ -133,7 +133,7 @@ std::vector<xmrig::String> xmrig::String::split(char sep) const
         }
     }
 
-    if ((pos - start) > 0) {
+    if (pos > start) {
         out.emplace_back(m_data + start, pos - start);
     }
 

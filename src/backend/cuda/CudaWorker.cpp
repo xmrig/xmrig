@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,11 +50,10 @@
 namespace xmrig {
 
 
-static constexpr uint32_t kReserveCount = 32768;
 std::atomic<bool> CudaWorker::ready;
 
 
-static inline bool isReady()                         { return !Nonce::isPaused() && CudaWorker::ready; }
+static inline bool isReady()    { return !Nonce::isPaused() && CudaWorker::ready; }
 
 
 } // namespace xmrig
@@ -69,10 +61,9 @@ static inline bool isReady()                         { return !Nonce::isPaused()
 
 
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
-    Worker(id, data.thread.affinity(), -1),
+    GpuWorker(id, data.thread.affinity(), -1, data.device.index()),
     m_algorithm(data.algorithm),
-    m_miner(data.miner),
-    m_deviceIndex(data.device.index())
+    m_miner(data.miner)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -119,13 +110,7 @@ xmrig::CudaWorker::~CudaWorker()
 }
 
 
-uint64_t xmrig::CudaWorker::rawHashes() const
-{
-    return m_hashrateData.interpolate(Chrono::steadyMSecs());
-}
-
-
-void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
+void xmrig::CudaWorker::jobEarlyNotification(const Job &job)
 {
     if (m_runner) {
         m_runner->jobEarlyNotification(job);
@@ -213,5 +198,5 @@ void xmrig::CudaWorker::storeStats()
     const uint64_t timeStamp = Chrono::steadyMSecs();
     m_hashrateData.addDataPoint(m_count, timeStamp);
 
-    Worker::storeStats();
+    GpuWorker::storeStats();
 }

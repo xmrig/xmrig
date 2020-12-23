@@ -154,7 +154,7 @@ void xmrig::SelfSelectClient::getBlockTemplate()
     JsonRequest::create(doc, m_sequence++, "getblocktemplate", params);
 
     FetchRequest req(HTTP_POST, pool().daemon().host(), pool().daemon().port(), "/json_rpc", doc, pool().daemon().isTLS(), isQuiet());
-    fetch(std::move(req), m_httpListener);
+    fetch(tag(), std::move(req), m_httpListener);
 }
 
 

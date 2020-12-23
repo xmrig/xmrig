@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 #include "base/net/tls/ServerTls.h"
 
 
+#include <algorithm>
 #include <cassert>
 #include <cstring>
 #include <openssl/ssl.h>
@@ -39,11 +40,23 @@ xmrig::ServerTls::~ServerTls()
 }
 
 
+bool xmrig::ServerTls::isHTTP(const char *data, size_t size)
+{
+    assert(size > 0);
+
+    static const char test[6] = "GET /";
+
+    return size > 0 && memcmp(data, test, std::min(size, sizeof(test) - 1)) == 0;
+}
+
+
 bool xmrig::ServerTls::isTLS(const char *data, size_t size)
 {
+    assert(size > 0);
+
     static const uint8_t test[3] = { 0x16, 0x03, 0x01 };
 
-    return size >= sizeof(test) && memcmp(data, test, sizeof(test)) == 0;
+    return size > 0 && memcmp(data, test, std::min(size, sizeof(test))) == 0;
 }
 
 

@@ -37,6 +37,7 @@
 #include "base/net/stratum/strategies/FailoverStrategy.h"
 #include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
+#include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"

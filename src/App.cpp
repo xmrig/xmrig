@@ -43,17 +43,13 @@
 
 xmrig::App::App(Process *process)
 {
-    m_controller = new Controller(process);
+    m_controller = std::make_shared<Controller>(process);
 }
 
 
 xmrig::App::~App()
 {
     Cpu::release();
-
-    delete m_signals;
-    delete m_console;
-    delete m_controller;
 }
 
 
@@ -65,7 +61,7 @@ int xmrig::App::exec()
         return 2;
     }
 
-    m_signals = new Signals(this);
+    m_signals = std::make_shared<Signals>(this);
 
     int rc = 0;
     if (background(rc)) {
@@ -78,10 +74,10 @@ int xmrig::App::exec()
     }
 
     if (!m_controller->isBackground()) {
-        m_console = new Console(this);
+        m_console = std::make_shared<Console>(this);
     }
 
-    Summary::print(m_controller);
+    Summary::print(m_controller.get());
 
     if (m_controller->config()->isDryRun()) {
         LOG_NOTICE("%s " WHITE_BOLD("OK"), Tags::config());
@@ -126,32 +122,20 @@ void xmrig::App::onSignal(int signum)
     switch (signum)
     {
     case SIGHUP:
-        LOG_WARN("%s " YELLOW("SIGHUP received, exiting"), Tags::signal());
-        break;
-
     case SIGTERM:
-        LOG_WARN("%s " YELLOW("SIGTERM received, exiting"), Tags::signal());
-        break;
-
     case SIGINT:
-        LOG_WARN("%s " YELLOW("SIGINT received, exiting"), Tags::signal());
-        break;
+        return close();
 
     default:
-        return;
+        break;
     }
-
-    close();
 }
 
 
 void xmrig::App::close()
 {
-    m_signals->stop();
-
-    if (m_console) {
-        m_console->stop();
-    }
+    m_signals.reset();
+    m_console.reset();
 
     m_controller->stop();
 

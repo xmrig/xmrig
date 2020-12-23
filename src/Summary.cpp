@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <support@xmrig.com>
+ * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2020 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,6 +47,13 @@
 namespace xmrig {
 
 
+#ifdef XMRIG_OS_WIN
+static constexpr const char *kHugepagesSupported = GREEN_BOLD("permission granted");
+#else
+static constexpr const char *kHugepagesSupported = GREEN_BOLD("supported");
+#endif
+
+
 #ifdef XMRIG_FEATURE_ASM
 static const char *coloredAsmNames[] = {
     RED_BOLD("none"),
@@ -66,17 +73,13 @@ inline static const char *asmName(Assembly::Id assembly)
 
 static void print_memory(Config *config)
 {
-#   ifdef XMRIG_OS_WIN
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? GREEN_BOLD("permission granted") : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
-#   else
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "HUGE PAGES",  config->cpu().isHugePages() ? GREEN_BOLD("supported") : RED_BOLD("disabled"));
-#   endif
+               "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? kHugepagesSupported : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
 
 #   ifdef XMRIG_ALGO_RANDOMX
 #   ifdef XMRIG_OS_LINUX
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
-               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? GREEN_BOLD("supported") : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
+               "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? kHugepagesSupported : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
 #   else
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s", "1GB PAGES", YELLOW_BOLD("unavailable"));
 #   endif
@@ -88,33 +91,27 @@ static void print_cpu(Config *)
 {
     const auto info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %sx64 %sAES",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %s %sAES%s",
                "CPU",
                info->brand(),
                info->packages(),
-               info->isX64()          ? GREEN_BOLD_S : RED_BOLD_S "-",
-               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-"
+               ICpuInfo::is64bit()    ? GREEN_BOLD("64-bit") : RED_BOLD("32-bit"),
+               info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-",
+               info->isVM()           ? RED_BOLD_S " VM" : ""
                );
-#   if defined(XMRIG_FEATURE_LIBCPUID) || defined (XMRIG_FEATURE_HWLOC)
+#   if defined(XMRIG_FEATURE_HWLOC)
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
                CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
-#              ifdef XMRIG_FEATURE_HWLOC
-               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu")
-#              endif
-               , "",
+               BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu"),
+               "",
                info->L2() / 1048576.0,
                info->L3() / 1048576.0,
                info->cores(),
-               info->threads()
-#              ifdef XMRIG_FEATURE_HWLOC
-               , info->nodes()
-#              endif
+               info->threads(),
+               info->nodes()
                );
 #   else
-    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"),
-               "",
-               info->threads()
-               );
+    Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("threads:") CYAN_BOLD("%zu"), "", info->threads());
 #   endif
 }
 
@@ -160,11 +157,11 @@ static void print_threads(Config *config)
 static void print_commands(Config *)
 {
     if (Log::isColors()) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG(WHITE_BOLD_S "h") WHITE_BOLD("ashrate, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "p") WHITE_BOLD("ause, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "r") WHITE_BOLD("esume, ")
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("COMMANDS     ") MAGENTA_BG_BOLD("h") WHITE_BOLD("ashrate, ")
+                                                                 MAGENTA_BG_BOLD("p") WHITE_BOLD("ause, ")
+                                                                 MAGENTA_BG_BOLD("r") WHITE_BOLD("esume, ")
                                                                  WHITE_BOLD("re") MAGENTA_BG(WHITE_BOLD_S "s") WHITE_BOLD("ults, ")
-                                                                 MAGENTA_BG(WHITE_BOLD_S "c") WHITE_BOLD("onnection")
+                                                                 MAGENTA_BG_BOLD("c") WHITE_BOLD("onnection")
                    );
     }
     else {

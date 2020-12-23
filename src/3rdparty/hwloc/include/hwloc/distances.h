@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2019 Inria.  All rights reserved.
+ * Copyright © 2010-2020 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -34,6 +34,7 @@ extern "C" {
  * It corresponds to the latency for accessing the memory of one node
  * from a core in another node.
  * The corresponding kind is ::HWLOC_DISTANCES_KIND_FROM_OS | ::HWLOC_DISTANCES_KIND_FROM_USER.
+ * The name of this distances structure is "NUMALatency".
  *
  * The matrix may also contain bandwidths between random sets of objects,
  * possibly provided by the user, as specified in the \p kind attribute.
@@ -144,6 +145,8 @@ hwloc_distances_get_by_type(hwloc_topology_t topology, hwloc_obj_type_t type,
 /** \brief Retrieve a distance matrix with the given name.
  *
  * Usually only one distances structure may match a given name.
+ *
+ * The name of the most common structure is "NUMALatency".
  */
 HWLOC_DECLSPEC int
 hwloc_distances_get_by_name(hwloc_topology_t topology, const char *name,

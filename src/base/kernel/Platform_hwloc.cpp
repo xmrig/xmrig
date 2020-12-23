@@ -26,6 +26,7 @@
 #include <thread>
 
 
+#ifndef XMRIG_OS_APPLE
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
     auto cpu       = static_cast<HwlocCpuInfo *>(Cpu::info());
@@ -44,3 +45,4 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return result;
 }
+#endif

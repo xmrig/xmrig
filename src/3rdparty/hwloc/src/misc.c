@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2020 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -114,7 +114,7 @@ void hwloc_add_uname_info(struct hwloc_topology *topology __hwloc_attribute_unus
 char *
 hwloc_progname(struct hwloc_topology *topology __hwloc_attribute_unused)
 {
-#if HAVE_DECL_GETMODULEFILENAME
+#if (defined HAVE_DECL_GETMODULEFILENAME) && HAVE_DECL_GETMODULEFILENAME
   char name[256], *local_basename;
   unsigned res = GetModuleFileName(NULL, name, sizeof(name));
   if (res == sizeof(name) || !res)

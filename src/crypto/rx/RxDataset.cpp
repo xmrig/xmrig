@@ -1,14 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,10 +19,12 @@
 
 
 #include "crypto/rx/RxDataset.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
 #include "crypto/common/VirtualMemory.h"
+#include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
 
@@ -45,7 +40,13 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
 {
     Platform::setThreadPriority(priority);
 
-    randomx_init_dataset(dataset, cache, startItem, itemCount);
+    if (Cpu::info()->hasAVX2() && (itemCount % 5)) {
+        randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 5));
+        randomx_init_dataset(dataset, cache, startItem + itemCount - 5, 5);
+    }
+    else {
+        randomx_init_dataset(dataset, cache, startItem, itemCount);
+    }
 }
 
 
@@ -162,6 +163,22 @@ size_t xmrig::RxDataset::size(bool cache) const
 }
 
 
+uint8_t *xmrig::RxDataset::tryAllocateScrathpad()
+{
+    auto p = reinterpret_cast<uint8_t *>(raw());
+    if (!p) {
+        return nullptr;
+    }
+
+    const size_t offset = m_scratchpadOffset.fetch_add(RANDOMX_SCRATCHPAD_L3_MAX_SIZE);
+    if (offset + RANDOMX_SCRATCHPAD_L3_MAX_SIZE > m_scratchpadLimit) {
+        return nullptr;
+    }
+
+    return p + offset;
+}
+
+
 void *xmrig::RxDataset::raw() const
 {
     return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
@@ -207,20 +224,4 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", Tags::randomx());
     }
 #   endif
-}
-
-
-uint8_t* xmrig::RxDataset::tryAllocateScrathpad()
-{
-    uint8_t* p = reinterpret_cast<uint8_t*>(raw());
-    if (!p) {
-        return nullptr;
-    }
-
-    const size_t offset = m_scratchpadOffset.fetch_add(RANDOMX_SCRATCHPAD_L3_MAX_SIZE);
-    if (offset + RANDOMX_SCRATCHPAD_L3_MAX_SIZE > m_scratchpadLimit) {
-        return nullptr;
-    }
-
-    return p + offset;
 }

@@ -232,7 +232,8 @@ enum hwloc_pci_busid_comparison_e {
   HWLOC_PCI_BUSID_LOWER,
   HWLOC_PCI_BUSID_HIGHER,
   HWLOC_PCI_BUSID_INCLUDED,
-  HWLOC_PCI_BUSID_SUPERSET
+  HWLOC_PCI_BUSID_SUPERSET,
+  HWLOC_PCI_BUSID_EQUAL
 };
 
 static enum hwloc_pci_busid_comparison_e
@@ -274,11 +275,8 @@ hwloc_pci_compare_busids(struct hwloc_obj *a, struct hwloc_obj *b)
   if (a->attr->pcidev.func > b->attr->pcidev.func)
     return HWLOC_PCI_BUSID_HIGHER;
 
-  /* Should never reach here.  Abort on both debug builds and
-     non-debug builds */
-  assert(0);
-  fprintf(stderr, "Bad assertion in hwloc %s:%d (aborting)\n", __FILE__, __LINE__);
-  exit(1);
+  /* Should never reach here. */
+  return HWLOC_PCI_BUSID_EQUAL;
 }
 
 static void
@@ -327,6 +325,23 @@ hwloc_pci_add_object(struct hwloc_obj *parent, struct hwloc_obj **parent_io_firs
 	  }
 	}
       }
+      return;
+    }
+    case HWLOC_PCI_BUSID_EQUAL: {
+      static int reported = 0;
+      if (!reported && !hwloc_hide_errors()) {
+        fprintf(stderr, "*********************************************************\n");
+        fprintf(stderr, "* hwloc %s received invalid PCI information.\n", HWLOC_VERSION);
+        fprintf(stderr, "*\n");
+        fprintf(stderr, "* Trying to insert PCI object %04x:%02x:%02x.%01x at %04x:%02x:%02x.%01x\n",
+                new->attr->pcidev.domain, new->attr->pcidev.bus, new->attr->pcidev.dev, new->attr->pcidev.func,
+                (*curp)->attr->pcidev.domain, (*curp)->attr->pcidev.bus, (*curp)->attr->pcidev.dev, (*curp)->attr->pcidev.func);
+        fprintf(stderr, "*\n");
+        fprintf(stderr, "* hwloc will now ignore this object and continue.\n");
+        fprintf(stderr, "*********************************************************\n");
+        reported = 1;
+      }
+      hwloc_free_unlinked_object(new);
       return;
     }
     }
@@ -425,39 +440,10 @@ hwloc_pcidisc_add_hostbridges(struct hwloc_topology *topology,
 
 static struct hwloc_obj *
 hwloc_pci_fixup_busid_parent(struct hwloc_topology *topology __hwloc_attribute_unused,
-			     struct hwloc_pcidev_attr_s *busid,
-			     struct hwloc_obj *parent)
+			     struct hwloc_pcidev_attr_s *busid __hwloc_attribute_unused,
+			     struct hwloc_obj *parent __hwloc_attribute_unused)
 {
-  /* Xeon E5v3 in cluster-on-die mode only have PCI on the first NUMA node of each package.
-   * but many dual-processor host report the second PCI hierarchy on 2nd NUMA of first package.
-   */
-  if (parent->depth >= 2
-      && parent->type == HWLOC_OBJ_NUMANODE
-      && parent->sibling_rank == 1 && parent->parent->arity == 2
-      && parent->parent->type == HWLOC_OBJ_PACKAGE
-      && parent->parent->sibling_rank == 0 && parent->parent->parent->arity == 2) {
-    const char *cpumodel = hwloc_obj_get_info_by_name(parent->parent, "CPUModel");
-    if (cpumodel && strstr(cpumodel, "Xeon")) {
-      if (!hwloc_hide_errors()) {
-	fprintf(stderr, "****************************************************************************\n");
-	fprintf(stderr, "* hwloc %s has encountered an incorrect PCI locality information.\n", HWLOC_VERSION);
-	fprintf(stderr, "* PCI bus %04x:%02x is supposedly close to 2nd NUMA node of 1st package,\n",
-		busid->domain, busid->bus);
-	fprintf(stderr, "* however hwloc believes this is impossible on this architecture.\n");
-	fprintf(stderr, "* Therefore the PCI bus will be moved to 1st NUMA node of 2nd package.\n");
-	fprintf(stderr, "*\n");
-	fprintf(stderr, "* If you feel this fixup is wrong, disable it by setting in your environment\n");
-	fprintf(stderr, "* HWLOC_PCI_%04x_%02x_LOCALCPUS= (empty value), and report the problem\n",
-		busid->domain, busid->bus);
-	fprintf(stderr, "* to the hwloc's user mailing list together with the XML output of lstopo.\n");
-	fprintf(stderr, "*\n");
-	fprintf(stderr, "* You may silence this message by setting HWLOC_HIDE_ERRORS=1 in your environment.\n");
-	fprintf(stderr, "****************************************************************************\n");
-      }
-      return parent->parent->next_sibling->first_child;
-    }
-  }
-
+  /* no quirk for now */
   return parent;
 }
 

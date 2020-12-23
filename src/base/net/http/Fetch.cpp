@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -95,7 +95,7 @@ void xmrig::FetchRequest::setBody(const rapidjson::Value &value)
 }
 
 
-void xmrig::fetch(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type)
+void xmrig::fetch(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type, uint64_t rpcId)
 {
 #   ifdef APP_DEBUG
     LOG_DEBUG(CYAN("http%s://%s:%u ") MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD(" body: ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes"),
@@ -109,14 +109,15 @@ void xmrig::fetch(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listen
     HttpClient *client;
 #   ifdef XMRIG_FEATURE_TLS
     if (req.tls) {
-        client = new HttpsClient(std::move(req), listener);
+        client = new HttpsClient(tag, std::move(req), listener);
     }
     else
 #   endif
     {
-        client = new HttpClient(std::move(req), listener);
+        client = new HttpClient(tag, std::move(req), listener);
     }
 
     client->userType = type;
+    client->rpcId    = rpcId;
     client->connect();
 }

@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,7 +56,7 @@ namespace xmrig {
 std::atomic<bool> OclWorker::ready;
 
 
-static inline bool isReady()                         { return !Nonce::isPaused() && OclWorker::ready; }
+static inline bool isReady()    { return !Nonce::isPaused() && OclWorker::ready; }
 
 
 static inline void printError(size_t id, const char *error)
@@ -77,11 +70,10 @@ static inline void printError(size_t id, const char *error)
 
 
 xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
-    Worker(id, data.affinity, -1),
+    GpuWorker(id, data.affinity, -1, data.device.index()),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
-    m_sharedData(OclSharedState::get(data.device.index())),
-    m_deviceIndex(data.device.index())
+    m_sharedData(OclSharedState::get(data.device.index()))
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -149,13 +141,7 @@ xmrig::OclWorker::~OclWorker()
 }
 
 
-uint64_t xmrig::OclWorker::rawHashes() const
-{
-    return m_hashrateData.interpolate(Chrono::steadyMSecs());
-}
-
-
-void xmrig::OclWorker::jobEarlyNotification(const Job& job)
+void xmrig::OclWorker::jobEarlyNotification(const Job &job)
 {
     if (m_runner) {
         m_runner->jobEarlyNotification(job);
@@ -192,7 +178,7 @@ void xmrig::OclWorker::start()
                 break;
             }
 
-            m_sharedData.resumeDelay(m_id);
+            m_sharedData.resumeDelay(id());
 
             if (!consumeJob()) {
                 return;
@@ -200,7 +186,7 @@ void xmrig::OclWorker::start()
         }
 
         while (!Nonce::isOutdated(Nonce::OPENCL, m_job.sequence())) {
-            m_sharedData.adjustDelay(m_id);
+            m_sharedData.adjustDelay(id());
 
             const uint64_t t = Chrono::steadyMSecs();
 
@@ -266,5 +252,5 @@ void xmrig::OclWorker::storeStats(uint64_t t)
 
     m_sharedData.setRunTime(timeStamp - t);
 
-    Worker::storeStats();
+    GpuWorker::storeStats();
 }

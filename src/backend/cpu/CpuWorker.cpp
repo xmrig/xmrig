@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -80,7 +73,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_threads(data.threads),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, m_node);
+    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
 }
 
 
@@ -100,7 +93,7 @@ xmrig::CpuWorker<N>::~CpuWorker()
 template<size_t N>
 void xmrig::CpuWorker<N>::allocateRandomX_VM()
 {
-    RxDataset *dataset = Rx::dataset(m_job.currentJob(), m_node);
+    RxDataset *dataset = Rx::dataset(m_job.currentJob(), node());
 
     while (dataset == nullptr) {
         std::this_thread::sleep_for(std::chrono::milliseconds(200));
@@ -109,13 +102,13 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
             return;
         }
 
-        dataset = Rx::dataset(m_job.currentJob(), m_node);
+        dataset = Rx::dataset(m_job.currentJob(), node());
     }
 
     if (!m_vm) {
         // Try to allocate scratchpad from dataset's 1 GB huge pages, if normal huge pages are not available
         uint8_t* scratchpad = m_memory->isHugePages() ? m_memory->scratchpad() : dataset->tryAllocateScrathpad();
-        m_vm = RxVm::create(dataset, scratchpad ? scratchpad : m_memory->scratchpad(), !m_hwAES, m_assembly, m_node);
+        m_vm = RxVm::create(dataset, scratchpad ? scratchpad : m_memory->scratchpad(), !m_hwAES, m_assembly, node());
     }
 }
 #endif
@@ -197,6 +190,14 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   endif
 
     return false;
+}
+
+
+template<size_t N>
+void xmrig::CpuWorker<N>::hashrateData(uint64_t &hashCount, uint64_t &, uint64_t &rawHashes) const
+{
+    hashCount = m_count;
+    rawHashes = m_count;
 }
 
 
