@@ -71,6 +71,7 @@ xmrig::OclAstroBWTRunner::OclAstroBWTRunner(size_t index, const OclLaunchData &d
 
     m_bwt_allocation_size = static_cast<uint64_t>(m_intensity) * BWT_DATA_STRIDE;
     m_batch_size1 = static_cast<uint32_t>(m_bwt_allocation_size / STAGE1_DATA_STRIDE + 255U) & ~255U;
+    m_bwt_allocation_size = std::max(m_bwt_allocation_size, m_batch_size1 * STAGE1_DATA_STRIDE);
 
     m_bwt_data_sizes_host = new uint32_t[m_batch_size1];
 }

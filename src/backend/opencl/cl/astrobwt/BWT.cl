@@ -26,8 +26,6 @@
 
 #define COUNTING_SORT_BITS 11
 #define COUNTING_SORT_SIZE (1 << COUNTING_SORT_BITS)
-#define FINAL_SORT_BATCH_SIZE COUNTING_SORT_SIZE
-#define FINAL_SORT_OVERLAP_SIZE 32
 
 __attribute__((reqd_work_group_size(BWT_GROUP_SIZE, 1, 1)))
 __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32_t data_stride, __global uint64_t* indices, __global uint64_t* tmp_indices)
@@ -39,6 +37,8 @@ __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32
 
 	for (uint32_t i = tid; i < COUNTING_SORT_SIZE * 2; i += BWT_GROUP_SIZE)
 		((__local int*)counters)[i] = 0;
+
+	barrier(CLK_LOCAL_MEM_FENCE);
 
 	const uint64_t data_offset = (uint64_t)(gid) * data_stride;
 
@@ -76,6 +76,8 @@ __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32
 		atomic_add((volatile __local int*)(counters_atomic + ((value >> (64 - COUNTING_SORT_BITS)) << 3) + 4), 1);
 	}
 
+	barrier(CLK_LOCAL_MEM_FENCE);
+
 	if (tid == 0)
 	{
 		int t0 = counters[0][0];
@@ -91,58 +93,61 @@ __kernel void BWT(__global uint8_t* datas, __global uint32_t* data_sizes, uint32
 		}
 	}
 
+	barrier(CLK_LOCAL_MEM_FENCE);
+
 	for (int i = tid; i < N; i += BWT_GROUP_SIZE)
 	{
 		const uint64_t data = indices[i];
 		const int k = atomic_sub((volatile __local int*)(counters_atomic + (((data >> (64 - COUNTING_SORT_BITS * 2)) & (COUNTING_SORT_SIZE - 1)) << 3)), 1);
 		tmp_indices[k] = data;
 	}
+
 	barrier(CLK_GLOBAL_MEM_FENCE);
 
-	for (int i = N - 1 - tid; i >= 0; i -= BWT_GROUP_SIZE)
+	if (tid == 0)
 	{
-		const uint64_t data = tmp_indices[i];
-		const int k = atomic_sub((volatile __local int*)(counters_atomic + ((data >> (64 - COUNTING_SORT_BITS)) << 3) + 4), 1);
-		indices[k] = data;
-	}
-	barrier(CLK_GLOBAL_MEM_FENCE);
-
-	__local uint64_t* buf = (__local uint64_t*)(counters);
-	for (uint32_t i = 0; i < N; i += FINAL_SORT_BATCH_SIZE - FINAL_SORT_OVERLAP_SIZE)
-	{
-		const uint32_t len = (N - i < FINAL_SORT_BATCH_SIZE) ? (N - i) : FINAL_SORT_BATCH_SIZE;
-
-		for (uint32_t j = tid; j < len; j += BWT_GROUP_SIZE)
-			buf[j] = indices[i + j];
-
-		if (tid == 0)
+		for (int i = N - 1; i >= 0; --i)
 		{
-			uint64_t prev_t = buf[0];
-			for (int i = 1; i < len; ++i)
-			{
-				uint64_t t = buf[i];
-				if (t < prev_t)
-				{
-					const uint64_t t2 = prev_t;
-					int j = i - 1;
-					do
-					{
-						buf[j + 1] = prev_t;
-						--j;
-						if (j < 0)
-							break;
-						prev_t = buf[j];
-					} while (t < prev_t);
-					buf[j + 1] = t;
-					t = t2;
-				}
-				prev_t = t;
-			}
+			const uint64_t data = tmp_indices[i];
+			const int k = atomic_sub((volatile __local int*)(counters_atomic + ((data >> (64 - COUNTING_SORT_BITS)) << 3) + 4), 1);
+			indices[k] = data;
 		}
-
-		for (uint32_t j = tid; j < len; j += BWT_GROUP_SIZE)
-			indices[i + j] = buf[j];
 	}
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
+
+	const uint32_t N1 = N - 1;
+	__global uint32_t* indices32 = (__global uint32_t*)(indices);
+	for (uint32_t i = tid; i < N1; i += BWT_GROUP_SIZE)
+	{
+		const uint32_t value = indices32[i * 2 + 1] >> (32 - COUNTING_SORT_BITS * 2);
+		if (value != (indices32[i * 2 + 3] >> (32 - COUNTING_SORT_BITS * 2)))
+			continue;
+
+		if ((i > 0) && ((indices32[i * 2 - 1] >> (32 - COUNTING_SORT_BITS * 2)) == value))
+			continue;
+
+		uint32_t i1 = i + 2;
+		while ((i1 < N) && ((indices32[i1 * 2 + 1] >> (32 - COUNTING_SORT_BITS * 2)) == value))
+			++i1;
+
+		for (uint32_t j = i; j < i1; ++j)
+		{
+			uint64_t t = indices[j];
+			for (uint32_t k = j + 1; k < i1; ++k)
+			{
+				if (t > indices[k])
+				{
+					const uint64_t t1 = t;
+					t = indices[k];
+					indices[k] = t1;
+				}
+			}
+			indices[j] = t;
+		}
+	}
+
+	barrier(CLK_GLOBAL_MEM_FENCE);
 
 	--input;
 	__global uint8_t* output = (__global uint8_t*)(tmp_indices);
