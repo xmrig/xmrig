@@ -254,6 +254,8 @@ public:
             return strcmp(a->m_threadId, b->m_threadId) < 0;
         });
 
+        std::map<std::string, std::pair<uint32_t, double>> averageTime;
+
         for (uint32_t i = 0; i < n;)
         {
             uint32_t n1 = i;
@@ -267,18 +269,26 @@ public:
 
             for (uint32_t j = i; j < n1; ++j) {
                 ProfileScopeData* p = data[j];
+                const double t = p->m_totalCycles / p->m_totalSamples * 1e9 / ProfileScopeData::s_tscSpeed;
                 LOG_INFO("%s Thread %6s | %-30s | %7.3f%% | %9.0f ns",
                     Tags::profiler(),
                     p->m_threadId,
                     p->m_name,
                     p->m_totalCycles * 100.0 / data[i]->m_totalCycles,
-                    p->m_totalCycles / p->m_totalSamples * 1e9 / ProfileScopeData::s_tscSpeed
+                    t
                 );
+                auto& value = averageTime[p->m_name];
+                ++value.first;
+                value.second += t;
             }
 
             LOG_INFO("%s --------------|--------------------------------|----------|-------------", Tags::profiler());
 
             i = n1;
+        }
+
+        for (auto& data : averageTime) {
+            LOG_INFO("%s %-30s %9.1f ns", Tags::profiler(), data.first.c_str(), data.second.second / data.second.first);
         }
 #       endif
     }
