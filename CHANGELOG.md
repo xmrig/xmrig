@@ -1,3 +1,9 @@
+# v6.7.1
+- [#1995](https://github.com/xmrig/xmrig/issues/1995) Fixed log initialization.
+- [#1998](https://github.com/xmrig/xmrig/pull/1998) Added hashrate in the benchmark finished message.
+- [#2009](https://github.com/xmrig/xmrig/pull/2009) AstroBWT OpenCL fixes.
+- [#2028](https://github.com/xmrig/xmrig/pull/2028) RandomX x86 JIT: removed redundant `CFROUND`.
+
 # v6.7.0
 - **[#1991](https://github.com/xmrig/xmrig/issues/1991) Added Apple M1 processor support.**
 - **[#1986](https://github.com/xmrig/xmrig/pull/1986) Up to 20-30% faster RandomX dataset initialization with AVX2 on some CPUs.**
