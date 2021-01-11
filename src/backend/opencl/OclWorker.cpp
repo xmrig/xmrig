@@ -157,7 +157,7 @@ bool xmrig::OclWorker::selfTest()
 
 size_t xmrig::OclWorker::intensity() const
 {
-    return m_runner ? m_runner->intensity() : 0;
+    return m_runner ? m_runner->roundSize() : 0;
 }
 
 
