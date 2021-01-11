@@ -89,6 +89,7 @@ namespace randomx {
 		uint32_t codePos = 0;
 		uint32_t codePosFirst = 0;
 		uint32_t vm_flags = 0;
+		uint32_t prevCFROUND = 0;
 
 #		ifdef XMRIG_FIX_RYZEN
 		std::pair<const void*, const void*> mainLoopBounds;

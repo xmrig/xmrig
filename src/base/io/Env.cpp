@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -59,6 +59,11 @@ static void createVariables()
     variables.insert({ "XMRIG_HOME_DIR", Process::location(Process::HomeLocation) });
     variables.insert({ "XMRIG_TEMP_DIR", Process::location(Process::TempLocation) });
     variables.insert({ "XMRIG_DATA_DIR", Process::location(Process::DataLocation) });
+
+    String hostname = "HOSTNAME";
+    if (!getenv(hostname)) {
+        variables.insert({ std::move(hostname), Env::hostname() });
+    }
 }
 #endif
 
