@@ -23,7 +23,7 @@ jobs:
       run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
     - shell: powershell
-      run: choco install cmake
+      run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
     
     - name: Clone repos
       shell: powershell
