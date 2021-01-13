@@ -40,4 +40,4 @@ jobs:
     - shell: powershell
       run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
     - shell: powershell
-      run: msys2 -c 'cmake .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
+      run: msys2 -c '"c:\Program Files\CMake\bin\cmake.exe" .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
