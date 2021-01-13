@@ -1,0 +1,20 @@
+name: CMake windows
+
+on: [push]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: test
+      shell: powershell
+      run: Install-Module posh-git -Scope CurrentUser -Force
+
+
