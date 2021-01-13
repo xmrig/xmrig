@@ -29,7 +29,7 @@ jobs:
     - shell: powershell
       run: msys2 -c 'pacman -Syu'
     - shell: powershell
-      run: msys2 -c 'Y | pacman -S mingw-w64-x86_64-gcc git make'
+      run: msys2 -c 'pacman -S mingw-w64-x86_64-gcc git make  --noconfirm'
     - shell: powershell
       run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
     - shell: powershell
