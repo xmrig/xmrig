@@ -11,10 +11,15 @@ jobs:
     runs-on: windows-latest
 
     steps:
-    - uses: actions/checkout@v2
 
     - name: test
       shell: powershell
       run: Install-Module posh-git -Scope CurrentUser -Force
+    
+    - uses: actions/checkout@v2
+    
+    - name: test 2
+      shell: powershell
+      run: git --version
 
 
