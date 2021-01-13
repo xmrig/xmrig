@@ -27,7 +27,10 @@ jobs:
     - uses: msys2/setup-msys2@v2
     
     - shell: powershell
-      run: | 
-       msys2 -c 'pacman -Syu'
-       msys2 -c 'pacman -S mingw-w64-x86_64-gcc git make --noconfirm'
-       msys2 -c 'mkdir xmrig/build && cd xmrig/build'
+      run: msys2 -c 'pacman -Syu'
+    - shell: powershell
+      run: msys2 -c 'Y | pacman -S mingw-w64-x86_64-gcc git make'
+    - shell: powershell
+      run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
+    - shell: powershell
+      run: msys2 -c 'cmake .. -G "Unix Makefiles" -DXMRIG_DEPS=c:/xmrig-deps/gcc/x64'
