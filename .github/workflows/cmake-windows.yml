@@ -12,14 +12,25 @@ jobs:
 
     steps:
 
-    - name: test
+    - name: Install GIT
       shell: powershell
       run: Install-Module posh-git -Scope CurrentUser -Force
     
     - uses: actions/checkout@v2
     
-    - name: test 2
+    - name: Clone repos
       shell: powershell
-      run: git --version
+      run: |
+       git clone https://github.com/xmrig/xmrig.git
+       git clone https://github.com/xmrig/xmrig-deps.git
+    
+    - uses: msys2/setup-msys2@v2
+    
+    - shell: powershell
+      run: | 
+       msys2 -c 'pacman -Syu'
+       msys2 -c 'uname -a'
+       
+
 
 
