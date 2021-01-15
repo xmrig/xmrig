@@ -46,7 +46,7 @@ static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigne
     int          b;
     int          c;
 
-    if (bin_len >= SIZE_MAX / 2 || hex_maxlen <= bin_len * 2U) {
+    if (bin_len >= SIZE_MAX / 2 || hex_maxlen < bin_len * 2U) {
         return nullptr; /* LCOV_EXCL_LINE */
     }
 
@@ -60,7 +60,10 @@ static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigne
         hex[i * 2U + 1U] = (char) x;
         i++;
     }
-    hex[i * 2U] = 0U;
+
+    if (i * 2U < hex_maxlen) {
+        hex[i * 2U] = 0U;
+    }
 
     return hex;
 }
@@ -137,7 +140,6 @@ static int cvt_hex2bin(unsigned char *const bin, const size_t bin_maxlen, const 
     return ret;
 }
 
-#define sodium_bin2hex cvt_bin2hex
 #define sodium_hex2bin cvt_hex2bin
 #endif
 
@@ -215,7 +217,7 @@ xmrig::Buffer xmrig::Cvt::fromHex(const char *in, size_t size)
 
 bool xmrig::Cvt::toHex(char *hex, size_t hex_maxlen, const uint8_t *bin, size_t bin_len)
 {
-    return sodium_bin2hex(hex, hex_maxlen, bin, bin_len) != nullptr;
+    return cvt_bin2hex(hex, hex_maxlen, bin, bin_len) != nullptr;
 }
 
 
