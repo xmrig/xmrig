@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,6 +52,7 @@ public:
     static rapidjson::Value toHex(const std::string &data, rapidjson::Document &doc);
     static rapidjson::Value toHex(const uint8_t *in, size_t size, rapidjson::Document &doc);
     static String toHex(const uint8_t *in, size_t size);
+    static void randomBytes(void *buf, size_t size);
 };
 
 
