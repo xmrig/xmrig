@@ -1,3 +1,6 @@
+# v6.7.2
+- [#2039](https://github.com/xmrig/xmrig/pull/2039) Fixed solo mining.
+
 # v6.7.1
 - [#1995](https://github.com/xmrig/xmrig/issues/1995) Fixed log initialization.
 - [#1998](https://github.com/xmrig/xmrig/pull/1998) Added hashrate in the benchmark finished message.

@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2013-2020 Frank Denis <j at pureftpd dot org>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,11 +34,6 @@
 namespace xmrig {
 
 
-#ifndef XMRIG_SODIUM
-static std::random_device randomDevice;
-static std::mt19937 randomEngine(randomDevice());
-
-
 static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigned char *const bin, const size_t bin_len)
 {
     size_t       i = 0U;
@@ -46,7 +41,7 @@ static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigne
     int          b;
     int          c;
 
-    if (bin_len >= SIZE_MAX / 2 || hex_maxlen <= bin_len * 2U) {
+    if (bin_len >= SIZE_MAX / 2 || hex_maxlen < bin_len * 2U) {
         return nullptr; /* LCOV_EXCL_LINE */
     }
 
@@ -60,10 +55,18 @@ static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigne
         hex[i * 2U + 1U] = (char) x;
         i++;
     }
-    hex[i * 2U] = 0U;
+
+    if (i * 2U < hex_maxlen) {
+        hex[i * 2U] = 0U;
+    }
 
     return hex;
 }
+
+
+#ifndef XMRIG_SODIUM
+static std::random_device randomDevice;
+static std::mt19937 randomEngine(randomDevice());
 
 
 static int cvt_hex2bin(unsigned char *const bin, const size_t bin_maxlen, const char *const hex, const size_t hex_len, const char *const ignore, size_t *const bin_len, const char **const hex_end)
@@ -137,7 +140,6 @@ static int cvt_hex2bin(unsigned char *const bin, const size_t bin_maxlen, const 
     return ret;
 }
 
-#define sodium_bin2hex cvt_bin2hex
 #define sodium_hex2bin cvt_hex2bin
 #endif
 
@@ -215,7 +217,7 @@ xmrig::Buffer xmrig::Cvt::fromHex(const char *in, size_t size)
 
 bool xmrig::Cvt::toHex(char *hex, size_t hex_maxlen, const uint8_t *bin, size_t bin_len)
 {
-    return sodium_bin2hex(hex, hex_maxlen, bin, bin_len) != nullptr;
+    return cvt_bin2hex(hex, hex_maxlen, bin, bin_len) != nullptr;
 }
 
 
@@ -272,4 +274,18 @@ xmrig::String xmrig::Cvt::toHex(const uint8_t *in, size_t size)
     }
 
     return buf;
+}
+
+
+void xmrig::Cvt::randomBytes(void *buf, size_t size)
+{
+#   ifndef XMRIG_SODIUM
+    std::uniform_int_distribution<> dis(0, 255);
+
+    for (size_t i = 0; i < size; ++i) {
+        static_cast<uint8_t *>(buf)[i] = static_cast<char>(dis(randomEngine));
+    }
+#   else
+    randombytes_buf(buf, size);
+#   endif
 }

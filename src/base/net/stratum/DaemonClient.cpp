@@ -104,7 +104,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 #   ifdef XMRIG_PROXY_PROJECT
     memcpy(data + 78, result.nonce, 8);
 #   else
-    Cvt::toHex(data + 78, 9, reinterpret_cast<const uint8_t *>(&result.nonce), 4);
+    Cvt::toHex(data + 78, 8, reinterpret_cast<const uint8_t *>(&result.nonce), 4);
 #   endif
 
     using namespace rapidjson;
@@ -227,7 +227,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
     if (m_apiVersion == API_DERO) {
         const uint64_t offset = Json::getUint64(params, "reserved_offset");
-        Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2 + 1, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
+        Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
     }
 
     if (blocktemplate.isNull() || !job.setBlob(m_blockhashingblob)) {
