@@ -123,7 +123,7 @@ static HANDLE wrmsr_install_driver()
 
     hService = OpenServiceW(hManager, SERVICE_NAME, SERVICE_ALL_ACCESS);
     if (hService) {
-        LOG_WARN(CLEAR "%s" YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" is already exists"), tag);
+        LOG_WARN(CLEAR "%s" YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" already exists"), tag);
 
         SERVICE_STATUS status;
         const auto rc = QueryServiceStatus(hService, &status);
