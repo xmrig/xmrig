@@ -34,12 +34,11 @@ jobs:
     - uses: msys2/setup-msys2@v2
     
     - shell: powershell
-      run: msys2 -c 'pacman -Syu'
+      run: msys2 -c 'pacman -Syu --noconfirm'
     - shell: powershell
       run: msys2 -c 'pacman -S mingw-w64-x86_64-gcc git make  --noconfirm'
     - shell: powershell
       run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
     - shell: powershell
-      run: msys2 -c '$program .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
-      env:
-        program: '"c:\Program Files\CMake\bin\cmake.exe"'
+      run: msys2 -c '"c:\Program Files\CMake\bin\cmake.exe" .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
+
