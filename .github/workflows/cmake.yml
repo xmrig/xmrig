@@ -1,6 +1,9 @@
 name: CMake
 
-on: [push]
+on:
+  release:
+    # Solo usa la palabra clave de tipos para reducir los tipos de actividad que activarán tus flujos de trabajo.
+    types: [published, created, edited]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
