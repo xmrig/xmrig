@@ -23,7 +23,10 @@ jobs:
       run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
     - shell: powershell
-      run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
+      run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
+    
+    - shell: powershell
+      run: refreshenv
     
     - name: Clone repos
       shell: powershell
@@ -40,5 +43,5 @@ jobs:
     - shell: powershell
       run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
     - shell: powershell
-      run: msys2 -c '"c:\Program Files\CMake\bin\cmake.exe" .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
+      run: msys2 -c 'cmake .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
 
