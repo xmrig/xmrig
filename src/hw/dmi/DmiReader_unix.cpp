@@ -157,7 +157,46 @@ static uint8_t *smbios3_decode(uint8_t *buf, const char *devmem, uint32_t &size,
     size             = dmi_get<uint32_t>(buf + 0x0C);
     const u64 offset = dmi_get<u64>(buf + 0x10);
 
-    return dmi_table(((off_t)offset.h << 32) | offset.l, size, devmem, flags);;
+    return dmi_table(((off_t)offset.h << 32) | offset.l, size, devmem, flags);
+}
+
+
+static uint8_t *smbios_decode(uint8_t *buf, const char *devmem, uint32_t &size, uint32_t &version, uint32_t flags)
+{
+    if (buf[0x05] > 0x20 || !checksum(buf, buf[0x05]) || memcmp(buf + 0x10, "_DMI_", 5) != 0 || !checksum(buf + 0x10, 0x0F))  {
+        return nullptr;
+    }
+
+    version = (buf[0x06] << 8) + buf[0x07];
+
+    switch (version) {
+    case 0x021F:
+    case 0x0221:
+        version = 0x0203;
+        break;
+
+    case 0x0233:
+        version = 0x0206;
+        break;
+    }
+
+    version = version << 8;
+    size    = dmi_get<uint16_t>(buf + 0x16);
+
+    return dmi_table(dmi_get<uint32_t>(buf + 0x18), size, devmem, flags);
+}
+
+
+static uint8_t *legacy_decode(uint8_t *buf, const char *devmem, uint32_t &size, uint32_t &version, uint32_t flags)
+{
+    if (!checksum(buf, 0x0F)) {
+        return nullptr;
+    }
+
+    version = ((buf[0x0E] & 0xF0) << 12) + ((buf[0x0E] & 0x0F) << 8);
+    size    = dmi_get<uint16_t>(buf + 0x06);
+
+    return dmi_table(dmi_get<uint32_t>(buf + 0x08), size, devmem, flags);
 }
 
 
@@ -175,14 +214,18 @@ bool xmrig::DmiReader::read()
         if (size >= 24 && memcmp(buf, "_SM3_", 5) == 0) {
             smb = smbios3_decode(buf, kSysTableFile, m_size, m_version, FLAG_NO_FILE_OFFSET);
         }
+        else if (size >= 31 && memcmp(buf, "_SM_", 4) == 0) {
+            smb = smbios_decode(buf, kSysTableFile, m_size, m_version, FLAG_NO_FILE_OFFSET);
+        }
+        else if (size >= 15 && memcmp(buf, "_DMI_", 5) == 0) {
+            smb = legacy_decode(buf, kSysTableFile, m_size, m_version, FLAG_NO_FILE_OFFSET);
+        }
 
         if (smb) {
-            decode(smb);
-
-            free(smb);
-            free(buf);
-
-            return true;
+            return decode(smb, [smb, buf]() {
+                free(smb);
+                free(buf);
+            });
         }
     }
 

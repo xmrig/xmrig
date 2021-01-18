@@ -26,6 +26,9 @@
 #include "hw/dmi/DmiMemory.h"
 
 
+#include <functional>
+
+
 namespace xmrig {
 
 
@@ -42,6 +45,9 @@ public:
     bool read();
 
 private:
+    using Cleanup = std::function<void()>;
+
+    bool decode(uint8_t *buf, const Cleanup &cleanup);
     bool decode(uint8_t *buf);
 
     DmiBoard m_board;

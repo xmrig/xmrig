@@ -62,8 +62,7 @@ bool xmrig::DmiReader::read()
     m_version = (smb->SMBIOSMajorVersion << 16) + (smb->SMBIOSMinorVersion << 8) + smb->DmiRevision;
     m_size    = smb->Length;
 
-    const bool rc = decode(smb->SMBIOSTableData);
-    HeapFree(GetProcessHeap(), 0, smb);
-
-    return rc;
+    return decode(smb->SMBIOSTableData, [smb]() {
+        HeapFree(GetProcessHeap(), 0, smb);
+    });
 }

@@ -129,7 +129,7 @@ static void print_memory()
 
     const double percent = freeMem > 0 ? ((totalMem - freeMem) / totalMem * 100.0) : 100.0;
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f/%.1f GB") BLACK_BOLD(" (%.0f%%)"),
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%.1f/%.1f") CYAN(" GB") BLACK_BOLD(" (%.0f%%)"),
                "MEMORY",
                (totalMem - freeMem) / oneGiB,
                totalMem / oneGiB,
@@ -148,11 +148,11 @@ static void print_memory()
         }
 
         if (!memory.size()) {
-            Log::print(WHITE_BOLD("   %-13s") WHITE_BOLD("%s: ") BLACK_BOLD("<empty>"), "", memory.slot().data());
+            Log::print(WHITE_BOLD("   %-13s") "%s: " BLACK_BOLD("<empty>"), "", memory.slot().data());
             continue;
         }
 
-        Log::print(WHITE_BOLD("   %-13s") WHITE_BOLD("%s: ") CYAN_BOLD("%" PRIu64 " GB ") WHITE_BOLD("%s @ %" PRIu64 " MHz ") BLACK_BOLD("%s"),
+        Log::print(WHITE_BOLD("   %-13s") "%s: " CYAN_BOLD("%" PRIu64) CYAN(" GB ") WHITE_BOLD("%s @ %" PRIu64 " MHz ") BLACK_BOLD("%s"),
                    "", memory.slot().data(), memory.size() / oneGiB, memory.type(), memory.speed() / 1000000ULL, memory.product().data());
     }
 

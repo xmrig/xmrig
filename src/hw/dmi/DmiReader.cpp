@@ -38,6 +38,16 @@ static void dmi_get_header(dmi_header *h, uint8_t *data)
 } // namespace xmrig
 
 
+bool xmrig::DmiReader::decode(uint8_t *buf, const Cleanup &cleanup)
+{
+    const bool rc = decode(buf);
+
+    cleanup();
+
+    return rc;
+}
+
+
 bool xmrig::DmiReader::decode(uint8_t *buf)
 {
     if (!buf) {
