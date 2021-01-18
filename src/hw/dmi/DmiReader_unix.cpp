@@ -25,9 +25,15 @@
 
 #include <cerrno>
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+
+
+#ifdef __FreeBSD__
+#   include <kenv.h>
+#endif
 
 
 #define FLAG_NO_FILE_OFFSET     (1 << 0)
@@ -36,8 +42,21 @@
 namespace xmrig {
 
 
-static const char *kSysEntryFile = "/sys/firmware/dmi/tables/smbios_entry_point";
-static const char *kSysTableFile = "/sys/firmware/dmi/tables/DMI";
+static const char *kMemDevice       = "/dev/mem";
+static const char *kSysEntryFile    = "/sys/firmware/dmi/tables/smbios_entry_point";
+static const char *kSysTableFile    = "/sys/firmware/dmi/tables/DMI";
+
+
+static inline void safe_memcpy(void *dest, const void *src, size_t n)
+{
+#   ifdef XMRIG_ARM
+    for (size_t i = 0; i < n; i++) {
+        *((uint8_t *)dest + i) = *((const uint8_t *)src + i);
+    }
+#   else
+    memcpy(dest, src, n);
+#   endif
+}
 
 
 
@@ -118,6 +137,69 @@ out:
 }
 
 
+/*
+ * Copy a physical memory chunk into a memory buffer.
+ * This function allocates memory.
+ */
+static uint8_t *mem_chunk(off_t base, size_t len, const char *devmem)
+{
+    const int fd = open(devmem, O_RDONLY);
+    uint8_t *p   = nullptr;
+    uint8_t *mmp = nullptr;
+    struct stat statbuf{};
+
+#   ifdef _SC_PAGESIZE
+    const off_t mmoffset = base % sysconf(_SC_PAGESIZE);
+#   else
+    const off_t mmoffset = base % getpagesize();
+#   endif
+
+    if (fd == -1) {
+        return nullptr;
+    }
+
+    if ((p = reinterpret_cast<uint8_t *>(malloc(len))) == nullptr) {
+        goto out;
+    }
+
+    if (fstat(fd, &statbuf) == -1) {
+        goto err_free;
+    }
+
+    if (S_ISREG(statbuf.st_mode) && base + (off_t)len > statbuf.st_size) {
+        goto err_free;
+    }
+
+    mmp = reinterpret_cast<uint8_t *>(mmap(nullptr, mmoffset + len, PROT_READ, MAP_SHARED, fd, base - mmoffset));
+    if (mmp == MAP_FAILED) {
+        goto try_read;
+    }
+
+    safe_memcpy(p, mmp + mmoffset, len);
+    munmap(mmp, mmoffset + len);
+
+    goto out;
+
+try_read:
+    if (lseek(fd, base, SEEK_SET) == -1) {
+        goto err_free;
+    }
+
+    if (myread(fd, p, len, devmem) == 0) {
+        goto out;
+    }
+
+err_free:
+    free(p);
+    p = nullptr;
+
+out:
+    close(fd);
+
+    return p;
+}
+
+
 static int checksum(const uint8_t *buf, size_t len)
 {
     uint8_t sum = 0;
@@ -132,18 +214,15 @@ static int checksum(const uint8_t *buf, size_t len)
 
 static uint8_t *dmi_table(off_t base, uint32_t &len, const char *devmem, uint32_t flags)
 {
-    uint8_t *buf = nullptr;
-
     if (flags & FLAG_NO_FILE_OFFSET) {
         size_t size = len;
-        buf         = read_file(0, &size, devmem);
+        auto buf    = read_file(0, &size, devmem);
         len         = size;
-    }
-    else {
-        // FIXME
+
+        return buf;
     }
 
-    return buf;
+    return mem_chunk(base, len, devmem);
 }
 
 
@@ -200,6 +279,50 @@ static uint8_t *legacy_decode(uint8_t *buf, const char *devmem, uint32_t &size, 
 }
 
 
+#define EFI_NOT_FOUND   (-1)
+#define EFI_NO_SMBIOS   (-2)
+static off_t address_from_efi()
+{
+#   if defined(__linux__)
+    FILE *efi_systab;
+    const char *filename;
+    char linebuf[64];
+#   elif defined(__FreeBSD__)
+    char addrstr[KENV_MVALLEN + 1];
+#   endif
+
+    off_t address = 0;
+
+#   if defined(__linux__)
+    if ((efi_systab = fopen(filename = "/sys/firmware/efi/systab", "r")) == nullptr && (efi_systab = fopen(filename = "/proc/efi/systab", "r")) == nullptr) {
+        return EFI_NOT_FOUND;
+    }
+
+    address = EFI_NO_SMBIOS;
+    while ((fgets(linebuf, sizeof(linebuf) - 1, efi_systab)) != nullptr) {
+        char *addrp = strchr(linebuf, '=');
+        *(addrp++) = '\0';
+        if (strcmp(linebuf, "SMBIOS3") == 0 || strcmp(linebuf, "SMBIOS") == 0) {
+            address = strtoull(addrp, nullptr, 0);
+            break;
+        }
+    }
+
+    fclose(efi_systab);
+
+    return address;
+#   elif defined(__FreeBSD__)
+    if (kenv(KENV_GET, "hint.smbios.0.mem", addrstr, sizeof(addrstr)) == -1) {
+        return EFI_NOT_FOUND;
+    }
+
+    return strtoull(addrstr, nullptr, 0);
+#   endif
+
+    return EFI_NOT_FOUND;
+}
+
+
 } // namespace xmrig
 
 
@@ -207,9 +330,10 @@ bool xmrig::DmiReader::read()
 {
     size_t size  = 0x20;
     uint8_t *buf = read_file(0, &size, kSysEntryFile);
+    uint8_t *smb = nullptr;
 
     if (buf) {
-        uint8_t *smb = nullptr;
+        smb = nullptr;
 
         if (size >= 24 && memcmp(buf, "_SM3_", 5) == 0) {
             smb = smbios3_decode(buf, kSysTableFile, m_size, m_version, FLAG_NO_FILE_OFFSET);
@@ -222,12 +346,71 @@ bool xmrig::DmiReader::read()
         }
 
         if (smb) {
-            return decode(smb, [smb, buf]() {
-                free(smb);
-                free(buf);
-            });
+            return decode(smb, [smb, buf]() { free(smb); free(buf); });
+        }
+
+        free(buf);
+    }
+
+    const auto efi = address_from_efi();
+    if (efi == EFI_NO_SMBIOS) {
+        return false;
+    }
+
+    if (efi != EFI_NOT_FOUND) {
+        if ((buf = mem_chunk(efi, 0x20, kMemDevice)) == nullptr) {
+            return false;
+        }
+
+        smb = nullptr;
+
+        if (memcmp(buf, "_SM3_", 5) == 0) {
+            smb = smbios3_decode(buf, kMemDevice, m_size, m_version, 0);
+        }
+        else if (memcmp(buf, "_SM_", 4) == 0) {
+            smb = smbios_decode(buf, kSysTableFile, m_size, m_version, 0);
+        }
+
+        if (smb) {
+            return decode(smb, [smb, buf]() { free(smb); free(buf); });
+        }
+
+        free(buf);
+    }
+
+#   if defined(__x86_64__) || defined(_M_AMD64)
+    if ((buf = mem_chunk(0xF0000, 0x10000, kMemDevice)) == nullptr) {
+        return false;
+    }
+
+    smb = nullptr;
+
+    for (off_t fp = 0; fp <= 0xFFE0; fp += 16) {
+        if (memcmp(buf + fp, "_SM3_", 5) == 0) {
+            smb = smbios3_decode(buf + fp, kMemDevice, m_size, m_version, 0);
+        }
+
+        if (smb) {
+            return decode(smb, [smb, buf]() { free(smb); free(buf); });
         }
     }
+
+    for (off_t fp = 0; fp <= 0xFFF0; fp += 16) {
+        if (memcmp(buf + fp, "_SM_", 4) == 0 && fp <= 0xFFE0) {
+            smb = smbios3_decode(buf + fp, kMemDevice, m_size, m_version, 0);
+        }
+        else if (!smb && memcmp(buf + fp, "_DMI_", 5) == 0) {
+            smb = legacy_decode(buf + fp, kMemDevice, m_size, m_version, 0);
+        }
+
+        if (smb) {
+            return decode(smb, [smb, buf]() { free(smb); free(buf); });
+        }
+    }
+
+    free(buf);
+#   endif
+
 
     return false;
 }
