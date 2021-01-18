@@ -39,6 +39,11 @@
 #include "version.h"
 
 
+#ifdef XMRIG_FEATURE_DMI
+#   include "hw/dmi/DmiReader.h"
+#endif
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/rx/RxConfig.h"
 #endif
@@ -130,6 +135,31 @@ static void print_memory()
                totalMem / oneGiB,
                percent
                );
+
+#   ifdef XMRIG_FEATURE_DMI
+    DmiReader reader;
+    if (!reader.read()) {
+        return;
+    }
+
+    for (const auto &memory : reader.memory()) {
+        if (!memory.isValid()) {
+            continue;
+        }
+
+        if (!memory.size()) {
+            Log::print(WHITE_BOLD("   %-13s") WHITE_BOLD("%s: ") BLACK_BOLD("<empty>"), "", memory.slot().data());
+            continue;
+        }
+
+        Log::print(WHITE_BOLD("   %-13s") WHITE_BOLD("%s: ") CYAN_BOLD("%" PRIu64 " GB ") WHITE_BOLD("%s @ %" PRIu64 " MHz ") BLACK_BOLD("%s"),
+                   "", memory.slot().data(), memory.size() / oneGiB, memory.type(), memory.speed() / 1000000ULL, memory.product().data());
+    }
+
+    if (reader.board().isValid()) {
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") " - " WHITE_BOLD("%s"), "MOTHERBOARD", reader.board().vendor().data(), reader.board().product().data());
+    }
+#   endif
 }
 
 
