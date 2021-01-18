@@ -22,6 +22,7 @@
 #define XMRIG_DMITOOLS_H
 
 
+#include <cstddef>
 #include <cstdint>
 
 
@@ -34,6 +35,12 @@ struct dmi_header
     uint8_t length;
     uint16_t handle;
     uint8_t *data;
+};
+
+
+struct u64 {
+    uint32_t l;
+    uint32_t h;
 };
 
 

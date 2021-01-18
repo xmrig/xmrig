@@ -41,48 +41,6 @@ struct RawSMBIOSData {
 };
 
 
-/*
- * Counts the number of SMBIOS structures present in
- * the SMBIOS table.
- *
- * buf - Pointer that receives the SMBIOS Table address.
- *       This will be the address of the BYTE array from
- *       the RawSMBIOSData struct.
- *
- * len - The length of the SMBIOS Table pointed by buff.
- *
- * return - The number of SMBIOS strutctures.
- *
- * Remarks:
- * The SMBIOS Table Entry Point has this information,
- * however the GetSystemFirmwareTable API doesn't
- * return all fields from the Entry Point, and
- * DMIDECODE uses this value as a parameter for
- * dmi_table function. This is the reason why
- * this function was make.
- *
- * Hugo Weber address@hidden
- */
-uint16_t count_smbios_structures(const uint8_t *buf, uint32_t len)
-{
-    uint16_t count  = 0;
-    uint32_t offset = 0;
-
-    while (offset < len) {
-        offset += reinterpret_cast<const dmi_header *>(buf + offset)->length;
-        count++;
-
-        while ((*reinterpret_cast<const uint16_t *>(buf + offset) != 0) && (offset < len)) {
-            offset++;
-        }
-
-        offset += 2;
-    }
-
-    return count;
-}
-
-
 } // namespace xmrig
 
 
@@ -103,7 +61,6 @@ bool xmrig::DmiReader::read()
 
     m_version = (smb->SMBIOSMajorVersion << 16) + (smb->SMBIOSMinorVersion << 8) + smb->DmiRevision;
     m_size    = smb->Length;
-    m_count   = count_smbios_structures(smb->SMBIOSTableData, m_size);
 
     const bool rc = decode(smb->SMBIOSTableData);
     HeapFree(GetProcessHeap(), 0, smb);

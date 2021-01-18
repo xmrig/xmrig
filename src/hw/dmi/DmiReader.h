@@ -36,7 +36,6 @@ public:
 
     inline const DmiBoard &board() const                { return m_board; }
     inline const std::vector<DmiMemory> &memory() const { return m_memory; }
-    inline uint16_t count() const                       { return m_count; }
     inline uint32_t size() const                        { return m_size; }
     inline uint32_t version() const                     { return m_version; }
 
@@ -46,7 +45,6 @@ private:
     bool decode(uint8_t *buf);
 
     DmiBoard m_board;
-    uint16_t m_count    = 0;
     uint32_t m_size     = 0;
     uint32_t m_version  = 0;
     std::vector<DmiMemory> m_memory;

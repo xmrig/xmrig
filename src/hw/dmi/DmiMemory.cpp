@@ -170,7 +170,7 @@ xmrig::DmiMemory::DmiMemory(dmi_header *h)
         return;
     }
 
-    m_speed = std::max(m_speed, dmi_memory_device_speed(dmi_get<uint16_t>(h, 0x20), h->length >= 0x5C ? dmi_get<uint32_t>(h, 0x58) : 0) * 1000000ULL);
+    m_speed = std::max<uint64_t>(m_speed, dmi_memory_device_speed(dmi_get<uint16_t>(h, 0x20), h->length >= 0x5C ? dmi_get<uint32_t>(h, 0x58) : 0) * 1000000ULL);
 
     if (h->length < 0x28) {
         return;

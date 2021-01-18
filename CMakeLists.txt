@@ -170,7 +170,7 @@ else()
 endif()
 
 add_definitions(-DXMRIG_MINER_PROJECT -DXMRIG_JSON_SINGLE_LINE_ARRAY)
-add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE)
+add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE -D_FILE_OFFSET_BITS=64)
 
 find_package(UV REQUIRED)
 

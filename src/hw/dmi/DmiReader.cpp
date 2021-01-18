@@ -40,14 +40,14 @@ static void dmi_get_header(dmi_header *h, uint8_t *data)
 
 bool xmrig::DmiReader::decode(uint8_t *buf)
 {
-    if (!buf || !m_count) {
+    if (!buf) {
         return false;
     }
 
     uint8_t *data = buf;
     int i         = 0;
 
-    while ((i < m_count || !m_count) && data + 4 <= buf + m_size) {
+    while (data + 4 <= buf + m_size) {
         dmi_header h{};
         dmi_get_header(&h, data);
 
