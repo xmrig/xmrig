@@ -287,11 +287,10 @@ static off_t address_from_efi()
     FILE *efi_systab;
     const char *filename;
     char linebuf[64];
+    off_t address = 0;
 #   elif defined(__FreeBSD__)
     char addrstr[KENV_MVALLEN + 1];
 #   endif
-
-    off_t address = 0;
 
 #   if defined(__linux__)
     if ((efi_systab = fopen(filename = "/sys/firmware/efi/systab", "r")) == nullptr && (efi_systab = fopen(filename = "/proc/efi/systab", "r")) == nullptr) {

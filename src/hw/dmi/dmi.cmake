@@ -17,7 +17,7 @@ if (WITH_DMI)
 
     if (XMRIG_OS_WIN)
         list(APPEND SOURCES src/hw/dmi/DmiReader_win.cpp)
-    elseif(XMRIG_OS_LINUX)
+    elseif(XMRIG_OS_LINUX OR XMRIG_OS_FREEBSD)
         list(APPEND SOURCES src/hw/dmi/DmiReader_unix.cpp)
     endif()
 else()
