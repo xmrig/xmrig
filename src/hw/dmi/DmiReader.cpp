@@ -82,6 +82,10 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
         }
 
         switch (h.type) {
+        case 1:
+            m_system.decode(&h);
+            break;
+
         case 2:
             m_board.decode(&h);
             break;

@@ -142,6 +142,8 @@ static void print_memory()
         return;
     }
 
+    const bool vm = Cpu::info()->isVM();
+
     for (const auto &memory : reader.memory()) {
         if (!memory.isValid()) {
             continue;
@@ -151,12 +153,14 @@ static void print_memory()
             Log::print(WHITE_BOLD("   %-13s") "%s: " CYAN_BOLD("%" PRIu64) CYAN(" GB ") WHITE_BOLD("%s @ %" PRIu64 " MHz ") BLACK_BOLD("%s"),
                        "", memory.slot().data(), memory.size() / oneGiB, memory.type(), memory.speed() / 1000000ULL, memory.product().data());
         }
-        else if (!Cpu::info()->isVM()) {
+        else if (!vm) {
             Log::print(WHITE_BOLD("   %-13s") "%s: " BLACK_BOLD("<empty>"), "", memory.slot().data());
         }
     }
 
-    if (reader.board().isValid()) {
+    const auto &board = vm ? reader.system() : reader.board();
+
+    if (board.isValid()) {
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") " - " WHITE_BOLD("%s"), "MOTHERBOARD", reader.board().vendor().data(), reader.board().product().data());
     }
 #   endif
