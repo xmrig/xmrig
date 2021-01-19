@@ -85,14 +85,14 @@ jobs:
       - name: Prepare CentOS 7 tools
         run: |
           yum install -y epel-release
-          yum install -y git cmake gcc gcc-c++ libstdc++-static make openssl-devel libmicrohttpd-devel libuv-devel
+          yum install -y git cmake gcc gcc-c++ libstdc++-static make openssl-devel libmicrohttpd-devel libuv-devel glibc-static libuv-static
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout ${GITHUB_REF:10}
       - name: Build project on CentOS 7
         run: |
-          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF
+          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DBUILD_STATIC=ON
           make -j$(nproc)
           cp src/config.json .
           mv xmrig-notls xmrig
