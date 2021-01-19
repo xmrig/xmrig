@@ -161,7 +161,7 @@ static void print_memory()
     const auto &board = vm ? reader.system() : reader.board();
 
     if (board.isValid()) {
-        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") " - " WHITE_BOLD("%s"), "MOTHERBOARD", reader.board().vendor().data(), reader.board().product().data());
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") " - " WHITE_BOLD("%s"), "MOTHERBOARD", board.vendor().data(), board.product().data());
     }
 #   endif
 }
