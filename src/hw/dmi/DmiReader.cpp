@@ -70,6 +70,10 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
         while (static_cast<uint32_t>(next - buf + 1) < m_size && (next[0] != 0 || next[1] != 0)) {
             next++;
         }
+
+#       ifdef XMRIG_OS_APPLE
+        while ((unsigned long)(next - buf + 1) < m_size && (next[0] == 0 && next[1] == 0))
+#       endif
         next += 2;
 
         if (static_cast<uint32_t>(next - buf) > m_size) {
