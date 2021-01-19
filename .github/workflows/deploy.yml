@@ -92,7 +92,7 @@ jobs:
           git checkout ${GITHUB_REF:10}
       - name: Build project on CentOS 7
         run: |
-          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF -DBUILD_STATIC=ON
+          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF
           make -j$(nproc)
           cp src/config.json .
           mv xmrig-notls xmrig
