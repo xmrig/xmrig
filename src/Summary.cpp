@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -76,7 +76,7 @@ inline static const char *asmName(Assembly::Id assembly)
 #endif
 
 
-static void print_memory(Config *config)
+static void print_pages(const Config *config)
 {
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? kHugepagesSupported : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
@@ -92,7 +92,7 @@ static void print_memory(Config *config)
 }
 
 
-static void print_cpu(Config *)
+static void print_cpu(const Config *)
 {
     const auto info = Cpu::info();
 
@@ -121,7 +121,7 @@ static void print_cpu(Config *)
 }
 
 
-static void print_memory()
+static void print_memory(const Config *config)
 {
     constexpr size_t oneGiB = 1024U * 1024U * 1024U;
     const auto freeMem      = static_cast<double>(uv_get_free_memory());
@@ -137,6 +137,10 @@ static void print_memory()
                );
 
 #   ifdef XMRIG_FEATURE_DMI
+    if (!config->isDMI()) {
+        return;
+    }
+
     DmiReader reader;
     if (!reader.read()) {
         return;
@@ -167,7 +171,7 @@ static void print_memory()
 }
 
 
-static void print_threads(Config *config)
+static void print_threads(const Config *config)
 {
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s%d%%"),
                "DONATE",
@@ -209,14 +213,16 @@ static void print_commands(Config *)
 
 void xmrig::Summary::print(Controller *controller)
 {
-    controller->config()->printVersions();
-    print_memory(controller->config());
-    print_cpu(controller->config());
-    print_memory();
-    print_threads(controller->config());
-    controller->config()->pools().print();
+    const auto config = controller->config();
 
-    print_commands(controller->config());
+    config->printVersions();
+    print_pages(config);
+    print_cpu(config);
+    print_memory(config);
+    print_threads(config);
+    config->pools().print();
+
+    print_commands(config);
 }
 
 

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,9 +23,9 @@
  */
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstring>
 #include <uv.h>
-#include <cinttypes>
 
 
 #include "core/config/Config.h"
@@ -55,16 +55,19 @@ namespace xmrig {
 
 
 #ifdef XMRIG_FEATURE_OPENCL
-static const char *kOcl     = "opencl";
+const char *Config::kOcl                = "opencl";
 #endif
 
 #ifdef XMRIG_FEATURE_CUDA
-static const char *kCuda    = "cuda";
+const char *Config::kCuda               = "cuda";
 #endif
 
-
 #if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
-static const char *kHealthPrintTime = "health-print-time";
+const char *Config::kHealthPrintTime    = "health-print-time";
+#endif
+
+#ifdef XMRIG_FEATURE_DMI
+const char *Config::kDMI                = "dmi";
 #endif
 
 
@@ -87,6 +90,10 @@ public:
 
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     uint32_t healthPrintTime = 60;
+#   endif
+
+#   ifdef XMRIG_FEATURE_DMI
+    bool dmi = true;
 #   endif
 };
 
@@ -143,6 +150,14 @@ uint32_t xmrig::Config::healthPrintTime() const
 #endif
 
 
+#ifdef XMRIG_FEATURE_DMI
+bool xmrig::Config::isDMI() const
+{
+    return d_ptr->dmi;
+}
+#endif
+
+
 bool xmrig::Config::isShouldSave() const
 {
     if (!isAutoSave()) {
@@ -191,6 +206,10 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     d_ptr->healthPrintTime = reader.getUint(kHealthPrintTime, d_ptr->healthPrintTime);
 #   endif
 
+#   ifdef XMRIG_FEATURE_DMI
+    d_ptr->dmi = reader.getBool(kDMI, d_ptr->dmi);
+#   endif
+
     return true;
 }
 
@@ -236,6 +255,11 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     doc.AddMember(StringRef(kHealthPrintTime),          healthPrintTime(), allocator);
 #   endif
+
+#   ifdef XMRIG_FEATURE_DMI
+    doc.AddMember(StringRef(kDMI),                      isDMI(), allocator);
+#   endif
+
     doc.AddMember(StringRef(kSyslog),                   isSyslog(), allocator);
 
 #   ifdef XMRIG_FEATURE_TLS
