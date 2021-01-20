@@ -1,6 +1,4 @@
 /* XMRig
- * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
- * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
  * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -18,41 +16,38 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DMIBOARD_H
-#define XMRIG_DMIBOARD_H
+#ifndef XMRIG_HWAPI_H
+#define XMRIG_HWAPI_H
 
 
-#include "base/tools/String.h"
+#include "base/api/interfaces/IApiListener.h"
+
+
+#include <memory>
 
 
 namespace xmrig {
 
 
-struct dmi_header;
+struct DmiReader;
 
 
-class DmiBoard
+class HwApi : public IApiListener
 {
 public:
-    DmiBoard() = default;
+    HwApi() = default;
 
-    inline const String &product() const    { return m_product; }
-    inline const String &vendor() const     { return m_vendor; }
-    inline bool isValid() const             { return !m_product.isEmpty() && !m_vendor.isEmpty(); }
-
-    void decode(dmi_header *h);
-
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-#   endif
+protected:
+    void onRequest(IApiRequest &request) override;
 
 private:
-    String m_product;
-    String m_vendor;
+#   ifdef XMRIG_FEATURE_DMI
+    std::shared_ptr<DmiReader> m_dmi;
+#   endif
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DMIBOARD_H */
+#endif /* XMRIG_HWAPI_H */

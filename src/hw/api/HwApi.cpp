@@ -1,6 +1,4 @@
 /* XMRig
- * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
- * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
  * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -18,41 +16,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DMIBOARD_H
-#define XMRIG_DMIBOARD_H
 
-
+#include "hw/api/HwApi.h"
+#include "base/api/interfaces/IApiRequest.h"
 #include "base/tools/String.h"
 
-
-namespace xmrig {
-
-
-struct dmi_header;
+#include "base/io/log/Log.h" // FIXME
 
 
-class DmiBoard
+#ifdef XMRIG_FEATURE_DMI
+#   include "hw/dmi/DmiReader.h"
+#endif
+
+
+void xmrig::HwApi::onRequest(IApiRequest &request)
 {
-public:
-    DmiBoard() = default;
+    if (request.method() == IApiRequest::METHOD_GET) {
+#       ifdef XMRIG_FEATURE_DMI
+        if (request.url() == "/2/dmi") {
+            if (!m_dmi) {
+                m_dmi = std::make_shared<DmiReader>();
+                m_dmi->read();
+            }
 
-    inline const String &product() const    { return m_product; }
-    inline const String &vendor() const     { return m_vendor; }
-    inline bool isValid() const             { return !m_product.isEmpty() && !m_vendor.isEmpty(); }
-
-    void decode(dmi_header *h);
-
-#   ifdef XMRIG_FEATURE_API
-    rapidjson::Value toJSON(rapidjson::Document &doc) const;
-#   endif
-
-private:
-    String m_product;
-    String m_vendor;
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_DMIBOARD_H */
+            request.accept();
+            m_dmi->toJSON(request.reply(), request.doc());
+        }
+#       endif
+    }
+}

@@ -20,6 +20,7 @@
 
 
 #include "hw/dmi/DmiMemory.h"
+#include "3rdparty/rapidjson/document.h"
 #include "hw/dmi/DmiTools.h"
 
 
@@ -190,3 +191,28 @@ const char *xmrig::DmiMemory::type() const
 {
     return dmi_memory_device_type(m_type);
 }
+
+
+#ifdef XMRIG_FEATURE_API
+rapidjson::Value xmrig::DmiMemory::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    auto &allocator = doc.GetAllocator();
+    Value out(kObjectType);
+    out.AddMember("slot",           m_slot.toJSON(doc), allocator);
+    out.AddMember("type",           StringRef(type()), allocator);
+    out.AddMember("form_factor",    StringRef(formFactor()), allocator);
+    out.AddMember("size",           m_size, allocator);
+    out.AddMember("speed",          m_speed, allocator);
+    out.AddMember("rank",           m_rank, allocator);
+    out.AddMember("voltage",        m_voltage, allocator);
+    out.AddMember("width",          m_width, allocator);
+    out.AddMember("total_width",    m_totalWidth, allocator);
+    out.AddMember("vendor",         m_vendor.toJSON(doc), allocator);
+    out.AddMember("product",        m_product.toJSON(doc), allocator);
+    out.AddMember("bank",           m_bank.toJSON(doc), allocator);
+
+    return out;
+}
+#endif

@@ -52,6 +52,10 @@ public:
     const char *formFactor() const;
     const char *type() const;
 
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+#   endif
+
 private:
     String m_bank;
     String m_product;

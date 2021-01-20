@@ -45,6 +45,11 @@ public:
 
     bool read();
 
+#   ifdef XMRIG_FEATURE_API
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void toJSON(rapidjson::Value &out, rapidjson::Document &doc) const;
+#   endif
+
 private:
     using Cleanup = std::function<void()>;
 

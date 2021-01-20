@@ -20,6 +20,8 @@
 
 
 #include "hw/dmi/DmiReader.h"
+#include "3rdparty/fmt/core.h"
+#include "3rdparty/rapidjson/document.h"
 #include "hw/dmi/DmiTools.h"
 
 
@@ -36,6 +38,38 @@ static void dmi_get_header(dmi_header *h, uint8_t *data)
 
 
 } // namespace xmrig
+
+
+#ifdef XMRIG_FEATURE_API
+rapidjson::Value xmrig::DmiReader::toJSON(rapidjson::Document &doc) const
+{
+    rapidjson::Value obj;
+    toJSON(obj, doc);
+
+    return obj;
+}
+
+
+void xmrig::DmiReader::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    auto &allocator = doc.GetAllocator();
+    out.SetObject();
+
+    Value memory(kArrayType);
+    memory.Reserve(m_memory.size(), allocator);
+
+    for (const auto &value : m_memory) {
+        memory.PushBack(value.toJSON(doc), allocator);
+    }
+
+    out.AddMember("smbios",     Value(fmt::format("{}.{}.{}", m_version >> 16, m_version >> 8 & 0xff, m_version & 0xff).c_str(), allocator), allocator);
+    out.AddMember("system",     m_system.toJSON(doc), allocator);
+    out.AddMember("board",      m_board.toJSON(doc), allocator);
+    out.AddMember("memory",     memory, allocator);
+}
+#endif
 
 
 bool xmrig::DmiReader::decode(uint8_t *buf, const Cleanup &cleanup)

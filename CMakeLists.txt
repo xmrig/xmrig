@@ -198,7 +198,8 @@ if (WITH_EMBEDDED_CONFIG)
     add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
 endif()
 
-include (src/hw/dmi/dmi.cmake)
+include(src/hw/api/api.cmake)
+include(src/hw/dmi/dmi.cmake)
 
 include_directories(src)
 include_directories(src/3rdparty)
