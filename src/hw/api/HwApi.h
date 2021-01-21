@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,29 +16,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_IAPILISTENER_H
-#define XMRIG_IAPILISTENER_H
+#ifndef XMRIG_HWAPI_H
+#define XMRIG_HWAPI_H
 
 
-#include "base/tools/Object.h"
+#include "base/api/interfaces/IApiListener.h"
+
+
+#include <memory>
 
 
 namespace xmrig {
 
 
-class IApiRequest;
+struct DmiReader;
 
 
-class IApiListener
+class HwApi : public IApiListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(IApiListener)
+    HwApi() = default;
 
-    IApiListener()          = default;
-    virtual ~IApiListener() = default;
+protected:
+    void onRequest(IApiRequest &request) override;
 
-#   ifdef XMRIG_FEATURE_API
-    virtual void onRequest(IApiRequest &request) = 0;
+private:
+#   ifdef XMRIG_FEATURE_DMI
+    std::shared_ptr<DmiReader> m_dmi;
 #   endif
 };
 
@@ -46,4 +50,4 @@ public:
 } /* namespace xmrig */
 
 
-#endif // XMRIG_IAPILISTENER_H
+#endif /* XMRIG_HWAPI_H */

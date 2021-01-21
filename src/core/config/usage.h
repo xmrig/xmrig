@@ -190,6 +190,10 @@ static inline const std::string &usage()
     u += "      --hash=HASH               compare benchmark result with specified hash\n";
 #   endif
 
+#   ifdef XMRIG_FEATURE_DMI
+    u += "      --no-dmi                  disable DMI/SMBIOS reader\n";
+#   endif
+
     return u;
 }
 
