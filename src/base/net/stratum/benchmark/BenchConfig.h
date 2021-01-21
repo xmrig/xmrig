@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,10 +49,11 @@ public:
     static constexpr const uint16_t kApiPort    = 18805;
 #   endif
 
-    BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object);
+    BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi);
 
-    static BenchConfig *create(const rapidjson::Value &object);
+    static BenchConfig *create(const rapidjson::Value &object, bool dmi);
 
+    inline bool isDMI() const                   { return m_dmi; }
     inline bool isSubmit() const                { return m_submit; }
     inline const Algorithm &algorithm() const   { return m_algorithm; }
     inline const String &id() const             { return m_id; }
@@ -67,6 +68,7 @@ private:
     static uint32_t getSize(const char *benchmark);
 
     Algorithm m_algorithm;
+    bool m_dmi;
     bool m_submit;
     String m_id;
     String m_seed;

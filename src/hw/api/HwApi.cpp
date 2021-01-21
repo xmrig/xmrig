@@ -21,8 +21,6 @@
 #include "base/api/interfaces/IApiRequest.h"
 #include "base/tools/String.h"
 
-#include "base/io/log/Log.h" // FIXME
-
 
 #ifdef XMRIG_FEATURE_DMI
 #   include "hw/dmi/DmiReader.h"

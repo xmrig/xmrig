@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,6 +33,10 @@
 #include "base/net/stratum/benchmark/BenchConfig.h"
 #include "base/tools/Cvt.h"
 #include "version.h"
+
+#ifdef XMRIG_FEATURE_DMI
+#   include "hw/dmi/DmiReader.h"
+#endif
 
 
 xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
@@ -335,6 +339,15 @@ void xmrig::BenchClient::send(Request request)
             doc.AddMember("threads",                        m_threads, allocator);
             doc.AddMember("steady_ready_ts",                m_readyTime, allocator);
             doc.AddMember("cpu",                            Cpu::toJSON(doc), allocator);
+
+#           ifdef XMRIG_FEATURE_DMI
+            if (m_benchmark->isDMI()) {
+                DmiReader reader;
+                if (reader.read()) {
+                    doc.AddMember("dmi", reader.toJSON(doc), allocator);
+                }
+            }
+#           endif
 
             FetchRequest req(HTTP_POST, m_ip, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
             fetch(tag(), std::move(req), m_httpListener);
