@@ -275,7 +275,7 @@ bool xmrig::Rx::msrInit(const RxConfig &config, const std::vector<CpuThread> &th
     const uint64_t ts = Chrono::steadyMSecs();
 
     if (wrmsr(preset, threads, config.cacheQoS(), config.rdmsr())) {
-        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset has been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
+        LOG_NOTICE(CLEAR "%s" GREEN_BOLD_S "register values for \"%s\" preset have been set successfully" BLACK_BOLD(" (%" PRIu64 " ms)"), tag, config.msrPresetName(), Chrono::steadyMSecs() - ts);
 
         return true;
     }
