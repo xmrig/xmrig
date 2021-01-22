@@ -100,12 +100,21 @@ if (WITH_RANDOMX)
         message("-- WITH_MSR=ON")
 
         if (XMRIG_OS_WIN)
-            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_win.cpp src/hw/msr/Msr_win.cpp)
+            list(APPEND SOURCES_CRYPTO
+                src/crypto/rx/Rx_win.cpp
+                src/hw/msr/Msr_win.cpp
+                src/crypto/rx/RxFix_win.cpp
+                )
         elseif (XMRIG_OS_LINUX)
-            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_linux.cpp src/hw/msr/Msr_linux.cpp)
+            list(APPEND SOURCES_CRYPTO
+                src/crypto/rx/Rx_linux.cpp
+                src/hw/msr/Msr_linux.cpp
+                src/crypto/rx/RxFix_linux.cpp
+                )
         endif()
 
         list(APPEND HEADERS_CRYPTO
+            src/crypto/rx/RxFix.h
             src/hw/msr/Msr.h
             src/hw/msr/MsrItem.h
             )

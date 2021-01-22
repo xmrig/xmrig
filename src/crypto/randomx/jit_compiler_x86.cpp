@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
-Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
-Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2019-2021, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2021, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/rx/Profiler.h"
 
 #ifdef XMRIG_FIX_RYZEN
-#   include "crypto/rx/Rx.h"
+#   include "crypto/rx/RxFix.h"
 #endif
 
 #ifdef _MSC_VER
@@ -427,7 +427,7 @@ namespace randomx {
 		}
 
 #		ifdef XMRIG_FIX_RYZEN
-		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
+        xmrig::RxFix::setMainLoopBounds(mainLoopBounds);
 #		endif
 
 		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));
