@@ -29,7 +29,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-
+#include <cstdio>
 
 #ifdef __FreeBSD__
 #   include <kenv.h>
