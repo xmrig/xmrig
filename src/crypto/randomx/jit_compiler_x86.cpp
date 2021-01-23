@@ -417,12 +417,10 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
 		codePos = ADDR(randomx_program_prologue_first_load) - ADDR(randomx_program_prologue);
-		code[codePos + 2] = 0xc0 + pcfg.readReg0;
-		code[codePos + 5] = 0xc0 + pcfg.readReg1;
-		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
-		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 4) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 14) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
-			uint32_t* p = (uint32_t*)(code + codePos + 67);
+			uint32_t* p = (uint32_t*)(code + codePos + 61);
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
