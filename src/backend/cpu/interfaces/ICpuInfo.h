@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -86,18 +86,21 @@ public:
     inline constexpr static bool is64bit() { return false; }
 #   endif
 
+    virtual Arch arch() const                                                       = 0;
     virtual Assembly::Id assembly() const                                           = 0;
     virtual bool has(Flag feature) const                                            = 0;
     virtual bool hasAES() const                                                     = 0;
     virtual bool hasAVX() const                                                     = 0;
     virtual bool hasAVX2() const                                                    = 0;
     virtual bool hasBMI2() const                                                    = 0;
+    virtual bool hasCatL3() const                                                   = 0;
     virtual bool hasOneGbPages() const                                              = 0;
     virtual bool hasXOP() const                                                     = 0;
-    virtual bool hasCatL3() const                                                   = 0;
     virtual bool isVM() const                                                       = 0;
+    virtual bool jccErratum() const                                                 = 0;
     virtual const char *backend() const                                             = 0;
     virtual const char *brand() const                                               = 0;
+    virtual const std::vector<int32_t> &units() const                               = 0;
     virtual CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const    = 0;
     virtual MsrMod msrMod() const                                                   = 0;
     virtual rapidjson::Value toJSON(rapidjson::Document &doc) const                 = 0;
@@ -108,8 +111,6 @@ public:
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
-    virtual Arch arch() const                                                       = 0;
-    virtual bool jccErratum() const                                                 = 0;
 };
 
 

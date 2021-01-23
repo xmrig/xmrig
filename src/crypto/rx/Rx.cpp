@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,6 +27,12 @@
 #include "crypto/randomx/aes_hash.hpp"
 
 
+#ifdef XMRIG_FEATURE_MSR
+#   include "crypto/rx/RxFix.h"
+#   include "crypto/rx/RxMsr.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -34,8 +40,6 @@ class RxPrivate;
 
 
 static bool osInitialized   = false;
-static bool msrInitialized  = false;
-static bool msrEnabled      = false;
 static RxPrivate *d_ptr     = nullptr;
 
 
@@ -65,9 +69,9 @@ xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 
 void xmrig::Rx::destroy()
 {
-    if (osInitialized) {
-        msrDestroy();
-    }
+#   ifdef XMRIG_FEATURE_MSR
+    RxMsr::destroy();
+#   endif
 
     delete d_ptr;
 
@@ -85,11 +89,9 @@ template<typename T>
 bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
     if (seed.algorithm().family() != Algorithm::RANDOM_X) {
-        if (msrInitialized) {
-            msrDestroy();
-            msrInitialized  = false;
-            msrEnabled      = false;
-        }
+#       ifdef XMRIG_FEATURE_MSR
+        RxMsr::destroy();
+#       endif
 
         return true;
     }
@@ -98,13 +100,17 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     randomx_set_huge_pages_jit(cpu.isHugePagesJit());
     randomx_set_optimized_dataset_init(config.initDatasetAVX2());
 
-    if (!msrInitialized) {
-        msrEnabled      = msrInit(config, cpu.threads().get(seed.algorithm()).data());
-        msrInitialized  = true;
+#   ifdef XMRIG_FEATURE_MSR
+    if (!RxMsr::isInitialized()) {
+        RxMsr::init(config, cpu.threads().get(seed.algorithm()).data());
     }
+#   endif
 
     if (!osInitialized) {
-        setupMainLoopExceptionFrame();
+#       ifdef XMRIG_FIX_RYZEN
+        RxFix::setupMainLoopExceptionFrame();
+#       endif
+
         if (!cpu.isHwAES()) {
             SelectSoftAESImpl(cpu.threads().get(seed.algorithm()).count());
         }
@@ -131,24 +137,7 @@ bool xmrig::Rx::isReady(const T &seed)
 #ifdef XMRIG_FEATURE_MSR
 bool xmrig::Rx::isMSR()
 {
-    return msrEnabled;
-}
-#else
-bool xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
-{
-    return false;
-}
-
-
-void xmrig::Rx::msrDestroy()
-{
-}
-#endif
-
-
-#ifndef XMRIG_FIX_RYZEN
-void xmrig::Rx::setupMainLoopExceptionFrame()
-{
+    return RxMsr::isEnabled();
 }
 #endif
 
