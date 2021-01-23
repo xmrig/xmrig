@@ -27,8 +27,9 @@
 #include "crypto/randomx/aes_hash.hpp"
 
 
-#ifdef XMRIG_FIX_RYZEN
+#ifdef XMRIG_FEATURE_MSR
 #   include "crypto/rx/RxFix.h"
+#   include "crypto/rx/RxMsr.h"
 #endif
 
 
@@ -39,8 +40,6 @@ class RxPrivate;
 
 
 static bool osInitialized   = false;
-static bool msrInitialized  = false;
-static bool msrEnabled      = false;
 static RxPrivate *d_ptr     = nullptr;
 
 
@@ -70,9 +69,9 @@ xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
 
 void xmrig::Rx::destroy()
 {
-    if (osInitialized) {
-        msrDestroy();
-    }
+#   ifdef XMRIG_FEATURE_MSR
+    RxMsr::destroy();
+#   endif
 
     delete d_ptr;
 
@@ -90,11 +89,9 @@ template<typename T>
 bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
     if (seed.algorithm().family() != Algorithm::RANDOM_X) {
-        if (msrInitialized) {
-            msrDestroy();
-            msrInitialized  = false;
-            msrEnabled      = false;
-        }
+#       ifdef XMRIG_FEATURE_MSR
+        RxMsr::destroy();
+#       endif
 
         return true;
     }
@@ -103,10 +100,11 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     randomx_set_huge_pages_jit(cpu.isHugePagesJit());
     randomx_set_optimized_dataset_init(config.initDatasetAVX2());
 
-    if (!msrInitialized) {
-        msrEnabled      = msrInit(config, cpu.threads().get(seed.algorithm()).data());
-        msrInitialized  = true;
+#   ifdef XMRIG_FEATURE_MSR
+    if (!RxMsr::isInitialized()) {
+        RxMsr::init(config, cpu.threads().get(seed.algorithm()).data());
     }
+#   endif
 
     if (!osInitialized) {
 #       ifdef XMRIG_FIX_RYZEN
@@ -139,24 +137,7 @@ bool xmrig::Rx::isReady(const T &seed)
 #ifdef XMRIG_FEATURE_MSR
 bool xmrig::Rx::isMSR()
 {
-    return msrEnabled;
-}
-#else
-bool xmrig::Rx::msrInit(const RxConfig &, const std::vector<CpuThread> &)
-{
-    return false;
-}
-
-
-void xmrig::Rx::msrDestroy()
-{
-}
-#endif
-
-
-#ifndef XMRIG_FIX_RYZEN
-void xmrig::Rx::setupMainLoopExceptionFrame()
-{
+    return RxMsr::isEnabled();
 }
 #endif
 

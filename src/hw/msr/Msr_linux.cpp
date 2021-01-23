@@ -19,6 +19,7 @@
 
 #include "hw/msr/Msr.h"
 #include "3rdparty/fmt/core.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 
 
@@ -31,8 +32,6 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <signal.h>
-#include <ucontext.h>
 
 
 namespace xmrig {
@@ -70,6 +69,20 @@ bool xmrig::Msr::isAvailable() const
 }
 
 
+bool xmrig::Msr::write(Callback &&callback)
+{
+    const auto &units = Cpu::info()->units();
+
+    for (int32_t pu : units) {
+        if (!callback(pu)) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+
 bool xmrig::Msr::rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const
 {
     const auto name = fmt::format("/dev/cpu/{}/msr", cpu < 0 ? 0 : cpu);
@@ -80,6 +93,23 @@ bool xmrig::Msr::rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const
     }
 
     const bool success = pread(fd, &value, sizeof value, reg) == sizeof value;
+    close(fd);
+
+    return success;
+}
+
+
+bool xmrig::Msr::wrmsr(uint32_t reg, uint64_t value, int32_t cpu)
+{
+    const auto name = fmt::format("/dev/cpu/{}/msr", cpu < 0 ? 0 : cpu);
+    int fd = open(name.c_str(), O_WRONLY);
+
+    if (fd < 0) {
+        return false;
+    }
+
+    const bool success = pwrite(fd, &value, sizeof value, reg) == sizeof value;
+
     close(fd);
 
     return success;

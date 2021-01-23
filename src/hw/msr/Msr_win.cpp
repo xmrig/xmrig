@@ -18,10 +18,13 @@
 
 
 #include "hw/msr/Msr.h"
+#include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 
 
 #include <string>
+#include <thread>
 #include <vector>
 #include <windows.h>
 
@@ -196,9 +199,57 @@ bool xmrig::Msr::isAvailable() const
 }
 
 
-bool xmrig::Msr::rdmsr(uint32_t reg, int32_t, uint64_t &value) const
+bool xmrig::Msr::write(Callback &&callback)
 {
+    const auto &units = Cpu::info()->units();
+    bool success      = false;
+
+    std::thread thread([&callback, &units, &success]() {
+        for (int32_t pu : units) {
+            if (!Platform::setThreadAffinity(pu)) {
+                continue;
+            }
+
+            if (!callback(pu)) {
+                return;
+            }
+        }
+
+        success = true;
+    });
+
+    thread.join();
+
+    return success;
+}
+
+
+bool xmrig::Msr::rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const
+{
+    assert(cpu < 0);
+
     DWORD size = 0;
 
     return DeviceIoControl(d_ptr->driver, IOCTL_READ_MSR, &reg, sizeof(reg), &value, sizeof(value), &size, nullptr) != 0;
+}
+
+
+bool xmrig::Msr::wrmsr(uint32_t reg, uint64_t value, int32_t cpu)
+{
+    assert(cpu < 0);
+
+    struct {
+        uint32_t reg = 0;
+        uint32_t value[2]{};
+    } input;
+
+    static_assert(sizeof(input) == 12, "Invalid struct size for WinRing0 driver");
+
+    input.reg = reg;
+    *(reinterpret_cast<uint64_t*>(input.value)) = value;
+
+    DWORD output;
+    DWORD k;
+
+    return DeviceIoControl(d_ptr->driver, IOCTL_WRITE_MSR, &input, sizeof(input), &output, sizeof(output), &k, nullptr) != 0;
 }

@@ -46,6 +46,11 @@ public:
     inline uint64_t value() const   { return m_value; }
     inline uint64_t mask() const    { return m_mask; }
 
+    static inline uint64_t maskedValue(uint64_t old_value, uint64_t new_value, uint64_t mask)
+    {
+        return (new_value & mask) | (old_value & ~mask);
+    }
+
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     String toString() const;
 
