@@ -34,6 +34,7 @@
 namespace xmrig {
 
 
+bool RxMsr::m_cacheQoS      = false;
 bool RxMsr::m_enabled       = false;
 bool RxMsr::m_initialized   = false;
 
@@ -142,17 +143,15 @@ bool xmrig::RxMsr::init(const RxConfig &config, const std::vector<CpuThread> &th
     }
 
     const uint64_t ts = Chrono::steadyMSecs();
-    bool cache_qos    = config.cacheQoS();
+    m_cacheQoS        = config.cacheQoS();
 
-    if (cache_qos && !Cpu::info()->hasCatL3()) {
-        if (!threads.empty()) {
-            LOG_WARN("%s " YELLOW_BOLD("this CPU doesn't support cat_l3, cache QoS is unavailable"), Msr::tag());
-        }
+    if (m_cacheQoS && !Cpu::info()->hasCatL3()) {
+        LOG_WARN("%s " YELLOW_BOLD("this CPU doesn't support cat_l3, cache QoS is unavailable"), Msr::tag());
 
-        cache_qos = false;
+        m_cacheQoS = false;
     }
 
-    if ((m_enabled = wrmsr(preset, threads, cache_qos, config.rdmsr()))) {
+    if ((m_enabled = wrmsr(preset, threads, m_cacheQoS, config.rdmsr()))) {
         LOG_NOTICE("%s " GREEN_BOLD("register values for \"%s\" preset have been set successfully") BLACK_BOLD(" (%" PRIu64 " ms)"), Msr::tag(), config.msrPresetName(), Chrono::steadyMSecs() - ts);
     }
     else {
@@ -178,7 +177,7 @@ void xmrig::RxMsr::destroy()
 
     const uint64_t ts = Chrono::steadyMSecs();
 
-    if (!wrmsr(items, std::vector<CpuThread>(), true, false)) {
+    if (!wrmsr(items, std::vector<CpuThread>(), m_cacheQoS, false)) {
         LOG_ERR("%s " RED_BOLD("failed to restore initial state" BLACK_BOLD(" (%" PRIu64 " ms)")), Msr::tag(), Chrono::steadyMSecs() - ts);
     }
 }

@@ -42,6 +42,7 @@ public:
     static void destroy();
 
 private:
+    static bool m_cacheQoS;
     static bool m_enabled;
     static bool m_initialized;
 };
