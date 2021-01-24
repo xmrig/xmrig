@@ -400,6 +400,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
 void xmrig::HwlocCpuInfo::setThreads(size_t threads)
 {
+    if (!threads) {
+        return;
+    }
+
     m_threads = threads;
 
     if (m_units.size() != m_threads) {

@@ -37,6 +37,14 @@
 namespace xmrig {
 
 
+static int msr_open(int32_t cpu, int flags)
+{
+    const auto name = fmt::format("/dev/cpu/{}/msr", cpu < 0 ? Cpu::info()->units().front() : cpu);
+
+    return open(name.c_str(), flags);
+}
+
+
 class MsrPrivate
 {
 public:
@@ -85,8 +93,7 @@ bool xmrig::Msr::write(Callback &&callback)
 
 bool xmrig::Msr::rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const
 {
-    const auto name = fmt::format("/dev/cpu/{}/msr", cpu < 0 ? 0 : cpu);
-    const int fd    = open(name.c_str(), O_RDONLY);
+    const int fd = msr_open(cpu, O_RDONLY);
 
     if (fd < 0) {
         return false;
@@ -101,8 +108,7 @@ bool xmrig::Msr::rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const
 
 bool xmrig::Msr::wrmsr(uint32_t reg, uint64_t value, int32_t cpu)
 {
-    const auto name = fmt::format("/dev/cpu/{}/msr", cpu < 0 ? 0 : cpu);
-    int fd = open(name.c_str(), O_WRONLY);
+    const int fd = msr_open(cpu, O_WRONLY);
 
     if (fd < 0) {
         return false;
