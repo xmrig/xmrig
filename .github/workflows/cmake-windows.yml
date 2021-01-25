@@ -39,12 +39,6 @@ jobs:
     
     - uses: msys2/setup-msys2@v2
     
-    - shell: powershell
-      run: msys2 -c 'pacman -S mingw-w64-x86_64-gcc git make  --noconfirm'
-    - shell: powershell
-      run: msys2 -c 'mkdir xmrig/build'
-    - shell: powershell
-      run: msys2 -c 'ls'
     - shell: msys2 {0}
       run:
        pacman -Syu --noconfirm
@@ -53,5 +47,5 @@ jobs:
        cd xmrig/build 
        ls
        pwd
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=../xmrig-deps/gcc/x64
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64
 
