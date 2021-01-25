@@ -23,7 +23,10 @@ jobs:
       run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
     - shell: powershell
-      run: choco install cmake --installargs 'ADD_CMAKE_TO_PATH=User'
+      run: choco feature enable -n allowGlobalConfirmation
+      
+    - shell: powershell
+      run: choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
     
     - shell: powershell
       run: refreshenv
@@ -42,6 +45,8 @@ jobs:
       run: msys2 -c 'pacman -S mingw-w64-x86_64-gcc git make  --noconfirm'
     - shell: powershell
       run: msys2 -c 'mkdir xmrig/build && cd xmrig/build'
-    - shell: powershell
-      run: msys2 -c 'cmake .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64'
+    - shell: msys2 {0}
+      run: |
+       uname -a
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64
 
