@@ -48,4 +48,5 @@ jobs:
        ls
        pwd
        'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64
+       make -j$(nproc)
 
