@@ -1,15 +1,11 @@
 name: CMake windows
-
 on: [push]
-
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
-
 jobs:
   build:
     runs-on: windows-latest
-
     steps:
 
     - uses: actions/checkout@v2
@@ -27,6 +23,12 @@ jobs:
       
     - shell: powershell
       run: choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
+      
+    - shell: powershell
+      run: choco install jq
+    
+    - shell: powershell
+      run: choco install curl
     
     - shell: powershell
       run: refreshenv
@@ -35,8 +37,11 @@ jobs:
       shell: powershell
       run: |
        git clone https://github.com/xmrig/xmrig.git
-       git clone https://github.com/xmrig/xmrig-deps.git
+       ## quitar ## git clone https://github.com/xmrig/xmrig-deps.git
     
+    - shell: powershell
+      run: Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig-deps/releases/latest | Select-Object -Expand Content | jq '.zipball_url' 
+      
     - uses: msys2/setup-msys2@v2
     
     - shell: msys2 {0}
