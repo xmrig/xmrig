@@ -125,8 +125,6 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
 
 xmrig::HwlocCpuInfo::HwlocCpuInfo()
 {
-    m_threads = 0;
-
     hwloc_topology_init(&m_topology);
     hwloc_topology_load(m_topology);
 
@@ -278,10 +276,8 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, ui
     CpuThreads threads;
     threads.reserve(m_threads);
 
-    hwloc_obj_t pu = nullptr;
-
-    while ((pu = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_PU, pu)) != nullptr) {
-        threads.add(pu->os_index, 0);
+    for (const int32_t pu : m_units) {
+        threads.add(pu, 0);
     }
 
     if (threads.isEmpty()) {
