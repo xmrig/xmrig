@@ -40,7 +40,7 @@ jobs:
     - uses: msys2/setup-msys2@v2
     
     - shell: msys2 {0}
-      run:
+      run: |
        pacman -Syu --noconfirm
        pacman -S mingw-w64-x86_64-gcc git make  --noconfirm
        mkdir xmrig/build
