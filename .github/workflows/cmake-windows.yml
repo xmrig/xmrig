@@ -37,7 +37,7 @@ jobs:
     - shell: msys2 {0}
       run: |
        pacman -Syu --noconfirm
-       pacman -S mingw-w64-x86_64-gcc git make unzip --noconfirm
+       pacman -S mingw-w64-x86_64-gcc git make unzip zip --noconfirm
     
     - name: Download the latest release of the dependencies.
       shell: powershell
@@ -55,5 +55,41 @@ jobs:
 
     - shell: msys2 {0}
       run: |
-       cd xmrig/build && 'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
+       cd xmrig/build 
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
        make -j$(nproc)
+
+    - shell: msys2 {0}
+      run: |
+       cd xmrig
+       zip -r build.zip build
+       mv build.zip ..
+
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+    - name: Upload Release Asset
+      id: upload-release-asset 
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }} # This pulls from the CREATE RELEASE step above, referencing it's ID to get its outputs object, which include a `upload_url`. See this blog post for more info: https://jasonet.co/posts/new-features-of-github-actions/#passing-data-to-future-steps 
+          asset_path: ./build.zip
+          asset_name: build.zip
+          asset_content_type: application/zip
+       
+       
+       
+       
+       
+       
+       
+       
