@@ -49,15 +49,15 @@ jobs:
         
     - shell: msys2 {0}
       run: |
-       pwd
        unzip xmrig-deps.zip
        mv xmrig-xmrig* xmrig-deps
        mkdir xmrig/build
 
     - shell: msys2 {0}
       run: |
-       cd xmrig/build 
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
+       cd xmrig/build
+       thisreponame="xmrig-AutobuildGithubActionsWINDOWS"
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/$thisreponame/$thisreponame/xmrig-deps/gcc/x64
        make -j$(nproc)
 
     - shell: msys2 {0}
