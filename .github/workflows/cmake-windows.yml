@@ -87,7 +87,7 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          tag_name: ${Env:VERSION}
+          tag_name: ${{ github.ref }}
           release_name: Release ${Env:VERSION} xmrig-AutobuildGithubActionsWINDOWS
           draft: false
           prerelease: false
