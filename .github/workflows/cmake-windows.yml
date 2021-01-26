@@ -43,27 +43,15 @@ jobs:
        Get-Variable URL_Latest
        $URL_Latest = $URL_Latest -replace  '"', ""
        Start-BitsTransfer -Source $URL_Latest -Destination "xmrig-deps.zip"
-   
-    - shell: msys2 {0}
-      run: pwd && ls
         
     - shell: msys2 {0}
       run: |
-       pwd && ls
-       
        unzip xmrig-deps.zip
        mv xmrig-xmrig* xmrig-deps
        mkdir xmrig/build
        cd xmrig/build
-       
-       pwd && ls
-
-# 'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=D:/a/RedxLus/xmrig/xmrig-deps/gcc/x64
-# make -j$(nproc)
 
     - shell: msys2 {0}
       run: |
-       pwd && ls
-       
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=D:/a/xmrig/xmrig/xmrig-deps/gcc/x64
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
        make -j$(nproc)
