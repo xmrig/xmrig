@@ -29,10 +29,6 @@ jobs:
     
     - shell: powershell
       run: refreshenv
-      
-    - name: Clone repos
-      shell: powershell
-      run: git clone https://github.com/xmrig/xmrig.git
    
     - shell: msys2 {0}
       run: |
@@ -46,7 +42,18 @@ jobs:
        Get-Variable URL_Latest
        $URL_Latest = $URL_Latest -replace  '"', ""
        Start-BitsTransfer -Source $URL_Latest -Destination "xmrig-deps.zip"
-        
+       
+    - name: Clone repos
+      shell: powershell
+      run: git clone https://github.com/xmrig/xmrig.git
+      
+    - name: Edit donate.h
+      shell: powershell
+      run: |
+        cd xmrig/src
+        (Get-Content donate.h).replace('constexpr const int kDefaultDonateLevel = 1', 'constexpr const int kDefaultDonateLevel = 0') | Set-Content donate.h
+        (Get-Content donate.h).replace('constexpr const int kMinimumDonateLevel = 1', 'constexpr const int kMinimumDonateLevel = 0') | Set-Content donate.h
+      
     - shell: msys2 {0}
       run: |
        unzip xmrig-deps.zip
