@@ -52,7 +52,6 @@ jobs:
        unzip xmrig-deps.zip
        mv xmrig-xmrig* xmrig-deps
        mkdir xmrig/build
-       cd xmrig/build
 
     - shell: msys2 {0}
       run: |
