@@ -73,14 +73,22 @@ jobs:
        zip -r build.zip build
        mv build.zip ..
 
+    - name: Set Variable of last version
+      shell: powershell
+      run:  |
+       $URL_Latest = Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig/releases/latest | Select-Object -Expand Content | jq '.tag_name'
+       Get-Variable URL_Latest
+       $URL_Latest = $URL_Latest -replace  '"', ""
+       echo "VERSION=${URL_Latest}" >> $Env:GITHUB_ENV
+
     - name: Create Release
       id: create_release
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-          tag_name: ${{ github.ref }}
-          release_name: Release xmrig-AutobuildGithubActionsWINDOWS
+          tag_name: ${Env:VERSION}
+          release_name: Release ${Env:VERSION} xmrig-AutobuildGithubActionsWINDOWS
           draft: false
           prerelease: false
     - name: Upload Release Asset
