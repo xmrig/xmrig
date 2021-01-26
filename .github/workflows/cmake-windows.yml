@@ -1,7 +1,5 @@
 name: CMake windows
-on:
-  release: # recuerda cmabiarlo a push
-    types: [published, created, edited]
+on: [push]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -58,6 +56,7 @@ jobs:
        mv xmrig-xmrig* xmrig-deps
        mkdir xmrig/build
        cd xmrig/build
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=c:/xmrig-deps/gcc/x64
+       pwd
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=D:/a/RedxLus/xmrig/xmrig-deps/gcc/x64
        make -j$(nproc)
 
