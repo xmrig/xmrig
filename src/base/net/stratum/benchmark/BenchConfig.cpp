@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,8 +52,9 @@ const char *BenchConfig::kApiHost   = "127.0.0.1";
 } // namespace xmrig
 
 
-xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object) :
+xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi) :
     m_algorithm(Json::getString(object, kAlgo)),
+    m_dmi(dmi),
     m_submit(Json::getBool(object, kSubmit)),
     m_id(id),
     m_seed(Json::getString(object, kSeed)),
@@ -72,7 +73,7 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
 }
 
 
-xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object)
+xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object, bool dmi)
 {
     if (!object.IsObject() || object.ObjectEmpty()) {
         return nullptr;
@@ -85,7 +86,7 @@ xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object)
         return nullptr;
     }
 
-    return new BenchConfig(size, id, object);
+    return new BenchConfig(size, id, object, dmi);
 }
 
 

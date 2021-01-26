@@ -159,7 +159,12 @@ static const option options[] = {
 #   endif
 #   ifdef XMRIG_FEATURE_NVML
     { "no-nvml",               0, nullptr, IConfig::NvmlKey               },
+#   endif
+#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     { "health-print-time",     1, nullptr, IConfig::HealthPrintTimeKey    },
+#   endif
+#   ifdef XMRIG_FEATURE_DMI
+    { "no-dmi",                0, nullptr, IConfig::DmiKey                },
 #   endif
     { nullptr,                 0, nullptr, 0 }
 };

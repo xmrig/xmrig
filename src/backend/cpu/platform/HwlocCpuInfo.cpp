@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -125,8 +125,6 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
 
 xmrig::HwlocCpuInfo::HwlocCpuInfo()
 {
-    m_threads = 0;
-
     hwloc_topology_init(&m_topology);
     hwloc_topology_load(m_topology);
 
@@ -170,7 +168,8 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
 
     findCache(root, 2, 3, [this](hwloc_obj_t found) { this->m_cache[found->attr->cache.depth] += found->attr->cache.size; });
 
-    m_threads   = countByType(m_topology, HWLOC_OBJ_PU);
+    setThreads(countByType(m_topology, HWLOC_OBJ_PU));
+
     m_cores     = countByType(m_topology, HWLOC_OBJ_CORE);
     m_nodes     = std::max(hwloc_bitmap_weight(hwloc_topology_get_complete_nodeset(m_topology)), 1);
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
@@ -277,10 +276,8 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, ui
     CpuThreads threads;
     threads.reserve(m_threads);
 
-    hwloc_obj_t pu = nullptr;
-
-    while ((pu = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_PU, pu)) != nullptr) {
-        threads.add(pu->os_index, 0);
+    for (const int32_t pu : m_units) {
+        threads.add(pu, 0);
     }
 
     if (threads.isEmpty()) {
@@ -400,4 +397,25 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         pu_id++;
     }
 #   endif
+}
+
+
+void xmrig::HwlocCpuInfo::setThreads(size_t threads)
+{
+    if (!threads) {
+        return;
+    }
+
+    m_threads = threads;
+
+    if (m_units.size() != m_threads) {
+        m_units.resize(m_threads);
+    }
+
+    hwloc_obj_t pu = nullptr;
+    size_t i       = 0;
+
+    while ((pu = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_PU, pu)) != nullptr) {
+        m_units[i++] = static_cast<int32_t>(pu->os_index);
+    }
 }

@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
-Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
-Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2019-2021, SChernykh  <https://github.com/SChernykh>
+Copyright (c) 2019-2021, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
 
 All rights reserved.
 
@@ -44,7 +44,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/rx/Profiler.h"
 
 #ifdef XMRIG_FIX_RYZEN
-#   include "crypto/rx/Rx.h"
+#   include "crypto/rx/RxFix.h"
 #endif
 
 #ifdef _MSC_VER
@@ -417,17 +417,15 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
 		codePos = ADDR(randomx_program_prologue_first_load) - ADDR(randomx_program_prologue);
-		code[codePos + 2] = 0xc0 + pcfg.readReg0;
-		code[codePos + 5] = 0xc0 + pcfg.readReg1;
-		*(uint32_t*)(code + codePos + 10) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
-		*(uint32_t*)(code + codePos + 20) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 4) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 14) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
-			uint32_t* p = (uint32_t*)(code + codePos + 67);
+			uint32_t* p = (uint32_t*)(code + codePos + 61);
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
 		}
 
 #		ifdef XMRIG_FIX_RYZEN
-		xmrig::Rx::setMainLoopBounds(mainLoopBounds);
+        xmrig::RxFix::setMainLoopBounds(mainLoopBounds);
 #		endif
 
 		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));

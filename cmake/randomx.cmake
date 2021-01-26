@@ -106,13 +106,29 @@ if (WITH_RANDOMX)
         message("-- WITH_MSR=ON")
 
         if (XMRIG_OS_WIN)
-            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_win.cpp)
+            list(APPEND SOURCES_CRYPTO
+                src/crypto/rx/RxFix_win.cpp
+                src/hw/msr/Msr_win.cpp
+                )
         elseif (XMRIG_OS_LINUX)
-            list(APPEND SOURCES_CRYPTO src/crypto/rx/Rx_linux.cpp)
+            list(APPEND SOURCES_CRYPTO
+                src/crypto/rx/RxFix_linux.cpp
+                src/hw/msr/Msr_linux.cpp
+                )
         endif()
 
-        list(APPEND HEADERS_CRYPTO src/crypto/rx/msr/MsrItem.h)
-        list(APPEND SOURCES_CRYPTO src/crypto/rx/msr/MsrItem.cpp)
+        list(APPEND HEADERS_CRYPTO
+            src/crypto/rx/RxFix.h
+            src/crypto/rx/RxMsr.h
+            src/hw/msr/Msr.h
+            src/hw/msr/MsrItem.h
+            )
+
+        list(APPEND SOURCES_CRYPTO
+            src/crypto/rx/RxMsr.cpp
+            src/hw/msr/Msr.cpp
+            src/hw/msr/MsrItem.cpp
+            )
     else()
         remove_definitions(/DXMRIG_FEATURE_MSR)
         remove_definitions(/DXMRIG_FIX_RYZEN)

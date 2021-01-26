@@ -93,8 +93,6 @@ DECL(randomx_program_prologue):
 	movapd xmm15, xmmword ptr [scaleMask+rip]
 
 DECL(randomx_program_prologue_first_load):
-	xor rax, r8
-	xor rax, r8
 	mov rdx, rax
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32

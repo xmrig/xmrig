@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,20 +52,11 @@ public:
     template<typename T> static bool init(const T &seed, const RxConfig &config, const CpuConfig &cpu);
     template<typename T> static bool isReady(const T &seed);
 
-#   ifdef XMRIG_FIX_RYZEN
-    static void setMainLoopBounds(const std::pair<const void*, const void*>& bounds);
-#   endif
-
 #   ifdef XMRIG_FEATURE_MSR
     static bool isMSR();
 #   else
     static constexpr bool isMSR()   { return false; }
 #   endif
-
-private:
-    static bool msrInit(const RxConfig &config, const std::vector<CpuThread>& threads);
-    static void msrDestroy();
-    static void setupMainLoopExceptionFrame();
 };
 
 
