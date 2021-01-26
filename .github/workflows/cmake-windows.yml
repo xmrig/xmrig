@@ -25,6 +25,9 @@ jobs:
       run: choco install cmake -y --installargs 'ADD_CMAKE_TO_PATH=System'
       
     - shell: powershell
+      run: choco install jq
+    
+    - shell: powershell
       run: refreshenv
       
     - name: Clone repos
