@@ -4,7 +4,7 @@ env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
 jobs:
-  build:
+  install:
     runs-on: windows-latest
     steps:
 
@@ -35,9 +35,19 @@ jobs:
     
     - name: Clone repos
       shell: powershell
+      run: git clone https://github.com/xmrig/xmrig.git
+    - shell: powershell
+      run:  |
+       $URL_Latest = Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig-deps/releases/latest | Select-Object -Expand Content | jq '.zipball_url'
+       Get-Variable URL_Latest
+       $URL_Latest = $URL_Latest -replace  '"', ""
+       Start-BitsTransfer -Source $URL_Latest -Destination "xmrig-deps.zip" 
+   
+    - shell: msys2 {0}
       run: |
-       git clone https://github.com/xmrig/xmrig.git
-       ## quitar ## git clone https://github.com/xmrig/xmrig-deps.git
+       pacman -S unzip
+       unzip xmrig-deps.zip
+       mv xmrig-xmrig* xmrig-deps
     
     - shell: powershell
       run: Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig-deps/releases/latest | Select-Object -Expand Content | jq '.zipball_url' 
