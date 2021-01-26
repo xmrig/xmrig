@@ -56,5 +56,5 @@ jobs:
 
     - shell: msys2 {0}
       run: |
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
+       cd xmrig/build && 'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=d:/a/xmrig/xmrig/xmrig-deps/gcc/x64
        make -j$(nproc)
