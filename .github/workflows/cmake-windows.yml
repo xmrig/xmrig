@@ -7,14 +7,13 @@ jobs:
   install:
     runs-on: windows-latest
     steps:
-
     - uses: actions/checkout@v2
     
     - name: Install GIT
       shell: powershell
       run: Install-Module posh-git -Scope CurrentUser -Force
     
-    - name: Install choco
+    - name: Install CHOCOLATERY
       shell: powershell
       run: Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 
@@ -32,32 +31,28 @@ jobs:
     
     - shell: powershell
       run: refreshenv
-    
+      
     - name: Clone repos
       shell: powershell
       run: git clone https://github.com/xmrig/xmrig.git
-    - shell: powershell
+   
+    - shell: msys2 {0}
+      run: |
+       pacman -Syu --noconfirm
+       pacman -S mingw-w64-x86_64-gcc git make unzip --noconfirm
+    
+    - name: Download the latest release of the dependencies.
+      shell: powershell
       run:  |
        $URL_Latest = Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig-deps/releases/latest | Select-Object -Expand Content | jq '.zipball_url'
        Get-Variable URL_Latest
        $URL_Latest = $URL_Latest -replace  '"', ""
-       Start-BitsTransfer -Source $URL_Latest -Destination "xmrig-deps.zip" 
-   
+       Start-BitsTransfer -Source $URL_Latest -Destination "xmrig-deps.zip"
+    
     - shell: msys2 {0}
       run: |
-       pacman -S unzip
        unzip xmrig-deps.zip
        mv xmrig-xmrig* xmrig-deps
-    
-    - shell: powershell
-      run: Invoke-WebRequest -Uri https://api.github.com/repos/xmrig/xmrig-deps/releases/latest | Select-Object -Expand Content | jq '.zipball_url' 
-      
-    - uses: msys2/setup-msys2@v2
-    
-    - shell: msys2 {0}
-      run: |
-       pacman -Syu --noconfirm
-       pacman -S mingw-w64-x86_64-gcc git make  --noconfirm
        mkdir xmrig/build
        cd xmrig/build 
        ls
