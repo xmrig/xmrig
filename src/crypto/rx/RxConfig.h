@@ -30,7 +30,7 @@
 
 
 #ifdef XMRIG_FEATURE_MSR
-#   include "crypto/rx/msr/MsrItem.h"
+#   include "hw/msr/MsrItem.h"
 #endif
 
 

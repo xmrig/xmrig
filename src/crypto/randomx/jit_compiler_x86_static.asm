@@ -81,8 +81,6 @@ randomx_program_prologue PROC
 randomx_program_prologue ENDP
 
 randomx_program_prologue_first_load PROC
-	xor rax, r8
-	xor rax, r8
 	mov rdx, rax
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32

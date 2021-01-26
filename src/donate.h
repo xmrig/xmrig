@@ -34,7 +34,7 @@
  * Example of how it works for the setting of 1%:
  * You miner will mine into your usual pool for random time (in range from 49.5 to 148.5 minutes),
  * then switch to the developer's pool for 1 minute, then switch again to your pool for 99 minutes
- * and then switch agaiin to developer's pool for 1 minute, these rounds will continue until miner working.
+ * and then switch again to developer's pool for 1 minute, these rounds will continue until miner working.
  *
  * Randomised only first round, to prevent waves on the donation pool.
  *

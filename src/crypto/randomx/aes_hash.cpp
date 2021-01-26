@@ -371,7 +371,7 @@ hashAndFillAes1Rx4_impl* softAESImpl = &hashAndFillAes1Rx4<1,1>;
 
 void SelectSoftAESImpl(size_t threadsCount)
 {
-  constexpr int test_length_ms = 100;
+  constexpr uint64_t test_length_ms = 100;
   const std::array<hashAndFillAes1Rx4_impl *, 4> impl = {
     &hashAndFillAes1Rx4<1,1>,
     &hashAndFillAes1Rx4<2,1>,
