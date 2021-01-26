@@ -80,6 +80,7 @@
     ],
     "print-time": 60,
     "health-print-time": 60,
+    "dmi": true,
     "retries": 5,
     "retry-pause": 5,
     "syslog": false,
