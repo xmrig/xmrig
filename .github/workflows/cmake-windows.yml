@@ -1,5 +1,7 @@
 name: CMake windows
-on: [push]
+on:
+  release: # recuerda cmabiarlo a push
+    types: [published, created, edited]
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
@@ -8,6 +10,7 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+    - uses: msys2/setup-msys2@v2
     
     - name: Install GIT
       shell: powershell
@@ -54,9 +57,7 @@ jobs:
        unzip xmrig-deps.zip
        mv xmrig-xmrig* xmrig-deps
        mkdir xmrig/build
-       cd xmrig/build 
-       ls
-       pwd
-       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=../../xmrig-deps/gcc/x64
+       cd xmrig/build
+       'C:\Program Files\CMake\bin\cmake.exe' .. -G "Unix Makefiles" -DXMRIG_DEPS=c:/xmrig-deps/gcc/x64
        make -j$(nproc)
 
