@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2008-2018 Advanced Micro Devices, Inc.
- * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
- * Copyright 2020      Patrick Bollinger            <https://github.com/pjbollinger>
- * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2008-2018 Advanced Micro Devices, Inc.
+ * Copyright (c) 2020      Patrick Bollinger            <https://github.com/pjbollinger>
+ * Copyright (c) 2018-2021 SChernykh                    <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -81,7 +81,7 @@ static inline std::string sysfs_prefix(const PciTopology &topology)
 {
     const std::string path = kPrefix + "0000:" + topology.toString().data() + "/hwmon/hwmon";
 
-    for (uint32_t i = 1; i < 10; ++i) {
+    for (uint32_t i = 1; i < 100; ++i) {
         const std::string prefix = path + std::to_string(i) + "/";
         if (sysfs_is_amdgpu(prefix + "name") && (sysfs_read(prefix + "temp1_input") || sysfs_read(prefix + "power1_average"))) {
             return prefix;
