@@ -89,7 +89,7 @@ jobs:
         VERSION: ${{ Env:VERSION }}
       with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ VERSION }} xmrig-AutobuildGithubActionsWINDOWS
+          release_name: Release ${ VERSION } xmrig-AutobuildGithubActionsWINDOWS
           draft: false
           prerelease: false
     - name: Upload Release Asset
