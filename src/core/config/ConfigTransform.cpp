@@ -149,8 +149,10 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::YieldKey: /* --cpu-no-yield */
         return set(doc, CpuConfig::kField, CpuConfig::kYield, false);
 
+#   ifdef XMRIG_ALGO_ARGON2
     case IConfig::Argon2ImplKey: /* --argon2-impl */
         return set(doc, CpuConfig::kField, CpuConfig::kArgon2Impl, arg);
+#   endif
 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
