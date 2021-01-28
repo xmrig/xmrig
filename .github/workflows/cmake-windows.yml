@@ -86,9 +86,10 @@ jobs:
       uses: actions/create-release@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        VERSION: ${{ Env:VERSION }}
       with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ Env:VERSION }} xmrig-AutobuildGithubActionsWINDOWS
+          release_name: Release ${{ VERSION }} xmrig-AutobuildGithubActionsWINDOWS
           draft: false
           prerelease: false
     - name: Upload Release Asset
