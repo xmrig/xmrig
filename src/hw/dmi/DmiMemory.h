@@ -39,6 +39,7 @@ public:
 
     inline bool isValid() const             { return !m_slot.isEmpty(); }
     inline const String &bank() const       { return m_bank; }
+    inline const String &id() const         { return m_id.isNull() ? m_slot : m_id; }
     inline const String &product() const    { return m_product; }
     inline const String &slot() const       { return m_slot; }
     inline const String &vendor() const     { return m_vendor; }
@@ -57,7 +58,10 @@ public:
 #   endif
 
 private:
+    void setId(const char *slot, const char *bank);
+
     String m_bank;
+    String m_id;
     String m_product;
     String m_slot;
     String m_vendor;
