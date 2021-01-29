@@ -231,7 +231,7 @@ void xmrig::DmiMemory::setId(const char *slot, const char *bank)
     m_bank = bank;
 
     std::cmatch cm;
-    if (std::regex_match(slot, cm, std::regex("^Channel([A-Z])-DIMM(\\d+)$"))) {
+    if (std::regex_match(slot, cm, std::regex("^Channel([A-Z])[-_]DIMM(\\d+)$", std::regex_constants::icase))) {
         m_id = fmt::format(kIdFormat, cm.str(1), cm.str(2)).c_str();
     }
     else if (std::regex_search(bank, cm, std::regex("CHANNEL ([A-Z])$"))) {
