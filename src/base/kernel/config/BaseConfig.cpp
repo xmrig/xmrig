@@ -126,7 +126,11 @@ bool xmrig::BaseConfig::save()
     rapidjson::Document doc;
     getJSON(doc);
 
-    if (Json::save(m_fileName, doc)) {
+    const char* header_comment = "\
+// See https://github.com/xmrig/xmrig/blob/master/doc/CPU.md for the description of the config.json parameters\n\
+// General documentation: https://xmrig.com/docs/miner";
+
+    if (Json::save(m_fileName, doc, header_comment)) {
         LOG_NOTICE("%s " WHITE_BOLD("configuration saved to: \"%s\""), Tags::config(), m_fileName.data());
         return true;
     }

@@ -94,7 +94,7 @@ bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
 }
 
 
-bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
+bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc, const std::string& header_comment)
 {
     using namespace rapidjson;
     constexpr const std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary | std::ios_base::trunc;
@@ -118,6 +118,10 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
         return false;
     }
 #   endif
+
+    if (!header_comment.empty()) {
+        ofs << header_comment << std::endl;
+    }
 
     OStreamWrapper osw(ofs);
     PrettyWriter<OStreamWrapper> writer(osw);
