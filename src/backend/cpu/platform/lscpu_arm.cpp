@@ -208,6 +208,12 @@ static const id_part hisi_part[] = {
     { -1, nullptr },
 };
 
+static const id_part apple_part[] = {
+    { 0x022, "M1" },
+    { 0x023, "M1" },
+    { -1, nullptr },
+};
+
 
 static const hw_impl hw_implementer[] = {
     { 0x41, arm_part,     "ARM" },
@@ -221,6 +227,7 @@ static const hw_impl hw_implementer[] = {
     { 0x51, qcom_part,    "Qualcomm" },
     { 0x53, samsung_part, "Samsung" },
     { 0x56, marvell_part, "Marvell" },
+    { 0x61, apple_part,   "Apple" },
     { 0x66, faraday_part, "Faraday" },
     { 0x69, intel_part,   "Intel" }
 };
