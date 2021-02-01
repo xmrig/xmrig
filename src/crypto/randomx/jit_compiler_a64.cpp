@@ -396,6 +396,10 @@ void JitCompilerA64::allocate(size_t size)
 	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
 
 	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+
+#	ifndef XMRIG_OS_APPLE
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), CodeSize);
+#	endif
 }
 
 
