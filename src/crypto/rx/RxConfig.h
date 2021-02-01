@@ -113,7 +113,6 @@ private:
 
     Mode readMode(const rapidjson::Value &value) const;
 
-    bool m_numa           = true;
     bool m_oneGbPages     = false;
     bool m_rdmsr          = true;
     int m_threads         = -1;
@@ -123,6 +122,7 @@ private:
     ScratchpadPrefetchMode m_scratchpadPrefetchMode = ScratchpadPrefetchT0;
 
 #   ifdef XMRIG_FEATURE_HWLOC
+    bool m_numa           = true;
     std::vector<uint32_t> m_nodeset;
 #   endif
 
