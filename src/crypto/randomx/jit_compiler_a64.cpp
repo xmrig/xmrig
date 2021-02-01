@@ -108,6 +108,7 @@ JitCompilerA64::JitCompilerA64(bool hugePagesEnable, bool) :
 	hugePages(hugePagesJIT && hugePagesEnable),
 	literalPos(ImulRcpLiteralsEnd)
 {
+	allocate(CodeSize);
 }
 
 JitCompilerA64::~JitCompilerA64()
@@ -117,13 +118,8 @@ JitCompilerA64::~JitCompilerA64()
 
 void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
 {
-	if (!allocatedSize) {
-		allocate(CodeSize);
-	}
 #ifdef XMRIG_SECURE_JIT
-	else {
-		enableWriting();
-	}
+	enableWriting();
 #endif
 
 	uint32_t codePos = MainLoopBegin + 4;
@@ -177,13 +173,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 
 void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
 {
-	if (!allocatedSize) {
-		allocate(CodeSize);
-	}
 #ifdef XMRIG_SECURE_JIT
-	else {
-		enableWriting();
-	}
+	enableWriting();
 #endif
 
 	uint32_t codePos = MainLoopBegin + 4;
@@ -244,8 +235,12 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 template<size_t N>
 void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
-	if (!allocatedSize) {
-		allocate(CodeSize + CalcDatasetItemSize());
+	const size_t requiredSize = CodeSize + CalcDatasetItemSize();
+	if (allocatedSize < requiredSize) {
+		if (allocatedSize) {
+			freePagedMemory(code, allocatedSize);
+		}
+		allocate(requiredSize);
 	}
 #ifdef XMRIG_SECURE_JIT
 	else {
