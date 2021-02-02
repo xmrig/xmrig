@@ -171,7 +171,7 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
 
 #	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
 #	endif
 }
 
@@ -237,7 +237,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
 #	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
 #	endif
 }
 
@@ -364,7 +364,7 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 	codePos += p2 - p1;
 
 #	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), reinterpret_cast<char*>(code + codePos));
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), codePos - MainLoopBegin);
 #	endif
 }
 
@@ -401,6 +401,10 @@ void JitCompilerA64::allocate(size_t size)
 	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
 
 	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+
+#	ifndef XMRIG_OS_APPLE
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), CodeSize);
+#	endif
 }
 
 

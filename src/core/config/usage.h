@@ -83,6 +83,9 @@ static inline const std::string &usage()
     u += "      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n";
     u += "      --cpu-no-yield            prefer maximum hashrate rather than system response/stability\n";
     u += "      --no-huge-pages           disable huge pages support\n";
+#   ifdef XMRIG_OS_LINUX
+    u += "      --hugepage-size=N         custom hugepage size in kB\n";
+#   endif
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
@@ -155,7 +158,7 @@ static inline const std::string &usage()
 
     u += "  -l, --log-file=FILE           log all output to a file\n";
     u += "      --print-time=N            print hashrate report every N seconds\n";
-#   ifdef XMRIG_FEATURE_NVML
+#   if defined(XMRIG_FEATURE_NVML) || defined(XMRIG_FEATURE_ADL)
     u += "      --health-print-time=N     print health report every N seconds\n";
 #   endif
     u += "      --no-color                disable colored output\n";

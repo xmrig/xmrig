@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,9 +24,9 @@
 #include <tchar.h>
 
 
+#include "crypto/common/VirtualMemory.h"
 #include "base/io/log/Log.h"
 #include "crypto/common/portable/mm_malloc.h"
-#include "crypto/common/VirtualMemory.h"
 
 
 #ifdef XMRIG_SECURE_JIT
@@ -233,9 +233,9 @@ void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t)
 }
 
 
-void xmrig::VirtualMemory::osInit(bool hugePages)
+void xmrig::VirtualMemory::osInit(size_t hugePageSize)
 {
-    if (hugePages) {
+    if (hugePageSize) {
         hugepagesAvailable = TrySetLockPagesPrivilege();
     }
 }

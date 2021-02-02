@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Riku Voipio <riku.voipio@iki.fi>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -87,16 +87,22 @@ static const id_part arm_part[] = {
     { 0xd03, "Cortex-A53" },
     { 0xd04, "Cortex-A35" },
     { 0xd05, "Cortex-A55" },
+    { 0xd06, "Cortex-A65" },
     { 0xd07, "Cortex-A57" },
     { 0xd08, "Cortex-A72" },
     { 0xd09, "Cortex-A73" },
     { 0xd0a, "Cortex-A75" },
     { 0xd0b, "Cortex-A76" },
     { 0xd0c, "Neoverse-N1" },
+    { 0xd0d, "Cortex-A77" },
+    { 0xd0e, "Cortex-A76AE" },
     { 0xd13, "Cortex-R52" },
     { 0xd20, "Cortex-M23" },
     { 0xd21, "Cortex-M33" },
+    { 0xd41, "Cortex-A78" },
+    { 0xd42, "Cortex-A78AE" },
     { 0xd4a, "Neoverse-E1" },
+    { 0xd4b, "Cortex-A78C" },
     { -1, nullptr },
 };
 
@@ -150,6 +156,7 @@ static const id_part samsung_part[] = {
 static const id_part nvidia_part[] = {
     { 0x000, "Denver" },
     { 0x003, "Denver 2" },
+    { 0x004, "Carmel" },
     { -1, nullptr },
 };
 
@@ -191,8 +198,19 @@ static const id_part intel_part[] = {
     { -1, nullptr },
 };
 
+static const struct id_part fujitsu_part[] = {
+    { 0x001, "A64FX" },
+    { -1, "unknown" },
+};
+
 static const id_part hisi_part[] = {
     { 0xd01, "Kunpeng-920" }, /* aka tsv110 */
+    { -1, nullptr },
+};
+
+static const id_part apple_part[] = {
+    { 0x022, "M1" },
+    { 0x023, "M1" },
     { -1, nullptr },
 };
 
@@ -202,12 +220,14 @@ static const hw_impl hw_implementer[] = {
     { 0x42, brcm_part,    "Broadcom" },
     { 0x43, cavium_part,  "Cavium" },
     { 0x44, dec_part,     "DEC" },
+    { 0x46, fujitsu_part, "FUJITSU" },
     { 0x48, hisi_part,    "HiSilicon" },
     { 0x4e, nvidia_part,  "Nvidia" },
     { 0x50, apm_part,     "APM" },
     { 0x51, qcom_part,    "Qualcomm" },
     { 0x53, samsung_part, "Samsung" },
     { 0x56, marvell_part, "Marvell" },
+    { 0x61, apple_part,   "Apple" },
     { 0x66, faraday_part, "Faraday" },
     { 0x69, intel_part,   "Intel" }
 };
