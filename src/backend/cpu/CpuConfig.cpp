@@ -71,7 +71,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     obj.AddMember(StringRef(kEnabled),      m_enabled, allocator);
-    obj.AddMember(StringRef(kHugePages),    m_hugePageSize == 0 || m_hugePageSize == kDefaultHugePageSizeKb ? Value(isHugePages()) : Value(m_hugePageSize), allocator);
+    obj.AddMember(StringRef(kHugePages),    m_hugePageSize == 0 || m_hugePageSize == kDefaultHugePageSizeKb ? Value(isHugePages()) : Value(static_cast<uint32_t>(m_hugePageSize)), allocator);
     obj.AddMember(StringRef(kHugePagesJit), m_hugePagesJit, allocator);
     obj.AddMember(StringRef(kHwAes),        m_aes == AES_AUTO ? Value(kNullType) : Value(m_aes == AES_HW), allocator);
     obj.AddMember(StringRef(kPriority),     priority() != -1 ? Value(priority()) : Value(kNullType), allocator);
