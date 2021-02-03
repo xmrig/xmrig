@@ -129,6 +129,8 @@ static AlgoName const algorithm_names[] = {
 #   endif
     { "cryptonight/ccx",           "cn/ccx",           Algorithm::CN_CCX          },
     { "cryptonight/conceal",       "cn/conceal",       Algorithm::CN_CCX          },
+    { "cryptonight/cache_hash",    "cn/cache_hash",    Algorithm::CN_CACHE_HASH   },
+    { "cryptonight/cache",         "cn/cache",         Algorithm::CN_CACHE_HASH   },
 };
 
 
@@ -308,6 +310,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_ZLS:
     case CN_DOUBLE:
     case CN_CCX:
+    case CN_CACHE_HASH:
         return CN;
 
 #   ifdef XMRIG_ALGO_CN_LITE

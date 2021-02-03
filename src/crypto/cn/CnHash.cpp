@@ -271,6 +271,7 @@ xmrig::CnHash::CnHash()
 #   endif
 
     ADD_FN(Algorithm::CN_CCX);
+    ADD_FN(Algorithm::CN_CACHE_HASH);
 
 #   ifdef XMRIG_ALGO_ARGON2
     m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
