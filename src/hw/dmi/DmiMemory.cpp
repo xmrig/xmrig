@@ -20,15 +20,20 @@
 
 
 #include "hw/dmi/DmiMemory.h"
+#include "3rdparty/fmt/format.h"
 #include "3rdparty/rapidjson/document.h"
 #include "hw/dmi/DmiTools.h"
 
 
 #include <algorithm>
 #include <array>
+#include <regex>
 
 
 namespace xmrig {
+
+
+static const char *kIdFormat = "DIMM_{}{}";
 
 
 static inline uint16_t dmi_memory_device_width(uint16_t code)
@@ -143,9 +148,9 @@ xmrig::DmiMemory::DmiMemory(dmi_header *h)
         m_size = (1024ULL * (size & 0x7FFF) * ((size & 0x8000) ? 1 : 1024ULL));
     }
 
+    setId(dmi_string(h, 0x10), dmi_string(h, 0x11));
+
     m_formFactor = h->data[0x0E];
-    m_slot       = dmi_string(h, 0x10);
-    m_bank       = dmi_string(h, 0x11);
     m_type       = h->data[0x12];
 
     if (!m_size || h->length < 0x17) {
@@ -201,6 +206,7 @@ rapidjson::Value xmrig::DmiMemory::toJSON(rapidjson::Document &doc) const
 
     auto &allocator = doc.GetAllocator();
     Value out(kObjectType);
+    out.AddMember("id",             id().toJSON(doc), allocator);
     out.AddMember("slot",           m_slot.toJSON(doc), allocator);
     out.AddMember("type",           StringRef(type()), allocator);
     out.AddMember("form_factor",    StringRef(formFactor()), allocator);
@@ -217,3 +223,21 @@ rapidjson::Value xmrig::DmiMemory::toJSON(rapidjson::Document &doc) const
     return out;
 }
 #endif
+
+
+void xmrig::DmiMemory::setId(const char *slot, const char *bank)
+{
+    m_slot = slot;
+    m_bank = bank;
+
+    std::cmatch cm;
+    if (std::regex_match(slot, cm, std::regex("^Channel([A-Z])[-_]DIMM(\\d+)$", std::regex_constants::icase))) {
+        m_id = fmt::format(kIdFormat, cm.str(1), cm.str(2)).c_str();
+    }
+    else if (std::regex_search(bank, cm, std::regex("CHANNEL ([A-Z])$"))) {
+        std::cmatch cm2;
+        if (std::regex_match(slot, cm2, std::regex("^DIMM (\\d+)$"))) {
+            m_id = fmt::format(kIdFormat, cm.str(1), cm2.str(1)).c_str();
+        }
+    }
+}

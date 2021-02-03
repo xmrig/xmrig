@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,16 +36,19 @@
 
 namespace xmrig {
 
-static IMemoryPool *pool = nullptr;
+
+size_t VirtualMemory::m_hugePageSize    = VirtualMemory::kDefaultHugePageSize;
+static IMemoryPool *pool                = nullptr;
 static std::mutex mutex;
+
 
 } // namespace xmrig
 
 
 xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
-    m_size(align(size)),
-    m_capacity(m_size),
-    m_node(node)
+    m_size(alignToHugePageSize(size)),
+    m_node(node),
+    m_capacity(m_size)
 {
     if (usePool) {
         std::lock_guard<std::mutex> lock(mutex);
@@ -114,18 +117,18 @@ void xmrig::VirtualMemory::destroy()
 }
 
 
-void xmrig::VirtualMemory::init(size_t poolSize, bool hugePages)
+void xmrig::VirtualMemory::init(size_t poolSize, size_t hugePageSize)
 {
     if (!pool) {
-        osInit(hugePages);
+        osInit(hugePageSize);
     }
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (Cpu::info()->nodes() > 1) {
-        pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePages);
+        pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePageSize > 0);
     } else
 #   endif
     {
-        pool = new MemoryPool(poolSize, hugePages);
+        pool = new MemoryPool(poolSize, hugePageSize > 0);
     }
 }

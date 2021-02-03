@@ -125,9 +125,10 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     BaseTransform::transform(doc, key, arg);
 
     switch (key) {
-    case IConfig::AVKey:          /* --av */
-    case IConfig::CPUPriorityKey: /* --cpu-priority */
-    case IConfig::ThreadsKey:     /* --threads */
+    case IConfig::AVKey:           /* --av */
+    case IConfig::CPUPriorityKey:  /* --cpu-priority */
+    case IConfig::ThreadsKey:      /* --threads */
+    case IConfig::HugePageSizeKey: /* --hugepage-size */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::HugePagesKey: /* --no-huge-pages */
@@ -149,8 +150,10 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::YieldKey: /* --cpu-no-yield */
         return set(doc, CpuConfig::kField, CpuConfig::kYield, false);
 
+#   ifdef XMRIG_ALGO_ARGON2
     case IConfig::Argon2ImplKey: /* --argon2-impl */
         return set(doc, CpuConfig::kField, CpuConfig::kArgon2Impl, arg);
+#   endif
 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
@@ -303,6 +306,9 @@ void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, 
 
     case IConfig::CPUPriorityKey: /* --cpu-priority */
         return set(doc, CpuConfig::kField, CpuConfig::kPriority, arg);
+
+    case IConfig::HugePageSizeKey: /* --hugepage-size */
+        return set(doc, CpuConfig::kField, CpuConfig::kHugePages, arg);
 
     default:
         break;

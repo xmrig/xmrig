@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2008-2018 Advanced Micro Devices, Inc.
- * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
- * Copyright 2020      Patrick Bollinger            <https://github.com/pjbollinger>
- * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2008-2018 Advanced Micro Devices, Inc.
+ * Copyright (c) 2020      Patrick Bollinger            <https://github.com/pjbollinger>
+ * Copyright (c) 2018-2021 SChernykh                    <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,10 +20,13 @@
 
 
 #include "backend/opencl/wrappers/AdlLib.h"
+#include "3rdparty/fmt/core.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 
 
+#include <dirent.h>
 #include <fstream>
+#include <map>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
@@ -35,18 +38,27 @@ namespace xmrig {
 bool AdlLib::m_initialized          = false;
 bool AdlLib::m_ready                = false;
 static const std::string kPrefix    = "/sys/bus/pci/drivers/amdgpu/";
+static std::map<PciTopology, std::string> hwmon_cache;
 
 
-static inline bool sysfs_is_file(const std::string &path)
+static inline bool sysfs_is_file(const char *path)
 {
     struct stat sb;
 
-    return stat(path.c_str(), &sb) == 0 && ((sb.st_mode & S_IFMT) == S_IFREG);
+    return stat(path, &sb) == 0 && ((sb.st_mode & S_IFMT) == S_IFREG);
 }
 
 
-static inline bool sysfs_is_amdgpu(const std::string &path)
+static inline int dir_filter(const struct dirent *dirp)
 {
+    return strlen(dirp->d_name) > 5 ? 1 : 0;
+}
+
+
+static bool sysfs_is_amdgpu(const char *path, char *buf, const char *filename)
+{
+    strcpy(buf, filename);
+
     if (!sysfs_is_file(path)) {
         return false;
     }
@@ -63,8 +75,10 @@ static inline bool sysfs_is_amdgpu(const std::string &path)
 }
 
 
-uint32_t sysfs_read(const std::string &path)
+static uint32_t sysfs_read(const char *path, char *buf, const char *filename)
 {
+    strcpy(buf, filename);
+
     std::ifstream file(path);
     if (!file.is_open()) {
         return 0;
@@ -77,18 +91,44 @@ uint32_t sysfs_read(const std::string &path)
 }
 
 
-static inline std::string sysfs_prefix(const PciTopology &topology)
+static size_t sysfs_prefix(char path[PATH_MAX], const PciTopology &topology)
 {
-    const std::string path = kPrefix + "0000:" + topology.toString().data() + "/hwmon/hwmon";
+    const auto it = hwmon_cache.find(topology);
+    if (it != hwmon_cache.end()) {
+        strcpy(path, it->second.data());
 
-    for (uint32_t i = 1; i < 10; ++i) {
-        const std::string prefix = path + std::to_string(i) + "/";
-        if (sysfs_is_amdgpu(prefix + "name") && (sysfs_read(prefix + "temp1_input") || sysfs_read(prefix + "power1_average"))) {
-            return prefix;
-        }
+        return it->second.size();
     }
 
-    return {};
+    char *base = fmt::format_to(path, "{}0000:{}/hwmon/", kPrefix, topology.toString());
+    *base      = '\0';
+    char *end  = nullptr;
+
+    struct dirent **namelist;
+    int n = scandir(path, &namelist, dir_filter, nullptr);
+    if (n < 0) {
+        return {};
+    }
+
+    while (n--) {
+        if (!end) {
+            char *tmp = fmt::format_to(base, "{}/", namelist[n]->d_name);
+            end       = (sysfs_is_amdgpu(path, tmp, "name") && (sysfs_read(path, tmp, "temp1_input") || sysfs_read(path, tmp, "power1_average"))) ? tmp : nullptr;
+        }
+
+        free(namelist[n]);
+    }
+
+    free(namelist);
+
+    if (end) {
+        *end = '\0';
+        hwmon_cache.insert({ topology, path });
+
+        return end - path;
+    }
+
+    return 0;
 }
 
 
@@ -124,20 +164,22 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
         return {};
     }
 
-    const auto prefix = sysfs_prefix(device.topology());
-    if (prefix.empty()) {
+    static char path[PATH_MAX]{};
+
+    char *buf = path + sysfs_prefix(path, device.topology());
+    if (buf == path) {
         return {};
     }
 
     AdlHealth health;
-    health.clock        = sysfs_read(prefix + "freq1_input") / 1000000;
-    health.memClock     = sysfs_read(prefix + "freq2_input") / 1000000;
-    health.power        = sysfs_read(prefix + "power1_average") / 1000000;
-    health.rpm          = sysfs_read(prefix + "fan1_input");
-    health.temperature  = sysfs_read(prefix + "temp2_input") / 1000;
+    health.clock        = sysfs_read(path, buf, "freq1_input") / 1000000;
+    health.memClock     = sysfs_read(path, buf, "freq2_input") / 1000000;
+    health.power        = sysfs_read(path, buf, "power1_average") / 1000000;
+    health.rpm          = sysfs_read(path, buf, "fan1_input");
+    health.temperature  = sysfs_read(path, buf, "temp2_input") / 1000;
 
     if (!health.temperature) {
-        health.temperature = sysfs_read(prefix + "temp1_input") / 1000;
+        health.temperature = sysfs_read(path, buf, "temp1_input") / 1000;
     }
 
     return health;

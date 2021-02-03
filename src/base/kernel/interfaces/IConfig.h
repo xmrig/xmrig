@@ -85,6 +85,7 @@ public:
         BenchHashKey         = 1047,
         BenchTokenKey        = 1048,
         DmiKey               = 1049,
+        HugePageSizeKey      = 1050,
 
         // xmrig common
         CPUPriorityKey       = 1021,
