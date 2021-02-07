@@ -357,6 +357,11 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
     }
 
     for (size_t i = 0; i < props.memory() / sizeof(__m128i); i += 8) {
+        if (interleave > 0) {
+            _mm_prefetch((const char*)(output), _MM_HINT_T0);
+            _mm_prefetch((const char*)(output + (64 << interleave) / sizeof(__m128i)), _MM_HINT_T0);
+        }
+
         aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
         aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
@@ -404,7 +409,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout7 = _mm_load_si128(output + 11);
 
     const __m128i* input_begin = input;
-    for (size_t i = 0; i < props.memory() / sizeof(__m128i); i += 8) {
+    for (size_t i = 0; i < props.memory() / sizeof(__m128i);) {
         xout0 = _mm_xor_si128(_mm_load_si128(input + 0), xout0);
         xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
         xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
@@ -415,6 +420,13 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         xout6 = _mm_xor_si128(_mm_load_si128(input + 2), xout6);
         xout7 = _mm_xor_si128(_mm_load_si128(input + 3), xout7);
         input += (64 << interleave) / sizeof(__m128i);
+
+        i += 8;
+
+        if ((interleave > 0) && (i < props.memory() / sizeof(__m128i))) {
+            _mm_prefetch((const char*)(input), _MM_HINT_T0);
+            _mm_prefetch((const char*)(input + (64 << interleave) / sizeof(__m128i)), _MM_HINT_T0);
+        }
 
         aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
         aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
@@ -434,7 +446,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 
     if (IS_HEAVY) {
         input = input_begin;
-        for (size_t i = 0; i < props.memory() / sizeof(__m128i); i += 8) {
+        for (size_t i = 0; i < props.memory() / sizeof(__m128i);) {
             xout0 = _mm_xor_si128(_mm_load_si128(input + 0), xout0);
             xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
             xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
@@ -445,6 +457,13 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
             xout6 = _mm_xor_si128(_mm_load_si128(input + 2), xout6);
             xout7 = _mm_xor_si128(_mm_load_si128(input + 3), xout7);
             input += (64 << interleave) / sizeof(__m128i);
+
+            i += 8;
+
+            if ((interleave > 0) && (i < props.memory() / sizeof(__m128i))) {
+                _mm_prefetch((const char*)(input), _MM_HINT_T0);
+                _mm_prefetch((const char*)(input + (64 << interleave) / sizeof(__m128i)), _MM_HINT_T0);
+            }
 
             aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
             aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
