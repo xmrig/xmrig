@@ -88,7 +88,12 @@ void xmrig::Rx::init(IRxListener *listener)
 template<typename T>
 bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
-    if (seed.algorithm().family() != Algorithm::RANDOM_X) {
+    const Algorithm::Family f = seed.algorithm().family();
+    if ((f != Algorithm::RANDOM_X)
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        && (f != Algorithm::CN_HEAVY)
+#       endif
+        ) {
 #       ifdef XMRIG_FEATURE_MSR
         RxMsr::destroy();
 #       endif
@@ -96,15 +101,21 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
         return true;
     }
 
-    randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
-    randomx_set_huge_pages_jit(cpu.isHugePagesJit());
-    randomx_set_optimized_dataset_init(config.initDatasetAVX2());
-
 #   ifdef XMRIG_FEATURE_MSR
     if (!RxMsr::isInitialized()) {
         RxMsr::init(config, cpu.threads().get(seed.algorithm()).data());
     }
 #   endif
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    if (f == Algorithm::CN_HEAVY) {
+        return true;
+    }
+#   endif
+
+    randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
+    randomx_set_huge_pages_jit(cpu.isHugePagesJit());
+    randomx_set_optimized_dataset_init(config.initDatasetAVX2());
 
     if (!osInitialized) {
 #       ifdef XMRIG_FIX_RYZEN

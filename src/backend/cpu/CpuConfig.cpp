@@ -103,7 +103,7 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 size_t xmrig::CpuConfig::memPoolSize() const
 {
-    return m_memoryPool < 0 ? Cpu::info()->threads() : m_memoryPool;
+    return m_memoryPool < 0 ? std::max(Cpu::info()->threads(), Cpu::info()->L3() >> 21) : m_memoryPool;
 }
 
 
