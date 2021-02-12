@@ -32,7 +32,7 @@ jobs:
    
     - shell: msys2 {0}
       run: |
-       pacman -Syu --noconfirm
+       # pacman -Syu --noconfirm
        pacman -S mingw-w64-x86_64-gcc git make unzip zip --noconfirm
     
     - name: Download the latest release of the dependencies.
