@@ -65,17 +65,12 @@
 #endif
 
 
-namespace xmrig {
-
-
-#ifdef XMRIG_OS_LINUX
+#if defined(XMRIG_OS_LINUX) || (!defined(XMRIG_OS_APPLE) && !defined(__FreeBSD__))
 static inline int hugePagesFlag(size_t size)
 {
     return (static_cast<int>(log2(size)) & MAP_HUGE_MASK) << MAP_HUGE_SHIFT;
 }
 #endif
-
-} // namespace xmrig
 
 
 bool xmrig::VirtualMemory::isHugepagesAvailable()
@@ -165,7 +160,7 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 
 void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
-#   if defined(__APPLE__)
+#   if defined(XMRIG_OS_APPLE)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
 #   elif defined(__FreeBSD__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);

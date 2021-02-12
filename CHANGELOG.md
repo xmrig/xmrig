@@ -1,3 +1,7 @@
+# v6.8.2
+- [#2080](https://github.com/xmrig/xmrig/pull/2080) Fixed compile error in Termux.
+- [#2089](https://github.com/xmrig/xmrig/pull/2089) Optimized CryptoNight-Heavy for Zen3, 7-8% speedup.
+
 # v6.8.1
 - [#2064](https://github.com/xmrig/xmrig/pull/2064) Added documentation for config.json CPU options.
 - [#2066](https://github.com/xmrig/xmrig/issues/2066) Fixed AMD GPUs health data readings on Linux.

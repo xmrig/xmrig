@@ -81,6 +81,7 @@ public:
 
     inline void start(const std::vector<CpuLaunchData> &threads, size_t memory)
     {
+        m_workersMemory.clear();
         m_hugePages.reset();
         m_memory    = memory;
         m_started   = 0;
@@ -95,8 +96,10 @@ public:
         if (ready) {
             m_started++;
 
-            m_hugePages += worker->memory()->hugePages();
-            m_ways      += worker->intensity();
+            if (m_workersMemory.insert(worker->memory()).second) {
+                m_hugePages += worker->memory()->hugePages();
+            }
+            m_ways += worker->intensity();
         }
         else {
             m_errors++;
@@ -126,6 +129,7 @@ public:
     }
 
 private:
+    std::set<const VirtualMemory*> m_workersMemory;
     HugePagesInfo m_hugePages;
     size_t m_errors       = 0;
     size_t m_memory       = 0;

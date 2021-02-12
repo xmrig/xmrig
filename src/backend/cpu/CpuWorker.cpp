@@ -19,8 +19,10 @@
 
 #include <cassert>
 #include <thread>
+#include <mutex>
 
 
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
@@ -55,6 +57,12 @@ namespace xmrig {
 
 static constexpr uint32_t kReserveCount = 32768;
 
+
+#ifdef XMRIG_ALGO_CN_HEAVY
+static std::mutex cn_heavyZen3MemoryMutex;
+VirtualMemory* cn_heavyZen3Memory = nullptr;
+#endif
+
 } // namespace xmrig
 
 
@@ -73,7 +81,20 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_threads(data.threads),
     m_ctx()
 {
-    m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    // cn-heavy optimization for Zen3 CPUs
+    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+        std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
+        if (!cn_heavyZen3Memory) {
+            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * m_threads, data.hugePages, false, false, node());
+        }
+        m_memory = cn_heavyZen3Memory;
+    }
+    else
+#   endif
+    {
+        m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
+    }
 }
 
 
@@ -85,7 +106,13 @@ xmrig::CpuWorker<N>::~CpuWorker()
 #   endif
 
     CnCtx::release(m_ctx, N);
-    delete m_memory;
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    if (m_memory != cn_heavyZen3Memory)
+#   endif
+    {
+        delete m_memory;
+    }
 }
 
 
@@ -399,7 +426,16 @@ template<size_t N>
 void xmrig::CpuWorker<N>::allocateCnCtx()
 {
     if (m_ctx[0] == nullptr) {
-        CnCtx::create(m_ctx, m_memory->scratchpad(), m_algorithm.l3(), N);
+        int shift = 0;
+
+#       ifdef XMRIG_ALGO_CN_HEAVY
+        // cn-heavy optimization for Zen3 CPUs
+        if (m_memory == cn_heavyZen3Memory) {
+            shift = (id() / 8) * m_algorithm.l3() * 8 + (id() % 8) * 64;
+        }
+#       endif
+
+        CnCtx::create(m_ctx, m_memory->scratchpad() + shift, m_algorithm.l3(), N);
     }
 }
 

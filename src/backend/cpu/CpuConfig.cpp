@@ -103,12 +103,16 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
 
 size_t xmrig::CpuConfig::memPoolSize() const
 {
-    return m_memoryPool < 0 ? Cpu::info()->threads() : m_memoryPool;
+    return m_memoryPool < 0 ? std::max(Cpu::info()->threads(), Cpu::info()->L3() >> 21) : m_memoryPool;
 }
 
 
 std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, const Algorithm &algorithm) const
 {
+    if (algorithm.family() == Algorithm::KAWPOW) {
+        return {};
+    }
+
     std::vector<CpuLaunchData> out;
     const auto &threads = m_threads.get(algorithm);
 

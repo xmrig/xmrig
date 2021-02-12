@@ -435,7 +435,7 @@ static inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
 }
 
 
-template<Algorithm::Id ALGO, bool SOFT_AES>
+template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr CnAlgo<ALGO> props;

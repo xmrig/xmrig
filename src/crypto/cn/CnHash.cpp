@@ -49,15 +49,15 @@
 
 
 #define ADD_FN(algo) \
-    m_map[algo][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false>; \
-    m_map[algo][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true>;  \
-    m_map[algo][AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>; \
-    m_map[algo][AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;  \
-    m_map[algo][AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>; \
-    m_map[algo][AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;  \
-    m_map[algo][AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>; \
-    m_map[algo][AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;  \
-    m_map[algo][AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>; \
+    m_map[algo][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
+    m_map[algo][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
+    m_map[algo][AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
+    m_map[algo][AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
+    m_map[algo][AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
+    m_map[algo][AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
+    m_map[algo][AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
+    m_map[algo][AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
+    m_map[algo][AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
     m_map[algo][AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;
 
 
@@ -302,6 +302,22 @@ xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av,
     if (!algorithm.isValid()) {
         return nullptr;
     }
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    // cn-heavy optimization for Zen3 CPUs
+    if ((av == AV_SINGLE) && (xmrig::Cpu::info()->arch() == xmrig::ICpuInfo::ARCH_ZEN3)) {
+        switch (algorithm.id()) {
+        case xmrig::Algorithm::CN_HEAVY_0:
+            return cryptonight_single_hash<xmrig::Algorithm::CN_HEAVY_0, false, 3>;
+        case xmrig::Algorithm::CN_HEAVY_TUBE:
+            return cryptonight_single_hash<xmrig::Algorithm::CN_HEAVY_TUBE, false, 3>;
+        case xmrig::Algorithm::CN_HEAVY_XHV:
+            return cryptonight_single_hash<xmrig::Algorithm::CN_HEAVY_XHV, false, 3>;
+        default:
+            break;
+        }
+    }
+#   endif
 
 #   ifdef XMRIG_FEATURE_ASM
     cn_hash_fun fun = cnHash.m_map[algorithm][av][Cpu::assembly(assembly)];
