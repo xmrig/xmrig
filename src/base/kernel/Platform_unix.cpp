@@ -158,3 +158,10 @@ bool xmrig::Platform::isOnBatteryPower()
     }
     return false;
 }
+
+
+bool xmrig::Platform::isUserActive()
+{
+    // TODO
+    return false;
+}

@@ -181,6 +181,7 @@ static inline const std::string &usage()
     u += "      --no-title                disable setting console window title\n";
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
+    u += "      --pause-on-active         pause mine when mouse or keyboard is touched\n";
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     u += "      --stress                  run continuous stress test to check system stability\n";
