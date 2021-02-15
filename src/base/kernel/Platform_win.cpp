@@ -161,3 +161,16 @@ bool xmrig::Platform::isOnBatteryPower()
     }
     return false;
 }
+
+
+bool xmrig::Platform::isUserActive()
+{
+    LASTINPUTINFO info;
+    info.cbSize = sizeof(LASTINPUTINFO);
+
+    if (!GetLastInputInfo(&info)) {
+        return false;
+    }
+
+    return static_cast<int>(GetTickCount() - info.dwTime) < 60 * 1000;
+}

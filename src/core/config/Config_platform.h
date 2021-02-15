@@ -98,6 +98,7 @@ static const option options[] = {
     { "title",                 1, nullptr, IConfig::TitleKey              },
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
     { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
+    { "pause-on-active",       0, nullptr, IConfig::PauseOnActiveKey     },
 #   ifdef XMRIG_FEATURE_BENCHMARK
     { "stress",                0, nullptr, IConfig::StressKey             },
     { "bench",                 1, nullptr, IConfig::BenchKey              },

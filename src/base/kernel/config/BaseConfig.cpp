@@ -62,6 +62,7 @@ const char *BaseConfig::kDryRun         = "dry-run";
 const char *BaseConfig::kHttp           = "http";
 const char *BaseConfig::kLogFile        = "log-file";
 const char *BaseConfig::kPauseOnBattery = "pause-on-battery";
+const char *BaseConfig::kPauseOnActive  = "pause-on-active";
 const char *BaseConfig::kPrintTime      = "print-time";
 const char *BaseConfig::kSyslog         = "syslog";
 const char *BaseConfig::kTitle          = "title";
@@ -92,6 +93,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_syslog            = reader.getBool(kSyslog, m_syslog);
     m_watch             = reader.getBool(kWatch, m_watch);
     m_pauseOnBattery    = reader.getBool(kPauseOnBattery, m_pauseOnBattery);
+    m_pauseOnActive     = reader.getBool(kPauseOnActive, m_pauseOnActive);
     m_logFile           = reader.getString(kLogFile);
     m_userAgent         = reader.getString(kUserAgent);
     m_printTime         = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);

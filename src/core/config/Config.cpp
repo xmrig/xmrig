@@ -270,4 +270,5 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kVerbose),                  Log::verbose(), allocator);
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);
     doc.AddMember(StringRef(kPauseOnBattery),           isPauseOnBattery(), allocator);
+    doc.AddMember(StringRef(kPauseOnActive),            isPauseOnActive(), allocator);
 }

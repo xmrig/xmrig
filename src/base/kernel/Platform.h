@@ -49,6 +49,7 @@ public:
     static inline const String &userAgent() { return m_userAgent; }
 
     static bool isOnBatteryPower();
+    static bool isUserActive();
 
 private:
     static char *createUserAgent();

@@ -56,6 +56,7 @@ public:
     static const char *kHttp;
     static const char *kLogFile;
     static const char *kPauseOnBattery;
+    static const char *kPauseOnActive;
     static const char *kPrintTime;
     static const char *kSyslog;
     static const char *kTitle;
@@ -73,6 +74,7 @@ public:
     inline bool isBackground() const                        { return m_background; }
     inline bool isDryRun() const                            { return m_dryRun; }
     inline bool isPauseOnBattery() const                    { return m_pauseOnBattery; }
+    inline bool isPauseOnActive() const                     { return m_pauseOnActive; }
     inline bool isSyslog() const                            { return m_syslog; }
     inline const char *logFile() const                      { return m_logFile.data(); }
     inline const char *userAgent() const                    { return m_userAgent.data(); }
@@ -101,6 +103,7 @@ protected:
     bool m_background       = false;
     bool m_dryRun           = false;
     bool m_pauseOnBattery   = false;
+    bool m_pauseOnActive    = false;
     bool m_syslog           = false;
     bool m_upgrade          = false;
     bool m_watch            = true;

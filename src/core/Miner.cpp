@@ -352,6 +352,7 @@ public:
     Algorithms algorithms;
     bool active         = false;
     bool battery_power  = false;
+    bool user_active    = false;
     bool enabled        = true;
     bool reset          = true;
     Controller *controller;
@@ -629,17 +630,31 @@ void xmrig::Miner::onTimer(const Timer *)
 
     if (d_ptr->controller->config()->isPauseOnBattery()) {
         const bool battery_power = Platform::isOnBatteryPower();
-        if (battery_power && d_ptr->enabled) {
+        if (battery_power && !d_ptr->battery_power) {
             LOG_INFO("%s " YELLOW_BOLD("on battery power"), Tags::miner());
             d_ptr->battery_power = true;
-            setEnabled(false);
         }
-        else if (!battery_power && !d_ptr->enabled && d_ptr->battery_power) {
+        else if (!battery_power && d_ptr->battery_power) {
             LOG_INFO("%s " GREEN_BOLD("on AC power"), Tags::miner());
             d_ptr->battery_power = false;
-            setEnabled(true);
         }
     }
+
+    if (d_ptr->controller->config()->isPauseOnActive()) {
+        const bool user_active = Platform::isUserActive();
+        if (user_active && !d_ptr->user_active) {
+            LOG_INFO("%s " YELLOW_BOLD("user active"), Tags::miner());
+            d_ptr->user_active = true;
+        }
+        else if (!user_active && d_ptr->user_active) {
+            LOG_INFO("%s " GREEN_BOLD("user inactive"), Tags::miner());
+            d_ptr->user_active = false;
+        }
+    }
+
+    const bool batteryEnabled = !(d_ptr->controller->config()->isPauseOnBattery() && d_ptr->battery_power);
+    const bool userActiveEnabled = !(d_ptr->controller->config()->isPauseOnActive() && d_ptr->user_active);
+    setEnabled(batteryEnabled && userActiveEnabled);
 
     if (stopMiner) {
         stop();
