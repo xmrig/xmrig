@@ -100,17 +100,17 @@ static __m128i f(__m128i x, __m128i y)
 
 #include "argon2-template-128.h"
 
-void xmrig_ar2_fill_segment_xop(const argon2_instance_t *instance, argon2_position_t position)
+void xmlcore_ar2_fill_segment_xop(const argon2_instance_t *instance, argon2_position_t position)
 {
     fill_segment_128(instance, position);
 }
 
 extern int cpu_flags_has_xop(void);
-int xmrig_ar2_check_xop(void) { return cpu_flags_has_xop(); }
+int xmlcore_ar2_check_xop(void) { return cpu_flags_has_xop(); }
 
 #else
 
-void xmrig_ar2_fill_segment_xop(const argon2_instance_t *instance, argon2_position_t position) {}
-int xmrig_ar2_check_xop(void) { return 0; }
+void xmlcore_ar2_fill_segment_xop(const argon2_instance_t *instance, argon2_position_t position) {}
+int xmlcore_ar2_check_xop(void) { return 0; }
 
 #endif

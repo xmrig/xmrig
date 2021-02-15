@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,13 +26,13 @@
 #include "base/net/tools/NetBuffer.h"
 
 
-xmrig::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) :
+xmlcore::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) :
     m_listener(listener)
 {
 }
 
 
-xmrig::HttpsServer::~HttpsServer()
+xmlcore::HttpsServer::~HttpsServer()
 {
     HttpContext::closeAll();
 
@@ -40,7 +40,7 @@ xmrig::HttpsServer::~HttpsServer()
 }
 
 
-bool xmrig::HttpsServer::setTls(const TlsConfig &config)
+bool xmlcore::HttpsServer::setTls(const TlsConfig &config)
 {
     m_tls = TlsContext::create(config);
 
@@ -48,7 +48,7 @@ bool xmrig::HttpsServer::setTls(const TlsConfig &config)
 }
 
 
-void xmrig::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
+void xmlcore::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
 {
     auto ctx = new HttpsContext(m_tls, m_listener);
     uv_accept(stream, ctx->stream());
@@ -57,7 +57,7 @@ void xmrig::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
 }
 
 
-void xmrig::HttpsServer::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void xmlcore::HttpsServer::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto ctx = static_cast<HttpsContext*>(stream->data);
     if (nread >= 0) {

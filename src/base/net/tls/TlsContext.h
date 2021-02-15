@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TLSCONTEXT_H
-#define XMRIG_TLSCONTEXT_H
+#ifndef xmlcore_TLSCONTEXT_H
+#define xmlcore_TLSCONTEXT_H
 
 
 #include "base/tools/Object.h"
@@ -36,7 +36,7 @@
 using SSL_CTX = struct ssl_ctx_st;
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class TlsConfig;
@@ -45,7 +45,7 @@ class TlsConfig;
 class TlsContext
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(TlsContext)
+    xmlcore_DISABLE_COPY_MOVE(TlsContext)
 
     ~TlsContext();
 
@@ -66,6 +66,6 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
-#endif /* XMRIG_TLSCONTEXT_H */
+#endif /* xmlcore_TLSCONTEXT_H */

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,14 +22,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ICONFIG_H
-#define XMRIG_ICONFIG_H
+#ifndef xmlcore_ICONFIG_H
+#define xmlcore_ICONFIG_H
 
 
 #include "3rdparty/rapidjson/fwd.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IJsonReader;
@@ -87,12 +87,12 @@ public:
         DmiKey               = 1049,
         HugePageSizeKey      = 1050,
 
-        // xmrig common
+        // xmlcore common
         CPUPriorityKey       = 1021,
         NicehashKey          = 1006,
         PrintTimeKey         = 1007,
 
-        // xmrig cpu
+        // xmlcore cpu
         CPUKey               = 1024,
         AVKey                = 'v',
         CPUAffinityKey       = 1020,
@@ -114,7 +114,7 @@ public:
         Argon2ImplKey        = 1039,
         RandomXCacheQoSKey   = 1040,
 
-        // xmrig amd
+        // xmlcore amd
         OclPlatformKey       = 1400,
         OclAffinityKey       = 1401,
         OclDevicesKey        = 1402,
@@ -128,7 +128,7 @@ public:
         OclCompModeKey       = 1410,
         OclKey               = 1411,
 
-        // xmrig-proxy
+        // xmlcore-proxy
         AccessLogFileKey     = 'A',
         BindKey              = 'b',
         CustomDiffKey        = 1102,
@@ -151,7 +151,7 @@ public:
         ProxyPasswordKey     = 1116,
         LoginFileKey         = 'L',
 
-        // xmrig nvidia
+        // xmlcore nvidia
         CudaMaxThreadsKey    = 1200,
         CudaBFactorKey       = 1201,
         CudaBSleepKey        = 1202,
@@ -176,7 +176,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif // XMRIG_ICONFIG_H
+#endif // xmlcore_ICONFIG_H

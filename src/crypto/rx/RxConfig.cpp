@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include "base/io/json/Json.h"
 
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 #   include "backend/cpu/platform/HwlocCpuInfo.h"
 #endif
 
@@ -44,7 +44,7 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 const char *RxConfig::kInit                     = "init";
 const char *RxConfig::kInitAVX2                 = "init-avx2";
@@ -56,7 +56,7 @@ const char *RxConfig::kWrmsr                    = "wrmsr";
 const char *RxConfig::kScratchpadPrefetchMode   = "scratchpad_prefetch_mode";
 const char *RxConfig::kCacheQoS                 = "cache_qos";
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 const char *RxConfig::kNUMA                     = "numa";
 #endif
 
@@ -64,7 +64,7 @@ const char *RxConfig::kNUMA                     = "numa";
 static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "fast", "light" };
 
 
-#ifdef XMRIG_FEATURE_MSR
+#ifdef xmlcore_FEATURE_MSR
 constexpr size_t kMsrArraySize = 5;
 
 static const std::array<MsrItems, kMsrArraySize> msrPresets = {
@@ -84,7 +84,7 @@ static_assert (kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MO
 }
 
 
-bool xmrig::RxConfig::read(const rapidjson::Value &value)
+bool xmlcore::RxConfig::read(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
         m_threads         = Json::getInt(value, kInit, m_threads);
@@ -92,17 +92,17 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
         m_mode            = readMode(Json::getValue(value, kMode));
         m_rdmsr           = Json::getBool(value, kRdmsr, m_rdmsr);
 
-#       ifdef XMRIG_FEATURE_MSR
+#       ifdef xmlcore_FEATURE_MSR
         readMSR(Json::getValue(value, kWrmsr));
 #       endif
 
         m_cacheQoS = Json::getBool(value, kCacheQoS, m_cacheQoS);
 
-#       ifdef XMRIG_OS_LINUX
+#       ifdef xmlcore_OS_LINUX
         m_oneGbPages = Json::getBool(value, kOneGbPages, m_oneGbPages);
 #       endif
 
-#       ifdef XMRIG_FEATURE_HWLOC
+#       ifdef xmlcore_FEATURE_HWLOC
         if (m_mode == LightMode) {
             m_numa = false;
 
@@ -136,7 +136,7 @@ bool xmrig::RxConfig::read(const rapidjson::Value &value)
 }
 
 
-rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::RxConfig::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -148,7 +148,7 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kOneGbPages),   m_oneGbPages, allocator);
     obj.AddMember(StringRef(kRdmsr),        m_rdmsr, allocator);
 
-#   ifdef XMRIG_FEATURE_MSR
+#   ifdef xmlcore_FEATURE_MSR
     if (!m_msrPreset.empty()) {
         Value wrmsr(kArrayType);
         wrmsr.Reserve(m_msrPreset.size(), allocator);
@@ -168,7 +168,7 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 
     obj.AddMember(StringRef(kCacheQoS), m_cacheQoS, allocator);
 
-#   ifdef XMRIG_FEATURE_HWLOC
+#   ifdef xmlcore_FEATURE_HWLOC
     if (!m_nodeset.empty()) {
         Value numa(kArrayType);
 
@@ -189,8 +189,8 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-#ifdef XMRIG_FEATURE_HWLOC
-std::vector<uint32_t> xmrig::RxConfig::nodeset() const
+#ifdef xmlcore_FEATURE_HWLOC
+std::vector<uint32_t> xmlcore::RxConfig::nodeset() const
 {
     if (!m_nodeset.empty()) {
         return m_nodeset;
@@ -201,13 +201,13 @@ std::vector<uint32_t> xmrig::RxConfig::nodeset() const
 #endif
 
 
-const char *xmrig::RxConfig::modeName() const
+const char *xmlcore::RxConfig::modeName() const
 {
     return modeNames[m_mode];
 }
 
 
-uint32_t xmrig::RxConfig::threads(uint32_t limit) const
+uint32_t xmlcore::RxConfig::threads(uint32_t limit) const
 {
     if (m_threads > 0) {
         return m_threads;
@@ -221,14 +221,14 @@ uint32_t xmrig::RxConfig::threads(uint32_t limit) const
 }
 
 
-#ifdef XMRIG_FEATURE_MSR
-const char *xmrig::RxConfig::msrPresetName() const
+#ifdef xmlcore_FEATURE_MSR
+const char *xmlcore::RxConfig::msrPresetName() const
 {
     return modNames[msrMod()];
 }
 
 
-const xmrig::MsrItems &xmrig::RxConfig::msrPreset() const
+const xmlcore::MsrItems &xmlcore::RxConfig::msrPreset() const
 {
     const auto mod = msrMod();
 
@@ -240,7 +240,7 @@ const xmrig::MsrItems &xmrig::RxConfig::msrPreset() const
 }
 
 
-uint32_t xmrig::RxConfig::msrMod() const
+uint32_t xmlcore::RxConfig::msrMod() const
 {
     if (!wrmsr()) {
         return ICpuInfo::MSR_MOD_NONE;
@@ -254,7 +254,7 @@ uint32_t xmrig::RxConfig::msrMod() const
 }
 
 
-void xmrig::RxConfig::readMSR(const rapidjson::Value &value)
+void xmlcore::RxConfig::readMSR(const rapidjson::Value &value)
 {
     if (value.IsBool()) {
         m_wrmsr = value.GetBool();
@@ -286,7 +286,7 @@ void xmrig::RxConfig::readMSR(const rapidjson::Value &value)
 #endif
 
 
-xmrig::RxConfig::Mode xmrig::RxConfig::readMode(const rapidjson::Value &value) const
+xmlcore::RxConfig::Mode xmlcore::RxConfig::readMode(const rapidjson::Value &value) const
 {
     if (value.IsUint()) {
         return static_cast<Mode>(std::min(value.GetUint(), ModeMax - 1));

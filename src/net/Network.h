@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NETWORK_H
-#define XMRIG_NETWORK_H
+#ifndef xmlcore_NETWORK_H
+#define xmlcore_NETWORK_H
 
 
 #include "3rdparty/rapidjson/fwd.h"
@@ -39,7 +39,7 @@
 #include <vector>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Controller;
@@ -50,7 +50,7 @@ class NetworkState;
 class Network : public IJobResultListener, public IStrategyListener, public IBaseListener, public ITimerListener, public IApiListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Network)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Network)
 
     Network(Controller *controller);
     ~Network() override;
@@ -72,7 +72,7 @@ protected:
     void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
     void onVerifyAlgorithm(IStrategy *strategy, const  IClient *client, const Algorithm &algorithm, bool *ok) override;
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     void onRequest(IApiRequest &request) override;
 #   endif
 
@@ -82,7 +82,7 @@ private:
     void setJob(IClient *client, const Job &job, bool donate);
     void tick();
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     void getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const;
     void getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const;
 #   endif
@@ -95,7 +95,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_NETWORK_H */
+#endif /* xmlcore_NETWORK_H */

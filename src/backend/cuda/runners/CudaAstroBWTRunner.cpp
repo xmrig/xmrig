@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@
 #include "base/net/stratum/Job.h"
 
 
-constexpr uint32_t xmrig::CudaAstroBWTRunner::BWT_DATA_STRIDE;
+constexpr uint32_t xmlcore::CudaAstroBWTRunner::BWT_DATA_STRIDE;
 
 
-xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData &data) :
+xmlcore::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData &data) :
     CudaBaseRunner(index, data)
 {
     m_intensity = m_data.thread.threads() * m_data.thread.blocks();
@@ -40,13 +40,13 @@ xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData
 }
 
 
-bool xmrig::CudaAstroBWTRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
+bool xmlcore::CudaAstroBWTRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce)
 {
     return callWrapper(CudaLib::astroBWTHash(m_ctx, startNonce, m_target, rescount, resnonce));
 }
 
 
-bool xmrig::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
+bool xmlcore::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
 {
     if (!CudaBaseRunner::set(job, blob)) {
         return false;
@@ -56,7 +56,7 @@ bool xmrig::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
 }
 
 
-size_t xmrig::CudaAstroBWTRunner::roundSize() const
+size_t xmlcore::CudaAstroBWTRunner::roundSize() const
 {
     constexpr uint32_t STAGE1_SIZE = 147253;
     constexpr uint32_t STAGE1_DATA_STRIDE = (STAGE1_SIZE + 256 + 255) & ~255U;
@@ -69,7 +69,7 @@ size_t xmrig::CudaAstroBWTRunner::roundSize() const
 }
 
 
-size_t xmrig::CudaAstroBWTRunner::processedHashes() const
+size_t xmlcore::CudaAstroBWTRunner::processedHashes() const
 {
     return CudaLib::deviceInt(m_ctx, CudaLib::DeviceAstroBWTProcessedHashes);
 }

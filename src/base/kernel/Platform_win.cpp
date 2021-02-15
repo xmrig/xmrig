@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ static inline OSVERSIONINFOEX winOsVersion()
 }
 
 
-char *xmrig::Platform::createUserAgent()
+char *xmlcore::Platform::createUserAgent()
 {
     const auto osver = winOsVersion();
     constexpr const size_t max = 256;
@@ -69,8 +69,8 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-#ifndef XMRIG_FEATURE_HWLOC
-bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
+#ifndef xmlcore_FEATURE_HWLOC
+bool xmlcore::Platform::setThreadAffinity(uint64_t cpu_id)
 {
     const bool result = (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0);
     Sleep(1);
@@ -79,7 +79,7 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 #endif
 
 
-void xmrig::Platform::setProcessPriority(int priority)
+void xmlcore::Platform::setProcessPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -116,7 +116,7 @@ void xmrig::Platform::setProcessPriority(int priority)
 }
 
 
-void xmrig::Platform::setThreadPriority(int priority)
+void xmlcore::Platform::setThreadPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -153,7 +153,7 @@ void xmrig::Platform::setThreadPriority(int priority)
 }
 
 
-bool xmrig::Platform::isOnBatteryPower()
+bool xmlcore::Platform::isOnBatteryPower()
 {
     SYSTEM_POWER_STATUS st;
     if (GetSystemPowerStatus(&st)) {

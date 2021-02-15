@@ -1,5 +1,5 @@
 if (WITH_ASTROBWT)
-    add_definitions(/DXMRIG_ALGO_ASTROBWT)
+    add_definitions(/Dxmlcore_ALGO_ASTROBWT)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/astrobwt/AstroBWT.h
@@ -9,7 +9,7 @@ if (WITH_ASTROBWT)
         src/crypto/astrobwt/AstroBWT.cpp
     )
 
-    if (XMRIG_ARM)
+    if (xmlcore_ARM)
         list(APPEND HEADERS_CRYPTO
             src/crypto/astrobwt/salsa20_ref/ecrypt-config.h
             src/crypto/astrobwt/salsa20_ref/ecrypt-machine.h
@@ -41,5 +41,5 @@ if (WITH_ASTROBWT)
         )
     endif()
 else()
-    remove_definitions(/DXMRIG_ALGO_ASTROBWT)
+    remove_definitions(/Dxmlcore_ALGO_ASTROBWT)
 endif()

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  */
 
 
-#ifdef XMRIG_HWLOC_DEBUG
+#ifdef xmlcore_HWLOC_DEBUG
 #   include <uv.h>
 #endif
 
@@ -37,7 +37,7 @@
 #include "base/io/log/Log.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 uint32_t HwlocCpuInfo::m_features = 0;
@@ -93,7 +93,7 @@ static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t typ
 }
 
 
-#ifndef XMRIG_ARM
+#ifndef xmlcore_ARM
 static inline std::vector<hwloc_obj_t> findByType(hwloc_obj_t obj, hwloc_obj_type_t type)
 {
     std::vector<hwloc_obj_t> out;
@@ -120,15 +120,15 @@ static inline bool isCacheExclusive(hwloc_obj_t obj)
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HwlocCpuInfo::HwlocCpuInfo()
+xmlcore::HwlocCpuInfo::HwlocCpuInfo()
 {
     hwloc_topology_init(&m_topology);
     hwloc_topology_load(m_topology);
 
-#   ifdef XMRIG_HWLOC_DEBUG
+#   ifdef xmlcore_HWLOC_DEBUG
 #   if defined(UV_VERSION_HEX) && UV_VERSION_HEX >= 0x010c00
     {
         char env[520] = { 0 };
@@ -187,7 +187,7 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
         }
     }
 
-#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+#   if defined(xmlcore_OS_MACOS) && defined(xmlcore_ARM)
     if (L2() == 33554432U && m_cores == 8 && m_cores == m_threads) {
         m_cache[2] = 16777216U;
     }
@@ -195,13 +195,13 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
 }
 
 
-xmrig::HwlocCpuInfo::~HwlocCpuInfo()
+xmlcore::HwlocCpuInfo::~HwlocCpuInfo()
 {
     hwloc_topology_destroy(m_topology);
 }
 
 
-bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+bool xmlcore::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 {
     if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
         return false;
@@ -215,15 +215,15 @@ bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 }
 
 
-xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
+xmlcore::CpuThreads xmlcore::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (algorithm == Algorithm::ASTROBWT_DERO) {
         return allThreads(algorithm, limit);
     }
 #   endif
 
-#   ifndef XMRIG_ARM
+#   ifndef xmlcore_ARM
     if (L2() == 0 && L3() == 0) {
         return BasicCpuInfo::threads(algorithm, limit);
     }
@@ -271,7 +271,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
 }
 
 
-xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, uint32_t limit) const
+xmlcore::CpuThreads xmlcore::HwlocCpuInfo::allThreads(const Algorithm &algorithm, uint32_t limit) const
 {
     CpuThreads threads;
     threads.reserve(m_threads);
@@ -289,9 +289,9 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, ui
 
 
 
-void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
+void xmlcore::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
-#   ifndef XMRIG_ARM
+#   ifndef xmlcore_ARM
     constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
@@ -336,13 +336,13 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
-#   ifdef XMRIG_ALGO_CN_PICO
+#   ifdef xmlcore_ALGO_CN_PICO
     if (intensity && algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
         intensity = 2;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (extra == 0 && algorithm.l2() > 0) {
         cacheHashes = std::min<size_t>(std::max<size_t>(L2 / algorithm.l2(), cores.size()), cacheHashes);
     }
@@ -411,7 +411,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 }
 
 
-void xmrig::HwlocCpuInfo::setThreads(size_t threads)
+void xmlcore::HwlocCpuInfo::setThreads(size_t threads)
 {
     if (!threads) {
         return;

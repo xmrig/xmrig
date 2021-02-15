@@ -27,7 +27,7 @@
     <info name="HostName" value="host"/>
     <info name="Architecture" value="x86_64"/>
     <info name="hwlocVersion" value="1.11.2"/>
-    <info name="ProcessName" value="xmrig"/>
+    <info name="ProcessName" value="xmlcore"/>
     <distances nbobjs="8" relative_depth="2" latency_base="10.000000">
       <latency value="1.000000"/>
       <latency value="1.600000"/>

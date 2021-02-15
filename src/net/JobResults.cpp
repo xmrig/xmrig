@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,20 +33,20 @@
 #include "net/JobResult.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "crypto/randomx/randomx.h"
 #   include "crypto/rx/Rx.h"
 #   include "crypto/rx/RxVm.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "crypto/kawpow/KPCache.h"
 #   include "crypto/kawpow/KPHash.h"
 #endif
 
 
-#if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+#if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
 #   include "base/tools/Baton.h"
 #   include "crypto/cn/CnCtx.h"
 #   include "crypto/cn/CnHash.h"
@@ -62,10 +62,10 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
-#if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+#if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
 class JobBundle
 {
 public:
@@ -119,7 +119,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
     alignas(16) uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
-#       ifdef XMRIG_ALGO_RANDOMX
+#       ifdef xmlcore_ALGO_RANDOMX
         RxDataset *dataset = Rx::dataset(bundle.job, 0);
         if (dataset == nullptr) {
             errors += bundle.nonces.size();
@@ -145,7 +145,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
         errors += bundle.nonces.size(); // TODO ARGON2
     }
     else if (algorithm.family() == Algorithm::KAWPOW) {
-#       ifdef XMRIG_ALGO_KAWPOW
+#       ifdef xmlcore_ALGO_KAWPOW
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
@@ -198,7 +198,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 class JobResultsPrivate : public IAsyncListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(JobResultsPrivate)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(JobResultsPrivate)
 
     inline JobResultsPrivate(IJobResultListener *listener, bool hwAES) :
         m_hwAES(hwAES),
@@ -220,7 +220,7 @@ public:
     }
 
 
-#   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+#   if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
     inline void submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
@@ -236,7 +236,7 @@ protected:
 
 
 private:
-#   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+#   if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
     inline void submit()
     {
         std::list<JobBundle> bundles;
@@ -299,7 +299,7 @@ private:
     std::mutex m_mutex;
     std::shared_ptr<Async> m_async;
 
-#   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
+#   if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
     std::list<JobBundle> m_bundles;
 #   endif
 };
@@ -308,16 +308,16 @@ private:
 static JobResultsPrivate *handler = nullptr;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-void xmrig::JobResults::done(const Job &job)
+void xmlcore::JobResults::done(const Job &job)
 {
     submit(JobResult(job));
 }
 
 
-void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)
+void xmlcore::JobResults::setListener(IJobResultListener *listener, bool hwAES)
 {
     assert(handler == nullptr);
 
@@ -325,7 +325,7 @@ void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)
 }
 
 
-void xmrig::JobResults::stop()
+void xmlcore::JobResults::stop()
 {
     assert(handler != nullptr);
 
@@ -335,13 +335,13 @@ void xmrig::JobResults::stop()
 }
 
 
-void xmrig::JobResults::submit(const Job &job, uint32_t nonce, const uint8_t *result)
+void xmlcore::JobResults::submit(const Job &job, uint32_t nonce, const uint8_t *result)
 {
     submit(JobResult(job, nonce, result));
 }
 
 
-void xmrig::JobResults::submit(const JobResult &result)
+void xmlcore::JobResults::submit(const JobResult &result)
 {
     assert(handler != nullptr);
 
@@ -351,8 +351,8 @@ void xmrig::JobResults::submit(const JobResult &result)
 }
 
 
-#if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-void xmrig::JobResults::submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
+#if defined(xmlcore_FEATURE_OPENCL) || defined(xmlcore_FEATURE_CUDA)
+void xmlcore::JobResults::submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
 {
     if (handler) {
         handler->submit(job, results, count, device_index);

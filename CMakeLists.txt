@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.12)
-project(xmrig)
+SET(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE} CACHE STRING "" FORCE)
+project(xmlcore)
 
 option(WITH_HWLOC           "Enable hwloc support" ON)
 option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
@@ -88,7 +89,7 @@ set(HEADERS_CRYPTO
     src/crypto/common/VirtualMemory.h
    )
 
-if (XMRIG_ARM)
+if (xmlcore_ARM)
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
 else()
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)
@@ -107,7 +108,7 @@ set(SOURCES
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
     src/Summary.cpp
-    src/xmrig.cpp
+    src/xmlcore.cpp
    )
 
 set(SOURCES_CRYPTO
@@ -134,7 +135,7 @@ if (WITH_HWLOC)
         )
 endif()
 
-if (XMRIG_OS_WIN)
+if (xmlcore_OS_WIN)
     list(APPEND SOURCES_OS
         res/app.rc
         src/App_win.cpp
@@ -142,7 +143,7 @@ if (XMRIG_OS_WIN)
         )
 
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
-elseif (XMRIG_OS_APPLE)
+elseif (xmlcore_OS_APPLE)
     list(APPEND SOURCES_OS
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
@@ -155,21 +156,21 @@ else()
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
-    if (XMRIG_OS_ANDROID)
+    if (xmlcore_OS_ANDROID)
         set(EXTRA_LIBS pthread rt dl log)
-    elseif (XMRIG_OS_LINUX)
+    elseif (xmlcore_OS_LINUX)
         list(APPEND SOURCES_OS
             src/crypto/common/LinuxMemory.h
             src/crypto/common/LinuxMemory.cpp
             )
 
         set(EXTRA_LIBS pthread rt dl)
-    elseif (XMRIG_OS_FREEBSD)
+    elseif (xmlcore_OS_FREEBSD)
         set(EXTRA_LIBS kvm pthread)
     endif()
 endif()
 
-add_definitions(-DXMRIG_MINER_PROJECT -DXMRIG_JSON_SINGLE_LINE_ARRAY)
+add_definitions(-Dxmlcore_MINER_PROJECT -Dxmlcore_JSON_SINGLE_LINE_ARRAY)
 add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE -D_FILE_OFFSET_BITS=64)
 
 find_package(UV REQUIRED)
@@ -183,19 +184,19 @@ include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
 
 if (WITH_CN_LITE)
-    add_definitions(/DXMRIG_ALGO_CN_LITE)
+    add_definitions(/Dxmlcore_ALGO_CN_LITE)
 endif()
 
 if (WITH_CN_HEAVY)
-    add_definitions(/DXMRIG_ALGO_CN_HEAVY)
+    add_definitions(/Dxmlcore_ALGO_CN_HEAVY)
 endif()
 
 if (WITH_CN_PICO)
-    add_definitions(/DXMRIG_ALGO_CN_PICO)
+    add_definitions(/Dxmlcore_ALGO_CN_PICO)
 endif()
 
 if (WITH_EMBEDDED_CONFIG)
-    add_definitions(/DXMRIG_FEATURE_EMBEDDED_CONFIG)
+    add_definitions(/Dxmlcore_FEATURE_EMBEDDED_CONFIG)
 endif()
 
 include(src/hw/api/api.cmake)
@@ -209,8 +210,8 @@ if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)
 endif()
 
-add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY} ${ETHASH_LIBRARY})
+add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${xmlcore_ASM_SOURCES})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${xmlcore_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY} ${ETHASH_LIBRARY})
 
 if (WIN32)
     add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/bin/WinRing0/WinRing0x64.sys" $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>)

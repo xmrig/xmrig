@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,24 +36,24 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kCRLF      = "\r\n";
 static const char *kUserAgent = "user-agent";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HttpResponse::HttpResponse(uint64_t id, int statusCode) :
+xmlcore::HttpResponse::HttpResponse(uint64_t id, int statusCode) :
     m_id(id),
     m_statusCode(statusCode)
 {
 }
 
 
-bool xmrig::HttpResponse::isAlive() const
+bool xmlcore::HttpResponse::isAlive() const
 {
     auto ctx = HttpContext::get(m_id);
 
@@ -61,7 +61,7 @@ bool xmrig::HttpResponse::isAlive() const
 }
 
 
-void xmrig::HttpResponse::end(const char *data, size_t size)
+void xmlcore::HttpResponse::end(const char *data, size_t size)
 {
     if (!isAlive()) {
         return;

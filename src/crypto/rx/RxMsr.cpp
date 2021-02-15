@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include <set>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 bool RxMsr::m_cacheQoS      = false;
@@ -42,7 +42,7 @@ bool RxMsr::m_initialized   = false;
 static MsrItems items;
 
 
-#ifdef XMRIG_OS_WIN
+#ifdef xmlcore_OS_WIN
 static constexpr inline int32_t get_cpu(int32_t)        { return -1; }
 #else
 static constexpr inline int32_t get_cpu(int32_t cpu)    { return cpu; }
@@ -125,10 +125,10 @@ static bool wrmsr(const MsrItems &preset, const std::vector<CpuThread> &threads,
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::RxMsr::init(const RxConfig &config, const std::vector<CpuThread> &threads)
+bool xmlcore::RxMsr::init(const RxConfig &config, const std::vector<CpuThread> &threads)
 {
     if (isInitialized()) {
         return isEnabled();
@@ -162,7 +162,7 @@ bool xmrig::RxMsr::init(const RxConfig &config, const std::vector<CpuThread> &th
 }
 
 
-void xmrig::RxMsr::destroy()
+void xmlcore::RxMsr::destroy()
 {
     if (!isInitialized()) {
         return;

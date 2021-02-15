@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "base/io/json/Json.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kAffinity    = "affinity";
@@ -83,7 +83,7 @@ static inline int64_t getAffinity(uint64_t index, int64_t affinity)
 }
 
 
-xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
+xmlcore::CpuThreads::CpuThreads(const rapidjson::Value &value)
 {
     if (value.IsArray()) {
         for (auto &v : value.GetArray()) {
@@ -110,7 +110,7 @@ xmrig::CpuThreads::CpuThreads(const rapidjson::Value &value)
 }
 
 
-xmrig::CpuThreads::CpuThreads(size_t count, uint32_t intensity)
+xmlcore::CpuThreads::CpuThreads(size_t count, uint32_t intensity)
 {
     m_data.reserve(count);
 
@@ -120,7 +120,7 @@ xmrig::CpuThreads::CpuThreads(size_t count, uint32_t intensity)
 }
 
 
-bool xmrig::CpuThreads::isEqual(const CpuThreads &other) const
+bool xmlcore::CpuThreads::isEqual(const CpuThreads &other) const
 {
     if (isEmpty() && other.isEmpty()) {
         return true;
@@ -130,7 +130,7 @@ bool xmrig::CpuThreads::isEqual(const CpuThreads &other) const
 }
 
 
-rapidjson::Value xmrig::CpuThreads::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::CpuThreads::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();

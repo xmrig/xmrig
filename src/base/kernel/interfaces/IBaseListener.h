@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_IBASELISTENER_H
-#define XMRIG_IBASELISTENER_H
+#ifndef xmlcore_IBASELISTENER_H
+#define xmlcore_IBASELISTENER_H
 
 
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Config;
@@ -32,7 +32,7 @@ class Config;
 class IBaseListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(IBaseListener)
+    xmlcore_DISABLE_COPY_MOVE(IBaseListener)
 
     IBaseListener()             = default;
     virtual ~IBaseListener()    = default;
@@ -41,7 +41,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif // XMRIG_IBASELISTENER_H
+#endif // xmlcore_IBASELISTENER_H

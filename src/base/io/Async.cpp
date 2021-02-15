@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2015-2020 libuv project contributors.
  * Copyright (c) 2020      cohcho      <https://github.com/cohcho>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "base/tools/Handle.h"
 
 
-// since 2019.05.16, Version 1.29.0 (Stable) https://github.com/xmrig/xmrig/pull/1889
+// since 2019.05.16, Version 1.29.0 (Stable) https://github.com/xmlcore/xmlcore/pull/1889
 #if (UV_VERSION_MAJOR >= 1) && (UV_VERSION_MINOR >= 29) && defined(__linux__)
 #include <sys/eventfd.h>
 #include <sys/poll.h>
@@ -31,7 +31,7 @@
 #include <cstdlib>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct uv_async_t: uv_poll_t
@@ -109,11 +109,11 @@ static int uv_async_send(uv_async_t *async)
 
 
 
-} // namespace xmrig
+} // namespace xmlcore
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class AsyncPrivate
@@ -125,10 +125,10 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::Async::Async(Callback callback) : d_ptr(new AsyncPrivate())
+xmlcore::Async::Async(Callback callback) : d_ptr(new AsyncPrivate())
 {
     d_ptr->callback     = std::move(callback);
     d_ptr->async        = new uv_async_t;
@@ -138,7 +138,7 @@ xmrig::Async::Async(Callback callback) : d_ptr(new AsyncPrivate())
 }
 
 
-xmrig::Async::Async(IAsyncListener *listener) : d_ptr(new AsyncPrivate())
+xmlcore::Async::Async(IAsyncListener *listener) : d_ptr(new AsyncPrivate())
 {
     d_ptr->listener     = listener;
     d_ptr->async        = new uv_async_t;
@@ -148,7 +148,7 @@ xmrig::Async::Async(IAsyncListener *listener) : d_ptr(new AsyncPrivate())
 }
 
 
-xmrig::Async::~Async()
+xmlcore::Async::~Async()
 {
     Handle::close(d_ptr->async);
 
@@ -156,7 +156,7 @@ xmrig::Async::~Async()
 }
 
 
-void xmrig::Async::send()
+void xmlcore::Async::send()
 {
     uv_async_send(d_ptr->async);
 }

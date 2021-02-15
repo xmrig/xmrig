@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct AlgoName
@@ -70,7 +70,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight/rwz",           "cn/rwz",           Algorithm::CN_RWZ          },
     { "cryptonight/zls",           "cn/zls",           Algorithm::CN_ZLS          },
     { "cryptonight/double",        "cn/double",        Algorithm::CN_DOUBLE       },
-#   ifdef XMRIG_ALGO_CN_LITE
+#   ifdef xmlcore_ALGO_CN_LITE
     { "cryptonight-lite/0",        "cn-lite/0",        Algorithm::CN_LITE_0       },
     { "cryptonight-lite/1",        "cn-lite/1",        Algorithm::CN_LITE_1       },
     { "cryptonight-lite",          "cn-lite",          Algorithm::CN_LITE_1       },
@@ -79,7 +79,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-aeonv7",        nullptr,            Algorithm::CN_LITE_1       },
     { "cryptonight_lite_v7",       nullptr,            Algorithm::CN_LITE_1       },
 #   endif
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     { "cryptonight-heavy/0",       "cn-heavy/0",       Algorithm::CN_HEAVY_0      },
     { "cryptonight-heavy",         "cn-heavy",         Algorithm::CN_HEAVY_0      },
     { "cryptonight_heavy",         nullptr,            Algorithm::CN_HEAVY_0      },
@@ -88,7 +88,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-heavy/tube",    "cn-heavy/tube",    Algorithm::CN_HEAVY_TUBE   },
     { "cryptonight-bittube2",      nullptr,            Algorithm::CN_HEAVY_TUBE   },
 #   endif
-#   ifdef XMRIG_ALGO_CN_PICO
+#   ifdef xmlcore_ALGO_CN_PICO
     { "cryptonight-pico",          "cn-pico",          Algorithm::CN_PICO_0       },
     { "cryptonight-pico/trtl",     "cn-pico/trtl",     Algorithm::CN_PICO_0       },
     { "cryptonight-turtle",        "cn-trtl",          Algorithm::CN_PICO_0       },
@@ -99,7 +99,7 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight-talleo",        "cn-talleo",        Algorithm::CN_PICO_TLO     },
     { "cryptonight_talleo",        "cn_talleo",        Algorithm::CN_PICO_TLO     },
 #   endif
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     { "randomx/0",                 "rx/0",             Algorithm::RX_0            },
     { "randomx/test",              "rx/test",          Algorithm::RX_0            },
     { "RandomX",                   "rx",               Algorithm::RX_0            },
@@ -112,18 +112,18 @@ static AlgoName const algorithm_names[] = {
     { "randomx/keva",              "rx/keva",          Algorithm::RX_KEVA         },
     { "RandomKEVA",                nullptr,            Algorithm::RX_KEVA         },
 #   endif
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     { "argon2/chukwa",             nullptr,            Algorithm::AR2_CHUKWA      },
     { "chukwa",                    nullptr,            Algorithm::AR2_CHUKWA      },
     { "argon2/chukwav2",           nullptr,            Algorithm::AR2_CHUKWA_V2   },
     { "chukwav2",                  nullptr,            Algorithm::AR2_CHUKWA_V2   },
     { "argon2/wrkz",               nullptr,            Algorithm::AR2_WRKZ        },
 #   endif
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     { "astrobwt",                  nullptr,            Algorithm::ASTROBWT_DERO   },
     { "astrobwt/dero",             nullptr,            Algorithm::ASTROBWT_DERO   },
 #   endif
-#   ifdef XMRIG_ALGO_KAWPOW
+#   ifdef xmlcore_ALGO_KAWPOW
     { "kawpow",                    nullptr,            Algorithm::KAWPOW_RVN      },
     { "kawpow/rvn",                nullptr,            Algorithm::KAWPOW_RVN      },
 #   endif
@@ -132,16 +132,16 @@ static AlgoName const algorithm_names[] = {
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-xmrig::Algorithm::Algorithm(const rapidjson::Value &value) :
+xmlcore::Algorithm::Algorithm(const rapidjson::Value &value) :
     m_id(parse(value.GetString()))
 {
 }
 
 
-rapidjson::Value xmrig::Algorithm::toJSON() const
+rapidjson::Value xmlcore::Algorithm::toJSON() const
 {
     using namespace rapidjson;
 
@@ -149,15 +149,15 @@ rapidjson::Value xmrig::Algorithm::toJSON() const
 }
 
 
-rapidjson::Value xmrig::Algorithm::toJSON(rapidjson::Document &) const
+rapidjson::Value xmlcore::Algorithm::toJSON(rapidjson::Document &) const
 {
     return toJSON();
 }
 
 
-size_t xmrig::Algorithm::l2() const
+size_t xmlcore::Algorithm::l2() const
 {
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     switch (m_id) {
     case RX_0:
     case RX_SFX:
@@ -179,7 +179,7 @@ size_t xmrig::Algorithm::l2() const
 }
 
 
-size_t xmrig::Algorithm::l3() const
+size_t xmlcore::Algorithm::l3() const
 {
     constexpr size_t oneMiB = 0x100000;
 
@@ -203,7 +203,7 @@ size_t xmrig::Algorithm::l3() const
         break;
     }
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (f == RANDOM_X) {
         switch (m_id) {
         case RX_0:
@@ -223,7 +223,7 @@ size_t xmrig::Algorithm::l3() const
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     if (f == ARGON2) {
         switch (m_id) {
         case AR2_CHUKWA:
@@ -241,7 +241,7 @@ size_t xmrig::Algorithm::l3() const
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (f == ASTROBWT) {
         switch (m_id) {
         case ASTROBWT_DERO:
@@ -253,7 +253,7 @@ size_t xmrig::Algorithm::l3() const
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_KAWPOW
+#   ifdef xmlcore_ALGO_KAWPOW
     if (f == KAWPOW) {
         switch (m_id) {
         case KAWPOW_RVN:
@@ -269,21 +269,21 @@ size_t xmrig::Algorithm::l3() const
 }
 
 
-uint32_t xmrig::Algorithm::maxIntensity() const
+uint32_t xmlcore::Algorithm::maxIntensity() const
 {
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (family() == RANDOM_X) {
         return 1;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     if (family() == ARGON2) {
         return 1;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (family() == ASTROBWT) {
         return 1;
     }
@@ -293,7 +293,7 @@ uint32_t xmrig::Algorithm::maxIntensity() const
 }
 
 
-xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
+xmlcore::Algorithm::Family xmlcore::Algorithm::family(Id id)
 {
     switch (id) {
     case CN_0:
@@ -310,26 +310,26 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_CCX:
         return CN;
 
-#   ifdef XMRIG_ALGO_CN_LITE
+#   ifdef xmlcore_ALGO_CN_LITE
     case CN_LITE_0:
     case CN_LITE_1:
         return CN_LITE;
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     case CN_HEAVY_0:
     case CN_HEAVY_TUBE:
     case CN_HEAVY_XHV:
         return CN_HEAVY;
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_PICO
+#   ifdef xmlcore_ALGO_CN_PICO
     case CN_PICO_0:
     case CN_PICO_TLO:
         return CN_PICO;
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     case RX_0:
     case RX_WOW:
     case RX_ARQ:
@@ -338,19 +338,19 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
         return RANDOM_X;
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     case AR2_CHUKWA:
     case AR2_CHUKWA_V2:
     case AR2_WRKZ:
         return ARGON2;
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     case ASTROBWT_DERO:
         return ASTROBWT;
 #   endif
 
-#   ifdef XMRIG_ALGO_KAWPOW
+#   ifdef xmlcore_ALGO_KAWPOW
     case KAWPOW_RVN:
         return KAWPOW;
 #   endif
@@ -363,7 +363,7 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
 }
 
 
-xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
+xmlcore::Algorithm::Id xmlcore::Algorithm::parse(const char *name)
 {
     if (name == nullptr || strlen(name) < 1) {
         return INVALID;
@@ -379,7 +379,7 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
 }
 
 
-const char *xmrig::Algorithm::name(bool shortName) const
+const char *xmlcore::Algorithm::name(bool shortName) const
 {
     for (const AlgoName &item : algorithm_names) {
         if (item.id == m_id) {

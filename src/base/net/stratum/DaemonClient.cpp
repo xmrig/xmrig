@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@
 #include <cassert>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 static const char *kBlocktemplateBlob       = "blocktemplate_blob";
 static const char *kGetHeight               = "/getheight";
@@ -59,7 +59,7 @@ static constexpr size_t kBlobReserveSize    = 8;
 }
 
 
-xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
+xmlcore::DaemonClient::DaemonClient(int id, IClientListener *listener) :
     BaseClient(id, listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
@@ -67,13 +67,13 @@ xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
 }
 
 
-xmrig::DaemonClient::~DaemonClient()
+xmlcore::DaemonClient::~DaemonClient()
 {
     delete m_timer;
 }
 
 
-bool xmrig::DaemonClient::disconnect()
+bool xmlcore::DaemonClient::disconnect()
 {
     if (m_state != UnconnectedState) {
         setState(UnconnectedState);
@@ -83,9 +83,9 @@ bool xmrig::DaemonClient::disconnect()
 }
 
 
-bool xmrig::DaemonClient::isTLS() const
+bool xmlcore::DaemonClient::isTLS() const
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     return m_pool.isTLS();
 #   else
     return false;
@@ -93,7 +93,7 @@ bool xmrig::DaemonClient::isTLS() const
 }
 
 
-int64_t xmrig::DaemonClient::submit(const JobResult &result)
+int64_t xmlcore::DaemonClient::submit(const JobResult &result)
 {
     if (result.jobId != (m_blocktemplate.data() + m_blocktemplate.size() - 32)) {
         return -1;
@@ -101,7 +101,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplate.data();
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     memcpy(data + 78, result.nonce, 8);
 #   else
     Cvt::toHex(data + 78, 8, reinterpret_cast<const uint8_t *>(&result.nonce), 4);
@@ -121,7 +121,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     JsonRequest::create(doc, m_sequence, "submitblock", params);
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id, 0);
 #   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
@@ -131,7 +131,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 }
 
 
-void xmrig::DaemonClient::connect()
+void xmlcore::DaemonClient::connect()
 {
     if ((m_pool.algorithm() == Algorithm::ASTROBWT_DERO) || (m_pool.coin() == Coin::DERO)) {
         m_apiVersion = API_DERO;
@@ -142,14 +142,14 @@ void xmrig::DaemonClient::connect()
 }
 
 
-void xmrig::DaemonClient::connect(const Pool &pool)
+void xmlcore::DaemonClient::connect(const Pool &pool)
 {
     setPool(pool);
     connect();
 }
 
 
-void xmrig::DaemonClient::onHttpData(const HttpData &data)
+void xmlcore::DaemonClient::onHttpData(const HttpData &data)
 {
     if (data.status != HTTP_STATUS_OK) {
         return retry();
@@ -157,7 +157,7 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
 
     m_ip = data.ip().c_str();
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     m_tlsVersion     = data.tlsVersion();
     m_tlsFingerprint = data.tlsFingerprint();
 #   endif
@@ -196,7 +196,7 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
 }
 
 
-void xmrig::DaemonClient::onTimer(const Timer *)
+void xmlcore::DaemonClient::onTimer(const Timer *)
 {
     if (m_state == ConnectingState) {
         getBlockTemplate();
@@ -212,13 +212,13 @@ void xmrig::DaemonClient::onTimer(const Timer *)
 }
 
 
-bool xmrig::DaemonClient::isOutdated(uint64_t height, const char *hash) const
+bool xmlcore::DaemonClient::isOutdated(uint64_t height, const char *hash) const
 {
     return m_job.height() != height || m_prevHash != hash;
 }
 
 
-bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
+bool xmlcore::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 {
     Job job(false, m_pool.algorithm(), String());
 
@@ -264,7 +264,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 }
 
 
-bool xmrig::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
+bool xmlcore::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     if (id == -1) {
         return false;
@@ -306,7 +306,7 @@ bool xmrig::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &resu
 }
 
 
-int64_t xmrig::DaemonClient::getBlockTemplate()
+int64_t xmlcore::DaemonClient::getBlockTemplate()
 {
     using namespace rapidjson;
     Document doc(kObjectType);
@@ -327,7 +327,7 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 }
 
 
-int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
+int64_t xmlcore::DaemonClient::rpcSend(const rapidjson::Document &doc)
 {
     FetchRequest req(HTTP_POST, m_pool.host(), m_pool.port(), kJsonRPC, doc, m_pool.isTLS(), isQuiet());
     fetch(tag(), std::move(req), m_httpListener);
@@ -336,7 +336,7 @@ int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
 }
 
 
-void xmrig::DaemonClient::retry()
+void xmlcore::DaemonClient::retry()
 {
     m_failures++;
     m_listener->onClose(this, static_cast<int>(m_failures));
@@ -354,14 +354,14 @@ void xmrig::DaemonClient::retry()
 }
 
 
-void xmrig::DaemonClient::send(const char *path)
+void xmlcore::DaemonClient::send(const char *path)
 {
     FetchRequest req(HTTP_GET, m_pool.host(), m_pool.port(), path, m_pool.isTLS(), isQuiet());
     fetch(tag(), std::move(req), m_httpListener);
 }
 
 
-void xmrig::DaemonClient::setState(SocketState state)
+void xmlcore::DaemonClient::setState(SocketState state)
 {
     assert(m_state != state);
     if (m_state == state) {

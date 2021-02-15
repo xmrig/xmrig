@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2020      cohcho      <https://github.com/cohcho>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_LINEREADER_H
-#define XMRIG_LINEREADER_H
+#ifndef xmlcore_LINEREADER_H
+#define xmlcore_LINEREADER_H
 
 
 #include "base/tools/Object.h"
@@ -27,7 +27,7 @@
 #include <cstddef>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ILineListener;
@@ -36,7 +36,7 @@ class ILineListener;
 class LineReader
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(LineReader)
+    xmlcore_DISABLE_COPY_MOVE(LineReader)
 
     LineReader() = default;
     LineReader(ILineListener *listener) : m_listener(listener) {}
@@ -57,7 +57,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_NETBUFFER_H */
+#endif /* xmlcore_NETBUFFER_H */

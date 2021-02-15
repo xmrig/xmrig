@@ -4,7 +4,7 @@
   <object type="Machine" os_index="0" cpuset="0x0000ffff" complete_cpuset="0x0000ffff" allowed_cpuset="0x0000ffff" nodeset="0x00000001" complete_nodeset="0x00000001" allowed_nodeset="0x00000001" gp_index="1">
     <info name="Backend" value="Windows"/>
     <info name="hwlocVersion" value="2.0.4"/>
-    <info name="ProcessName" value="xmrig.exe"/>
+    <info name="ProcessName" value="xmlcore.exe"/>
     <object type="Package" cpuset="0x0000ffff" complete_cpuset="0x0000ffff" nodeset="0x00000001" complete_nodeset="0x00000001" gp_index="2">
       <info name="CPUVendor" value="AuthenticAMD"/>
       <info name="CPUFamilyNumber" value="23"/>

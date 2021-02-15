@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright 2008-2018 Advanced Micro Devices, Inc.
  * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore                        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ADLLIB_H
-#define XMRIG_ADLLIB_H
+#ifndef xmlcore_ADLLIB_H
+#define xmlcore_ADLLIB_H
 
 
 #include "backend/opencl/wrappers/AdlHealth.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class OclDevice;
@@ -51,7 +51,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_ADLLIB_H */
+#endif /* xmlcore_ADLLIB_H */

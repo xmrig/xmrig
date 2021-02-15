@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "base/net/tls/TlsGen.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const char *TlsConfig::kCert            = "cert";
@@ -49,7 +49,7 @@ static const char *kTLSv1_2             = "TLSv1.2";
 static const char *kTLSv1_3             = "TLSv1.3";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 /**
@@ -59,7 +59,7 @@ static const char *kTLSv1_3             = "TLSv1.3";
  * "ciphersuites" set list of available TLSv1.3 ciphersuites.
  * "dhparam"      load DH parameters for DHE ciphers from file.
  */
-xmrig::TlsConfig::TlsConfig(const rapidjson::Value &value)
+xmlcore::TlsConfig::TlsConfig(const rapidjson::Value &value)
 {
     if (value.IsObject()) {
         m_enabled = Json::getBool(value, kEnabled, m_enabled);
@@ -86,7 +86,7 @@ xmrig::TlsConfig::TlsConfig(const rapidjson::Value &value)
             generate();
         }
     }
-#   ifdef XMRIG_FORCE_TLS
+#   ifdef xmlcore_FORCE_TLS
     else if (value.IsNull()) {
         generate();
     }
@@ -100,7 +100,7 @@ xmrig::TlsConfig::TlsConfig(const rapidjson::Value &value)
 }
 
 
-bool xmrig::TlsConfig::generate(const char *commonName)
+bool xmlcore::TlsConfig::generate(const char *commonName)
 {
     TlsGen gen;
 
@@ -122,7 +122,7 @@ bool xmrig::TlsConfig::generate(const char *commonName)
 }
 
 
-rapidjson::Value xmrig::TlsConfig::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::TlsConfig::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -165,7 +165,7 @@ rapidjson::Value xmrig::TlsConfig::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::TlsConfig::setProtocols(const char *protocols)
+void xmlcore::TlsConfig::setProtocols(const char *protocols)
 {
     const std::vector<String> vec = String(protocols).split(' ');
 
@@ -186,7 +186,7 @@ void xmrig::TlsConfig::setProtocols(const char *protocols)
 }
 
 
-void xmrig::TlsConfig::setProtocols(const rapidjson::Value &protocols)
+void xmlcore::TlsConfig::setProtocols(const rapidjson::Value &protocols)
 {
     m_protocols = 0;
 

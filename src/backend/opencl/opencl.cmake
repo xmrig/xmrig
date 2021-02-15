@@ -1,4 +1,4 @@
-if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
+if (BUILD_STATIC AND xmlcore_OS_UNIX AND WITH_OPENCL)
     message(WARNING "OpenCL backend is not compatible with static build, use -DWITH_OPENCL=OFF to suppress this warning")
 
     set(WITH_OPENCL OFF)
@@ -7,7 +7,7 @@ endif()
 if (WITH_OPENCL)
     add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
     add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
-    add_definitions(/DXMRIG_FEATURE_OPENCL)
+    add_definitions(/Dxmlcore_FEATURE_OPENCL)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
@@ -147,34 +147,34 @@ if (WITH_OPENCL)
     endif()
 
     if (WITH_STRICT_CACHE)
-        add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+        add_definitions(/Dxmlcore_STRICT_OPENCL_CACHE)
     else()
-        remove_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
+        remove_definitions(/Dxmlcore_STRICT_OPENCL_CACHE)
     endif()
 
     if (WITH_INTERLEAVE_DEBUG_LOG)
-        add_definitions(/DXMRIG_INTERLEAVE_DEBUG)
+        add_definitions(/Dxmlcore_INTERLEAVE_DEBUG)
     endif()
 
-    if (WITH_ADL AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
-        add_definitions(/DXMRIG_FEATURE_ADL)
+    if (WITH_ADL AND (xmlcore_OS_WIN OR xmlcore_OS_LINUX))
+        add_definitions(/Dxmlcore_FEATURE_ADL)
 
         list(APPEND HEADERS_BACKEND_OPENCL
              src/backend/opencl/wrappers/AdlHealth.h
              src/backend/opencl/wrappers/AdlLib.h
              )
 
-        if (XMRIG_OS_WIN)
+        if (xmlcore_OS_WIN)
             list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib.cpp)
         else()
             list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/AdlLib_linux.cpp)
         endif()
     else()
-       remove_definitions(/DXMRIG_FEATURE_ADL)
+       remove_definitions(/Dxmlcore_FEATURE_ADL)
     endif()
 else()
-    remove_definitions(/DXMRIG_FEATURE_OPENCL)
-    remove_definitions(/DXMRIG_FEATURE_ADL)
+    remove_definitions(/Dxmlcore_FEATURE_OPENCL)
+    remove_definitions(/Dxmlcore_FEATURE_ADL)
 
     set(HEADERS_BACKEND_OPENCL "")
     set(SOURCES_BACKEND_OPENCL "")

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include "3rdparty/rapidjson/prettywriter.h"
 
 
-bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
+bool xmlcore::Json::get(const char *fileName, rapidjson::Document &doc)
 {
     std::ifstream ifs(fileName, std::ios_base::in | std::ios_base::binary);
     if (!ifs.is_open()) {
@@ -41,7 +41,7 @@ bool xmrig::Json::get(const char *fileName, rapidjson::Document &doc)
 }
 
 
-bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
+bool xmlcore::Json::save(const char *fileName, const rapidjson::Document &doc)
 {
     std::ofstream ofs(fileName, std::ios_base::out | std::ios_base::binary | std::ios_base::trunc);
     if (!ofs.is_open()) {
@@ -51,7 +51,7 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     rapidjson::OStreamWrapper osw(ofs);
     rapidjson::PrettyWriter<rapidjson::OStreamWrapper> writer(osw);
 
-#   ifdef XMRIG_JSON_SINGLE_LINE_ARRAY
+#   ifdef xmlcore_JSON_SINGLE_LINE_ARRAY
     writer.SetFormatOptions(rapidjson::kFormatSingleLineArray);
 #   endif
 
@@ -61,7 +61,7 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
 }
 
 
-bool xmrig::Json::convertOffset(const char* fileName, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s)
+bool xmlcore::Json::convertOffset(const char* fileName, size_t offset, size_t& line, size_t& pos, std::vector<std::string>& s)
 {
     std::ifstream ifs(fileName, std::ios_base::in | std::ios_base::binary);
     if (!ifs.is_open()) {

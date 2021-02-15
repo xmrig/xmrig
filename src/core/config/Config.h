@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONFIG_H
-#define XMRIG_CONFIG_H
+#ifndef xmlcore_CONFIG_H
+#define xmlcore_CONFIG_H
 
 
 #include <cstdint>
@@ -35,7 +35,7 @@
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ConfigPrivate;
@@ -48,21 +48,21 @@ class RxConfig;
 class Config : public BaseConfig
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(Config);
+    xmlcore_DISABLE_COPY_MOVE(Config);
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     static const char *kOcl;
 #   endif
 
-#   ifdef XMRIG_FEATURE_CUDA
+#   ifdef xmlcore_FEATURE_CUDA
     static const char *kCuda;
 #   endif
 
-#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
+#   if defined(xmlcore_FEATURE_NVML) || defined (xmlcore_FEATURE_ADL)
     static const char *kHealthPrintTime;
 #   endif
 
-#   ifdef XMRIG_FEATURE_DMI
+#   ifdef xmlcore_FEATURE_DMI
     static const char *kDMI;
 #   endif
 
@@ -71,25 +71,25 @@ public:
 
     const CpuConfig &cpu() const;
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     const OclConfig &cl() const;
 #   endif
 
-#   ifdef XMRIG_FEATURE_CUDA
+#   ifdef xmlcore_FEATURE_CUDA
     const CudaConfig &cuda() const;
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     const RxConfig &rx() const;
 #   endif
 
-#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
+#   if defined(xmlcore_FEATURE_NVML) || defined (xmlcore_FEATURE_ADL)
     uint32_t healthPrintTime() const;
 #   else
     uint32_t healthPrintTime() const        { return 0; }
 #   endif
 
-#   ifdef XMRIG_FEATURE_DMI
+#   ifdef xmlcore_FEATURE_DMI
     bool isDMI() const;
 #   else
     static constexpr inline bool isDMI()    { return false; }
@@ -104,7 +104,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CONFIG_H */
+#endif /* xmlcore_CONFIG_H */

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLWORKER_H
-#define XMRIG_OCLWORKER_H
+#ifndef xmlcore_OCLWORKER_H
+#define xmlcore_OCLWORKER_H
 
 
 #include "backend/common/GpuWorker.h"
@@ -27,7 +27,7 @@
 #include "net/JobResult.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IOclRunner;
@@ -37,7 +37,7 @@ class Job;
 class OclWorker : public GpuWorker
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(OclWorker)
 
     OclWorker(size_t id, const OclLaunchData &data);
 
@@ -64,7 +64,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_OCLWORKER_H */
+#endif /* xmlcore_OCLWORKER_H */

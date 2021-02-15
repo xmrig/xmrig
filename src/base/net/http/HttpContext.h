@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 
 
-#ifndef XMRIG_HTTPCONTEXT_H
-#define XMRIG_HTTPCONTEXT_H
+#ifndef xmlcore_HTTPCONTEXT_H
+#define xmlcore_HTTPCONTEXT_H
 
 
 using http_parser           = struct http_parser;
@@ -37,7 +37,7 @@ using uv_tcp_t              = struct uv_tcp_s;
 #include <memory>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IHttpListener;
@@ -46,7 +46,7 @@ class IHttpListener;
 class HttpContext : public HttpData
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpContext)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpContext)
 
     HttpContext(int parser_type, const std::weak_ptr<IHttpListener> &listener);
     ~HttpContext() override;
@@ -91,8 +91,8 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPCONTEXT_H
+#endif // xmlcore_HTTPCONTEXT_H
 

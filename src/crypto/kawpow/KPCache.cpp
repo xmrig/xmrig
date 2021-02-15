@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include "crypto/common/VirtualMemory.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 std::mutex KPCache::s_cacheMutex;
@@ -176,4 +176,4 @@ void KPCache::calculate_fast_mod_data(uint32_t divisor, uint32_t& reciprocal, ui
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore

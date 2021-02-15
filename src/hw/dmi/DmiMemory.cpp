@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
  * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #include <regex>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kIdFormat = "DIMM_{}{}";
@@ -127,11 +127,11 @@ static uint64_t dmi_memory_device_speed(uint16_t code1, uint32_t code2)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 
-xmrig::DmiMemory::DmiMemory(dmi_header *h)
+xmlcore::DmiMemory::DmiMemory(dmi_header *h)
 {
     if (h->length < 0x15) {
         return;
@@ -187,20 +187,20 @@ xmrig::DmiMemory::DmiMemory(dmi_header *h)
 }
 
 
-const char *xmrig::DmiMemory::formFactor() const
+const char *xmlcore::DmiMemory::formFactor() const
 {
     return dmi_memory_device_form_factor(m_formFactor);
 }
 
 
-const char *xmrig::DmiMemory::type() const
+const char *xmlcore::DmiMemory::type() const
 {
     return dmi_memory_device_type(m_type);
 }
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::DmiMemory::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::DmiMemory::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -225,7 +225,7 @@ rapidjson::Value xmrig::DmiMemory::toJSON(rapidjson::Document &doc) const
 #endif
 
 
-void xmrig::DmiMemory::setId(const char *slot, const char *bank)
+void xmlcore::DmiMemory::setId(const char *slot, const char *bank)
 {
     m_slot = slot;
     m_bank = bank;

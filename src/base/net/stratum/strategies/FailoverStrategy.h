@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_FAILOVERSTRATEGY_H
-#define XMRIG_FAILOVERSTRATEGY_H
+#ifndef xmlcore_FAILOVERSTRATEGY_H
+#define xmlcore_FAILOVERSTRATEGY_H
 
 
 #include <vector>
@@ -29,7 +29,7 @@
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Client;
@@ -39,7 +39,7 @@ class IStrategyListener;
 class FailoverStrategy : public IStrategy, public IClientListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(FailoverStrategy)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(FailoverStrategy)
 
     FailoverStrategy(const std::vector<Pool> &pool, int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
     FailoverStrategy(int retryPause, int retries, IStrategyListener *listener, bool quiet = false);
@@ -79,6 +79,6 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
-#endif /* XMRIG_FAILOVERSTRATEGY_H */
+#endif /* xmlcore_FAILOVERSTRATEGY_H */

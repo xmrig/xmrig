@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include "base/io/log/Log.h"
 
 
-const char *xmrig::Tags::config()
+const char *xmlcore::Tags::config()
 {
     static const char *tag = CYAN_BG_BOLD(WHITE_BOLD_S " config  ");
 
@@ -29,7 +29,7 @@ const char *xmrig::Tags::config()
 }
 
 
-const char *xmrig::Tags::network()
+const char *xmlcore::Tags::network()
 {
     static const char *tag = BLUE_BG_BOLD(WHITE_BOLD_S " net     ");
 
@@ -37,7 +37,7 @@ const char *xmrig::Tags::network()
 }
 
 
-const char *xmrig::Tags::signal()
+const char *xmlcore::Tags::signal()
 {
     static const char *tag = YELLOW_BG_BOLD(WHITE_BOLD_S " signal  ");
 
@@ -45,8 +45,8 @@ const char *xmrig::Tags::signal()
 }
 
 
-#ifdef XMRIG_MINER_PROJECT
-const char *xmrig::Tags::cpu()
+#ifdef xmlcore_MINER_PROJECT
+const char *xmlcore::Tags::cpu()
 {
     static const char *tag = CYAN_BG_BOLD(WHITE_BOLD_S " cpu     ");
 
@@ -54,7 +54,7 @@ const char *xmrig::Tags::cpu()
 }
 
 
-const char *xmrig::Tags::miner()
+const char *xmlcore::Tags::miner()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " miner   ");
 
@@ -62,8 +62,8 @@ const char *xmrig::Tags::miner()
 }
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-const char *xmrig::Tags::randomx()
+#ifdef xmlcore_ALGO_RANDOMX
+const char *xmlcore::Tags::randomx()
 {
     static const char *tag = BLUE_BG(WHITE_BOLD_S " randomx ") " ";
 
@@ -72,8 +72,8 @@ const char *xmrig::Tags::randomx()
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
-const char *xmrig::Tags::bench()
+#ifdef xmlcore_FEATURE_BENCHMARK
+const char *xmlcore::Tags::bench()
 {
     static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " bench   ");
 
@@ -83,8 +83,8 @@ const char *xmrig::Tags::bench()
 #endif
 
 
-#ifdef XMRIG_PROXY_PROJECT
-const char *xmrig::Tags::proxy()
+#ifdef xmlcore_PROXY_PROJECT
+const char *xmlcore::Tags::proxy()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " proxy   ");
 
@@ -93,8 +93,8 @@ const char *xmrig::Tags::proxy()
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
-const char *xmrig::Tags::nvidia()
+#ifdef xmlcore_FEATURE_CUDA
+const char *xmlcore::Tags::nvidia()
 {
     static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " nvidia  ");
 
@@ -103,8 +103,8 @@ const char *xmrig::Tags::nvidia()
 #endif
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const char *xmrig::Tags::opencl()
+#ifdef xmlcore_FEATURE_OPENCL
+const char *xmlcore::Tags::opencl()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " opencl  ");
 
@@ -113,8 +113,8 @@ const char *xmrig::Tags::opencl()
 #endif
 
 
-#ifdef XMRIG_FEATURE_PROFILING
-const char* xmrig::Tags::profiler()
+#ifdef xmlcore_FEATURE_PROFILING
+const char* xmlcore::Tags::profiler()
 {
     static const char* tag = CYAN_BG_BOLD(WHITE_BOLD_S " profile ");
 

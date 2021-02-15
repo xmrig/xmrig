@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,14 +23,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CRYPTONIGHT_TEST_H
-#define XMRIG_CRYPTONIGHT_TEST_H
+#ifndef xmlcore_CRYPTONIGHT_TEST_H
+#define xmlcore_CRYPTONIGHT_TEST_H
 
 
 #include <cstdint>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const static uint8_t test_input[380] = {
@@ -259,7 +259,7 @@ const static uint8_t test_output_double[160] = {
     0x5E, 0x2E, 0xC1, 0x80, 0x89, 0x39, 0xB3, 0x54, 0x39, 0x52, 0x0E, 0x69, 0x3D, 0xF6, 0xC5, 0x4A
 };
 
-#ifdef XMRIG_ALGO_CN_LITE
+#ifdef xmlcore_ALGO_CN_LITE
 // "cn-lite/0"
 const static uint8_t test_output_v0_lite[160] = {
     0x36, 0x95, 0xB4, 0xB5, 0x3B, 0xB0, 0x03, 0x58, 0xB0, 0xAD, 0x38, 0xDC, 0x16, 0x0F, 0xEB, 0x9E,
@@ -291,7 +291,7 @@ const static uint8_t test_output_v1_lite[160] = {
 #endif
 
 
-#ifdef XMRIG_ALGO_CN_HEAVY
+#ifdef xmlcore_ALGO_CN_HEAVY
 // "cn-heavy/0"
 const static uint8_t test_output_v0_heavy[160] = {
     0x99, 0x83, 0xF2, 0x1B, 0xDF, 0x20, 0x10, 0xA8, 0xD7, 0x07, 0xBB, 0x2F, 0x14, 0xD7, 0x86, 0x64,
@@ -338,7 +338,7 @@ const static uint8_t test_output_tube_heavy[160] = {
 #endif
 
 
-#ifdef XMRIG_ALGO_CN_PICO
+#ifdef xmlcore_ALGO_CN_PICO
 // "cn-pico/trtl"
 const static uint8_t test_output_pico_trtl[160] = {
     0x08, 0xF4, 0x21, 0xD7, 0x83, 0x31, 0x17, 0x30, 0x0E, 0xDA, 0x66, 0xE9, 0x8F, 0x4A, 0x25, 0x69,
@@ -370,7 +370,7 @@ const static uint8_t test_output_pico_tlo[160] = {
 #endif
 
 
-#ifdef XMRIG_ALGO_ARGON2
+#ifdef xmlcore_ALGO_ARGON2
 // "argon2/chukwa"
 const static uint8_t argon2_chukwa_test_out[160] = {
     0xC1, 0x58, 0xA1, 0x05, 0xAE, 0x75, 0xC7, 0x56, 0x1C, 0xFD, 0x02, 0x90, 0x83, 0xA4, 0x7A, 0x87,
@@ -415,7 +415,7 @@ const static uint8_t argon2_wrkz_test_out[160] = {
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 // "astrobwt"
 const static uint8_t astrobwt_dero_test_out[160] = {
     0x7E, 0x88, 0x44, 0xF2, 0xD6, 0xB7, 0xA4, 0x34, 0x98, 0xFE, 0x6D, 0x22, 0x65, 0x27, 0x68, 0x90,
@@ -433,7 +433,7 @@ const static uint8_t astrobwt_dero_test_out[160] = {
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_CRYPTONIGHT_TEST_H */
+#endif /* xmlcore_CRYPTONIGHT_TEST_H */

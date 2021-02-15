@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include "backend/opencl/OclConfig.h"
 
 
-xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device, int64_t affinity) :
+xmlcore::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorithm, const OclConfig &config, const OclPlatform &platform, const OclThread &thread, const OclDevice &device, int64_t affinity) :
     algorithm(algorithm),
     cache(config.isCacheEnabled()),
     affinity(affinity),
@@ -41,14 +41,14 @@ xmrig::OclLaunchData::OclLaunchData(const Miner *miner, const Algorithm &algorit
 }
 
 
-bool xmrig::OclLaunchData::isEqual(const OclLaunchData &other) const
+bool xmlcore::OclLaunchData::isEqual(const OclLaunchData &other) const
 {
     return (other.algorithm == algorithm &&
             other.thread    == thread);
 }
 
 
-const char *xmrig::OclLaunchData::tag()
+const char *xmlcore::OclLaunchData::tag()
 {
     return ocl_tag();
 }

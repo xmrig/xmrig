@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -8,7 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,15 +24,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MEMORYPOOL_H
-#define XMRIG_MEMORYPOOL_H
+#ifndef xmlcore_MEMORYPOOL_H
+#define xmlcore_MEMORYPOOL_H
 
 
 #include "backend/common/interfaces/IMemoryPool.h"
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class VirtualMemory;
@@ -41,7 +41,7 @@ class VirtualMemory;
 class MemoryPool : public IMemoryPool
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(MemoryPool)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(MemoryPool)
 
     MemoryPool(size_t size, bool hugePages, uint32_t node = 0);
     ~MemoryPool() override;
@@ -59,8 +59,8 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
 
-#endif /* XMRIG_MEMORYPOOL_H */
+#endif /* xmlcore_MEMORYPOOL_H */

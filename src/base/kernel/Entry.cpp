@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,15 +27,15 @@
 #include <uv.h>
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 #   include <hwloc.h>
 #endif
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 #   include "backend/opencl/wrappers/OclLib.h"
 #   include "backend/opencl/wrappers/OclPlatform.h"
 #endif
@@ -46,7 +46,7 @@
 #include "version.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static int showVersion()
@@ -79,7 +79,7 @@ static int showVersion()
 
     printf("\nlibuv/%s\n", uv_version_string());
 
-#   if defined(XMRIG_FEATURE_TLS)
+#   if defined(xmlcore_FEATURE_TLS)
     {
 #       if defined(LIBRESSL_VERSION_TEXT)
         printf("LibreSSL/%s\n", LIBRESSL_VERSION_TEXT + 9);
@@ -90,7 +90,7 @@ static int showVersion()
     }
 #   endif
 
-#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(xmlcore_FEATURE_HWLOC)
 #   if defined(HWLOC_VERSION)
     printf("hwloc/%s\n", HWLOC_VERSION);
 #   elif HWLOC_API_VERSION >= 0x20000
@@ -104,7 +104,7 @@ static int showVersion()
 }
 
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 static int exportTopology(const Process &)
 {
     const String path = Process::location(Process::ExeLocation, "topology.xml");
@@ -131,10 +131,10 @@ static int exportTopology(const Process &)
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::Entry::Id xmrig::Entry::get(const Process &process)
+xmlcore::Entry::Id xmlcore::Entry::get(const Process &process)
 {
     const Arguments &args = process.arguments();
     if (args.hasArg("-h") || args.hasArg("--help")) {
@@ -145,13 +145,13 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
          return Version;
     }
 
-#   ifdef XMRIG_FEATURE_HWLOC
+#   ifdef xmlcore_FEATURE_HWLOC
     if (args.hasArg("--export-topology")) {
         return Topo;
     }
 #   endif
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     if (args.hasArg("--print-platforms")) {
         return Platforms;
     }
@@ -161,7 +161,7 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
 }
 
 
-int xmrig::Entry::exec(const Process &process, Id id)
+int xmlcore::Entry::exec(const Process &process, Id id)
 {
     switch (id) {
     case Usage:
@@ -171,12 +171,12 @@ int xmrig::Entry::exec(const Process &process, Id id)
     case Version:
         return showVersion();
 
-#   ifdef XMRIG_FEATURE_HWLOC
+#   ifdef xmlcore_FEATURE_HWLOC
     case Topo:
         return exportTopology(process);
 #   endif
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     case Platforms:
         if (OclLib::init()) {
             OclPlatform::print();

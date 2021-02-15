@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUBACKEND_H
-#define XMRIG_CPUBACKEND_H
+#ifndef xmlcore_CPUBACKEND_H
+#define xmlcore_CPUBACKEND_H
 
 
 #include "backend/common/interfaces/IBackend.h"
@@ -33,7 +33,7 @@
 #include <utility>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Controller;
@@ -44,7 +44,7 @@ class Miner;
 class CpuBackend : public IBackend
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CpuBackend)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(CpuBackend)
 
     CpuBackend(Controller *controller);
     ~CpuBackend() override;
@@ -65,12 +65,12 @@ protected:
     void start(IWorker *worker, bool ready) override;
     void stop() override;
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const override;
     void handleRequest(IApiRequest &request) override;
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     Benchmark *benchmark() const override;
     void printBenchProgress() const override;
 #   endif
@@ -80,7 +80,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CPUBACKEND_H */
+#endif /* xmlcore_CPUBACKEND_H */

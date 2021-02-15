@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,7 +27,7 @@
 #include <cstdio>
 
 
-xmrig::ConsoleLog::ConsoleLog(const Title &title)
+xmlcore::ConsoleLog::ConsoleLog(const Title &title)
 {
     if (!isSupported()) {
         Log::setColors(false);
@@ -43,7 +43,7 @@ xmrig::ConsoleLog::ConsoleLog(const Title &title)
 
     uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
 
-#   ifdef XMRIG_OS_WIN
+#   ifdef xmlcore_OS_WIN
     m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
@@ -62,19 +62,19 @@ xmrig::ConsoleLog::ConsoleLog(const Title &title)
 }
 
 
-xmrig::ConsoleLog::~ConsoleLog()
+xmlcore::ConsoleLog::~ConsoleLog()
 {
     Handle::close(m_tty);
 }
 
 
-void xmrig::ConsoleLog::print(uint64_t, int, const char *line, size_t, size_t size, bool colors)
+void xmlcore::ConsoleLog::print(uint64_t, int, const char *line, size_t, size_t size, bool colors)
 {
     if (!m_tty || Log::isColors() != colors) {
         return;
     }
 
-#   ifdef XMRIG_OS_WIN
+#   ifdef xmlcore_OS_WIN
     uv_buf_t buf = uv_buf_init(const_cast<char *>(line), static_cast<unsigned int>(size));
 
     if (!isWritable()) {
@@ -91,15 +91,15 @@ void xmrig::ConsoleLog::print(uint64_t, int, const char *line, size_t, size_t si
 }
 
 
-bool xmrig::ConsoleLog::isSupported() const
+bool xmlcore::ConsoleLog::isSupported() const
 {
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;
 }
 
 
-#ifdef XMRIG_OS_WIN
-bool xmrig::ConsoleLog::isWritable() const
+#ifdef xmlcore_OS_WIN
+bool xmlcore::ConsoleLog::isWritable() const
 {
     if (!m_stream || uv_is_writable(m_stream) != 1) {
         return false;

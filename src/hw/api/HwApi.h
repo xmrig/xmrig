@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HWAPI_H
-#define XMRIG_HWAPI_H
+#ifndef xmlcore_HWAPI_H
+#define xmlcore_HWAPI_H
 
 
 #include "base/api/interfaces/IApiListener.h"
@@ -26,7 +26,7 @@
 #include <memory>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct DmiReader;
@@ -41,13 +41,13 @@ protected:
     void onRequest(IApiRequest &request) override;
 
 private:
-#   ifdef XMRIG_FEATURE_DMI
+#   ifdef xmlcore_FEATURE_DMI
     std::shared_ptr<DmiReader> m_dmi;
 #   endif
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_HWAPI_H */
+#endif /* xmlcore_HWAPI_H */

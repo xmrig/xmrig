@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik              <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler                   <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones              <https://github.com/lucasjones>
@@ -10,7 +10,7 @@
  * Copyright 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
  * Copyright 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
  * Copyright 2018-2020 SChernykh                <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore                    <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 struct cryptonight_ctx;
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 namespace astrobwt {
@@ -48,4 +48,4 @@ template<>
 void single_hash<Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t);
 
 
-}} // namespace xmrig::astrobwt
+}} // namespace xmlcore::astrobwt

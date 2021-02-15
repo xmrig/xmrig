@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,15 +22,15 @@
 #include "base/tools/String.h"
 
 
-#ifdef XMRIG_FEATURE_DMI
+#ifdef xmlcore_FEATURE_DMI
 #   include "hw/dmi/DmiReader.h"
 #endif
 
 
-void xmrig::HwApi::onRequest(IApiRequest &request)
+void xmlcore::HwApi::onRequest(IApiRequest &request)
 {
     if (request.method() == IApiRequest::METHOD_GET) {
-#       ifdef XMRIG_FEATURE_DMI
+#       ifdef xmlcore_FEATURE_DMI
         if (request.url() == "/2/dmi") {
             if (!m_dmi) {
                 m_dmi = std::make_shared<DmiReader>();

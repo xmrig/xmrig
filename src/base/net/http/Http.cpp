@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include "base/io/json/Json.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const char *Http::kEnabled    = "enabled";
@@ -42,13 +42,13 @@ const char *Http::kToken      = "access-token";
 }
 
 
-xmrig::Http::Http() :
+xmlcore::Http::Http() :
     m_host(kLocalhost)
 {
 }
 
 
-bool xmrig::Http::isEqual(const Http &other) const
+bool xmlcore::Http::isEqual(const Http &other) const
 {
     return other.m_enabled    == m_enabled &&
            other.m_restricted == m_restricted &&
@@ -58,7 +58,7 @@ bool xmrig::Http::isEqual(const Http &other) const
 }
 
 
-rapidjson::Value xmrig::Http::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::Http::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -75,7 +75,7 @@ rapidjson::Value xmrig::Http::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::Http::load(const rapidjson::Value &http)
+void xmlcore::Http::load(const rapidjson::Value &http)
 {
     if (!http.IsObject()) {
         return;
@@ -90,7 +90,7 @@ void xmrig::Http::load(const rapidjson::Value &http)
 }
 
 
-void xmrig::Http::setPort(int port)
+void xmlcore::Http::setPort(int port)
 {
     if (port >= 0 && port <= 65536) {
         m_port = static_cast<uint16_t>(port);

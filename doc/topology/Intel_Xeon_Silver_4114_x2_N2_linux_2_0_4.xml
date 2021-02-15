@@ -24,7 +24,7 @@
     <info name="HostName" value="sd-146751"/>
     <info name="Architecture" value="x86_64"/>
     <info name="hwlocVersion" value="2.0.4"/>
-    <info name="ProcessName" value="xmrig"/>
+    <info name="ProcessName" value="xmlcore"/>
     <object type="Package" os_index="0" cpuset="0x00000055,0x55555555" complete_cpuset="0x00000055,0x55555555" nodeset="0x00000001" complete_nodeset="0x00000001" gp_index="2">
       <info name="CPUVendor" value="GenuineIntel"/>
       <info name="CPUFamilyNumber" value="6"/>

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@
 #include "version.h"
 
 
-#ifdef XMRIG_FEATURE_HTTP
+#ifdef xmlcore_FEATURE_HTTP
 #   include "base/api/Httpd.h"
 #endif
 
@@ -43,7 +43,7 @@
 #include <thread>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static rapidjson::Value getResources(rapidjson::Document &doc)
@@ -77,10 +77,10 @@ static rapidjson::Value getResources(rapidjson::Document &doc)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::Api::Api(Base *base) :
+xmlcore::Api::Api(Base *base) :
     m_base(base),
     m_timestamp(Chrono::currentMSecsSinceEpoch())
 {
@@ -90,15 +90,15 @@ xmrig::Api::Api(Base *base) :
 }
 
 
-xmrig::Api::~Api()
+xmlcore::Api::~Api()
 {
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     delete m_httpd;
 #   endif
 }
 
 
-void xmrig::Api::request(const HttpData &req)
+void xmlcore::Api::request(const HttpData &req)
 {
     HttpApiRequest request(req, m_base->config()->http().isRestricted());
 
@@ -106,26 +106,26 @@ void xmrig::Api::request(const HttpData &req)
 }
 
 
-void xmrig::Api::start()
+void xmlcore::Api::start()
 {
     genWorkerId(m_base->config()->apiWorkerId());
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     m_httpd = new Httpd(m_base);
     m_httpd->start();
 #   endif
 }
 
 
-void xmrig::Api::stop()
+void xmlcore::Api::stop()
 {
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     m_httpd->stop();
 #   endif
 }
 
 
-void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
+void xmlcore::Api::onConfigChanged(Config *config, Config *previousConfig)
 {
     if (config->apiId() != previousConfig->apiId()) {
         genId(config->apiId());
@@ -137,7 +137,7 @@ void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Api::exec(IApiRequest &request)
+void xmlcore::Api::exec(IApiRequest &request)
 {
     using namespace rapidjson;
 
@@ -154,25 +154,25 @@ void xmrig::Api::exec(IApiRequest &request)
         reply.AddMember("resources",  getResources(request.doc()), allocator);
 
         Value features(kArrayType);
-#       ifdef XMRIG_FEATURE_API
+#       ifdef xmlcore_FEATURE_API
         features.PushBack("api", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_ASM
+#       ifdef xmlcore_FEATURE_ASM
         features.PushBack("asm", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_HTTP
+#       ifdef xmlcore_FEATURE_HTTP
         features.PushBack("http", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_HWLOC
+#       ifdef xmlcore_FEATURE_HWLOC
         features.PushBack("hwloc", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_TLS
+#       ifdef xmlcore_FEATURE_TLS
         features.PushBack("tls", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_OPENCL
+#       ifdef xmlcore_FEATURE_OPENCL
         features.PushBack("opencl", allocator);
 #       endif
-#       ifdef XMRIG_FEATURE_CUDA
+#       ifdef xmlcore_FEATURE_CUDA
         features.PushBack("cuda", allocator);
 #       endif
         reply.AddMember("features", features, allocator);
@@ -190,7 +190,7 @@ void xmrig::Api::exec(IApiRequest &request)
 }
 
 
-void xmrig::Api::genId(const String &id)
+void xmlcore::Api::genId(const String &id)
 {
     memset(m_id, 0, sizeof(m_id));
 
@@ -230,7 +230,7 @@ void xmrig::Api::genId(const String &id)
 }
 
 
-void xmrig::Api::genWorkerId(const String &id)
+void xmlcore::Api::genWorkerId(const String &id)
 {
     m_workerId = Env::expand(id);
     if (m_workerId.isEmpty()) {

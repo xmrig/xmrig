@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,18 +36,18 @@
 #include "3rdparty/rapidjson/document.h"
 
 
-#if defined(XMRIG_OS_UNIX)
-namespace xmrig {
+#if defined(xmlcore_OS_UNIX)
+namespace xmlcore {
 
 extern String cpu_name_arm();
 
-} // namespace xmrig
-#elif defined(XMRIG_OS_MACOS)
+} // namespace xmlcore
+#elif defined(xmlcore_OS_MACOS)
 #   include <sys/sysctl.h>
 #endif
 
 
-xmrig::BasicCpuInfo::BasicCpuInfo() :
+xmlcore::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency())
 {
     m_units.resize(m_threads);
@@ -55,7 +55,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         m_units[i] = i;
     }
 
-#   ifdef XMRIG_ARMv8
+#   ifdef xmlcore_ARMv8
     memcpy(m_brand, "ARMv8", 5);
 #   else
     memcpy(m_brand, "ARMv7", 5);
@@ -69,33 +69,33 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   endif
 #   endif
 
-#   if defined(XMRIG_OS_UNIX)
+#   if defined(xmlcore_OS_UNIX)
     auto name = cpu_name_arm();
     if (!name.isNull()) {
         strncpy(m_brand, name, sizeof(m_brand) - 1);
     }
 
     m_flags.set(FLAG_PDPE1GB, std::ifstream("/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages").good());
-#   elif defined(XMRIG_OS_MACOS)
+#   elif defined(xmlcore_OS_MACOS)
     size_t buflen = sizeof(m_brand);
     sysctlbyname("machdep.cpu.brand_string", &m_brand, &buflen, nullptr, 0);
 #   endif
 }
 
 
-const char *xmrig::BasicCpuInfo::backend() const
+const char *xmlcore::BasicCpuInfo::backend() const
 {
     return "basic/1";
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
+xmlcore::CpuThreads xmlcore::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
 {
     return CpuThreads(threads());
 }
 
 
-rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -117,7 +117,7 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("msr",        "none", allocator);
     out.AddMember("assembly",   "none", allocator);
 
-#   ifdef XMRIG_ARMv8
+#   ifdef xmlcore_ARMv8
     out.AddMember("arch", "aarch64", allocator);
 #   else
     out.AddMember("arch", "aarch32", allocator);

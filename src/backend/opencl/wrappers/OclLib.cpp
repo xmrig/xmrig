@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 
 
 #if defined(OCL_DEBUG_REFERENCE_COUNT)
-#   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
+#   define LOG_REFS(x, ...) xmlcore::Log::print(xmlcore::Log::WARNING, x, ##__VA_ARGS__)
 #else
 #   define LOG_REFS(x, ...)
 #endif
@@ -162,7 +162,7 @@ static unloadPlatformCompiler_t pUnloadPlatformCompiler                     = nu
 #define DLSYM(x) if (uv_dlsym(&oclLib, k##x, reinterpret_cast<void**>(&p##x)) == -1) { throw std::runtime_error(kSymbolNotFound); }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 bool OclLib::m_initialized = false;
 bool OclLib::m_ready       = false;
@@ -184,10 +184,10 @@ static String getOclString(FUNC fn, OBJ obj, PARAM param)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::OclLib::init(const char *fileName)
+bool xmlcore::OclLib::init(const char *fileName)
 {
     if (!m_initialized) {
         m_loader      = fileName == nullptr ? defaultLoader() : Env::expand(fileName);
@@ -199,19 +199,19 @@ bool xmrig::OclLib::init(const char *fileName)
 }
 
 
-const char *xmrig::OclLib::lastError()
+const char *xmlcore::OclLib::lastError()
 {
     return uv_dlerror(&oclLib);
 }
 
 
-void xmrig::OclLib::close()
+void xmlcore::OclLib::close()
 {
     uv_dlclose(&oclLib);
 }
 
 
-bool xmrig::OclLib::load()
+bool xmlcore::OclLib::load()
 {
     try {
         DLSYM(CreateCommandQueue);
@@ -259,7 +259,7 @@ bool xmrig::OclLib::load()
 }
 
 
-xmrig::String xmrig::OclLib::defaultLoader()
+xmlcore::String xmlcore::OclLib::defaultLoader()
 {
 #   if defined(__APPLE__)
     return "/System/Library/Frameworks/OpenCL.framework/OpenCL";
@@ -271,7 +271,7 @@ xmrig::String xmrig::OclLib::defaultLoader()
 }
 
 
-cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret) noexcept
+cl_command_queue xmlcore::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret) noexcept
 {
     cl_command_queue result;
 
@@ -298,7 +298,7 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 }
 
 
-cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device)
+cl_command_queue xmlcore::OclLib::createCommandQueue(cl_context context, cl_device_id device)
 {
     cl_int ret;
     cl_command_queue queue = createCommandQueue(context, device, &ret);
@@ -310,7 +310,7 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 }
 
 
-cl_context xmrig::OclLib::createContext(const cl_context_properties *properties, cl_uint num_devices, const cl_device_id *devices, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *user_data, cl_int *errcode_ret)
+cl_context xmlcore::OclLib::createContext(const cl_context_properties *properties, cl_uint num_devices, const cl_device_id *devices, void (CL_CALLBACK *pfn_notify)(const char *, const void *, size_t, void *), void *user_data, cl_int *errcode_ret)
 {
     assert(pCreateContext != nullptr);
 
@@ -325,14 +325,14 @@ cl_context xmrig::OclLib::createContext(const cl_context_properties *properties,
 }
 
 
-cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
+cl_context xmlcore::OclLib::createContext(const std::vector<cl_device_id> &ids)
 {
     cl_int ret;
     return createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
 }
 
 
-cl_int xmrig::OclLib::buildProgram(cl_program program, cl_uint num_devices, const cl_device_id *device_list, const char *options, void (CL_CALLBACK *pfn_notify)(cl_program program, void *user_data), void *user_data) noexcept
+cl_int xmlcore::OclLib::buildProgram(cl_program program, cl_uint num_devices, const cl_device_id *device_list, const char *options, void (CL_CALLBACK *pfn_notify)(cl_program program, void *user_data), void *user_data) noexcept
 {
     assert(pBuildProgram != nullptr);
 
@@ -345,7 +345,7 @@ cl_int xmrig::OclLib::buildProgram(cl_program program, cl_uint num_devices, cons
 }
 
 
-cl_int xmrig::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
+cl_int xmlcore::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_kernel kernel, cl_uint work_dim, const size_t *global_work_offset, const size_t *global_work_size, const size_t *local_work_size, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueNDRangeKernel != nullptr);
 
@@ -353,7 +353,7 @@ cl_int xmrig::OclLib::enqueueNDRangeKernel(cl_command_queue command_queue, cl_ke
 }
 
 
-cl_int xmrig::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
+cl_int xmlcore::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueReadBuffer != nullptr);
 
@@ -366,7 +366,7 @@ cl_int xmrig::OclLib::enqueueReadBuffer(cl_command_queue command_queue, cl_mem b
 }
 
 
-cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
+cl_int xmlcore::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr, cl_uint num_events_in_wait_list, const cl_event *event_wait_list, cl_event *event) noexcept
 {
     assert(pEnqueueWriteBuffer != nullptr);
 
@@ -379,7 +379,7 @@ cl_int xmrig::OclLib::enqueueWriteBuffer(cl_command_queue command_queue, cl_mem 
 }
 
 
-cl_int xmrig::OclLib::finish(cl_command_queue command_queue) noexcept
+cl_int xmlcore::OclLib::finish(cl_command_queue command_queue) noexcept
 {
     assert(pFinish != nullptr);
 
@@ -387,19 +387,19 @@ cl_int xmrig::OclLib::finish(cl_command_queue command_queue) noexcept
 }
 
 
-cl_int xmrig::OclLib::getCommandQueueInfo(cl_command_queue command_queue, cl_command_queue_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getCommandQueueInfo(cl_command_queue command_queue, cl_command_queue_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     return pGetCommandQueueInfo(command_queue, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
-cl_int xmrig::OclLib::getContextInfo(cl_context context, cl_context_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getContextInfo(cl_context context, cl_context_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     return pGetContextInfo(context, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
-cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices) noexcept
+cl_int xmlcore::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type device_type, cl_uint num_entries, cl_device_id *devices, cl_uint *num_devices) noexcept
 {
     assert(pGetDeviceIDs != nullptr);
 
@@ -407,7 +407,7 @@ cl_int xmrig::OclLib::getDeviceIDs(cl_platform_id platform, cl_device_type devic
 }
 
 
-cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetDeviceInfo != nullptr);
 
@@ -420,19 +420,19 @@ cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_na
 }
 
 
-cl_int xmrig::OclLib::getKernelInfo(cl_kernel kernel, cl_kernel_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getKernelInfo(cl_kernel kernel, cl_kernel_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     return pGetKernelInfo(kernel, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
-cl_int xmrig::OclLib::getMemObjectInfo(cl_mem memobj, cl_mem_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getMemObjectInfo(cl_mem memobj, cl_mem_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     return pGetMemObjectInfo(memobj, param_name, param_value_size, param_value, param_value_size_ret);
 }
 
 
-cl_int xmrig::OclLib::getPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms)
+cl_int xmlcore::OclLib::getPlatformIDs(cl_uint num_entries, cl_platform_id *platforms, cl_uint *num_platforms)
 {
     assert(pGetPlatformIDs != nullptr);
 
@@ -440,7 +440,7 @@ cl_int xmrig::OclLib::getPlatformIDs(cl_uint num_entries, cl_platform_id *platfo
 }
 
 
-cl_int xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetPlatformInfo != nullptr);
 
@@ -448,7 +448,7 @@ cl_int xmrig::OclLib::getPlatformInfo(cl_platform_id platform, cl_platform_info 
 }
 
 
-cl_int xmrig::OclLib::getProgramBuildInfo(cl_program program, cl_device_id device, cl_program_build_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
+cl_int xmlcore::OclLib::getProgramBuildInfo(cl_program program, cl_device_id device, cl_program_build_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret) noexcept
 {
     assert(pGetProgramBuildInfo != nullptr);
 
@@ -461,7 +461,7 @@ cl_int xmrig::OclLib::getProgramBuildInfo(cl_program program, cl_device_id devic
 }
 
 
-cl_int xmrig::OclLib::getProgramInfo(cl_program program, cl_program_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
+cl_int xmlcore::OclLib::getProgramInfo(cl_program program, cl_program_info param_name, size_t param_value_size, void *param_value, size_t *param_value_size_ret)
 {
     assert(pGetProgramInfo != nullptr);
 
@@ -474,7 +474,7 @@ cl_int xmrig::OclLib::getProgramInfo(cl_program program, cl_program_info param_n
 }
 
 
-cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
+cl_int xmlcore::OclLib::release(cl_command_queue command_queue) noexcept
 {
     assert(pReleaseCommandQueue != nullptr);
     assert(pGetCommandQueueInfo != nullptr);
@@ -496,7 +496,7 @@ cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
 }
 
 
-cl_int xmrig::OclLib::release(cl_context context) noexcept
+cl_int xmlcore::OclLib::release(cl_context context) noexcept
 {
     assert(pReleaseContext != nullptr);
 
@@ -511,7 +511,7 @@ cl_int xmrig::OclLib::release(cl_context context) noexcept
 }
 
 
-cl_int xmrig::OclLib::release(cl_device_id id) noexcept
+cl_int xmlcore::OclLib::release(cl_device_id id) noexcept
 {
     assert(pReleaseDevice != nullptr);
 
@@ -526,7 +526,7 @@ cl_int xmrig::OclLib::release(cl_device_id id) noexcept
 }
 
 
-cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
+cl_int xmlcore::OclLib::release(cl_kernel kernel) noexcept
 {
     assert(pReleaseKernel != nullptr);
 
@@ -545,7 +545,7 @@ cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
 }
 
 
-cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
+cl_int xmlcore::OclLib::release(cl_mem mem_obj) noexcept
 {
     assert(pReleaseMemObject != nullptr);
 
@@ -564,7 +564,7 @@ cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
 }
 
 
-cl_int xmrig::OclLib::release(cl_program program) noexcept
+cl_int xmlcore::OclLib::release(cl_program program) noexcept
 {
     assert(pReleaseProgram != nullptr);
 
@@ -583,7 +583,7 @@ cl_int xmrig::OclLib::release(cl_program program) noexcept
 }
 
 
-cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value) noexcept
+cl_int xmlcore::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t arg_size, const void *arg_value) noexcept
 {
     assert(pSetKernelArg != nullptr);
 
@@ -591,13 +591,13 @@ cl_int xmrig::OclLib::setKernelArg(cl_kernel kernel, cl_uint arg_index, size_t a
 }
 
 
-cl_int xmrig::OclLib::unloadPlatformCompiler(cl_platform_id platform) noexcept
+cl_int xmlcore::OclLib::unloadPlatformCompiler(cl_platform_id platform) noexcept
 {
     return pUnloadPlatformCompiler(platform);
 }
 
 
-cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret) noexcept
+cl_kernel xmlcore::OclLib::createKernel(cl_program program, const char *kernel_name, cl_int *errcode_ret) noexcept
 {
     assert(pCreateKernel != nullptr);
 
@@ -613,7 +613,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 }
 
 
-cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name)
+cl_kernel xmlcore::OclLib::createKernel(cl_program program, const char *kernel_name)
 {
     cl_int ret;
     cl_kernel kernel = createKernel(program, kernel_name, &ret);
@@ -625,7 +625,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 }
 
 
-cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr)
+cl_mem xmlcore::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr)
 {
     cl_int ret;
     cl_mem mem = createBuffer(context, flags, size, host_ptr, &ret);
@@ -637,7 +637,7 @@ cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_
 }
 
 
-cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret) noexcept
+cl_mem xmlcore::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr, cl_int *errcode_ret) noexcept
 {
     assert(pCreateBuffer != nullptr);
 
@@ -653,7 +653,7 @@ cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_
 }
 
 
-cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size, cl_int *errcode_ret) noexcept
+cl_mem xmlcore::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size, cl_int *errcode_ret) noexcept
 {
     const cl_buffer_region region = { offset, size };
 
@@ -669,7 +669,7 @@ cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t 
 }
 
 
-cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size)
+cl_mem xmlcore::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size)
 {
     cl_int ret;
     cl_mem mem = createSubBuffer(buffer, flags, offset, size, &ret);
@@ -681,7 +681,7 @@ cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t 
 }
 
 
-cl_mem xmrig::OclLib::retain(cl_mem memobj) noexcept
+cl_mem xmlcore::OclLib::retain(cl_mem memobj) noexcept
 {
     assert(pRetainMemObject != nullptr);
 
@@ -693,7 +693,7 @@ cl_mem xmrig::OclLib::retain(cl_mem memobj) noexcept
 }
 
 
-cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept
+cl_program xmlcore::OclLib::createProgramWithBinary(cl_context context, cl_uint num_devices, const cl_device_id *device_list, const size_t *lengths, const unsigned char **binaries, cl_int *binary_status, cl_int *errcode_ret) noexcept
 {
     assert(pCreateProgramWithBinary != nullptr);
 
@@ -708,7 +708,7 @@ cl_program xmrig::OclLib::createProgramWithBinary(cl_context context, cl_uint nu
 }
 
 
-cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept
+cl_program xmlcore::OclLib::createProgramWithSource(cl_context context, cl_uint count, const char **strings, const size_t *lengths, cl_int *errcode_ret) noexcept
 {
     assert(pCreateProgramWithSource != nullptr);
 
@@ -723,7 +723,7 @@ cl_program xmrig::OclLib::createProgramWithSource(cl_context context, cl_uint co
 }
 
 
-cl_program xmrig::OclLib::retain(cl_program program) noexcept
+cl_program xmlcore::OclLib::retain(cl_program program) noexcept
 {
     assert(pRetainProgram != nullptr);
 
@@ -735,7 +735,7 @@ cl_program xmrig::OclLib::retain(cl_program program) noexcept
 }
 
 
-cl_uint xmrig::OclLib::getNumPlatforms() noexcept
+cl_uint xmlcore::OclLib::getNumPlatforms() noexcept
 {
     cl_uint count = 0;
     cl_int ret;
@@ -752,7 +752,7 @@ cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_command_queue command_queue, cl_command_queue_info param_name, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_command_queue command_queue, cl_command_queue_info param_name, cl_uint defaultValue) noexcept
 {
     getCommandQueueInfo(command_queue, param_name, sizeof(cl_uint), &defaultValue);
 
@@ -760,7 +760,7 @@ cl_uint xmrig::OclLib::getUint(cl_command_queue command_queue, cl_command_queue_
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_context context, cl_context_info param_name, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_context context, cl_context_info param_name, cl_uint defaultValue) noexcept
 {
     getContextInfo(context, param_name, sizeof(cl_uint), &defaultValue);
 
@@ -768,7 +768,7 @@ cl_uint xmrig::OclLib::getUint(cl_context context, cl_context_info param_name, c
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_device_id id, cl_device_info param, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_device_id id, cl_device_info param, cl_uint defaultValue) noexcept
 {
     getDeviceInfo(id, param, sizeof(cl_uint), &defaultValue);
 
@@ -776,7 +776,7 @@ cl_uint xmrig::OclLib::getUint(cl_device_id id, cl_device_info param, cl_uint de
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_kernel kernel, cl_kernel_info  param_name, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_kernel kernel, cl_kernel_info  param_name, cl_uint defaultValue) noexcept
 {
     getKernelInfo(kernel, param_name, sizeof(cl_uint), &defaultValue);
 
@@ -784,7 +784,7 @@ cl_uint xmrig::OclLib::getUint(cl_kernel kernel, cl_kernel_info  param_name, cl_
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_mem memobj, cl_mem_info param_name, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_mem memobj, cl_mem_info param_name, cl_uint defaultValue) noexcept
 {
     getMemObjectInfo(memobj, param_name, sizeof(cl_uint), &defaultValue);
 
@@ -792,7 +792,7 @@ cl_uint xmrig::OclLib::getUint(cl_mem memobj, cl_mem_info param_name, cl_uint de
 }
 
 
-cl_uint xmrig::OclLib::getUint(cl_program program, cl_program_info param, cl_uint defaultValue) noexcept
+cl_uint xmlcore::OclLib::getUint(cl_program program, cl_program_info param, cl_uint defaultValue) noexcept
 {
     getProgramInfo(program, param, sizeof(cl_uint), &defaultValue);
 
@@ -800,7 +800,7 @@ cl_uint xmrig::OclLib::getUint(cl_program program, cl_program_info param, cl_uin
 }
 
 
-cl_ulong xmrig::OclLib::getUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue) noexcept
+cl_ulong xmlcore::OclLib::getUlong(cl_device_id id, cl_device_info param, cl_ulong defaultValue) noexcept
 {
     getDeviceInfo(id, param, sizeof(cl_ulong), &defaultValue);
 
@@ -808,7 +808,7 @@ cl_ulong xmrig::OclLib::getUlong(cl_device_id id, cl_device_info param, cl_ulong
 }
 
 
-cl_ulong xmrig::OclLib::getUlong(cl_mem memobj, cl_mem_info param_name, cl_ulong defaultValue) noexcept
+cl_ulong xmlcore::OclLib::getUlong(cl_mem memobj, cl_mem_info param_name, cl_ulong defaultValue) noexcept
 {
     getMemObjectInfo(memobj, param_name, sizeof(cl_ulong), &defaultValue);
 
@@ -816,7 +816,7 @@ cl_ulong xmrig::OclLib::getUlong(cl_mem memobj, cl_mem_info param_name, cl_ulong
 }
 
 
-std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs() noexcept
+std::vector<cl_platform_id> xmlcore::OclLib::getPlatformIDs() noexcept
 {
     const uint32_t count = getNumPlatforms();
     std::vector<cl_platform_id> platforms(count);
@@ -829,7 +829,7 @@ std::vector<cl_platform_id> xmrig::OclLib::getPlatformIDs() noexcept
 }
 
 
-xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id device) noexcept
+xmlcore::String xmlcore::OclLib::getProgramBuildLog(cl_program program, cl_device_id device) noexcept
 {
     size_t size = 0;
     if (getProgramBuildInfo(program, device, CL_PROGRAM_BUILD_LOG, 0, nullptr, &size) != CL_SUCCESS) {
@@ -853,25 +853,25 @@ xmrig::String xmrig::OclLib::getProgramBuildLog(cl_program program, cl_device_id
 }
 
 
-xmrig::String xmrig::OclLib::getString(cl_device_id id, cl_device_info param) noexcept
+xmlcore::String xmlcore::OclLib::getString(cl_device_id id, cl_device_info param) noexcept
 {
     return getOclString(OclLib::getDeviceInfo, id, param);
 }
 
 
-xmrig::String xmrig::OclLib::getString(cl_kernel kernel, cl_kernel_info param_name) noexcept
+xmlcore::String xmlcore::OclLib::getString(cl_kernel kernel, cl_kernel_info param_name) noexcept
 {
     return getOclString(OclLib::getKernelInfo, kernel, param_name);
 }
 
 
-xmrig::String xmrig::OclLib::getString(cl_platform_id platform, cl_platform_info param_name) noexcept
+xmlcore::String xmlcore::OclLib::getString(cl_platform_id platform, cl_platform_info param_name) noexcept
 {
     return getOclString(OclLib::getPlatformInfo, platform, param_name);
 }
 
 
-xmrig::String xmrig::OclLib::getString(cl_program program, cl_program_info param_name) noexcept
+xmlcore::String xmlcore::OclLib::getString(cl_program program, cl_program_info param_name) noexcept
 {
     return getOclString(OclLib::getProgramInfo, program, param_name);
 }

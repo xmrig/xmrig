@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONTROLLER_H
-#define XMRIG_CONTROLLER_H
+#ifndef xmlcore_CONTROLLER_H
+#define xmlcore_CONTROLLER_H
 
 
 #include "base/kernel/Base.h"
@@ -26,7 +26,7 @@
 #include <memory>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class HwApi;
@@ -38,7 +38,7 @@ class Network;
 class Controller : public Base
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Controller)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Controller)
 
     Controller(Process *process);
     ~Controller() override;
@@ -55,13 +55,13 @@ private:
     std::shared_ptr<Miner> m_miner;
     std::shared_ptr<Network> m_network;
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     std::shared_ptr<HwApi> m_hwApi;
 #   endif
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_CONTROLLER_H */
+#endif /* xmlcore_CONTROLLER_H */

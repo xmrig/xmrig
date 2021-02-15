@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik               <jgarzik@pobox.com>
  * Copyright 2011      Markku-Juhani O. Saarinen <mjos@iki.fi>
  * Copyright 2012-2014 pooler                    <pooler@litecoinpool.org>
@@ -7,7 +7,7 @@
  * Copyright 2016      Jay D Dee                 <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak                  <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh                 <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                     <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore                     <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,14 +24,14 @@
  */
 
 
-#ifndef XMRIG_KECCAK_H
-#define XMRIG_KECCAK_H
+#ifndef xmlcore_KECCAK_H
+#define xmlcore_KECCAK_H
 
 #include <cstdint>
 #include <cstring>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 // compute a keccak hash (md) of given byte length from "in"
 void keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen);
@@ -51,6 +51,6 @@ inline void keccak(const char *in, size_t inlen, uint8_t *md)
 // update the state
 void keccakf(uint64_t st[25], int norounds);
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
-#endif /* XMRIG_KECCAK_H */
+#endif /* xmlcore_KECCAK_H */

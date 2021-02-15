@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik  <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler       <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones  <https://github.com/lucasjones>
@@ -8,7 +8,7 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,8 +24,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CRYPTONIGHT_ARM_H
-#define XMRIG_CRYPTONIGHT_ARM_H
+#ifndef xmlcore_CRYPTONIGHT_ARM_H
+#define xmlcore_CRYPTONIGHT_ARM_H
 
 
 #include "base/crypto/keccak.h"
@@ -197,7 +197,7 @@ inline void mix_and_propagate(__m128i& x0, __m128i& x1, __m128i& x2, __m128i& x3
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES>
@@ -359,7 +359,7 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
 }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
 static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
@@ -384,7 +384,7 @@ static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template<Algorithm::Id ALGO>
@@ -438,7 +438,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     constexpr size_t MASK        = props.mask();
     constexpr Algorithm::Id BASE = props.base();
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     constexpr bool IS_CN_HEAVY_TUBE = ALGO == Algorithm::CN_HEAVY_TUBE;
 #   else
     constexpr bool IS_CN_HEAVY_TUBE = false;
@@ -549,7 +549,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
         ah0 ^= ch;
         idx0 = al0;
 
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             const int64x2_t x = vld1q_s64(reinterpret_cast<const int64_t *>(&l0[idx0 & MASK]));
             const int64_t n   = vgetq_lane_s64(x, 0);
@@ -587,7 +587,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     constexpr size_t MASK        = props.mask();
     constexpr Algorithm::Id BASE = props.base();
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     constexpr bool IS_CN_HEAVY_TUBE = ALGO == Algorithm::CN_HEAVY_TUBE;
 #   else
     constexpr bool IS_CN_HEAVY_TUBE = false;
@@ -725,7 +725,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ah0 ^= ch;
         idx0 = al0;
 
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             const int64x2_t x = vld1q_s64(reinterpret_cast<const int64_t *>(&l0[idx0 & MASK]));
             const int64_t n   = vgetq_lane_s64(x, 0);
@@ -785,7 +785,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ah1 ^= ch;
         idx1 = al1;
 
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             const int64x2_t x = vld1q_s64(reinterpret_cast<const int64_t *>(&l1[idx1 & MASK]));
             const int64_t n   = vgetq_lane_s64(x, 0);
@@ -841,7 +841,7 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
 }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CRYPTONIGHT_ARM_H */
+#endif /* xmlcore_CRYPTONIGHT_ARM_H */

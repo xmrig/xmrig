@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MEMPOOL_H
-#define XMRIG_MEMPOOL_H
+#ifndef xmlcore_MEMPOOL_H
+#define xmlcore_MEMPOOL_H
 
 
 #include <array>
@@ -27,7 +27,7 @@
 #include <set>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template<size_t CHUNK_SIZE, size_t INIT_SIZE>
@@ -91,7 +91,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_MEMPOOL_H */
+#endif /* xmlcore_MEMPOOL_H */

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CN_ALGO_H
-#define XMRIG_CN_ALGO_H
+#ifndef xmlcore_CN_ALGO_H
+#define xmlcore_CN_ALGO_H
 
 
 #include <cstddef>
@@ -34,7 +34,7 @@
 #include "base/crypto/Algorithm.h"
 
 
-namespace xmrig
+namespace xmlcore
 {
 
 
@@ -70,11 +70,11 @@ public:
 
         case Algorithm::CN_FAST:
         case Algorithm::CN_HALF:
-#       ifdef XMRIG_ALGO_CN_LITE
+#       ifdef xmlcore_ALGO_CN_LITE
         case Algorithm::CN_LITE_0:
         case Algorithm::CN_LITE_1:
 #       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         case Algorithm::CN_HEAVY_0:
         case Algorithm::CN_HEAVY_TUBE:
         case Algorithm::CN_HEAVY_XHV:
@@ -90,7 +90,7 @@ public:
         case Algorithm::CN_DOUBLE:
             return CN_ITER * 2;
 
-#       ifdef XMRIG_ALGO_CN_PICO
+#       ifdef xmlcore_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
         case Algorithm::CN_PICO_TLO:
             return CN_ITER / 8;
@@ -105,7 +105,7 @@ public:
 
     inline static uint32_t mask(Algorithm::Id algo)
     {
-#       ifdef XMRIG_ALGO_CN_PICO
+#       ifdef xmlcore_ALGO_CN_PICO
         if (algo == Algorithm::CN_PICO_0) {
             return 0x1FFF0;
         }
@@ -119,10 +119,10 @@ public:
         switch (algo) {
         case Algorithm::CN_0:
         case Algorithm::CN_XAO:
-#       ifdef XMRIG_ALGO_CN_LITE
+#       ifdef xmlcore_ALGO_CN_LITE
         case Algorithm::CN_LITE_0:
 #       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         case Algorithm::CN_HEAVY_0:
         case Algorithm::CN_HEAVY_XHV:
 #       endif
@@ -132,10 +132,10 @@ public:
         case Algorithm::CN_1:
         case Algorithm::CN_FAST:
         case Algorithm::CN_RTO:
-#       ifdef XMRIG_ALGO_CN_LITE
+#       ifdef xmlcore_ALGO_CN_LITE
         case Algorithm::CN_LITE_1:
 #       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         case Algorithm::CN_HEAVY_TUBE:
             return Algorithm::CN_1;
 #       endif
@@ -146,7 +146,7 @@ public:
         case Algorithm::CN_RWZ:
         case Algorithm::CN_ZLS:
         case Algorithm::CN_DOUBLE:
-#       ifdef XMRIG_ALGO_CN_PICO
+#       ifdef xmlcore_ALGO_CN_PICO
         case Algorithm::CN_PICO_0:
         case Algorithm::CN_PICO_TLO:
 #       endif
@@ -206,7 +206,7 @@ template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() cons
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CN_ALGO_H */
+#endif /* xmlcore_CN_ALGO_H */

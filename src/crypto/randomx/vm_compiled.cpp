@@ -1,7 +1,7 @@
 /*
 Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
 Copyright (c) 2019-2020, SChernykh  <https://github.com/SChernykh>
-Copyright (c) 2019-2020, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2019-2020, xmlcore      <https://github.com/xmlcore>, <support@xmlcore.com>
 
 All rights reserved.
 
@@ -58,7 +58,7 @@ namespace randomx {
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
-#		ifdef XMRIG_ARM
+#		ifdef xmlcore_ARM
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #		endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);

@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
-#elif defined(XMRIG_ARMv8)
+#elif defined(xmlcore_ARMv8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #endif
 
@@ -190,7 +190,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 #	endif
 }
 
-#ifdef XMRIG_ARMv8
+#ifdef xmlcore_ARMv8
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
@@ -262,7 +262,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
 	} while (0)
 
-#elif defined(XMRIG_ARMv8)
+#elif defined(xmlcore_ARMv8)
 
 	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
@@ -295,7 +295,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(IMUL_M, IMUL_R);
 
 #if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
+	if (xmlcore::Cpu::info()->hasBMI2()) {
 		INST_HANDLE2(IMULH_R, IMULH_R_BMI2, IMUL_M);
 		INST_HANDLE2(IMULH_M, IMULH_M_BMI2, IMULH_R);
 	}
@@ -326,7 +326,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	INST_HANDLE(FSQRT_R, FDIV_M);
 
 #if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->jccErratum()) {
+	if (xmlcore::Cpu::info()->jccErratum()) {
 		INST_HANDLE2(CBRANCH, CBRANCH<true>, FSQRT_R);
 	}
 	else {
@@ -337,7 +337,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 #endif
 
 #if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
+	if (xmlcore::Cpu::info()->hasBMI2()) {
 		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
 	}
 	else
@@ -464,7 +464,7 @@ extern "C" {
 		}
 
 		if (!vm_pool[node]) {
-			vm_pool[node] = (uint8_t*) xmrig::VirtualMemory::allocateLargePagesMemory(VM_POOL_SIZE);
+			vm_pool[node] = (uint8_t*) xmlcore::VirtualMemory::allocateLargePagesMemory(VM_POOL_SIZE);
 			if (!vm_pool[node]) {
 				vm_pool[node] = (uint8_t*) rx_aligned_alloc(VM_POOL_SIZE, 4096);
 			}

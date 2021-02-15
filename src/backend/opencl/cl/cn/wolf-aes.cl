@@ -4,7 +4,7 @@
 #ifdef cl_amd_media_ops2
 #   pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
 
-#   define xmrig_amd_bfe(src0, src1, src2) amd_bfe(src0, src1, src2)
+#   define xmlcore_amd_bfe(src0, src1, src2) amd_bfe(src0, src1, src2)
 #else
 /* taken from: https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops2.txt
  *     Built-in Function:
@@ -21,7 +21,7 @@
  *         dst.s0 = src0.s0 >> offset;
  *     similar operation applied to other components of the vectors
  */
-inline int xmrig_amd_bfe(const uint src0, const uint offset, const uint width)
+inline int xmlcore_amd_bfe(const uint src0, const uint offset, const uint width)
 {
     /* casts are removed because we can implement everything as uint
      * int offset = src1;
@@ -112,7 +112,7 @@ static const __constant uint AES0_C[256] =
     0xCBB0B07BU, 0xFC5454A8U, 0xD6BBBB6DU, 0x3A16162CU
 };
 
-#define BYTE(x, y) (xmrig_amd_bfe((x), (y) << 3U, 8U))
+#define BYTE(x, y) (xmlcore_amd_bfe((x), (y) << 3U, 8U))
 
 #if (ALGO == ALGO_CN_HEAVY_TUBE)
 inline uint4 AES_Round_bittube2(const __local uint *AES0, const __local uint *AES1, uint4 x, uint4 k)

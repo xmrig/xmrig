@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "version.h"
 
 
-xmrig::Title::Title(const rapidjson::Value &value)
+xmlcore::Title::Title(const rapidjson::Value &value)
 {
     if (value.IsBool()) {
         m_enabled = value.GetBool();
@@ -34,7 +34,7 @@ xmrig::Title::Title(const rapidjson::Value &value)
 }
 
 
-rapidjson::Value xmrig::Title::toJSON() const
+rapidjson::Value xmlcore::Title::toJSON() const
 {
     if (isEnabled() && !m_value.isNull()) {
         return m_value.toJSON();
@@ -44,7 +44,7 @@ rapidjson::Value xmrig::Title::toJSON() const
 }
 
 
-xmrig::String xmrig::Title::value() const
+xmlcore::String xmlcore::Title::value() const
 {
     if (!isEnabled()) {
         return {};

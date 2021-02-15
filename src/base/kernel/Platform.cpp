@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,22 +24,22 @@
 #include <uv.h>
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 String Platform::m_userAgent;
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-void xmrig::Platform::init(const char *userAgent)
+void xmlcore::Platform::init(const char *userAgent)
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     SSL_library_init();
     SSL_load_error_strings();
     ERR_load_BIO_strings();

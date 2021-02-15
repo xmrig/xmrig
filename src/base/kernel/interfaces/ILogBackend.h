@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ILOGBACKEND_H
-#define XMRIG_ILOGBACKEND_H
+#ifndef xmlcore_ILOGBACKEND_H
+#define xmlcore_ILOGBACKEND_H
 
 
 #include "base/tools/Object.h"
@@ -27,13 +27,13 @@
 #include <cstddef>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ILogBackend
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ILogBackend)
+    xmlcore_DISABLE_COPY_MOVE(ILogBackend)
 
     ILogBackend()           = default;
     virtual ~ILogBackend()  = default;
@@ -42,7 +42,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif // XMRIG_ILOGBACKEND_H
+#endif // xmlcore_ILOGBACKEND_H

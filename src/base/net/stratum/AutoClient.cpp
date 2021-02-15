@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,13 +22,13 @@
 #include "base/io/json/Json.h"
 
 
-xmrig::AutoClient::AutoClient(int id, const char *agent, IClientListener *listener) :
+xmlcore::AutoClient::AutoClient(int id, const char *agent, IClientListener *listener) :
     EthStratumClient(id, agent, listener)
 {
 }
 
 
-bool xmrig::AutoClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
+bool xmlcore::AutoClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     if (m_mode == DEFAULT_MODE) {
         return Client::handleResponse(id, result, error);
@@ -38,7 +38,7 @@ bool xmrig::AutoClient::handleResponse(int64_t id, const rapidjson::Value &resul
 }
 
 
-bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
+bool xmlcore::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 {
     if (result.HasMember("job")) {
         return Client::parseLogin(result, code);
@@ -70,7 +70,7 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 }
 
 
-int64_t xmrig::AutoClient::submit(const JobResult &result)
+int64_t xmlcore::AutoClient::submit(const JobResult &result)
 {
     if (m_mode == DEFAULT_MODE) {
         return Client::submit(result);
@@ -80,7 +80,7 @@ int64_t xmrig::AutoClient::submit(const JobResult &result)
 }
 
 
-void xmrig::AutoClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
+void xmlcore::AutoClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
     if (m_mode == DEFAULT_MODE) {
         return Client::parseNotification(method, params, error);

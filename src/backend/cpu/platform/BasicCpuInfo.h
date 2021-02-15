@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BASICCPUINFO_H
-#define XMRIG_BASICCPUINFO_H
+#ifndef xmlcore_BASICCPUINFO_H
+#define xmlcore_BASICCPUINFO_H
 
 
 #include "backend/cpu/interfaces/ICpuInfo.h"
@@ -27,7 +27,7 @@
 #include <bitset>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class BasicCpuInfo : public ICpuInfo
@@ -72,7 +72,7 @@ protected:
     Vendor m_vendor         = VENDOR_UNKNOWN;
 
 private:
-#   ifndef XMRIG_ARM
+#   ifndef xmlcore_ARM
     uint32_t m_procInfo     = 0;
     uint32_t m_family       = 0;
     uint32_t m_model        = 0;
@@ -85,7 +85,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_BASICCPUINFO_H */
+#endif /* xmlcore_BASICCPUINFO_H */

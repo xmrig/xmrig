@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  */
 
 
-#ifndef XMRIG_HTTPSCONTEXT_H
-#define XMRIG_HTTPSCONTEXT_H
+#ifndef xmlcore_HTTPSCONTEXT_H
+#define xmlcore_HTTPSCONTEXT_H
 
 
 using BIO = struct bio_st;
@@ -29,7 +29,7 @@ using SSL = struct ssl_st;
 #include "base/net/tls/ServerTls.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class TlsContext;
@@ -38,7 +38,7 @@ class TlsContext;
 class HttpsContext : public HttpContext, public ServerTls
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsContext)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpsContext)
 
     HttpsContext(TlsContext *tls, const std::weak_ptr<IHttpListener> &listener);
     ~HttpsContext() override;
@@ -66,8 +66,8 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPSCONTEXT_H
+#endif // xmlcore_HTTPSCONTEXT_H
 

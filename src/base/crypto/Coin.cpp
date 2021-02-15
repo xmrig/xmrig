@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct CoinName
@@ -60,11 +60,11 @@ static CoinName const coin_names[] = {
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
 
-xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
+xmlcore::Algorithm::Id xmlcore::Coin::algorithm(uint8_t blobVersion) const
 {
     switch (id()) {
     case MONERO:
@@ -94,7 +94,7 @@ xmrig::Algorithm::Id xmrig::Coin::algorithm(uint8_t blobVersion) const
 
 
 
-const char *xmrig::Coin::name() const
+const char *xmlcore::Coin::name() const
 {
     for (const auto &i : coin_names) {
         if (i.id == m_id) {
@@ -106,7 +106,7 @@ const char *xmrig::Coin::name() const
 }
 
 
-rapidjson::Value xmrig::Coin::toJSON() const
+rapidjson::Value xmlcore::Coin::toJSON() const
 {
     using namespace rapidjson;
 
@@ -114,7 +114,7 @@ rapidjson::Value xmrig::Coin::toJSON() const
 }
 
 
-xmrig::Coin::Id xmrig::Coin::parse(const char *name)
+xmlcore::Coin::Id xmlcore::Coin::parse(const char *name)
 {
     if (name == nullptr || strlen(name) < 3) {
         return INVALID;

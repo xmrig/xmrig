@@ -3,7 +3,7 @@
 
 #ifdef cl_amd_media_ops
 #   pragma OPENCL EXTENSION cl_amd_media_ops : enable
-#   define xmrig_amd_bitalign(src0, src1, src2) amd_bitalign(src0, src1, src2)
+#   define xmlcore_amd_bitalign(src0, src1, src2) amd_bitalign(src0, src1, src2)
 #else
 /* taken from https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops.txt
  * Build-in Function
@@ -15,7 +15,7 @@
  * The implemented function is modified because the last is in our case always a scalar.
  * We can ignore the bitwise AND operation.
  */
-inline uint2 xmrig_amd_bitalign(const uint2 src0, const uint2 src1, const uint src2)
+inline uint2 xmlcore_amd_bitalign(const uint2 src0, const uint2 src1, const uint src2)
 {
     uint2 result;
     result.s0 = (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2));
@@ -54,10 +54,10 @@ static const __constant ulong SKEIN512_256_IV[8] =
 ulong SKEIN_ROT(const uint2 x, const uint y)
 {
     if (y < 32) {
-        return(as_ulong(xmrig_amd_bitalign(x, x.s10, 32 - y)));
+        return(as_ulong(xmlcore_amd_bitalign(x, x.s10, 32 - y)));
     }
     else {
-        return(as_ulong(xmrig_amd_bitalign(x.s10, x, 32 - (y - 32))));
+        return(as_ulong(xmlcore_amd_bitalign(x.s10, x, 32 - (y - 32))));
     }
 }
 

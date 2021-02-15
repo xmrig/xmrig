@@ -28,7 +28,7 @@
     <info name="HostName" value="host"/>
     <info name="Architecture" value="x86_64"/>
     <info name="hwlocVersion" value="2.0.4"/>
-    <info name="ProcessName" value="xmrig"/>
+    <info name="ProcessName" value="xmlcore"/>
     <object type="Package" os_index="0" cpuset="0x000000ff" complete_cpuset="0x000000ff" nodeset="0x00000002" complete_nodeset="0x00000003" gp_index="2">
       <info name="CPUVendor" value="AuthenticAMD"/>
       <info name="CPUFamilyNumber" value="16"/>

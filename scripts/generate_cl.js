@@ -24,7 +24,7 @@ function cn()
     ]));
 
     // fs.writeFileSync('cryptonight_gen.cl', cn);
-    fs.writeFileSync('cryptonight_cl.h', text2h(cn, 'xmrig', 'cryptonight_cl'));
+    fs.writeFileSync('cryptonight_cl.h', text2h(cn, 'xmlcore', 'cryptonight_cl'));
 }
 
 
@@ -39,7 +39,7 @@ function cn_r()
     //      fs.writeFileSync(key + '_gen.cl', items[key]);
     // }
 
-    fs.writeFileSync('cryptonight_r_cl.h', text2h_bundle('xmrig', items));
+    fs.writeFileSync('cryptonight_r_cl.h', text2h_bundle('xmlcore', items));
 }
 
 
@@ -62,7 +62,7 @@ function rx()
     rx = opencl_minify(rx);
 
     //fs.writeFileSync('randomx_gen.cl', rx);
-    fs.writeFileSync('randomx_cl.h', text2h(rx, 'xmrig', 'randomx_cl'));
+    fs.writeFileSync('randomx_cl.h', text2h(rx, 'xmlcore', 'randomx_cl'));
 }
 
 
@@ -71,7 +71,7 @@ function astrobwt()
     const astrobwt = opencl_minify(addIncludes('astrobwt.cl', [ 'BWT.cl', 'salsa20.cl', 'sha3.cl' ]));
 
     // fs.writeFileSync('astrobwt_gen.cl', astrobwt);
-    fs.writeFileSync('astrobwt_cl.h', text2h(astrobwt, 'xmrig', 'astrobwt_cl'));
+    fs.writeFileSync('astrobwt_cl.h', text2h(astrobwt, 'xmlcore', 'astrobwt_cl'));
 }
 
 
@@ -81,8 +81,8 @@ function kawpow()
     const kawpow_dag = opencl_minify(addIncludes('kawpow_dag.cl', [ 'defs.h' ]));
 
     // fs.writeFileSync('kawpow_gen.cl', kawpow);
-    fs.writeFileSync('kawpow_cl.h', text2h(kawpow, 'xmrig', 'kawpow_cl'));
-    fs.writeFileSync('kawpow_dag_cl.h', text2h(kawpow_dag, 'xmrig', 'kawpow_dag_cl'));
+    fs.writeFileSync('kawpow_cl.h', text2h(kawpow, 'xmlcore', 'kawpow_cl'));
+    fs.writeFileSync('kawpow_dag_cl.h', text2h(kawpow_dag, 'xmlcore', 'kawpow_dag_cl'));
 }
 
 

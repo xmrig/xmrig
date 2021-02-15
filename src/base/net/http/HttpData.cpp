@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include <stdexcept>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const std::string HttpData::kApplicationJson    = "application/json";
@@ -38,10 +38,10 @@ const std::string HttpData::kContentTypeL       = "content-type";
 const std::string HttpData::kTextPlain          = "text/plain";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::HttpData::isJSON() const
+bool xmlcore::HttpData::isJSON() const
 {
     if (!headers.count(kContentTypeL)) {
         return false;
@@ -53,13 +53,13 @@ bool xmrig::HttpData::isJSON() const
 }
 
 
-const char *xmrig::HttpData::methodName() const
+const char *xmlcore::HttpData::methodName() const
 {
     return http_method_str(static_cast<http_method>(method));
 }
 
 
-const char *xmrig::HttpData::statusName() const
+const char *xmlcore::HttpData::statusName() const
 {
     if (status < 0) {
         return uv_strerror(status);
@@ -69,7 +69,7 @@ const char *xmrig::HttpData::statusName() const
 }
 
 
-rapidjson::Document xmrig::HttpData::json() const
+rapidjson::Document xmlcore::HttpData::json() const
 {
     if (status < 0) {
         throw std::runtime_error(statusName());

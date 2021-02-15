@@ -133,7 +133,7 @@ sha3_Update(void *priv, void const *bufIn, size_t len)
         ctx->saved = 0;
         if(++ctx->wordIndex ==
                 (SHA3_KECCAK_SPONGE_WORDS - SHA3_CW(ctx->capacityWords))) {
-            xmrig::keccakf(ctx->s, KECCAK_ROUNDS);
+            xmlcore::keccakf(ctx->s, KECCAK_ROUNDS);
             ctx->wordIndex = 0;
         }
     }
@@ -162,7 +162,7 @@ sha3_Update(void *priv, void const *bufIn, size_t len)
         ctx->s[ctx->wordIndex] ^= t;
         if(++ctx->wordIndex ==
                 (SHA3_KECCAK_SPONGE_WORDS - SHA3_CW(ctx->capacityWords))) {
-            xmrig::keccakf(ctx->s, KECCAK_ROUNDS);
+            xmlcore::keccakf(ctx->s, KECCAK_ROUNDS);
             ctx->wordIndex = 0;
         }
     }
@@ -210,7 +210,7 @@ sha3_Finalize(void *priv)
 
     ctx->s[SHA3_KECCAK_SPONGE_WORDS - SHA3_CW(ctx->capacityWords) - 1] ^=
             SHA3_CONST(0x8000000000000000UL);
-    xmrig::keccakf(ctx->s, KECCAK_ROUNDS);
+    xmlcore::keccakf(ctx->s, KECCAK_ROUNDS);
 
     /* Return first bytes of the ctx->s. This conversion is not needed for
      * little-endian platforms e.g. wrap with #if !defined(__BYTE_ORDER__)

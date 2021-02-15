@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,25 +16,25 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERS_H
-#define XMRIG_WORKERS_H
+#ifndef xmlcore_WORKERS_H
+#define xmlcore_WORKERS_H
 
 
 #include "backend/common/Thread.h"
 #include "backend/cpu/CpuLaunchData.h"
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 #   include "backend/opencl/OclLaunchData.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 #   include "backend/cuda/CudaLaunchData.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Benchmark;
@@ -46,7 +46,7 @@ template<class T>
 class Workers
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(Workers)
+    xmlcore_DISABLE_COPY_MOVE(Workers)
 
     Workers();
     ~Workers();
@@ -59,7 +59,7 @@ public:
     void setBackend(IBackend *backend);
     void stop();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     void start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark);
 #   endif
 
@@ -75,7 +75,7 @@ private:
 
 
 template<class T>
-void xmrig::Workers<T>::jobEarlyNotification(const Job &job)
+void xmlcore::Workers<T>::jobEarlyNotification(const Job &job)
 {
     for (Thread<T>* t : m_workers) {
         if (t->worker()) {
@@ -90,21 +90,21 @@ IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
 extern template class Workers<CpuLaunchData>;
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 template<>
 IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
 extern template class Workers<OclLaunchData>;
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 template<>
 IWorker *Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle);
 extern template class Workers<CudaLaunchData>;
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_WORKERS_H */
+#endif /* xmlcore_WORKERS_H */

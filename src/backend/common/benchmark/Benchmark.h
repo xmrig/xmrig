@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BENCHMARK_H
-#define XMRIG_BENCHMARK_H
+#ifndef xmlcore_BENCHMARK_H
+#define xmlcore_BENCHMARK_H
 
 
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IBackend;
@@ -32,7 +32,7 @@ class IBackend;
 class Benchmark
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Benchmark)
 
     Benchmark(size_t workers, const IBackend *backend);
     ~Benchmark() = default;
@@ -49,7 +49,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_BENCHMARK_H */
+#endif /* xmlcore_BENCHMARK_H */

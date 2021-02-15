@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUCONFIG_H
-#define XMRIG_CPUCONFIG_H
+#ifndef xmlcore_CPUCONFIG_H
+#define xmlcore_CPUCONFIG_H
 
 
 #include "backend/common/Threads.h"
@@ -26,7 +26,7 @@
 #include "crypto/common/Assembly.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class CpuConfig
@@ -48,15 +48,15 @@ public:
     static const char *kPriority;
     static const char *kYield;
 
-#   ifdef XMRIG_FEATURE_ASM
+#   ifdef xmlcore_FEATURE_ASM
     static const char *kAsm;
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     static const char *kArgon2Impl;
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     static const char *kAstroBWTMaxSize;
     static const char *kAstroBWTAVX2;
 #   endif
@@ -111,7 +111,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CPUCONFIG_H */
+#endif /* xmlcore_CPUCONFIG_H */

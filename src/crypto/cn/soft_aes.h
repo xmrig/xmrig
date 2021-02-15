@@ -27,7 +27,7 @@
 #pragma once
 
 
-#if defined(XMRIG_ARM)
+#if defined(xmlcore_ARM)
 #   include "crypto/cn/sse2neon.h"
 #elif defined(__GNUC__)
 #   include <x86intrin.h>

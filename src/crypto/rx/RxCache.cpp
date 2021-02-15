@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -8,7 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 static_assert(RANDOMX_FLAG_JIT == 8, "RANDOMX_FLAG_JIT flag mismatch");
 
 
-xmrig::RxCache::RxCache(bool hugePages, uint32_t nodeId)
+xmlcore::RxCache::RxCache(bool hugePages, uint32_t nodeId)
 {
     m_memory = new VirtualMemory(maxSize(), hugePages, false, false, nodeId);
 
@@ -41,13 +41,13 @@ xmrig::RxCache::RxCache(bool hugePages, uint32_t nodeId)
 }
 
 
-xmrig::RxCache::RxCache(uint8_t *memory)
+xmlcore::RxCache::RxCache(uint8_t *memory)
 {
     create(memory);
 }
 
 
-xmrig::RxCache::~RxCache()
+xmlcore::RxCache::~RxCache()
 {
     randomx_release_cache(m_cache);
 
@@ -55,7 +55,7 @@ xmrig::RxCache::~RxCache()
 }
 
 
-bool xmrig::RxCache::init(const Buffer &seed)
+bool xmlcore::RxCache::init(const Buffer &seed)
 {
     if (m_seed == seed) {
         return false;
@@ -73,13 +73,13 @@ bool xmrig::RxCache::init(const Buffer &seed)
 }
 
 
-xmrig::HugePagesInfo xmrig::RxCache::hugePages() const
+xmlcore::HugePagesInfo xmlcore::RxCache::hugePages() const
 {
     return m_memory ? m_memory->hugePages() : HugePagesInfo();
 }
 
 
-void xmrig::RxCache::create(uint8_t *memory)
+void xmlcore::RxCache::create(uint8_t *memory)
 {
     if (!memory) {
         return;

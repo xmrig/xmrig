@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,12 +32,12 @@
 #include "donate.h"
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "base/net/stratum/benchmark/BenchConfig.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const char *Pools::kDonateLevel     = "donate-level";
@@ -47,20 +47,20 @@ const char *Pools::kRetries         = "retries";
 const char *Pools::kRetryPause      = "retry-pause";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::Pools::Pools() :
+xmlcore::Pools::Pools() :
     m_donateLevel(kDefaultDonateLevel)
 {
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_retries    = 2;
     m_retryPause = 1;
 #   endif
 }
 
 
-bool xmrig::Pools::isEqual(const Pools &other) const
+bool xmlcore::Pools::isEqual(const Pools &other) const
 {
     if (m_data.size() != other.m_data.size() || m_retries != other.m_retries || m_retryPause != other.m_retryPause) {
         return false;
@@ -70,9 +70,9 @@ bool xmrig::Pools::isEqual(const Pools &other) const
 }
 
 
-int xmrig::Pools::donateLevel() const
+int xmlcore::Pools::donateLevel() const
 {
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     return benchSize() || (m_benchmark && !m_benchmark->id().isEmpty()) ? 0 : m_donateLevel;
 #   else
     return m_donateLevel;
@@ -80,7 +80,7 @@ int xmrig::Pools::donateLevel() const
 }
 
 
-xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
+xmlcore::IStrategy *xmlcore::Pools::createStrategy(IStrategyListener *listener) const
 {
     if (active() == 1) {
         for (const Pool &pool : m_data) {
@@ -101,7 +101,7 @@ xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) cons
 }
 
 
-rapidjson::Value xmrig::Pools::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::Pools::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -116,7 +116,7 @@ rapidjson::Value xmrig::Pools::toJSON(rapidjson::Document &doc) const
 }
 
 
-size_t xmrig::Pools::active() const
+size_t xmlcore::Pools::active() const
 {
     size_t count = 0;
     for (const Pool &pool : m_data) {
@@ -129,11 +129,11 @@ size_t xmrig::Pools::active() const
 }
 
 
-void xmrig::Pools::load(const IJsonReader &reader)
+void xmlcore::Pools::load(const IJsonReader &reader)
 {
     m_data.clear();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     m_benchmark = std::shared_ptr<BenchConfig>(BenchConfig::create(reader.getObject(BenchConfig::kBenchmark), reader.getBool("dmi", true)));
     if (m_benchmark) {
         m_data.emplace_back(m_benchmark);
@@ -165,9 +165,9 @@ void xmrig::Pools::load(const IJsonReader &reader)
 }
 
 
-uint32_t xmrig::Pools::benchSize() const
+uint32_t xmlcore::Pools::benchSize() const
 {
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     return m_benchmark ? m_benchmark->size() : 0;
 #   else
     return 0;
@@ -175,7 +175,7 @@ uint32_t xmrig::Pools::benchSize() const
 }
 
 
-void xmrig::Pools::print() const
+void xmlcore::Pools::print() const
 {
     size_t i = 1;
     for (const Pool &pool : m_data) {
@@ -194,12 +194,12 @@ void xmrig::Pools::print() const
 }
 
 
-void xmrig::Pools::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+void xmlcore::Pools::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     if (m_benchmark) {
         out.AddMember(StringRef(BenchConfig::kBenchmark), m_benchmark->toJSON(doc), allocator);
 
@@ -215,7 +215,7 @@ void xmrig::Pools::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
 }
 
 
-void xmrig::Pools::setDonateLevel(int level)
+void xmlcore::Pools::setDonateLevel(int level)
 {
     if (level >= kMinimumDonateLevel && level <= 99) {
         m_donateLevel = level;
@@ -223,7 +223,7 @@ void xmrig::Pools::setDonateLevel(int level)
 }
 
 
-void xmrig::Pools::setProxyDonate(int value)
+void xmlcore::Pools::setProxyDonate(int value)
 {
     switch (value) {
     case PROXY_DONATE_NONE:
@@ -234,7 +234,7 @@ void xmrig::Pools::setProxyDonate(int value)
 }
 
 
-void xmrig::Pools::setRetries(int retries)
+void xmlcore::Pools::setRetries(int retries)
 {
     if (retries > 0 && retries <= 1000) {
         m_retries = retries;
@@ -242,7 +242,7 @@ void xmrig::Pools::setRetries(int retries)
 }
 
 
-void xmrig::Pools::setRetryPause(int retryPause)
+void xmlcore::Pools::setRetryPause(int retryPause)
 {
     if (retryPause > 0 && retryPause <= 3600) {
         m_retryPause = retryPause;

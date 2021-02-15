@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,12 +34,12 @@
 #include "base/tools/Cvt.h"
 #include "version.h"
 
-#ifdef XMRIG_FEATURE_DMI
+#ifdef xmlcore_FEATURE_DMI
 #   include "hw/dmi/DmiReader.h"
 #endif
 
 
-xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
+xmlcore::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :
     m_listener(listener),
     m_benchmark(benchmark),
     m_hash(benchmark->hash())
@@ -58,7 +58,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
     BenchState::init(this, m_benchmark->size());
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     if (m_benchmark->isSubmit()) {
         m_mode = ONLINE_BENCH;
 
@@ -85,21 +85,21 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 }
 
 
-xmrig::BenchClient::~BenchClient()
+xmlcore::BenchClient::~BenchClient()
 {
     BenchState::destroy();
 }
 
 
-const char *xmrig::BenchClient::tag() const
+const char *xmlcore::BenchClient::tag() const
 {
     return Tags::bench();
 }
 
 
-void xmrig::BenchClient::connect()
+void xmlcore::BenchClient::connect()
 {
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     if (m_mode == ONLINE_BENCH || m_mode == ONLINE_VERIFY) {
         return resolve();
     }
@@ -109,19 +109,19 @@ void xmrig::BenchClient::connect()
 }
 
 
-void xmrig::BenchClient::setPool(const Pool &pool)
+void xmlcore::BenchClient::setPool(const Pool &pool)
 {
     m_pool = pool;
 }
 
 
-void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts)
+void xmlcore::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts)
 {
     m_result    = result;
     m_diff      = diff;
     m_doneTime  = ts;
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     if (!m_token.isEmpty()) {
         send(DONE_BENCH);
     }
@@ -139,13 +139,13 @@ void xmrig::BenchClient::onBenchDone(uint64_t result, uint64_t diff, uint64_t ts
 }
 
 
-void xmrig::BenchClient::onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend)
+void xmlcore::BenchClient::onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend)
 {
     m_readyTime = ts;
     m_threads   = threads;
     m_backend   = backend;
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     if (m_mode == ONLINE_BENCH) {
         send(CREATE_BENCH);
     }
@@ -153,9 +153,9 @@ void xmrig::BenchClient::onBenchReady(uint64_t ts, uint32_t threads, const IBack
 }
 
 
-void xmrig::BenchClient::onHttpData(const HttpData &data)
+void xmlcore::BenchClient::onHttpData(const HttpData &data)
 {
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     rapidjson::Document doc;
 
     try {
@@ -185,9 +185,9 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
 }
 
 
-void xmrig::BenchClient::onResolved(const Dns &dns, int status)
+void xmlcore::BenchClient::onResolved(const Dns &dns, int status)
 {
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     assert(!m_httpListener);
 
     if (status < 0) {
@@ -207,7 +207,7 @@ void xmrig::BenchClient::onResolved(const Dns &dns, int status)
 }
 
 
-bool xmrig::BenchClient::setSeed(const char *seed)
+bool xmlcore::BenchClient::setSeed(const char *seed)
 {
     if (!seed) {
         return false;
@@ -235,7 +235,7 @@ bool xmrig::BenchClient::setSeed(const char *seed)
 }
 
 
-uint64_t xmrig::BenchClient::referenceHash() const
+uint64_t xmlcore::BenchClient::referenceHash() const
 {
     if (m_hash || m_mode == ONLINE_BENCH) {
         return m_hash;
@@ -245,13 +245,13 @@ uint64_t xmrig::BenchClient::referenceHash() const
 }
 
 
-void xmrig::BenchClient::printExit()
+void xmlcore::BenchClient::printExit()
 {
     LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), tag());
 }
 
 
-void xmrig::BenchClient::start()
+void xmlcore::BenchClient::start()
 {
     const uint32_t size = BenchState::size();
 
@@ -267,8 +267,8 @@ void xmrig::BenchClient::start()
 
 
 
-#ifdef XMRIG_FEATURE_HTTP
-void xmrig::BenchClient::onCreateReply(const rapidjson::Value &value)
+#ifdef xmlcore_FEATURE_HTTP
+void xmlcore::BenchClient::onCreateReply(const rapidjson::Value &value)
 {
     m_startTime = Chrono::steadyMSecs();
     m_token     = Json::getString(value, BenchConfig::kToken);
@@ -282,14 +282,14 @@ void xmrig::BenchClient::onCreateReply(const rapidjson::Value &value)
 }
 
 
-void xmrig::BenchClient::onDoneReply(const rapidjson::Value &)
+void xmlcore::BenchClient::onDoneReply(const rapidjson::Value &)
 {
-    LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmrig.com/benchmark/%s"), tag(), m_job.id().data());
+    LOG_NOTICE("%s " WHITE_BOLD("benchmark submitted ") CYAN_BOLD("https://xmlcore.com/benchmark/%s"), tag(), m_job.id().data());
     printExit();
 }
 
 
-void xmrig::BenchClient::onGetReply(const rapidjson::Value &value)
+void xmlcore::BenchClient::onGetReply(const rapidjson::Value &value)
 {
     const char *hash = Json::getString(value, BenchConfig::kHash);
     if (hash) {
@@ -305,7 +305,7 @@ void xmrig::BenchClient::onGetReply(const rapidjson::Value &value)
 }
 
 
-void xmrig::BenchClient::resolve()
+void xmlcore::BenchClient::resolve()
 {
     m_dns = std::make_shared<Dns>(this);
 
@@ -315,7 +315,7 @@ void xmrig::BenchClient::resolve()
 }
 
 
-void xmrig::BenchClient::send(Request request)
+void xmlcore::BenchClient::send(Request request)
 {
     using namespace rapidjson;
 
@@ -340,7 +340,7 @@ void xmrig::BenchClient::send(Request request)
             doc.AddMember("steady_ready_ts",                m_readyTime, allocator);
             doc.AddMember("cpu",                            Cpu::toJSON(doc), allocator);
 
-#           ifdef XMRIG_FEATURE_DMI
+#           ifdef xmlcore_FEATURE_DMI
             if (m_benchmark->isDMI()) {
                 DmiReader reader;
                 if (reader.read()) {
@@ -373,7 +373,7 @@ void xmrig::BenchClient::send(Request request)
 }
 
 
-void xmrig::BenchClient::setError(const char *message, const char *label)
+void xmlcore::BenchClient::setError(const char *message, const char *label)
 {
     LOG_ERR("%s " RED("%s: ") RED_BOLD("\"%s\""), tag(), label ? label : "benchmark failed", message);
     printExit();
@@ -382,7 +382,7 @@ void xmrig::BenchClient::setError(const char *message, const char *label)
 }
 
 
-void xmrig::BenchClient::update(const rapidjson::Value &body)
+void xmlcore::BenchClient::update(const rapidjson::Value &body)
 {
     assert(!m_token.isEmpty());
 

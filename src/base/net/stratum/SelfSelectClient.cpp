@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 #include "base/net/stratum/Client.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 static const char *kBlob                = "blob";
 static const char *kBlockhashingBlob    = "blockhashing_blob";
@@ -51,10 +51,10 @@ static const char *kSeedHash            = "seed_hash";
 
 static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashingBlob, kHeight, kDifficulty, kPrevHash };
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
+xmlcore::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
     m_listener(listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
@@ -62,13 +62,13 @@ xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientList
 }
 
 
-xmrig::SelfSelectClient::~SelfSelectClient()
+xmlcore::SelfSelectClient::~SelfSelectClient()
 {
     delete m_client;
 }
 
 
-void xmrig::SelfSelectClient::tick(uint64_t now)
+void xmlcore::SelfSelectClient::tick(uint64_t now)
 {
     m_client->tick(now);
 
@@ -82,7 +82,7 @@ void xmrig::SelfSelectClient::tick(uint64_t now)
 }
 
 
-void xmrig::SelfSelectClient::onJobReceived(IClient *, const Job &job, const rapidjson::Value &)
+void xmlcore::SelfSelectClient::onJobReceived(IClient *, const Job &job, const rapidjson::Value &)
 {
     m_job = job;
 
@@ -90,7 +90,7 @@ void xmrig::SelfSelectClient::onJobReceived(IClient *, const Job &job, const rap
 }
 
 
-void xmrig::SelfSelectClient::onLogin(IClient *, rapidjson::Document &doc, rapidjson::Value &params)
+void xmlcore::SelfSelectClient::onLogin(IClient *, rapidjson::Document &doc, rapidjson::Value &params)
 {
     params.AddMember("mode", "self-select", doc.GetAllocator());
 
@@ -98,7 +98,7 @@ void xmrig::SelfSelectClient::onLogin(IClient *, rapidjson::Document &doc, rapid
 }
 
 
-bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result, const rapidjson::Value &error)
+bool xmlcore::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result, const rapidjson::Value &error)
 {
     if (id == -1) {
         return false;
@@ -139,7 +139,7 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
 }
 
 
-void xmrig::SelfSelectClient::getBlockTemplate()
+void xmlcore::SelfSelectClient::getBlockTemplate()
 {
     setState(WaitState);
 
@@ -158,13 +158,13 @@ void xmrig::SelfSelectClient::getBlockTemplate()
 }
 
 
-void xmrig::SelfSelectClient::retry()
+void xmlcore::SelfSelectClient::retry()
 {
     setState(RetryState);
 }
 
 
-void xmrig::SelfSelectClient::setState(State state)
+void xmlcore::SelfSelectClient::setState(State state)
 {
     if (m_state == state) {
         return;
@@ -195,7 +195,7 @@ void xmrig::SelfSelectClient::setState(State state)
 }
 
 
-void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
+void xmlcore::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 {
     using namespace rapidjson;
     Document doc(kObjectType);
@@ -236,7 +236,7 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 }
 
 
-void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
+void xmlcore::SelfSelectClient::onHttpData(const HttpData &data)
 {
     if (data.status != HTTP_STATUS_OK) {
         return retry();

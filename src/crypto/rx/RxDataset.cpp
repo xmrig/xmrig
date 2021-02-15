@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount, int priority)
@@ -50,10 +50,10 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode, uint32_t node) :
+xmlcore::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfig::Mode mode, uint32_t node) :
     m_mode(mode),
     m_node(node)
 {
@@ -71,14 +71,14 @@ xmrig::RxDataset::RxDataset(bool hugePages, bool oneGbPages, bool cache, RxConfi
 }
 
 
-xmrig::RxDataset::RxDataset(RxCache *cache) :
+xmlcore::RxDataset::RxDataset(RxCache *cache) :
     m_node(0),
     m_cache(cache)
 {
 }
 
 
-xmrig::RxDataset::~RxDataset()
+xmlcore::RxDataset::~RxDataset()
 {
     randomx_release_dataset(m_dataset);
 
@@ -87,7 +87,7 @@ xmrig::RxDataset::~RxDataset()
 }
 
 
-bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priority)
+bool xmlcore::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priority)
 {
     if (!m_cache || !m_cache->get()) {
         return false;
@@ -123,19 +123,19 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priorit
 }
 
 
-bool xmrig::RxDataset::isHugePages() const
+bool xmlcore::RxDataset::isHugePages() const
 {
     return m_memory && m_memory->isHugePages();
 }
 
 
-bool xmrig::RxDataset::isOneGbPages() const
+bool xmlcore::RxDataset::isOneGbPages() const
 {
     return m_memory && m_memory->isOneGbPages();
 }
 
 
-xmrig::HugePagesInfo xmrig::RxDataset::hugePages(bool cache) const
+xmlcore::HugePagesInfo xmlcore::RxDataset::hugePages(bool cache) const
 {
     auto pages = m_memory ? m_memory->hugePages() : HugePagesInfo();
 
@@ -147,7 +147,7 @@ xmrig::HugePagesInfo xmrig::RxDataset::hugePages(bool cache) const
 }
 
 
-size_t xmrig::RxDataset::size(bool cache) const
+size_t xmlcore::RxDataset::size(bool cache) const
 {
     size_t size = 0;
 
@@ -163,7 +163,7 @@ size_t xmrig::RxDataset::size(bool cache) const
 }
 
 
-uint8_t *xmrig::RxDataset::tryAllocateScrathpad()
+uint8_t *xmlcore::RxDataset::tryAllocateScrathpad()
 {
     auto p = reinterpret_cast<uint8_t *>(raw());
     if (!p) {
@@ -179,13 +179,13 @@ uint8_t *xmrig::RxDataset::tryAllocateScrathpad()
 }
 
 
-void *xmrig::RxDataset::raw() const
+void *xmlcore::RxDataset::raw() const
 {
     return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
 }
 
 
-void xmrig::RxDataset::setRaw(const void *raw)
+void xmlcore::RxDataset::setRaw(const void *raw)
 {
     if (!m_dataset) {
         return;
@@ -196,7 +196,7 @@ void xmrig::RxDataset::setRaw(const void *raw)
 }
 
 
-void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
+void xmlcore::RxDataset::allocate(bool hugePages, bool oneGbPages)
 {
     if (m_mode == RxConfig::LightMode) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", Tags::randomx());
@@ -219,7 +219,7 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 
     m_dataset = randomx_create_dataset(m_memory->raw());
 
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     if (oneGbPages && !isOneGbPages()) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "failed to allocate RandomX dataset using 1GB pages", Tags::randomx());
     }

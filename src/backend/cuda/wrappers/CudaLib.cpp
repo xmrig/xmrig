@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include "crypto/rx/RxAlgo.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 enum Version : uint32_t
@@ -50,9 +50,9 @@ static uv_lib_t cudaLib;
 #if defined(__APPLE__)
 static String defaultLoader = "/System/Library/Frameworks/OpenCL.framework/OpenCL";
 #elif defined(_WIN32)
-static String defaultLoader = "xmrig-cuda.dll";
+static String defaultLoader = "xmlcore-cuda.dll";
 #else
-static String defaultLoader = "libxmrig-cuda.so";
+static String defaultLoader = "libxmlcore-cuda.so";
 #endif
 
 
@@ -137,10 +137,10 @@ String CudaLib::m_error;
 String CudaLib::m_loader;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::CudaLib::init(const char *fileName)
+bool xmlcore::CudaLib::init(const char *fileName)
 {
     if (!m_initialized) {
         m_initialized = true;
@@ -165,37 +165,37 @@ bool xmrig::CudaLib::init(const char *fileName)
 }
 
 
-const char *xmrig::CudaLib::lastError() noexcept
+const char *xmlcore::CudaLib::lastError() noexcept
 {
     return m_error;
 }
 
 
-void xmrig::CudaLib::close()
+void xmlcore::CudaLib::close()
 {
     uv_dlclose(&cudaLib);
 }
 
 
-bool xmrig::CudaLib::astroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+bool xmlcore::CudaLib::astroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
 {
     return pAstroBWTHash(ctx, startNonce, target, rescount, resnonce);
 }
 
 
-bool xmrig::CudaLib::astroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
+bool xmlcore::CudaLib::astroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
 {
     return pAstroBWTPrepare(ctx, batchSize);
 }
 
 
-bool xmrig::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce)
+bool xmlcore::CudaLib::cnHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t height, uint64_t target, uint32_t *rescount, uint32_t *resnonce)
 {
     return pCnHash(ctx, startNonce, height, target, rescount, resnonce);
 }
 
 
-bool xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
+bool xmlcore::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, const Algorithm &algorithm, int32_t dataset_host) noexcept
 {
     const Algorithm algo = RxAlgo::id(algorithm);
 
@@ -203,43 +203,43 @@ bool xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, 
 }
 
 
-bool xmrig::CudaLib::deviceInit(nvid_ctx *ctx) noexcept
+bool xmlcore::CudaLib::deviceInit(nvid_ctx *ctx) noexcept
 {
     return pDeviceInit(ctx);
 }
 
 
-bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
+bool xmlcore::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
 {
     return pRxHash(ctx, startNonce, target, rescount, resnonce);
 }
 
 
-bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
+bool xmlcore::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
 }
 
 
-bool xmrig::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t target, uint32_t *rescount, uint32_t *resnonce, uint32_t *skipped_hashes) noexcept
+bool xmlcore::CudaLib::kawPowHash(nvid_ctx *ctx, uint8_t* job_blob, uint64_t target, uint32_t *rescount, uint32_t *resnonce, uint32_t *skipped_hashes) noexcept
 {
     return pKawPowHash(ctx, job_blob, target, rescount, resnonce, skipped_hashes);
 }
 
 
-bool xmrig::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, const void* dag_precalc, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
+bool xmlcore::CudaLib::kawPowPrepare(nvid_ctx *ctx, const void* cache, size_t cache_size, const void* dag_precalc, size_t dag_size, uint32_t height, const uint64_t* dag_sizes) noexcept
 {
     return pKawPowPrepare_v2(ctx, cache, cache_size, dag_precalc, dag_size, height, dag_sizes);
 }
 
 
-bool xmrig::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
+bool xmlcore::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
 {
     return pKawPowStopHash(ctx);
 }
 
 
-bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
+bool xmlcore::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
 {
     const Algorithm algo = RxAlgo::id(algorithm);
 
@@ -247,43 +247,43 @@ bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const 
 }
 
 
-const char *xmrig::CudaLib::deviceName(nvid_ctx *ctx) noexcept
+const char *xmlcore::CudaLib::deviceName(nvid_ctx *ctx) noexcept
 {
     return pDeviceName(ctx);
 }
 
 
-const char *xmrig::CudaLib::lastError(nvid_ctx *ctx) noexcept
+const char *xmlcore::CudaLib::lastError(nvid_ctx *ctx) noexcept
 {
     return pLastError(ctx);
 }
 
 
-const char *xmrig::CudaLib::pluginVersion() noexcept
+const char *xmlcore::CudaLib::pluginVersion() noexcept
 {
     return pPluginVersion();
 }
 
 
-int32_t xmrig::CudaLib::deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept
+int32_t xmlcore::CudaLib::deviceInt(nvid_ctx *ctx, DeviceProperty property) noexcept
 {
     return pDeviceInt(ctx, property);
 }
 
 
-nvid_ctx *xmrig::CudaLib::alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept
+nvid_ctx *xmlcore::CudaLib::alloc(uint32_t id, int32_t bfactor, int32_t bsleep) noexcept
 {
     return pAlloc(id, bfactor, bsleep);
 }
 
 
-std::string xmrig::CudaLib::version(uint32_t version)
+std::string xmlcore::CudaLib::version(uint32_t version)
 {
     return std::to_string(version / 1000) + "." + std::to_string((version % 1000) / 10);
 }
 
 
-std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t bsleep, const std::vector<uint32_t> &hints) noexcept
+std::vector<xmlcore::CudaDevice> xmlcore::CudaLib::devices(int32_t bfactor, int32_t bsleep, const std::vector<uint32_t> &hints) noexcept
 {
     const uint32_t count = deviceCount();
     if (!count) {
@@ -318,43 +318,43 @@ std::vector<xmrig::CudaDevice> xmrig::CudaLib::devices(int32_t bfactor, int32_t 
 }
 
 
-uint32_t xmrig::CudaLib::deviceCount() noexcept
+uint32_t xmlcore::CudaLib::deviceCount() noexcept
 {
     return pDeviceCount();
 }
 
 
-uint32_t xmrig::CudaLib::deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept
+uint32_t xmlcore::CudaLib::deviceUint(nvid_ctx *ctx, DeviceProperty property) noexcept
 {
     return pDeviceUint(ctx, property);
 }
 
 
-uint32_t xmrig::CudaLib::driverVersion() noexcept
+uint32_t xmlcore::CudaLib::driverVersion() noexcept
 {
     return pVersion(DriverVersion);
 }
 
 
-uint32_t xmrig::CudaLib::runtimeVersion() noexcept
+uint32_t xmlcore::CudaLib::runtimeVersion() noexcept
 {
     return pVersion(RuntimeVersion);
 }
 
 
-uint64_t xmrig::CudaLib::deviceUlong(nvid_ctx *ctx, DeviceProperty property) noexcept
+uint64_t xmlcore::CudaLib::deviceUlong(nvid_ctx *ctx, DeviceProperty property) noexcept
 {
     return pDeviceUlong(ctx, property);
 }
 
 
-void xmrig::CudaLib::release(nvid_ctx *ctx) noexcept
+void xmlcore::CudaLib::release(nvid_ctx *ctx) noexcept
 {
     pRelease(ctx);
 }
 
 
-bool xmrig::CudaLib::open()
+bool xmlcore::CudaLib::open()
 {
     m_error = nullptr;
 
@@ -362,7 +362,7 @@ bool xmrig::CudaLib::open()
         return true;
     }
 
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     if (m_loader == defaultLoader) {
         m_loader = Process::location(Process::ExeLocation, m_loader);
     }
@@ -381,7 +381,7 @@ bool xmrig::CudaLib::open()
 }
 
 
-void xmrig::CudaLib::load()
+void xmlcore::CudaLib::load()
 {
     DLSYM(Version);
 

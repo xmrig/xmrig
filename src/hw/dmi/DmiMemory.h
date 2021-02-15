@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
  * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,14 +18,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DMIMEMORY_H
-#define XMRIG_DMIMEMORY_H
+#ifndef xmlcore_DMIMEMORY_H
+#define xmlcore_DMIMEMORY_H
 
 
 #include "base/tools/String.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct dmi_header;
@@ -53,7 +53,7 @@ public:
     const char *formFactor() const;
     const char *type() const;
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 #   endif
 
@@ -76,7 +76,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_DMIMEMORY_H */
+#endif /* xmlcore_DMIMEMORY_H */

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CLIENT_H
-#define XMRIG_CLIENT_H
+#ifndef xmlcore_CLIENT_H
+#define xmlcore_CLIENT_H
 
 
 #include <bitset>
@@ -47,7 +47,7 @@
 using BIO = struct bio_st;
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IClientListener;
@@ -57,7 +57,7 @@ class JobResult;
 class Client : public BaseClient, public IDnsListener, public ILineListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Client)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Client)
 
     constexpr static uint64_t kConnectTimeout   = 20 * 1000;
     constexpr static uint64_t kResponseTimeout  = 20 * 1000;
@@ -152,7 +152,7 @@ template<> inline bool Client::has<Client::EXT_NICEHASH>() const noexcept  { ret
 template<> inline bool Client::has<Client::EXT_KEEPALIVE>() const noexcept { return m_extensions.test(EXT_KEEPALIVE) || m_pool.keepAlive() > 0; }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CLIENT_H */
+#endif /* xmlcore_CLIENT_H */

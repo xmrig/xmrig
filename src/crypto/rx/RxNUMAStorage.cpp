@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 #include <thread>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 constexpr size_t oneMiB = 1024 * 1024;
@@ -77,7 +77,7 @@ static inline void printDatasetReady(uint32_t nodeId, uint64_t ts)
 class RxNUMAStoragePrivate
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxNUMAStoragePrivate)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(RxNUMAStoragePrivate)
 
     inline RxNUMAStoragePrivate(const std::vector<uint32_t> &nodeset) :
         m_nodeset(nodeset)
@@ -332,28 +332,28 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::RxNUMAStorage::RxNUMAStorage(const std::vector<uint32_t> &nodeset) :
+xmlcore::RxNUMAStorage::RxNUMAStorage(const std::vector<uint32_t> &nodeset) :
     d_ptr(new RxNUMAStoragePrivate(nodeset))
 {
 }
 
 
-xmrig::RxNUMAStorage::~RxNUMAStorage()
+xmlcore::RxNUMAStorage::~RxNUMAStorage()
 {
     delete d_ptr;
 }
 
 
-bool xmrig::RxNUMAStorage::isAllocated() const
+bool xmlcore::RxNUMAStorage::isAllocated() const
 {
     return d_ptr->isAllocated();
 }
 
 
-xmrig::HugePagesInfo xmrig::RxNUMAStorage::hugePages() const
+xmlcore::HugePagesInfo xmlcore::RxNUMAStorage::hugePages() const
 {
     if (!d_ptr->isAllocated()) {
         return {};
@@ -363,7 +363,7 @@ xmrig::HugePagesInfo xmrig::RxNUMAStorage::hugePages() const
 }
 
 
-xmrig::RxDataset *xmrig::RxNUMAStorage::dataset(const Job &job, uint32_t nodeId) const
+xmlcore::RxDataset *xmlcore::RxNUMAStorage::dataset(const Job &job, uint32_t nodeId) const
 {
     if (!d_ptr->isReady(job)) {
         return nullptr;
@@ -373,7 +373,7 @@ xmrig::RxDataset *xmrig::RxNUMAStorage::dataset(const Job &job, uint32_t nodeId)
 }
 
 
-void xmrig::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode, int priority)
+void xmlcore::RxNUMAStorage::init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode, int priority)
 {
     d_ptr->setSeed(seed);
 

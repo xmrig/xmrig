@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -8,7 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include "base/tools/Cvt.h"
 
 
-xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
+xmlcore::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
     m_nicehash(nicehash),
     m_clientId(clientId)
@@ -42,13 +42,13 @@ xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientI
 }
 
 
-bool xmrig::Job::isEqual(const Job &other) const
+bool xmlcore::Job::isEqual(const Job &other) const
 {
     return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0;
 }
 
 
-bool xmrig::Job::setBlob(const char *blob)
+bool xmlcore::Job::setBlob(const char *blob)
 {
     if (!blob) {
         return false;
@@ -74,7 +74,7 @@ bool xmrig::Job::setBlob(const char *blob)
         m_nicehash = true;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     memset(m_rawBlob, 0, sizeof(m_rawBlob));
     memcpy(m_rawBlob, blob, m_size * 2);
 #   endif
@@ -83,13 +83,13 @@ bool xmrig::Job::setBlob(const char *blob)
 }
 
 
-bool xmrig::Job::setSeedHash(const char *hash)
+bool xmlcore::Job::setSeedHash(const char *hash)
 {
     if (!hash || (strlen(hash) != kMaxSeedSize * 2)) {
         return false;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_rawSeedHash = hash;
 #   endif
 
@@ -99,7 +99,7 @@ bool xmrig::Job::setSeedHash(const char *hash)
 }
 
 
-bool xmrig::Job::setTarget(const char *target)
+bool xmlcore::Job::setTarget(const char *target)
 {
     if (!target) {
         return false;
@@ -118,7 +118,7 @@ bool xmrig::Job::setTarget(const char *target)
         return false;
     }
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     memset(m_rawTarget, 0, sizeof(m_rawTarget));
     memcpy(m_rawTarget, target, len);
 #   endif
@@ -128,19 +128,19 @@ bool xmrig::Job::setTarget(const char *target)
 }
 
 
-void xmrig::Job::setDiff(uint64_t diff)
+void xmlcore::Job::setDiff(uint64_t diff)
 {
     m_diff   = diff;
     m_target = toDiff(diff);
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     Buffer::toHex(reinterpret_cast<uint8_t *>(&m_target), 8, m_rawTarget);
     m_rawTarget[16] = '\0';
 #   endif
 }
 
 
-void xmrig::Job::copy(const Job &other)
+void xmlcore::Job::copy(const Job &other)
 {
     m_algorithm  = other.m_algorithm;
     m_nicehash   = other.m_nicehash;
@@ -158,20 +158,20 @@ void xmrig::Job::copy(const Job &other)
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_rawSeedHash = other.m_rawSeedHash;
 
     memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
     memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
 }
 
 
-void xmrig::Job::move(Job &&other)
+void xmlcore::Job::move(Job &&other)
 {
     m_algorithm  = other.m_algorithm;
     m_nicehash   = other.m_nicehash;
@@ -193,14 +193,14 @@ void xmrig::Job::move(Job &&other)
     other.m_diff        = 0;
     other.m_algorithm   = Algorithm::INVALID;
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_rawSeedHash = std::move(other.m_rawSeedHash);
 
     memcpy(m_rawBlob, other.m_rawBlob, sizeof(m_rawBlob));
     memcpy(m_rawTarget, other.m_rawTarget, sizeof(m_rawTarget));
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
 }

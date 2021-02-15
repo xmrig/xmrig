@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BENCHCLIENT_H
-#define XMRIG_BENCHCLIENT_H
+#ifndef xmlcore_BENCHCLIENT_H
+#define xmlcore_BENCHCLIENT_H
 
 
 #include "backend/common/interfaces/IBenchListener.h"
@@ -26,13 +26,13 @@
 #include "base/net/stratum/Client.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class BenchClient : public IClient, public IHttpListener, public IBenchListener, public IDnsListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(BenchClient)
 
     BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener);
     ~BenchClient() override;
@@ -93,7 +93,7 @@ private:
     void printExit();
     void start();
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     void onCreateReply(const rapidjson::Value &value);
     void onDoneReply(const rapidjson::Value &value);
     void onGetReply(const rapidjson::Value &value);
@@ -124,7 +124,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_BENCHCLIENT_H */
+#endif /* xmlcore_BENCHCLIENT_H */

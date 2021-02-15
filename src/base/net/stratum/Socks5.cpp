@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,13 +20,13 @@
 #include "base/net/stratum/Socks5.h"
 
 
-xmrig::Client::Socks5::Socks5(Client *client) :
+xmlcore::Client::Socks5::Socks5(Client *client) :
     m_client(client)
 {
 }
 
 
-bool xmrig::Client::Socks5::read(const char *data, size_t size)
+bool xmlcore::Client::Socks5::read(const char *data, size_t size)
 {
     if (size < m_nextSize) {
         return false;
@@ -48,7 +48,7 @@ bool xmrig::Client::Socks5::read(const char *data, size_t size)
 }
 
 
-void xmrig::Client::Socks5::handshake()
+void xmlcore::Client::Socks5::handshake()
 {
     m_nextSize  = 2;
     m_state     = SentInitialHandshake;
@@ -59,19 +59,19 @@ void xmrig::Client::Socks5::handshake()
 }
 
 
-bool xmrig::Client::Socks5::isIPv4(const String &host, sockaddr_storage *addr) const
+bool xmlcore::Client::Socks5::isIPv4(const String &host, sockaddr_storage *addr) const
 {
     return uv_ip4_addr(host.data(), 0, reinterpret_cast<sockaddr_in *>(addr)) == 0;
 }
 
 
-bool xmrig::Client::Socks5::isIPv6(const String &host, sockaddr_storage *addr) const
+bool xmlcore::Client::Socks5::isIPv6(const String &host, sockaddr_storage *addr) const
 {
    return uv_ip6_addr(host.data(), 0, reinterpret_cast<sockaddr_in6 *>(addr)) == 0;
 }
 
 
-void xmrig::Client::Socks5::connect()
+void xmlcore::Client::Socks5::connect()
 {
     m_nextSize  = 5;
     m_state     = SentFinalHandshake;

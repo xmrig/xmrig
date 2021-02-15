@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -44,12 +44,12 @@
 #include "core/config/Config_platform.h"
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include "base/net/tls/TlsConfig.h"
 #endif
 
 
-void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTransform &transform)
+void xmlcore::BaseTransform::load(JsonChain &chain, Process *process, IConfigTransform &transform)
 {
     using namespace rapidjson;
 
@@ -85,7 +85,7 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 }
 
 
-void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
+void xmlcore::BaseTransform::finalize(rapidjson::Document &doc)
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -114,7 +114,7 @@ void xmrig::BaseTransform::finalize(rapidjson::Document &doc)
 }
 
 
-void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const char *arg)
+void xmlcore::BaseTransform::transform(rapidjson::Document &doc, int key, const char *arg)
 {
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
@@ -163,13 +163,13 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
             array.PushBack(rapidjson::kObjectType, doc.GetAllocator());
         }
 
-#       ifdef XMRIG_FEATURE_BENCHMARK
+#       ifdef xmlcore_FEATURE_BENCHMARK
         if (key != IConfig::UrlKey) {
             set(doc, array[array.Size() - 1], Pool::kUrl,
-#           ifdef XMRIG_FEATURE_TLS
-                "stratum+ssl://randomx.xmrig.com:443"
+#           ifdef xmlcore_FEATURE_TLS
+                "stratum+ssl://randomx.xmlcore.com:443"
 #           else
-                "randomx.xmrig.com:3333"
+                "randomx.xmlcore.com:3333"
 #           endif
             );
         } else
@@ -221,7 +221,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::TitleKey: /* --title */
         return set(doc, BaseConfig::kTitle, arg);
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     case IConfig::TlsCertKey: /* --tls-cert */
         return set(doc, BaseConfig::kTls, TlsConfig::kCert, arg);
 
@@ -275,7 +275,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 }
 
 
-void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, bool enable)
+void xmlcore::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, bool enable)
 {
     switch (key) {
     case IConfig::BackgroundKey: /* --background */
@@ -290,12 +290,12 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::TlsKey: /* --tls */
         return add(doc, Pools::kPools, Pool::kTls, enable);
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     case IConfig::DaemonKey: /* --daemon */
         return add(doc, Pools::kPools, Pool::kDaemon, enable);
 #   endif
 
-#   ifndef XMRIG_PROXY_PROJECT
+#   ifndef xmlcore_PROXY_PROJECT
     case IConfig::NicehashKey: /* --nicehash */
         return add<bool>(doc, Pools::kPools, Pool::kNicehash, enable);
 #   endif
@@ -329,7 +329,7 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
 }
 
 
-void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, uint64_t arg)
+void xmlcore::BaseTransform::transformUint64(rapidjson::Document &doc, int key, uint64_t arg)
 {
     switch (key) {
     case IConfig::RetriesKey: /* --retries */
@@ -351,7 +351,7 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
     case IConfig::PrintTimeKey: /* --print-time */
         return set(doc, BaseConfig::kPrintTime, arg);
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
 #   endif

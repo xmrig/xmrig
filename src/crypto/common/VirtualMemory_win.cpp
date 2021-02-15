@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,14 +29,14 @@
 #include "crypto/common/portable/mm_malloc.h"
 
 
-#ifdef XMRIG_SECURE_JIT
+#ifdef xmlcore_SECURE_JIT
 #   define SECURE_PAGE_EXECUTE_READWRITE PAGE_READWRITE
 #else
 #   define SECURE_PAGE_EXECUTE_READWRITE PAGE_EXECUTE_READWRITE
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static bool hugepagesAvailable = false;
@@ -147,22 +147,22 @@ static BOOL TrySetLockPagesPrivilege() {
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::VirtualMemory::isHugepagesAvailable()
+bool xmlcore::VirtualMemory::isHugepagesAvailable()
 {
     return hugepagesAvailable;
 }
 
 
-bool xmrig::VirtualMemory::isOneGbPagesAvailable()
+bool xmlcore::VirtualMemory::isOneGbPagesAvailable()
 {
     return false;
 }
 
 
-bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRW(void *p, size_t size)
 {
     DWORD oldProtect;
 
@@ -170,7 +170,7 @@ bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRWX(void *p, size_t size)
 {
     DWORD oldProtect;
 
@@ -178,7 +178,7 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRX(void *p, size_t size)
 {
     DWORD oldProtect;
 
@@ -186,7 +186,7 @@ bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 }
 
 
-void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
+void *xmlcore::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
     void* result = nullptr;
 
@@ -202,7 +202,7 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 }
 
 
-void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
+void *xmlcore::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
     const size_t min = GetLargePageMinimum();
     void *mem        = nullptr;
@@ -215,25 +215,25 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 }
 
 
-void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t)
+void *xmlcore::VirtualMemory::allocateOneGbPagesMemory(size_t)
 {
     return nullptr;
 }
 
 
-void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
+void xmlcore::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
     ::FlushInstructionCache(GetCurrentProcess(), p, size);
 }
 
 
-void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t)
+void xmlcore::VirtualMemory::freeLargePagesMemory(void *p, size_t)
 {
     VirtualFree(p, 0, MEM_RELEASE);
 }
 
 
-void xmrig::VirtualMemory::osInit(size_t hugePageSize)
+void xmlcore::VirtualMemory::osInit(size_t hugePageSize)
 {
     if (hugePageSize) {
         hugepagesAvailable = TrySetLockPagesPrivilege();
@@ -241,7 +241,7 @@ void xmrig::VirtualMemory::osInit(size_t hugePageSize)
 }
 
 
-bool xmrig::VirtualMemory::allocateLargePagesMemory()
+bool xmlcore::VirtualMemory::allocateLargePagesMemory()
 {
     m_scratchpad = static_cast<uint8_t*>(allocateLargePagesMemory(m_size));
     if (m_scratchpad) {
@@ -253,14 +253,14 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
     return false;
 }
 
-bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+bool xmlcore::VirtualMemory::allocateOneGbPagesMemory()
 {
     m_scratchpad = nullptr;
     return false;
 }
 
 
-void xmrig::VirtualMemory::freeLargePagesMemory()
+void xmlcore::VirtualMemory::freeLargePagesMemory()
 {
     freeLargePagesMemory(m_scratchpad, m_size);
 }

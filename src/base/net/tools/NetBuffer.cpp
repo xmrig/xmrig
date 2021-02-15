@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,32 +26,32 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
-static MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS> *pool = nullptr;
+static MemPool<xmlcore_NET_BUFFER_CHUNK_SIZE, xmlcore_NET_BUFFER_INIT_CHUNKS> *pool = nullptr;
 
 
-inline MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS> *getPool()
+inline MemPool<xmlcore_NET_BUFFER_CHUNK_SIZE, xmlcore_NET_BUFFER_INIT_CHUNKS> *getPool()
 {
     if (!pool) {
-        pool = new MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS>();
+        pool = new MemPool<xmlcore_NET_BUFFER_CHUNK_SIZE, xmlcore_NET_BUFFER_INIT_CHUNKS>();
     }
 
     return pool;
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-char *xmrig::NetBuffer::allocate()
+char *xmlcore::NetBuffer::allocate()
 {
     return getPool()->allocate();
 }
 
 
-void xmrig::NetBuffer::destroy()
+void xmlcore::NetBuffer::destroy()
 {
     if (!pool) {
         return;
@@ -64,14 +64,14 @@ void xmrig::NetBuffer::destroy()
 }
 
 
-void xmrig::NetBuffer::onAlloc(uv_handle_t *, size_t, uv_buf_t *buf)
+void xmlcore::NetBuffer::onAlloc(uv_handle_t *, size_t, uv_buf_t *buf)
 {
     buf->base = getPool()->allocate();
-    buf->len  = XMRIG_NET_BUFFER_CHUNK_SIZE;
+    buf->len  = xmlcore_NET_BUFFER_CHUNK_SIZE;
 }
 
 
-void xmrig::NetBuffer::release(const char *buf)
+void xmlcore::NetBuffer::release(const char *buf)
 {
     if (buf == nullptr) {
         return;
@@ -81,7 +81,7 @@ void xmrig::NetBuffer::release(const char *buf)
 }
 
 
-void xmrig::NetBuffer::release(const uv_buf_t *buf)
+void xmlcore::NetBuffer::release(const uv_buf_t *buf)
 {
     if (buf->base == nullptr) {
         return;

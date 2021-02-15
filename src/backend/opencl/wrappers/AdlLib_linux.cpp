@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2008-2018 Advanced Micro Devices, Inc.
  * Copyright (c) 2020      Patrick Bollinger            <https://github.com/pjbollinger>
  * Copyright (c) 2018-2021 SChernykh                    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore                        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #include <sys/types.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 bool AdlLib::m_initialized          = false;
@@ -132,10 +132,10 @@ static size_t sysfs_prefix(char path[PATH_MAX], const PciTopology &topology)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::AdlLib::init()
+bool xmlcore::AdlLib::init()
 {
     if (!m_initialized) {
         m_ready       = dlopen() && load();
@@ -146,19 +146,19 @@ bool xmrig::AdlLib::init()
 }
 
 
-const char *xmrig::AdlLib::lastError() noexcept
+const char *xmlcore::AdlLib::lastError() noexcept
 {
     return nullptr;
 }
 
 
-void xmrig::AdlLib::close()
+void xmlcore::AdlLib::close()
 {
 }
 
 
 // https://dri.freedesktop.org/docs/drm/gpu/amdgpu.html#gpu-power-thermal-controls-and-monitoring
-AdlHealth xmrig::AdlLib::health(const OclDevice &device)
+AdlHealth xmlcore::AdlLib::health(const OclDevice &device)
 {
     if (!isReady() || device.vendorId() != OCL_VENDOR_AMD) {
         return {};
@@ -186,7 +186,7 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
 }
 
 
-bool xmrig::AdlLib::dlopen()
+bool xmlcore::AdlLib::dlopen()
 {
     struct stat sb;
     if (stat(kPrefix.c_str(), &sb) == -1) {
@@ -197,7 +197,7 @@ bool xmrig::AdlLib::dlopen()
 }
 
 
-bool xmrig::AdlLib::load()
+bool xmlcore::AdlLib::load()
 {
     return true;
 }

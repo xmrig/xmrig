@@ -1,7 +1,7 @@
 find_path(
     UV_INCLUDE_DIR
     NAMES uv.h
-    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATHS "${xmlcore_DEPS}" ENV "xmlcore_DEPS"
     PATH_SUFFIXES "include"
     NO_DEFAULT_PATH
 )
@@ -11,7 +11,7 @@ find_path(UV_INCLUDE_DIR NAMES uv.h)
 find_library(
     UV_LIBRARY
     NAMES libuv.a uv libuv
-    PATHS "${XMRIG_DEPS}" ENV "XMRIG_DEPS"
+    PATHS "${xmlcore_DEPS}" ENV "xmlcore_DEPS"
     PATH_SUFFIXES "lib"
     NO_DEFAULT_PATH
 )

@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright 2008-2018 Advanced Micro Devices, Inc.
  * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore                        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #include "backend/opencl/wrappers/OclDevice.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static std::vector<AdapterInfo> adapters;
@@ -155,10 +155,10 @@ static void getSensorsData_v8(const AdapterInfo &adapter, AdlHealth &health)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::AdlLib::init()
+bool xmlcore::AdlLib::init()
 {
     if (!m_initialized) {
         m_ready       = dlopen() && load();
@@ -169,13 +169,13 @@ bool xmrig::AdlLib::init()
 }
 
 
-const char *xmrig::AdlLib::lastError() noexcept
+const char *xmlcore::AdlLib::lastError() noexcept
 {
     return uv_dlerror(&adlLib);
 }
 
 
-void xmrig::AdlLib::close()
+void xmlcore::AdlLib::close()
 {
     if (m_ready) {
         ADL_Main_Control_Destroy();
@@ -185,7 +185,7 @@ void xmrig::AdlLib::close()
 }
 
 
-AdlHealth xmrig::AdlLib::health(const OclDevice &device)
+AdlHealth xmlcore::AdlLib::health(const OclDevice &device)
 {
     if (!isReady() || device.vendorId() != OCL_VENDOR_AMD) {
         return {};
@@ -218,13 +218,13 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
 }
 
 
-bool xmrig::AdlLib::dlopen()
+bool xmlcore::AdlLib::dlopen()
 {
     return uv_dlopen("atiadlxx.dll", &adlLib) == 0;
 }
 
 
-bool xmrig::AdlLib::load()
+bool xmlcore::AdlLib::load()
 {
     try {
         DLSYM(ADL_Main_Control_Create);

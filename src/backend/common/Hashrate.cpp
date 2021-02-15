@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,7 +41,7 @@ inline static const char *format(double h, char *buf, size_t size)
 }
 
 
-xmrig::Hashrate::Hashrate(size_t threads) :
+xmlcore::Hashrate::Hashrate(size_t threads) :
     m_threads(threads + 1)
 {
     m_counts     = new uint64_t*[m_threads];
@@ -56,7 +56,7 @@ xmrig::Hashrate::Hashrate(size_t threads) :
 }
 
 
-xmrig::Hashrate::~Hashrate()
+xmlcore::Hashrate::~Hashrate()
 {
     for (size_t i = 0; i < m_threads; i++) {
         delete [] m_counts[i];
@@ -69,20 +69,20 @@ xmrig::Hashrate::~Hashrate()
 }
 
 
-const char *xmrig::Hashrate::format(double h, char *buf, size_t size)
+const char *xmlcore::Hashrate::format(double h, char *buf, size_t size)
 {
     return ::format(h, buf, size);
 }
 
 
-rapidjson::Value xmrig::Hashrate::normalize(double d)
+rapidjson::Value xmlcore::Hashrate::normalize(double d)
 {
     return Json::normalize(d, false);
 }
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::Hashrate::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::Hashrate::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -96,7 +96,7 @@ rapidjson::Value xmrig::Hashrate::toJSON(rapidjson::Document &doc) const
 }
 
 
-rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &doc) const
+rapidjson::Value xmlcore::Hashrate::toJSON(size_t threadId, rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -111,7 +111,7 @@ rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &d
 #endif
 
 
-double xmrig::Hashrate::hashrate(size_t index, size_t ms) const
+double xmlcore::Hashrate::hashrate(size_t index, size_t ms) const
 {
     assert(index < m_threads);
     if (index >= m_threads) {
@@ -122,7 +122,7 @@ double xmrig::Hashrate::hashrate(size_t index, size_t ms) const
     uint64_t earliestStamp     = 0;
     bool haveFullSet           = false;
 
-    const uint64_t timeStampLimit = xmrig::Chrono::steadyMSecs() - ms;
+    const uint64_t timeStampLimit = xmlcore::Chrono::steadyMSecs() - ms;
     uint64_t* timestamps          = m_timestamps[index];
     uint64_t* counts              = m_counts[index];
 
@@ -160,7 +160,7 @@ double xmrig::Hashrate::hashrate(size_t index, size_t ms) const
 }
 
 
-void xmrig::Hashrate::addData(size_t index, uint64_t count, uint64_t timestamp)
+void xmlcore::Hashrate::addData(size_t index, uint64_t count, uint64_t timestamp)
 {
     const size_t top         = m_top[index];
     m_counts[index][top]     = count;

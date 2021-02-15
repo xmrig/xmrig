@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 #include "base/tools/Chrono.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static std::mutex mutex;
@@ -105,10 +105,10 @@ static cl_program createFromBinary(const IOclRunner *runner, const std::string &
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-cl_program xmrig::OclCache::build(const IOclRunner *runner)
+cl_program xmlcore::OclCache::build(const IOclRunner *runner)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -119,7 +119,7 @@ cl_program xmrig::OclCache::build(const IOclRunner *runner)
     std::string fileName;
     if (runner->data().cache) {
 #       ifdef _WIN32
-        fileName = prefix() + "\\xmrig\\.cache\\" + cacheKey(runner) + ".bin";
+        fileName = prefix() + "\\xmlcore\\.cache\\" + cacheKey(runner) + ".bin";
 #       else
         fileName = prefix() + "/.cache/" + cacheKey(runner) + ".bin";
 #       endif
@@ -139,7 +139,7 @@ cl_program xmrig::OclCache::build(const IOclRunner *runner)
 }
 
 
-std::string xmrig::OclCache::cacheKey(const char *deviceKey, const char *options, const char *source)
+std::string xmlcore::OclCache::cacheKey(const char *deviceKey, const char *options, const char *source)
 {
     std::string in(source);
     in += options;
@@ -155,13 +155,13 @@ std::string xmrig::OclCache::cacheKey(const char *deviceKey, const char *options
 }
 
 
-std::string xmrig::OclCache::cacheKey(const IOclRunner *runner)
+std::string xmlcore::OclCache::cacheKey(const IOclRunner *runner)
 {
     return cacheKey(runner->deviceKey(), runner->buildOptions(), runner->source());
 }
 
 
-void xmrig::OclCache::save(cl_program program, const std::string &fileName)
+void xmlcore::OclCache::save(cl_program program, const std::string &fileName)
 {
     size_t size = 0;
     if (OclLib::getProgramInfo(program, CL_PROGRAM_BINARY_SIZES, sizeof(size), &size) != CL_SUCCESS) {

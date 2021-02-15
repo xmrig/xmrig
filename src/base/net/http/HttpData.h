@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 
 
-#ifndef XMRIG_HTTPDATA_H
-#define XMRIG_HTTPDATA_H
+#ifndef xmlcore_HTTPDATA_H
+#define xmlcore_HTTPDATA_H
 
 
 #include "3rdparty/rapidjson/document.h"
@@ -30,13 +30,13 @@
 #include <string>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class HttpData
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpData)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpData)
 
     static const std::string kApplicationJson;
     static const std::string kContentType;
@@ -75,8 +75,8 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPDATA_H
+#endif // xmlcore_HTTPDATA_H
 

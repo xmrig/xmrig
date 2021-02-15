@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,14 +27,14 @@
 #include <cinttypes>
 
 
-xmrig::Benchmark::Benchmark(size_t workers, const IBackend *backend) :
+xmlcore::Benchmark::Benchmark(size_t workers, const IBackend *backend) :
     m_backend(backend),
     m_workers(workers)
 {
 }
 
 
-bool xmrig::Benchmark::finish(uint64_t totalHashCount)
+bool xmlcore::Benchmark::finish(uint64_t totalHashCount)
 {
     m_current = totalHashCount;
 
@@ -42,13 +42,13 @@ bool xmrig::Benchmark::finish(uint64_t totalHashCount)
 }
 
 
-void xmrig::Benchmark::start()
+void xmlcore::Benchmark::start()
 {
     m_startTime = BenchState::start(m_workers, m_backend);
 }
 
 
-void xmrig::Benchmark::printProgress() const
+void xmlcore::Benchmark::printProgress() const
 {
     if (!m_startTime || !m_current) {
         return;

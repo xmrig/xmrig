@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_API_H
-#define XMRIG_API_H
+#ifndef xmlcore_API_H
+#define xmlcore_API_H
 
 
 #include <vector>
@@ -28,7 +28,7 @@
 #include "base/tools/String.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Base;
@@ -42,7 +42,7 @@ class String;
 class Api : public IBaseListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Api)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Api)
 
     Api(Base *base);
     ~Api() override;
@@ -72,7 +72,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_API_H */
+#endif /* xmlcore_API_H */

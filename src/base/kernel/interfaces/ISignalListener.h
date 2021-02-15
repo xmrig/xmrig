@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ISIGNALLISTENER_H
-#define XMRIG_ISIGNALLISTENER_H
+#ifndef xmlcore_ISIGNALLISTENER_H
+#define xmlcore_ISIGNALLISTENER_H
 
 
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class String;
@@ -32,7 +32,7 @@ class String;
 class ISignalListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ISignalListener)
+    xmlcore_DISABLE_COPY_MOVE(ISignalListener)
 
     ISignalListener()           = default;
     virtual ~ISignalListener()  = default;
@@ -41,7 +41,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif // XMRIG_ISIGNALLISTENER_H
+#endif // xmlcore_ISIGNALLISTENER_H

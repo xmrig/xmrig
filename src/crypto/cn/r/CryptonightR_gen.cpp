@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ static inline void add_code(uint8_t* &p, void (*p1)(), void (*p2)())
     }
 }
 
-static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit, xmrig::Assembly::Id ASM)
+static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int code_size, const void_func* instructions, const void_func* instructions_mov, bool is_64_bit, xmlcore::Assembly::Id ASM)
 {
     uint32_t prev_rot_src = (uint32_t)(-1);
 
@@ -76,7 +76,7 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
 
         void_func begin = instructions[c];
 
-        if ((ASM == xmrig::Assembly::BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
+        if ((ASM == xmlcore::Assembly::BULLDOZER) && (inst.opcode == MUL) && !is_64_bit) {
             // AMD Bulldozer has latency 4 for 32-bit IMUL and 6 for 64-bit IMUL
             // Always use 32-bit IMUL for AMD Bulldozer in 32-bit mode - skip prefix 0x48 and change 0x49 to 0x41
             uint8_t* prefix = reinterpret_cast<uint8_t*>(begin);
@@ -99,7 +99,7 @@ static inline void add_random_math(uint8_t* &p, const V4_Instruction* code, int 
     }
 }
 
-void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmlcore::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
@@ -110,10 +110,10 @@ void v4_compile_code(const V4_Instruction* code, int code_size, void* machine_co
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_mainloop) - ((const uint8_t*)CryptonightR_template_part1)) - (p - p0));
     add_code(p, CryptonightR_template_part3, CryptonightR_template_end);
 
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
+    xmlcore::VirtualMemory::flushInstructionCache(machine_code, p - p0);
 }
 
-void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+void v4_compile_code_double(const V4_Instruction* code, int code_size, void* machine_code, xmlcore::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
@@ -126,10 +126,10 @@ void v4_compile_code_double(const V4_Instruction* code, int code_size, void* mac
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_template_double_mainloop) - ((const uint8_t*)CryptonightR_template_double_part1)) - (p - p0));
     add_code(p, CryptonightR_template_double_part4, CryptonightR_template_double_end);
 
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
+    xmlcore::VirtualMemory::flushInstructionCache(machine_code, p - p0);
 }
 
-void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmrig::Assembly ASM)
+void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* machine_code, xmlcore::Assembly ASM)
 {
     uint8_t* p0 = reinterpret_cast<uint8_t*>(machine_code);
     uint8_t* p = p0;
@@ -140,5 +140,5 @@ void v4_soft_aes_compile_code(const V4_Instruction* code, int code_size, void* m
     *(int*)(p - 4) = static_cast<int>((((const uint8_t*)CryptonightR_soft_aes_template_mainloop) - ((const uint8_t*)CryptonightR_soft_aes_template_part1)) - (p - p0));
     add_code(p, CryptonightR_soft_aes_template_part3, CryptonightR_soft_aes_template_end);
 
-    xmrig::VirtualMemory::flushInstructionCache(machine_code, p - p0);
+    xmlcore::VirtualMemory::flushInstructionCache(machine_code, p - p0);
 }

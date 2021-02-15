@@ -1,5 +1,5 @@
 if (WITH_HTTP)
-    add_definitions(/DXMRIG_FEATURE_DMI)
+    add_definitions(/Dxmlcore_FEATURE_DMI)
 
     list(APPEND HEADERS
         src/hw/api/HwApi.h

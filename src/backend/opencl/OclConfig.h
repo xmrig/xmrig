@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLCONFIG_H
-#define XMRIG_OCLCONFIG_H
+#ifndef xmlcore_OCLCONFIG_H
+#define xmlcore_OCLCONFIG_H
 
 
 #include "backend/common/Threads.h"
@@ -32,7 +32,7 @@
 #include "backend/opencl/wrappers/OclPlatform.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class OclConfig
@@ -51,7 +51,7 @@ public:
     inline const String &loader() const                 { return m_loader; }
     inline const Threads<OclThreads> &threads() const   { return m_threads; }
 
-#   ifdef XMRIG_FEATURE_ADL
+#   ifdef xmlcore_FEATURE_ADL
     inline bool isAdlEnabled() const                    { return m_adl; }
 #   endif
 
@@ -66,20 +66,20 @@ private:
     String m_loader;
     Threads<OclThreads> m_threads;
 
-#   ifndef XMRIG_OS_APPLE
+#   ifndef xmlcore_OS_APPLE
     void setPlatform(const rapidjson::Value &platform);
 
     String m_platformVendor;
     uint32_t m_platformIndex = 0;
 #   endif
 
-#   ifdef XMRIG_FEATURE_ADL
+#   ifdef xmlcore_FEATURE_ADL
     bool m_adl          = true;
 #   endif
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_OCLCONFIG_H */
+#endif /* xmlcore_OCLCONFIG_H */

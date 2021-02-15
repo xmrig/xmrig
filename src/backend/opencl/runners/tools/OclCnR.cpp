@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,7 +46,7 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class CnrCacheEntry
@@ -238,7 +238,7 @@ private:
         for (size_t i = 0; i < OclCnR::kHeightChunkSize; ++i) {
             V4_Instruction code[256];
             const int code_size      = v4_random_math_init<Algorithm::CN_R>(code, offset + i);
-            const std::string kernel = std::regex_replace(std::string(cryptonight_r_cl), std::regex("XMRIG_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
+            const std::string kernel = std::regex_replace(std::string(cryptonight_r_cl), std::regex("xmlcore_INCLUDE_RANDOM_MATH"), getCode(code, code_size));
 
             source += std::regex_replace(kernel, std::regex("KERNEL_NAME"), "cn1_" + std::to_string(offset + i));
         }
@@ -268,11 +268,11 @@ static CnrBuilder builder;
 static std::mutex bg_mutex;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 
-cl_program xmrig::OclCnR::get(const IOclRunner &runner, uint64_t height)
+cl_program xmlcore::OclCnR::get(const IOclRunner &runner, uint64_t height)
 {
     const uint64_t offset = (height / kHeightChunkSize) * kHeightChunkSize;
 
@@ -300,7 +300,7 @@ cl_program xmrig::OclCnR::get(const IOclRunner &runner, uint64_t height)
 }
 
 
-void xmrig::OclCnR::clear()
+void xmlcore::OclCnR::clear()
 {
     std::lock_guard<std::mutex> lock(bg_mutex);
 

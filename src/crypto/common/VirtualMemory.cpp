@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "crypto/common/portable/mm_malloc.h"
 
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 #   include "crypto/common/NUMAMemoryPool.h"
 #endif
 
@@ -34,7 +34,7 @@
 #include <mutex>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 size_t VirtualMemory::m_hugePageSize    = VirtualMemory::kDefaultHugePageSize;
@@ -42,10 +42,10 @@ static IMemoryPool *pool                = nullptr;
 static std::mutex mutex;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
+xmlcore::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages, bool usePool, uint32_t node, size_t alignSize) :
     m_size(alignToHugePageSize(size)),
     m_node(node),
     m_capacity(m_size)
@@ -78,7 +78,7 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages
 }
 
 
-xmrig::VirtualMemory::~VirtualMemory()
+xmlcore::VirtualMemory::~VirtualMemory()
 {
     if (!m_scratchpad) {
         return;
@@ -97,33 +97,33 @@ xmrig::VirtualMemory::~VirtualMemory()
 }
 
 
-xmrig::HugePagesInfo xmrig::VirtualMemory::hugePages() const
+xmlcore::HugePagesInfo xmlcore::VirtualMemory::hugePages() const
 {
     return { this };
 }
 
 
-#ifndef XMRIG_FEATURE_HWLOC
-uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t)
+#ifndef xmlcore_FEATURE_HWLOC
+uint32_t xmlcore::VirtualMemory::bindToNUMANode(int64_t)
 {
     return 0;
 }
 #endif
 
 
-void xmrig::VirtualMemory::destroy()
+void xmlcore::VirtualMemory::destroy()
 {
     delete pool;
 }
 
 
-void xmrig::VirtualMemory::init(size_t poolSize, size_t hugePageSize)
+void xmlcore::VirtualMemory::init(size_t poolSize, size_t hugePageSize)
 {
     if (!pool) {
         osInit(hugePageSize);
     }
 
-#   ifdef XMRIG_FEATURE_HWLOC
+#   ifdef xmlcore_FEATURE_HWLOC
     if (Cpu::info()->nodes() > 1) {
         pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePageSize > 0);
     } else

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,22 +31,22 @@
 #include <map>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static std::map<uint32_t, OclSharedData> map;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::OclSharedData &xmrig::OclSharedState::get(uint32_t index)
+xmlcore::OclSharedData &xmlcore::OclSharedState::get(uint32_t index)
 {
     return map[index];
 }
 
 
-void xmrig::OclSharedState::release()
+void xmlcore::OclSharedState::release()
 {
     for (auto &kv : map) {
         kv.second.release();
@@ -56,7 +56,7 @@ void xmrig::OclSharedState::release()
 }
 
 
-void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads, const Job &job)
+void xmlcore::OclSharedState::start(const std::vector<OclLaunchData> &threads, const Job &job)
 {
     assert(map.empty());
 
@@ -65,7 +65,7 @@ void xmrig::OclSharedState::start(const std::vector<OclLaunchData> &threads, con
 
         ++sharedData;
 
-#       ifdef XMRIG_ALGO_RANDOMX
+#       ifdef xmlcore_ALGO_RANDOMX
         if (data.algorithm.family() == Algorithm::RANDOM_X) {
             sharedData.createDataset(data.ctx, job, data.thread.isDatasetHost());
         }

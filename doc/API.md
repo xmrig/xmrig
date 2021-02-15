@@ -2,7 +2,7 @@
 
 If you want use HTTP API you need enable it (`"enabled": true,`) then choice `port` and optionaly `host`. API not available if miner built without HTTP support (`-DWITH_HTTP=OFF`).
 
-Offical HTTP client for API: http://workers.xmrig.info/
+Offical HTTP client for API: http://workers.xmlcore.info/
 
 Example configuration:
 
@@ -28,12 +28,12 @@ Example configuration:
 * **enabled** Enable (`true`) or disable (`false`) HTTP API.
 * **host** Host for incoming connections `http://<host>:<port>`, to allow connections from all interfaces use `0.0.0.0` (IPv4) or `::` (IPv4+IPv6).
 * **port** Port for incoming connections `http://<host>:<port>`, zero port is valid option and means random port.
-* **access-token** [Bearer](https://gist.github.com/xmrig/c75fdd1f8e0f3bac05500be2ab718f8e#file-api-html-L54) access token to secure access to API. Miner support this token only via `Authorization` header.
+* **access-token** [Bearer](https://gist.github.com/xmlcore/c75fdd1f8e0f3bac05500be2ab718f8e#file-api-html-L54) access token to secure access to API. Miner support this token only via `Authorization` header.
 * **restricted** Use `false` to allow remote configuration.
 
 If you prefer use command line options instead of config file, you can use options: `--api-id`, `--api-worker-id`, `--http-enabled`, `--http-host`, `--http-access-token`, `--http-port`, `--http-no-restricted`.
 
-Versions before 2.15 was use another options for API https://github.com/xmrig/xmrig/issues/1007
+Versions before 2.15 was use another options for API https://github.com/xmlcore/xmlcore/issues/1007
 
 ## Endpoints
 

@@ -105,7 +105,7 @@ __kernel void KERNEL_NAME(__global ulong *input, __global uint4 *Scratchpad, __g
             const uint r7 = as_uint4(bx1).s0;
             const uint r8 = as_uint4(bx1).s2;
 
-XMRIG_INCLUDE_RANDOM_MATH
+xmlcore_INCLUDE_RANDOM_MATH
 
             const uint2 al = (uint2)(as_uint2(a[0]).s0 ^ r2, as_uint2(a[0]).s1 ^ r3);
             const uint2 ah = (uint2)(as_uint2(a[1]).s0 ^ r0, as_uint2(a[1]).s1 ^ r1);

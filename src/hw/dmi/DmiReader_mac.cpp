@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2002-2006 Hugo Weber  <address@hidden>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include <Carbon/Carbon.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static int checksum(const uint8_t *buf, size_t len)
@@ -77,10 +77,10 @@ static uint8_t *smbios_decode(uint8_t *buf, uint32_t &size, uint32_t &version, i
     return dmi_table(dmi_get<uint32_t>(buf + 0x18), size, service);
 }
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::DmiReader::read()
+bool xmlcore::DmiReader::read()
 {
     mach_port_t port;
     IOMasterPort(MACH_PORT_NULL, &port);

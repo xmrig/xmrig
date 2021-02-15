@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,30 +47,30 @@
 #include "core/Controller.h"
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 #   include "backend/cuda/runners/CudaAstroBWTRunner.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "crypto/kawpow/KPCache.h"
 #   include "crypto/kawpow/KPHash.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_NVML
+#ifdef xmlcore_FEATURE_NVML
 #include "backend/cuda/wrappers/NvmlLib.h"
 
-namespace xmrig { static const char *kNvmlLabel = "NVML"; }
+namespace xmlcore { static const char *kNvmlLabel = "NVML"; }
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 extern template class Threads<CudaThreads>;
@@ -176,7 +176,7 @@ public:
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") WHITE_BOLD("%s") "/" WHITE_BOLD("%s") BLACK_BOLD("/%s"), kLabel,
                    CudaLib::version(runtimeVersion).c_str(), CudaLib::version(driverVersion).c_str(), CudaLib::pluginVersion());
 
-#       ifdef XMRIG_FEATURE_NVML
+#       ifdef xmlcore_FEATURE_NVML
         if (cuda.isNvmlEnabled()) {
             if (NvmlLib::init(cuda.nvmlLoader())) {
                 NvmlLib::assign(devices);
@@ -227,7 +227,7 @@ public:
 
         size_t algo_l3 = algo.l3();
 
-#       ifdef XMRIG_ALGO_ASTROBWT
+#       ifdef xmlcore_ALGO_ASTROBWT
         if (algo.family() == Algorithm::ASTROBWT) {
             algo_l3 = CudaAstroBWTRunner::BWT_DATA_STRIDE * 17 + 1024;
         }
@@ -237,7 +237,7 @@ public:
         for (const auto &data : threads) {
             size_t mem_used = (data.thread.threads() * data.thread.blocks()) * algo_l3 / oneMiB;
 
-#           ifdef XMRIG_ALGO_KAWPOW
+#           ifdef xmlcore_ALGO_KAWPOW
             if (algo.family() == Algorithm::KAWPOW) {
                 const uint32_t epoch = job.height() / KPHash::EPOCH_LENGTH;
                 mem_used = (KPCache::dag_size(epoch) + oneMiB - 1) / oneMiB;
@@ -266,7 +266,7 @@ public:
     }
 
 
-#   ifdef XMRIG_FEATURE_NVML
+#   ifdef xmlcore_FEATURE_NVML
     void printHealth()
     {
         for (const auto &device : devices) {
@@ -311,70 +311,70 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-const char *xmrig::cuda_tag()
+const char *xmlcore::cuda_tag()
 {
     return Tags::nvidia();
 }
 
 
-xmrig::CudaBackend::CudaBackend(Controller *controller) :
+xmlcore::CudaBackend::CudaBackend(Controller *controller) :
     d_ptr(new CudaBackendPrivate(controller))
 {
     d_ptr->workers.setBackend(this);
 }
 
 
-xmrig::CudaBackend::~CudaBackend()
+xmlcore::CudaBackend::~CudaBackend()
 {
     delete d_ptr;
 
     CudaLib::close();
 
-#   ifdef XMRIG_FEATURE_NVML
+#   ifdef xmlcore_FEATURE_NVML
     NvmlLib::close();
 #   endif
 }
 
 
-bool xmrig::CudaBackend::isEnabled() const
+bool xmlcore::CudaBackend::isEnabled() const
 {
     return d_ptr->controller->config()->cuda().isEnabled() && CudaLib::isInitialized() && !d_ptr->devices.empty();;
 }
 
 
-bool xmrig::CudaBackend::isEnabled(const Algorithm &algorithm) const
+bool xmlcore::CudaBackend::isEnabled(const Algorithm &algorithm) const
 {
     return !d_ptr->controller->config()->cuda().threads().get(algorithm).isEmpty();
 }
 
 
-const xmrig::Hashrate *xmrig::CudaBackend::hashrate() const
+const xmlcore::Hashrate *xmlcore::CudaBackend::hashrate() const
 {
     return d_ptr->workers.hashrate();
 }
 
 
-const xmrig::String &xmrig::CudaBackend::profileName() const
+const xmlcore::String &xmlcore::CudaBackend::profileName() const
 {
     return d_ptr->profileName;
 }
 
 
-const xmrig::String &xmrig::CudaBackend::type() const
+const xmlcore::String &xmlcore::CudaBackend::type() const
 {
     return kType;
 }
 
 
-void xmrig::CudaBackend::execCommand(char)
+void xmlcore::CudaBackend::execCommand(char)
 {
 }
 
 
-void xmrig::CudaBackend::prepare(const Job &job)
+void xmlcore::CudaBackend::prepare(const Job &job)
 {
     if (d_ptr) {
         d_ptr->workers.jobEarlyNotification(job);
@@ -382,7 +382,7 @@ void xmrig::CudaBackend::prepare(const Job &job)
 }
 
 
-void xmrig::CudaBackend::printHashrate(bool details)
+void xmlcore::CudaBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
         return;
@@ -428,15 +428,15 @@ void xmrig::CudaBackend::printHashrate(bool details)
 }
 
 
-void xmrig::CudaBackend::printHealth()
+void xmlcore::CudaBackend::printHealth()
 {
-#   ifdef XMRIG_FEATURE_NVML
+#   ifdef xmlcore_FEATURE_NVML
     d_ptr->printHealth();
 #   endif
 }
 
 
-void xmrig::CudaBackend::setJob(const Job &job)
+void xmlcore::CudaBackend::setJob(const Job &job)
 {
     const auto &cuda = d_ptr->controller->config()->cuda();
     if (cuda.isEnabled()) {
@@ -468,7 +468,7 @@ void xmrig::CudaBackend::setJob(const Job &job)
 }
 
 
-void xmrig::CudaBackend::start(IWorker *worker, bool ready)
+void xmlcore::CudaBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
@@ -486,7 +486,7 @@ void xmrig::CudaBackend::start(IWorker *worker, bool ready)
 }
 
 
-void xmrig::CudaBackend::stop()
+void xmlcore::CudaBackend::stop()
 {
     if (d_ptr->threads.empty()) {
         return;
@@ -501,14 +501,14 @@ void xmrig::CudaBackend::stop()
 }
 
 
-bool xmrig::CudaBackend::tick(uint64_t ticks)
+bool xmlcore::CudaBackend::tick(uint64_t ticks)
 {
     return d_ptr->workers.tick(ticks);
 }
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::CudaBackend::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -525,7 +525,7 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
         versions.AddMember("cuda-driver",    Value(CudaLib::version(d_ptr->driverVersion).c_str(), allocator), allocator);
         versions.AddMember("plugin",         String(CudaLib::pluginVersion()).toJSON(doc), allocator);
 
-#       ifdef XMRIG_FEATURE_NVML
+#       ifdef xmlcore_FEATURE_NVML
         if (NvmlLib::isReady()) {
             versions.AddMember("nvml",       StringRef(NvmlLib::version()), allocator);
             versions.AddMember("driver",     StringRef(NvmlLib::driverVersion()), allocator);
@@ -560,7 +560,7 @@ rapidjson::Value xmrig::CudaBackend::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::CudaBackend::handleRequest(IApiRequest &)
+void xmlcore::CudaBackend::handleRequest(IApiRequest &)
 {
 }
 #endif

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,10 +29,10 @@
 #include "base/tools/String.h"
 
 
-static const xmrig::String kLocalHost("127.0.0.1");
+static const xmlcore::String kLocalHost("127.0.0.1");
 
 
-xmrig::TcpServer::TcpServer(const String &host, uint16_t port, ITcpServerListener *listener) :
+xmlcore::TcpServer::TcpServer(const String &host, uint16_t port, ITcpServerListener *listener) :
     m_host(host.isNull() ? kLocalHost : host),
     m_listener(listener),
     m_port(port)
@@ -54,13 +54,13 @@ xmrig::TcpServer::TcpServer(const String &host, uint16_t port, ITcpServerListene
 }
 
 
-xmrig::TcpServer::~TcpServer()
+xmlcore::TcpServer::~TcpServer()
 {
     Handle::close(m_tcp);
 }
 
 
-int xmrig::TcpServer::bind()
+int xmlcore::TcpServer::bind()
 {
     if (!m_version) {
         return UV_EAI_ADDRFAMILY;
@@ -86,7 +86,7 @@ int xmrig::TcpServer::bind()
 }
 
 
-void xmrig::TcpServer::create(uv_stream_t *stream, int status)
+void xmlcore::TcpServer::create(uv_stream_t *stream, int status)
 {
     if (status < 0) {
         return;
@@ -96,7 +96,7 @@ void xmrig::TcpServer::create(uv_stream_t *stream, int status)
 }
 
 
-void xmrig::TcpServer::onConnection(uv_stream_t *stream, int status)
+void xmlcore::TcpServer::onConnection(uv_stream_t *stream, int status)
 {
     static_cast<TcpServer *>(stream->data)->create(stream, status);
 }

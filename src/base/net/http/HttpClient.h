@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 
 
-#ifndef XMRIG_HTTPCLIENT_H
-#define XMRIG_HTTPCLIENT_H
+#ifndef xmlcore_HTTPCLIENT_H
+#define xmlcore_HTTPCLIENT_H
 
 
 #include "base/kernel/interfaces/IDnsListener.h"
@@ -29,7 +29,7 @@
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class String;
@@ -38,7 +38,7 @@ class String;
 class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpClient);
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpClient);
 
     HttpClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
     ~HttpClient() override = default;
@@ -70,8 +70,8 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPCLIENT_H
+#endif // xmlcore_HTTPCLIENT_H
 

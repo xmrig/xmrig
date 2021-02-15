@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,14 +31,14 @@
 #include "version.h"
 
 
-char *xmrig::Platform::createUserAgent()
+char *xmlcore::Platform::createUserAgent()
 {
     constexpr const size_t max = 256;
 
     char *buf = new char[max]();
     int length = snprintf(buf, max,
                           "%s/%s (Macintosh; macOS"
-#                         ifdef XMRIG_ARM
+#                         ifdef xmlcore_ARM
                           "; arm64"
 #                         else
                           "; x86_64"
@@ -55,18 +55,18 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
+bool xmlcore::Platform::setThreadAffinity(uint64_t cpu_id)
 {
     return true;
 }
 
 
-void xmrig::Platform::setProcessPriority(int)
+void xmlcore::Platform::setProcessPriority(int)
 {
 }
 
 
-void xmrig::Platform::setThreadPriority(int priority)
+void xmlcore::Platform::setThreadPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -103,7 +103,7 @@ void xmrig::Platform::setThreadPriority(int priority)
 }
 
 
-bool xmrig::Platform::isOnBatteryPower()
+bool xmlcore::Platform::isOnBatteryPower()
 {
     return IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited;
 }

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 #include "base/tools/Chrono.h"
 
 
-xmrig::GpuWorker::GpuWorker(size_t id, int64_t affinity, int priority, uint32_t deviceIndex) : Worker(id, affinity, priority),
+xmlcore::GpuWorker::GpuWorker(size_t id, int64_t affinity, int priority, uint32_t deviceIndex) : Worker(id, affinity, priority),
     m_deviceIndex(deviceIndex)
 {
 }
 
 
-void xmrig::GpuWorker::storeStats()
+void xmlcore::GpuWorker::storeStats()
 {
     // Get index which is unused now
     const uint32_t index = m_index.load(std::memory_order_relaxed) ^ 1;
@@ -42,7 +42,7 @@ void xmrig::GpuWorker::storeStats()
 }
 
 
-void xmrig::GpuWorker::hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const
+void xmlcore::GpuWorker::hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const
 {
     const uint32_t index = m_index.load(std::memory_order_relaxed);
 

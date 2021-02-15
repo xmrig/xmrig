@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,11 +22,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_OCLGENERATOR_H
-#define XMRIG_OCLGENERATOR_H
+#ifndef xmlcore_OCLGENERATOR_H
+#define xmlcore_OCLGENERATOR_H
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Algorithm;
@@ -37,7 +37,7 @@ class OclThreads;
 using ocl_gen_config_fun = bool (*)(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_OCLGENERATOR_H */
+#endif /* xmlcore_OCLGENERATOR_H */

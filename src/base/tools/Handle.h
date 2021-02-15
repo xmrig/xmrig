@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HANDLE_H
-#define XMRIG_HANDLE_H
+#ifndef xmlcore_HANDLE_H
+#define xmlcore_HANDLE_H
 
 
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Handle
@@ -80,7 +80,7 @@ inline void Handle::close(uv_fs_event_t *handle)
 }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_HANDLE_H */
+#endif /* xmlcore_HANDLE_H */

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PROFILER_H
-#define XMRIG_PROFILER_H
+#ifndef xmlcore_PROFILER_H
+#define xmlcore_PROFILER_H
 
 
 #ifndef FORCE_INLINE
@@ -33,7 +33,7 @@
 #endif
 
 
-#ifdef XMRIG_FEATURE_PROFILING
+#ifdef xmlcore_FEATURE_PROFILING
 
 
 #include <cstdint>
@@ -112,9 +112,9 @@ private:
 #define PROFILE_SCOPE(x) static thread_local ProfileScopeData x##_data{#x}; ProfileScope x(x##_data);
 
 
-#else /* XMRIG_FEATURE_PROFILING */
+#else /* xmlcore_FEATURE_PROFILING */
 #define PROFILE_SCOPE(x)
-#endif /* XMRIG_FEATURE_PROFILING */
+#endif /* xmlcore_FEATURE_PROFILING */
 
 
 #include "crypto/randomx/blake2/blake2.h"
@@ -130,4 +130,4 @@ struct rx_blake2b_wrapper
 };
 
 
-#endif /* XMRIG_PROFILER_H */
+#endif /* xmlcore_PROFILER_H */

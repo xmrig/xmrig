@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,35 +45,35 @@
 #include "version.h"
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/Api.h"
 #   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 #   include "backend/opencl/OclBackend.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 #   include "backend/cuda/CudaBackend.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "crypto/rx/Profiler.h"
 #   include "crypto/rx/Rx.h"
 #   include "crypto/rx/RxConfig.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 #   include "crypto/astrobwt/AstroBWT.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static std::mutex mutex;
@@ -82,7 +82,7 @@ static std::mutex mutex;
 class MinerPrivate
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
 
 
     inline MinerPrivate(Controller *controller) : controller(controller) {}
@@ -96,7 +96,7 @@ public:
             delete backend;
         }
 
-#       ifdef XMRIG_ALGO_RANDOMX
+#       ifdef xmlcore_ALGO_RANDOMX
         Rx::destroy();
 #       endif
     }
@@ -155,7 +155,7 @@ public:
     }
 
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     void getMiner(rapidjson::Value &reply, rapidjson::Document &doc, int) const
     {
         using namespace rapidjson;
@@ -244,7 +244,7 @@ public:
 
     static inline void printProfile()
     {
-#       ifdef XMRIG_FEATURE_PROFILING
+#       ifdef xmlcore_FEATURE_PROFILING
         ProfileScopeData* data[ProfileScopeData::MAX_DATA_COUNT];
 
         const uint32_t n = std::min<uint32_t>(ProfileScopeData::s_dataCount, ProfileScopeData::MAX_DATA_COUNT);
@@ -335,7 +335,7 @@ public:
                  Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
                  );
 
-#       ifdef XMRIG_FEATURE_BENCHMARK
+#       ifdef xmlcore_FEATURE_BENCHMARK
         for (auto backend : backends) {
             backend->printBenchProgress();
         }
@@ -343,7 +343,7 @@ public:
     }
 
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
@@ -364,11 +364,11 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 
-xmrig::Miner::Miner(Controller *controller)
+xmlcore::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
     const int priority = controller->config()->cpu().priority();
@@ -377,21 +377,21 @@ xmrig::Miner::Miner(Controller *controller)
         Platform::setThreadPriority(std::min(priority + 1, 5));
     }
 
-#   ifdef XMRIG_FEATURE_PROFILING
+#   ifdef xmlcore_FEATURE_PROFILING
     ProfileScopeData::Init();
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     Rx::init(this);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     astrobwt::init();
 #   endif
 
     controller->addListener(this);
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     controller->api()->addListener(this);
 #   endif
 
@@ -400,11 +400,11 @@ xmrig::Miner::Miner(Controller *controller)
     d_ptr->backends.reserve(3);
     d_ptr->backends.push_back(new CpuBackend(controller));
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     d_ptr->backends.push_back(new OclBackend(controller));
 #   endif
 
-#   ifdef XMRIG_FEATURE_CUDA
+#   ifdef xmlcore_FEATURE_CUDA
     d_ptr->backends.push_back(new CudaBackend(controller));
 #   endif
 
@@ -412,37 +412,37 @@ xmrig::Miner::Miner(Controller *controller)
 }
 
 
-xmrig::Miner::~Miner()
+xmlcore::Miner::~Miner()
 {
     delete d_ptr;
 }
 
 
-bool xmrig::Miner::isEnabled() const
+bool xmlcore::Miner::isEnabled() const
 {
     return d_ptr->enabled;
 }
 
 
-bool xmrig::Miner::isEnabled(const Algorithm &algorithm) const
+bool xmlcore::Miner::isEnabled(const Algorithm &algorithm) const
 {
     return std::find(d_ptr->algorithms.begin(), d_ptr->algorithms.end(), algorithm) != d_ptr->algorithms.end();
 }
 
 
-const xmrig::Algorithms &xmrig::Miner::algorithms() const
+const xmlcore::Algorithms &xmlcore::Miner::algorithms() const
 {
     return d_ptr->algorithms;
 }
 
 
-const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
+const std::vector<xmlcore::IBackend *> &xmlcore::Miner::backends() const
 {
     return d_ptr->backends;
 }
 
 
-xmrig::Job xmrig::Miner::job() const
+xmlcore::Job xmlcore::Miner::job() const
 {
     std::lock_guard<std::mutex> lock(mutex);
 
@@ -450,7 +450,7 @@ xmrig::Job xmrig::Miner::job() const
 }
 
 
-void xmrig::Miner::execCommand(char command)
+void xmlcore::Miner::execCommand(char command)
 {
     switch (command) {
     case 'h':
@@ -485,7 +485,7 @@ void xmrig::Miner::execCommand(char command)
 }
 
 
-void xmrig::Miner::pause()
+void xmlcore::Miner::pause()
 {
     d_ptr->active = false;
 
@@ -494,7 +494,7 @@ void xmrig::Miner::pause()
 }
 
 
-void xmrig::Miner::setEnabled(bool enabled)
+void xmlcore::Miner::setEnabled(bool enabled)
 {
     if (d_ptr->enabled == enabled) {
         return;
@@ -529,13 +529,13 @@ void xmrig::Miner::setEnabled(bool enabled)
 }
 
 
-void xmrig::Miner::setJob(const Job &job, bool donate)
+void xmlcore::Miner::setJob(const Job &job, bool donate)
 {
     for (IBackend *backend : d_ptr->backends) {
         backend->prepare(job);
     }
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
         stop();
     }
@@ -555,7 +555,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
         d_ptr->userJobId = job.id();
     }
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     const bool ready = d_ptr->initRX();
 #   else
     constexpr const bool ready = true;
@@ -571,7 +571,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 }
 
 
-void xmrig::Miner::stop()
+void xmlcore::Miner::stop()
 {
     Nonce::stop();
 
@@ -581,7 +581,7 @@ void xmrig::Miner::stop()
 }
 
 
-void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
+void xmlcore::Miner::onConfigChanged(Config *config, Config *previousConfig)
 {
     d_ptr->rebuild();
 
@@ -597,7 +597,7 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Miner::onTimer(const Timer *)
+void xmlcore::Miner::onTimer(const Timer *)
 {
     double maxHashrate          = 0.0;
     const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
@@ -647,8 +647,8 @@ void xmrig::Miner::onTimer(const Timer *)
 }
 
 
-#ifdef XMRIG_FEATURE_API
-void xmrig::Miner::onRequest(IApiRequest &request)
+#ifdef xmlcore_FEATURE_API
+void xmlcore::Miner::onRequest(IApiRequest &request)
 {
     if (request.method() == IApiRequest::METHOD_GET) {
         if (request.type() == IApiRequest::REQ_SUMMARY) {
@@ -688,8 +688,8 @@ void xmrig::Miner::onRequest(IApiRequest &request)
 #endif
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-void xmrig::Miner::onDatasetReady()
+#ifdef xmlcore_ALGO_RANDOMX
+void xmlcore::Miner::onDatasetReady()
 {
     if (!Rx::isReady(job())) {
         return;

@@ -1,7 +1,7 @@
 /*
  * Copyright 2018-2019, tevador    <tevador@gmail.com>
  * Copyright 2018-2020, SChernykh  <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
 
 All rights reserved.
 

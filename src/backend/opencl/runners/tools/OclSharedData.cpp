@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@
 constexpr size_t oneGiB = 1024 * 1024 * 1024;
 
 
-cl_mem xmrig::OclSharedData::createBuffer(cl_context context, size_t size, size_t &offset, size_t limit)
+cl_mem xmlcore::OclSharedData::createBuffer(cl_context context, size_t size, size_t &offset, size_t limit)
 {
     std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -62,7 +62,7 @@ cl_mem xmrig::OclSharedData::createBuffer(cl_context context, size_t size, size_
 }
 
 
-uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
+uint64_t xmlcore::OclSharedData::adjustDelay(size_t id)
 {
     if (m_threads < 2) {
         return 0;
@@ -95,7 +95,7 @@ uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
 
     std::this_thread::sleep_for(std::chrono::milliseconds(delay));
 
-#   ifdef XMRIG_INTERLEAVE_DEBUG
+#   ifdef xmlcore_INTERLEAVE_DEBUG
     LOG_WARN("Thread #%zu was paused for %" PRIu64 " ms to adjust interleaving", id, delay);
 #   endif
 
@@ -103,7 +103,7 @@ uint64_t xmrig::OclSharedData::adjustDelay(size_t id)
 }
 
 
-uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
+uint64_t xmlcore::OclSharedData::resumeDelay(size_t id)
 {
     if (m_threads < 2) {
         return 0;
@@ -127,7 +127,7 @@ uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
         delay = 1000;
     }
 
-#   ifdef XMRIG_INTERLEAVE_DEBUG
+#   ifdef xmlcore_INTERLEAVE_DEBUG
     LOG_WARN("Thread #%zu will be paused for %" PRIu64 " ms to before resuming", id, delay);
 #   endif
 
@@ -137,17 +137,17 @@ uint64_t xmrig::OclSharedData::resumeDelay(size_t id)
 }
 
 
-void xmrig::OclSharedData::release()
+void xmlcore::OclSharedData::release()
 {
     OclLib::release(m_buffer);
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     OclLib::release(m_dataset);
 #   endif
 }
 
 
-void xmrig::OclSharedData::setResumeCounter(uint32_t value)
+void xmlcore::OclSharedData::setResumeCounter(uint32_t value)
 {
     if (m_threads < 2) {
         return;
@@ -158,7 +158,7 @@ void xmrig::OclSharedData::setResumeCounter(uint32_t value)
 }
 
 
-void xmrig::OclSharedData::setRunTime(uint64_t time)
+void xmlcore::OclSharedData::setRunTime(uint64_t time)
 {
     // averagingBias = 1.0 - only the last delta time is taken into account
     // averagingBias = 0.5 - the last delta time has the same weight as all the previous ones combined
@@ -170,8 +170,8 @@ void xmrig::OclSharedData::setRunTime(uint64_t time)
 }
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-cl_mem xmrig::OclSharedData::dataset() const
+#ifdef xmlcore_ALGO_RANDOMX
+cl_mem xmlcore::OclSharedData::dataset() const
 {
     if (!m_dataset) {
         throw std::runtime_error("RandomX dataset is not available");
@@ -181,7 +181,7 @@ cl_mem xmrig::OclSharedData::dataset() const
 }
 
 
-void xmrig::OclSharedData::createDataset(cl_context ctx, const Job &job, bool host)
+void xmlcore::OclSharedData::createDataset(cl_context ctx, const Job &job, bool host)
 {
     if (m_dataset) {
         return;

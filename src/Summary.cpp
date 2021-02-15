@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,27 +39,27 @@
 #include "version.h"
 
 
-#ifdef XMRIG_FEATURE_DMI
+#ifdef xmlcore_FEATURE_DMI
 #   include "hw/dmi/DmiReader.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "crypto/rx/RxConfig.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
-#ifdef XMRIG_OS_WIN
+#ifdef xmlcore_OS_WIN
 static constexpr const char *kHugepagesSupported = GREEN_BOLD("permission granted");
 #else
 static constexpr const char *kHugepagesSupported = GREEN_BOLD("supported");
 #endif
 
 
-#ifdef XMRIG_FEATURE_ASM
+#ifdef xmlcore_FEATURE_ASM
 static const char *coloredAsmNames[] = {
     RED_BOLD("none"),
     "auto",
@@ -81,8 +81,8 @@ static void print_pages(const Config *config)
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "HUGE PAGES", config->cpu().isHugePages() ? (VirtualMemory::isHugepagesAvailable() ? kHugepagesSupported : RED_BOLD("unavailable")) : RED_BOLD("disabled"));
 
-#   ifdef XMRIG_ALGO_RANDOMX
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_ALGO_RANDOMX
+#   ifdef xmlcore_OS_LINUX
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "%s",
                "1GB PAGES", (VirtualMemory::isOneGbPagesAvailable() ? (config->rx().isOneGbPages() ? kHugepagesSupported : YELLOW_BOLD("disabled")) : YELLOW_BOLD("unavailable")));
 #   else
@@ -104,7 +104,7 @@ static void print_cpu(const Config *)
                info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-",
                info->isVM()           ? RED_BOLD_S " VM" : ""
                );
-#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(xmlcore_FEATURE_HWLOC)
     Log::print(WHITE_BOLD("   %-13s") BLACK_BOLD("L2:") WHITE_BOLD("%.1f MB") BLACK_BOLD(" L3:") WHITE_BOLD("%.1f MB")
                CYAN_BOLD(" %zu") "C" BLACK_BOLD("/") CYAN_BOLD("%zu") "T"
                BLACK_BOLD(" NUMA:") CYAN_BOLD("%zu"),
@@ -136,7 +136,7 @@ static void print_memory(const Config *config)
                percent
                );
 
-#   ifdef XMRIG_FEATURE_DMI
+#   ifdef xmlcore_FEATURE_DMI
     if (!config->isDMI()) {
         return;
     }
@@ -179,7 +179,7 @@ static void print_threads(const Config *config)
                config->pools().donateLevel()
                );
 
-#   ifdef XMRIG_FEATURE_ASM
+#   ifdef xmlcore_FEATURE_ASM
     if (config->cpu().assembly() == Assembly::AUTO) {
         const Assembly assembly = Cpu::info()->assembly();
 
@@ -208,10 +208,10 @@ static void print_commands(Config *)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-void xmrig::Summary::print(Controller *controller)
+void xmlcore::Summary::print(Controller *controller)
 {
     const auto config = controller->config();
 

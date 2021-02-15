@@ -223,13 +223,13 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
 		if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
 
 		uint32_t data;
-		XMRIG_INCLUDE_PROGPOW_RANDOM_MATH
+		xmlcore_INCLUDE_PROGPOW_RANDOM_MATH
 
 		// consume global load data
 		// hack to prevent compiler from reordering LD and usage
 		if (hack_false) barrier(CLK_LOCAL_MEM_FENCE);
 
-		XMRIG_INCLUDE_PROGPOW_DATA_LOADS
+		xmlcore_INCLUDE_PROGPOW_DATA_LOADS
 	}
 
         // Reduce mix data to a per-lane 32-bit digest

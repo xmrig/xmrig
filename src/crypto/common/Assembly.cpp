@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #include "3rdparty/rapidjson/document.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *asmNames[] = {
@@ -42,10 +42,10 @@ static const char *asmNames[] = {
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-xmrig::Assembly::Id xmrig::Assembly::parse(const char *assembly, Id defaultValue)
+xmlcore::Assembly::Id xmlcore::Assembly::parse(const char *assembly, Id defaultValue)
 {
     constexpr size_t const size = sizeof(asmNames) / sizeof((asmNames)[0]);
     static_assert(size == MAX, "asmNames size mismatch");
@@ -64,7 +64,7 @@ xmrig::Assembly::Id xmrig::Assembly::parse(const char *assembly, Id defaultValue
 }
 
 
-xmrig::Assembly::Id xmrig::Assembly::parse(const rapidjson::Value &value, Id defaultValue)
+xmlcore::Assembly::Id xmlcore::Assembly::parse(const rapidjson::Value &value, Id defaultValue)
 {
     if (value.IsBool()) {
         return value.GetBool() ? AUTO : NONE;
@@ -78,13 +78,13 @@ xmrig::Assembly::Id xmrig::Assembly::parse(const rapidjson::Value &value, Id def
 }
 
 
-const char *xmrig::Assembly::toString() const
+const char *xmlcore::Assembly::toString() const
 {
     return asmNames[m_id];
 }
 
 
-rapidjson::Value xmrig::Assembly::toJSON() const
+rapidjson::Value xmlcore::Assembly::toJSON() const
 {
     using namespace rapidjson;
 

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,35 +28,35 @@
 #include "base/crypto/Algorithm.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "backend/opencl/cl/rx/randomx_cl.h"
 #endif
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 #   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
 #endif
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "backend/opencl/cl/kawpow/kawpow_cl.h"
 #   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
 #endif
 
 
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+const char *xmlcore::OclSource::get(const Algorithm &algorithm)
 {
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (algorithm.family() == Algorithm::RANDOM_X) {
         return randomx_cl;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (algorithm.family() == Algorithm::ASTROBWT) {
         return astrobwt_cl;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_KAWPOW
+#   ifdef xmlcore_ALGO_KAWPOW
     if (algorithm.family() == Algorithm::KAWPOW) {
         return kawpow_dag_cl;
     }

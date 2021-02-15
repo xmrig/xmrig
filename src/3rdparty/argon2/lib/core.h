@@ -110,7 +110,7 @@ typedef struct Argon2_thread_data {
  * @param instance the Argon2 instance
  * @return ARGON2_OK if memory is allocated successfully
  */
-int xmrig_ar2_allocate_memory(const argon2_context *context, argon2_instance_t *instance);
+int xmlcore_ar2_allocate_memory(const argon2_context *context, argon2_instance_t *instance);
 
 /*
  * Frees memory at the given pointer, uses the appropriate deallocator as
@@ -118,21 +118,21 @@ int xmrig_ar2_allocate_memory(const argon2_context *context, argon2_instance_t *
  * @param context argon2_context which specifies the deallocator
  * @param instance the Argon2 instance
  */
-void xmrig_ar2_free_memory(const argon2_context *context, const argon2_instance_t *instance);
+void xmlcore_ar2_free_memory(const argon2_context *context, const argon2_instance_t *instance);
 
 /* Function that securely cleans the memory. This ignores any flags set
  * regarding clearing memory. Usually one just calls clear_internal_memory.
  * @param mem Pointer to the memory
  * @param s Memory size in bytes
  */
-void xmrig_ar2_secure_wipe_memory(void *v, size_t n);
+void xmlcore_ar2_secure_wipe_memory(void *v, size_t n);
 
 /* Function that securely clears the memory if FLAG_clear_internal_memory is
  * set. If the flag isn't set, this function does nothing.
  * @param mem Pointer to the memory
  * @param s Memory size in bytes
  */
-ARGON2_PUBLIC void xmrig_ar2_clear_internal_memory(void *v, size_t n);
+ARGON2_PUBLIC void xmlcore_ar2_clear_internal_memory(void *v, size_t n);
 
 /*
  * Computes absolute position of reference block in the lane following a skewed
@@ -144,7 +144,7 @@ ARGON2_PUBLIC void xmrig_ar2_clear_internal_memory(void *v, size_t n);
  * If so we can reference the current segment
  * @pre All pointers must be valid
  */
-uint32_t xmrig_ar2_index_alpha(const argon2_instance_t *instance, const argon2_position_t *position, uint32_t pseudo_rand, int same_lane);
+uint32_t xmlcore_ar2_index_alpha(const argon2_instance_t *instance, const argon2_position_t *position, uint32_t pseudo_rand, int same_lane);
 
 /*
  * Function that validates all inputs against predefined restrictions and return
@@ -153,7 +153,7 @@ uint32_t xmrig_ar2_index_alpha(const argon2_instance_t *instance, const argon2_p
  * @return ARGON2_OK if everything is all right, otherwise one of error codes
  * (all defined in <argon2.h>
  */
-int xmrig_ar2_validate_inputs(const argon2_context *context);
+int xmlcore_ar2_validate_inputs(const argon2_context *context);
 
 /*
  * Hashes all the inputs into @a blockhash[PREHASH_DIGEST_LENGTH], clears
@@ -165,7 +165,7 @@ int xmrig_ar2_validate_inputs(const argon2_context *context);
  * @pre    @a blockhash must have at least @a PREHASH_DIGEST_LENGTH bytes
  * allocated
  */
-void xmrig_ar2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type type);
+void xmlcore_ar2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_type type);
 
 /*
  * Function creates first 2 blocks per lane
@@ -173,7 +173,7 @@ void xmrig_ar2_initial_hash(uint8_t *blockhash, argon2_context *context, argon2_
  * @param blockhash Pointer to the pre-hashing digest
  * @pre blockhash must point to @a PREHASH_SEED_LENGTH allocated values
  */
-void xmrig_ar2_fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
+void xmlcore_ar2_fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *instance);
 
 /*
  * Function allocates memory, hashes the inputs with Blake,  and creates first
@@ -185,7 +185,7 @@ void xmrig_ar2_fill_first_blocks(uint8_t *blockhash, const argon2_instance_t *in
  * @return Zero if successful, -1 if memory failed to allocate. @context->state
  * will be modified if successful.
  */
-int xmrig_ar2_initialize(argon2_instance_t *instance, argon2_context *context);
+int xmlcore_ar2_initialize(argon2_instance_t *instance, argon2_context *context);
 
 /*
  * XORing the last block of each lane, hashing it, making the tag. Deallocates
@@ -198,7 +198,7 @@ int xmrig_ar2_initialize(argon2_instance_t *instance, argon2_context *context);
  * @pre if context->free_cbk is not NULL, it should point to a function that
  * deallocates memory
  */
-void xmrig_ar2_finalize(const argon2_context *context, argon2_instance_t *instance);
+void xmlcore_ar2_finalize(const argon2_context *context, argon2_instance_t *instance);
 
 /*
  * Function that fills the segment using previous segments also from other
@@ -207,7 +207,7 @@ void xmrig_ar2_finalize(const argon2_context *context, argon2_instance_t *instan
  * @param position Current position
  * @pre all block pointers must be valid
  */
-void xmrig_ar2_fill_segment(const argon2_instance_t *instance, argon2_position_t position);
+void xmlcore_ar2_fill_segment(const argon2_instance_t *instance, argon2_position_t position);
 
 /*
  * Function that fills the entire memory t_cost times based on the first two
@@ -215,6 +215,6 @@ void xmrig_ar2_fill_segment(const argon2_instance_t *instance, argon2_position_t
  * @param instance Pointer to the current instance
  * @return ARGON2_OK if successful, @context->state
  */
-int xmrig_ar2_fill_memory_blocks(argon2_instance_t *instance);
+int xmlcore_ar2_fill_memory_blocks(argon2_instance_t *instance);
 
 #endif

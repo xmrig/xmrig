@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,20 +31,20 @@
 #include "base/net/stratum/Job.h"
 
 
-xmrig::CudaBaseRunner::CudaBaseRunner(size_t id, const CudaLaunchData &data) :
+xmlcore::CudaBaseRunner::CudaBaseRunner(size_t id, const CudaLaunchData &data) :
     m_data(data),
     m_threadId(id)
 {
 }
 
 
-xmrig::CudaBaseRunner::~CudaBaseRunner()
+xmlcore::CudaBaseRunner::~CudaBaseRunner()
 {
     CudaLib::release(m_ctx);
 }
 
 
-bool xmrig::CudaBaseRunner::init()
+bool xmlcore::CudaBaseRunner::init()
 {
     m_ctx = CudaLib::alloc(m_data.thread.index(), m_data.thread.bfactor(), m_data.thread.bsleep());
     if (!callWrapper(CudaLib::deviceInfo(m_ctx, m_data.thread.blocks(), m_data.thread.threads(), m_data.algorithm, m_data.thread.datasetHost()))) {
@@ -55,7 +55,7 @@ bool xmrig::CudaBaseRunner::init()
 }
 
 
-bool xmrig::CudaBaseRunner::set(const Job &job, uint8_t *blob)
+bool xmlcore::CudaBaseRunner::set(const Job &job, uint8_t *blob)
 {
     m_height = job.height();
     m_target = job.target();
@@ -64,13 +64,13 @@ bool xmrig::CudaBaseRunner::set(const Job &job, uint8_t *blob)
 }
 
 
-size_t xmrig::CudaBaseRunner::intensity() const
+size_t xmlcore::CudaBaseRunner::intensity() const
 {
     return m_data.thread.threads() * m_data.thread.blocks();
 }
 
 
-bool xmrig::CudaBaseRunner::callWrapper(bool result) const
+bool xmlcore::CudaBaseRunner::callWrapper(bool result) const
 {
     if (!result) {
         const char *error = CudaLib::lastError(m_ctx);

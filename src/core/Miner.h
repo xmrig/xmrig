@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MINER_H
-#define XMRIG_MINER_H
+#ifndef xmlcore_MINER_H
+#define xmlcore_MINER_H
 
 
 #include <vector>
@@ -37,7 +37,7 @@
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Controller;
@@ -49,7 +49,7 @@ class IBackend;
 class Miner : public ITimerListener, public IBaseListener, public IApiListener, public IRxListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Miner)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Miner)
 
     Miner(Controller *controller);
     ~Miner() override;
@@ -69,11 +69,11 @@ protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
     void onTimer(const Timer *timer) override;
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     void onRequest(IApiRequest &request) override;
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     void onDatasetReady() override;
 #   endif
 
@@ -82,7 +82,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_MINER_H */
+#endif /* xmlcore_MINER_H */

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  */
 
 
-#ifndef XMRIG_HTTPSSERVER_H
-#define XMRIG_HTTPSSERVER_H
+#ifndef xmlcore_HTTPSSERVER_H
+#define xmlcore_HTTPSSERVER_H
 
 
 using uv_tcp_t  = struct uv_tcp_s;
@@ -35,7 +35,7 @@ struct uv_buf_t;
 #include <memory>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IHttpListener;
@@ -46,7 +46,7 @@ class TlsConfig;
 class HttpsServer : public ITcpServerListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsServer)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpsServer)
 
     HttpsServer(const std::shared_ptr<IHttpListener> &listener);
     ~HttpsServer() override;
@@ -64,8 +64,8 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPSSERVER_H
+#endif // xmlcore_HTTPSSERVER_H
 

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,28 +26,28 @@
 #include "base/tools/Chrono.h"
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 #   include "backend/opencl/OclWorker.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 #   include "backend/cuda/CudaWorker.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/Benchmark.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class WorkersPrivate
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(WorkersPrivate)
+    xmlcore_DISABLE_COPY_MOVE(WorkersPrivate)
 
     WorkersPrivate()    = default;
     ~WorkersPrivate()   = default;
@@ -58,11 +58,11 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 template<class T>
-xmrig::Workers<T>::Workers() :
+xmlcore::Workers<T>::Workers() :
     d_ptr(new WorkersPrivate())
 {
 
@@ -70,14 +70,14 @@ xmrig::Workers<T>::Workers() :
 
 
 template<class T>
-xmrig::Workers<T>::~Workers()
+xmlcore::Workers<T>::~Workers()
 {
     delete d_ptr;
 }
 
 
 template<class T>
-bool xmrig::Workers<T>::tick(uint64_t)
+bool xmlcore::Workers<T>::tick(uint64_t)
 {
     if (!d_ptr->hashrate) {
         return true;
@@ -107,7 +107,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
         d_ptr->hashrate->add(totalHashCount, Chrono::steadyMSecs());
     }
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     return !d_ptr->benchmark || !d_ptr->benchmark->finish(totalHashCount);
 #   else
     return true;
@@ -116,23 +116,23 @@ bool xmrig::Workers<T>::tick(uint64_t)
 
 
 template<class T>
-const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
+const xmlcore::Hashrate *xmlcore::Workers<T>::hashrate() const
 {
     return d_ptr->hashrate.get();
 }
 
 
 template<class T>
-void xmrig::Workers<T>::setBackend(IBackend *backend)
+void xmlcore::Workers<T>::setBackend(IBackend *backend)
 {
     d_ptr->backend = backend;
 }
 
 
 template<class T>
-void xmrig::Workers<T>::stop()
+void xmlcore::Workers<T>::stop()
 {
-#   ifdef XMRIG_MINER_PROJECT
+#   ifdef xmlcore_MINER_PROJECT
     Nonce::stop(T::backend());
 #   endif
 
@@ -142,7 +142,7 @@ void xmrig::Workers<T>::stop()
 
     m_workers.clear();
 
-#   ifdef XMRIG_MINER_PROJECT
+#   ifdef xmlcore_MINER_PROJECT
     Nonce::touch(T::backend());
 #   endif
 
@@ -150,9 +150,9 @@ void xmrig::Workers<T>::stop()
 }
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 template<class T>
-void xmrig::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark)
+void xmlcore::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark)
 {
     if (!benchmark) {
         return start(data, true);
@@ -167,14 +167,14 @@ void xmrig::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<
 
 
 template<class T>
-xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
+xmlcore::IWorker *xmlcore::Workers<T>::create(Thread<T> *)
 {
     return nullptr;
 }
 
 
 template<class T>
-void *xmrig::Workers<T>::onReady(void *arg)
+void *xmlcore::Workers<T>::onReady(void *arg)
 {
     auto handle = static_cast<Thread<T>* >(arg);
 
@@ -200,7 +200,7 @@ void *xmrig::Workers<T>::onReady(void *arg)
 
 
 template<class T>
-void xmrig::Workers<T>::start(const std::vector<T> &data, bool sleep)
+void xmlcore::Workers<T>::start(const std::vector<T> &data, bool sleep)
 {
     for (const auto &item : data) {
         m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
@@ -208,7 +208,7 @@ void xmrig::Workers<T>::start(const std::vector<T> &data, bool sleep)
 
     d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
 
-#   ifdef XMRIG_MINER_PROJECT
+#   ifdef xmlcore_MINER_PROJECT
     Nonce::touch(T::backend());
 #   endif
 
@@ -218,13 +218,13 @@ void xmrig::Workers<T>::start(const std::vector<T> &data, bool sleep)
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template<>
-xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
+xmlcore::IWorker *xmlcore::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
-#   ifdef XMRIG_MINER_PROJECT
+#   ifdef xmlcore_MINER_PROJECT
     switch (handle->config().intensity) {
     case 1:
         return new CpuWorker<1>(handle->id(), handle->config());
@@ -254,9 +254,9 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
 template class Workers<CpuLaunchData>;
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 template<>
-xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
+xmlcore::IWorker *xmlcore::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
 {
     return new OclWorker(handle->id(), handle->config());
 }
@@ -266,9 +266,9 @@ template class Workers<OclLaunchData>;
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 template<>
-xmrig::IWorker *xmrig::Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle)
+xmlcore::IWorker *xmlcore::Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle)
 {
     return new CudaWorker(handle->id(), handle->config());
 }
@@ -278,4 +278,4 @@ template class Workers<CudaLaunchData>;
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,14 +34,14 @@
 #include "core/Controller.h"
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include "base/net/https/HttpsServer.h"
 #else
 #   include "base/net/http/HttpServer.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 static const char *kAuthorization = "authorization";
 
@@ -50,10 +50,10 @@ static const char *favicon = nullptr;
 static size_t faviconSize  = 0;
 #endif
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::Httpd::Httpd(Base *base) :
+xmlcore::Httpd::Httpd(Base *base) :
     m_base(base)
 {
     m_httpListener = std::make_shared<HttpListener>(this);
@@ -62,10 +62,10 @@ xmrig::Httpd::Httpd(Base *base) :
 }
 
 
-xmrig::Httpd::~Httpd() = default;
+xmlcore::Httpd::~Httpd() = default;
 
 
-bool xmrig::Httpd::start()
+bool xmlcore::Httpd::start()
 {
     const auto &config = m_base->config()->http();
 
@@ -75,7 +75,7 @@ bool xmrig::Httpd::start()
 
     bool tls = false;
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     m_http = new HttpsServer(m_httpListener);
     tls = m_http->setTls(m_base->config()->tls());
 #   else
@@ -116,7 +116,7 @@ bool xmrig::Httpd::start()
 }
 
 
-void xmrig::Httpd::stop()
+void xmlcore::Httpd::stop()
 {
     delete m_server;
     delete m_http;
@@ -128,7 +128,7 @@ void xmrig::Httpd::stop()
 
 
 
-void xmrig::Httpd::onConfigChanged(Config *config, Config *previousConfig)
+void xmlcore::Httpd::onConfigChanged(Config *config, Config *previousConfig)
 {
     if (config->http() == previousConfig->http()) {
         return;
@@ -139,7 +139,7 @@ void xmrig::Httpd::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Httpd::onHttpData(const HttpData &data)
+void xmlcore::Httpd::onHttpData(const HttpData &data)
 {
     if (data.method == HTTP_OPTIONS) {
         return HttpApiResponse(data.id()).end();
@@ -181,7 +181,7 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
 }
 
 
-int xmrig::Httpd::auth(const HttpData &req) const
+int xmlcore::Httpd::auth(const HttpData &req) const
 {
     const Http &config = m_base->config()->http();
 

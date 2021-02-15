@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -41,24 +41,24 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
-#ifdef XMRIG_FEATURE_ENV
+#ifdef xmlcore_FEATURE_ENV
 static std::map<String, String> variables;
 
 
 static void createVariables()
 {
-    variables.insert({ "XMRIG_VERSION",  APP_VERSION });
-    variables.insert({ "XMRIG_KIND",     APP_KIND });
-    variables.insert({ "XMRIG_HOSTNAME", Env::hostname() });
-    variables.insert({ "XMRIG_EXE",      Process::exepath() });
-    variables.insert({ "XMRIG_EXE_DIR",  Process::location(Process::ExeLocation) });
-    variables.insert({ "XMRIG_CWD",      Process::location(Process::CwdLocation) });
-    variables.insert({ "XMRIG_HOME_DIR", Process::location(Process::HomeLocation) });
-    variables.insert({ "XMRIG_TEMP_DIR", Process::location(Process::TempLocation) });
-    variables.insert({ "XMRIG_DATA_DIR", Process::location(Process::DataLocation) });
+    variables.insert({ "xmlcore_VERSION",  APP_VERSION });
+    variables.insert({ "xmlcore_KIND",     APP_KIND });
+    variables.insert({ "xmlcore_HOSTNAME", Env::hostname() });
+    variables.insert({ "xmlcore_EXE",      Process::exepath() });
+    variables.insert({ "xmlcore_EXE_DIR",  Process::location(Process::ExeLocation) });
+    variables.insert({ "xmlcore_CWD",      Process::location(Process::CwdLocation) });
+    variables.insert({ "xmlcore_HOME_DIR", Process::location(Process::HomeLocation) });
+    variables.insert({ "xmlcore_TEMP_DIR", Process::location(Process::TempLocation) });
+    variables.insert({ "xmlcore_DATA_DIR", Process::location(Process::DataLocation) });
 
     String hostname = "HOSTNAME";
     if (!getenv(hostname)) {
@@ -68,12 +68,12 @@ static void createVariables()
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::String xmrig::Env::expand(const char *in, const std::map<String, String> &extra)
+xmlcore::String xmlcore::Env::expand(const char *in, const std::map<String, String> &extra)
 {
-#   ifdef XMRIG_FEATURE_ENV
+#   ifdef xmlcore_FEATURE_ENV
     if (in == nullptr) {
         return {};
     }
@@ -117,9 +117,9 @@ xmrig::String xmrig::Env::expand(const char *in, const std::map<String, String> 
 }
 
 
-xmrig::String xmrig::Env::get(const String &name, const std::map<String, String> &extra)
+xmlcore::String xmlcore::Env::get(const String &name, const std::map<String, String> &extra)
 {
-#   ifdef XMRIG_FEATURE_ENV
+#   ifdef xmlcore_FEATURE_ENV
     if (variables.empty()) {
         createVariables();
     }
@@ -141,7 +141,7 @@ xmrig::String xmrig::Env::get(const String &name, const std::map<String, String>
 }
 
 
-xmrig::String xmrig::Env::hostname()
+xmlcore::String xmlcore::Env::hostname()
 {
     char buf[UV_MAXHOSTNAMESIZE]{};
     size_t size = sizeof(buf);

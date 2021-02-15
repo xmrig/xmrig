@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,17 +28,17 @@
 #include "net/JobResults.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "backend/cuda/runners/CudaRxRunner.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 #   include "backend/cuda/runners/CudaAstroBWTRunner.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "backend/cuda/runners/CudaKawPowRunner.h"
 #endif
 
@@ -47,7 +47,7 @@
 #include <thread>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 std::atomic<bool> CudaWorker::ready;
@@ -56,18 +56,18 @@ std::atomic<bool> CudaWorker::ready;
 static inline bool isReady()    { return !Nonce::isPaused() && CudaWorker::ready; }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 
-xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
+xmlcore::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     GpuWorker(id, data.thread.affinity(), -1, data.device.index()),
     m_algorithm(data.algorithm),
     m_miner(data.miner)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
-#       ifdef XMRIG_ALGO_RANDOMX
+#       ifdef xmlcore_ALGO_RANDOMX
         m_runner = new CudaRxRunner(id, data);
 #       endif
         break;
@@ -76,13 +76,13 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
         break;
 
     case Algorithm::ASTROBWT:
-#       ifdef XMRIG_ALGO_ASTROBWT
+#       ifdef xmlcore_ALGO_ASTROBWT
         m_runner = new CudaAstroBWTRunner(id, data);
 #       endif
         break;
 
     case Algorithm::KAWPOW:
-#       ifdef XMRIG_ALGO_KAWPOW
+#       ifdef xmlcore_ALGO_KAWPOW
         m_runner = new CudaKawPowRunner(id, data);
 #       endif
         break;
@@ -104,13 +104,13 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
 }
 
 
-xmrig::CudaWorker::~CudaWorker()
+xmlcore::CudaWorker::~CudaWorker()
 {
     delete m_runner;
 }
 
 
-void xmrig::CudaWorker::jobEarlyNotification(const Job &job)
+void xmlcore::CudaWorker::jobEarlyNotification(const Job &job)
 {
     if (m_runner) {
         m_runner->jobEarlyNotification(job);
@@ -118,19 +118,19 @@ void xmrig::CudaWorker::jobEarlyNotification(const Job &job)
 }
 
 
-bool xmrig::CudaWorker::selfTest()
+bool xmlcore::CudaWorker::selfTest()
 {
     return m_runner != nullptr;
 }
 
 
-size_t xmrig::CudaWorker::intensity() const
+size_t xmlcore::CudaWorker::intensity() const
 {
     return m_runner ? m_runner->roundSize() : 0;
 }
 
 
-void xmrig::CudaWorker::start()
+void xmlcore::CudaWorker::start()
 {
     while (Nonce::sequence(Nonce::CUDA) > 0) {
         if (!isReady()) {
@@ -175,7 +175,7 @@ void xmrig::CudaWorker::start()
 }
 
 
-bool xmrig::CudaWorker::consumeJob()
+bool xmlcore::CudaWorker::consumeJob()
 {
     if (Nonce::sequence(Nonce::CUDA) == 0) {
         return false;
@@ -187,7 +187,7 @@ bool xmrig::CudaWorker::consumeJob()
 }
 
 
-void xmrig::CudaWorker::storeStats()
+void xmlcore::CudaWorker::storeStats()
 {
     if (!isReady()) {
         return;

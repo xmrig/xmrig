@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HASHRATE_H
-#define XMRIG_HASHRATE_H
+#ifndef xmlcore_HASHRATE_H
+#define xmlcore_HASHRATE_H
 
 
 #include <cmath>
@@ -30,13 +30,13 @@
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class Hashrate
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Hashrate)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Hashrate)
 
     enum Intervals : size_t {
         ShortInterval  = 10000,
@@ -56,7 +56,7 @@ public:
     static const char *format(double h, char *buf, size_t size);
     static rapidjson::Value normalize(double d);
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     rapidjson::Value toJSON(size_t threadId, rapidjson::Document &doc) const;
 #   endif
@@ -75,7 +75,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_HASHRATE_H */
+#endif /* xmlcore_HASHRATE_H */

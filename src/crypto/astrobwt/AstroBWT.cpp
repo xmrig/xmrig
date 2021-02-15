@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik              <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler                   <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones              <https://github.com/lucasjones>
@@ -10,7 +10,7 @@
  * Copyright 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
  * Copyright 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
  * Copyright 2018-2020 SChernykh                <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore                    <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -69,7 +69,7 @@ void SHA3_256_AVX2_ASM(const void* in, size_t inBytes, void* out);
 
 #endif
 
-#ifdef XMRIG_ARM
+#ifdef xmlcore_ARM
 extern "C" {
 #include "salsa20_ref/ecrypt-sync.h"
 }
@@ -171,7 +171,7 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 	}
 }
 
-bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
+bool xmlcore::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
 {
 	alignas(8) uint8_t key[32];
 	uint8_t* scratchpad_ptr = (uint8_t*)(scratchpad) + 64;
@@ -240,7 +240,7 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 }
 
 
-void xmrig::astrobwt::init()
+void xmlcore::astrobwt::init()
 {
 	if (!astrobwtInitialized) {
 #		ifdef ASTROBWT_AVX2
@@ -253,7 +253,7 @@ void xmrig::astrobwt::init()
 
 
 template<>
-void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
+void xmlcore::astrobwt::single_hash<xmlcore::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
 {
 	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output, std::numeric_limits<int>::max(), true);
 }

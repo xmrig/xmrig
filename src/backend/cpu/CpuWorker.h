@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUWORKER_H
-#define XMRIG_CPUWORKER_H
+#ifndef xmlcore_CPUWORKER_H
+#define xmlcore_CPUWORKER_H
 
 
 #include "backend/common/Worker.h"
@@ -27,12 +27,12 @@
 #include "net/JobResult.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 class randomx_vm;
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class RxVm;
@@ -42,7 +42,7 @@ template<size_t N>
 class CpuWorker : public Worker
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(CpuWorker)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(CpuWorker)
 
     CpuWorker(size_t id, const CpuLaunchData &data);
     ~CpuWorker() override;
@@ -59,7 +59,7 @@ protected:
 private:
     inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     void allocateRandomX_VM();
 #   endif
 
@@ -83,11 +83,11 @@ private:
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     randomx_vm *m_vm        = nullptr;
 #   endif
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     uint32_t m_benchSize    = 0;
 #   endif
 };
@@ -104,7 +104,7 @@ extern template class CpuWorker<4>;
 extern template class CpuWorker<5>;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_CPUWORKER_H */
+#endif /* xmlcore_CPUWORKER_H */

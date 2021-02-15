@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ETHSTRATUMCLIENT_H
-#define XMRIG_ETHSTRATUMCLIENT_H
+#ifndef xmlcore_ETHSTRATUMCLIENT_H
+#define xmlcore_ETHSTRATUMCLIENT_H
 
 
 #include "base/net/stratum/Client.h"
@@ -26,13 +26,13 @@
 #include <utility>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class EthStratumClient : public Client
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(EthStratumClient)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(EthStratumClient)
 
     EthStratumClient(int id, const char *agent, IClientListener *listener);
     ~EthStratumClient() override = default;
@@ -59,7 +59,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_ETHSTRATUMCLIENT_H */
+#endif /* xmlcore_ETHSTRATUMCLIENT_H */

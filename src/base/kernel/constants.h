@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,16 +16,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSTANTS_H
-#define XMRIG_CONSTANTS_H
+#ifndef xmlcore_CONSTANTS_H
+#define xmlcore_CONSTANTS_H
 
 
 #include <cstddef>
 #include <cstdint>
 
 
-constexpr size_t      XMRIG_NET_BUFFER_CHUNK_SIZE           = 64 * 1024;
-constexpr size_t      XMRIG_NET_BUFFER_INIT_CHUNKS          = 4;
+constexpr size_t      xmlcore_NET_BUFFER_CHUNK_SIZE           = 64 * 1024;
+constexpr size_t      xmlcore_NET_BUFFER_INIT_CHUNKS          = 4;
 
 
-#endif /* XMRIG_CONSTANTS_H */
+#endif /* xmlcore_CONSTANTS_H */

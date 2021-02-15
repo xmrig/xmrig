@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_USAGE_H
-#define XMRIG_USAGE_H
+#ifndef xmlcore_USAGE_H
+#define xmlcore_USAGE_H
 
 
 #include "version.h"
@@ -32,7 +32,7 @@
 #include <string>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static inline const std::string &usage()
@@ -45,7 +45,7 @@ static inline const std::string &usage()
 
     u += "Usage: " APP_ID " [OPTIONS]\n\nNetwork:\n";
     u += "  -o, --url=URL                 URL of mining server\n";
-    u += "  -a, --algo=ALGO               mining algorithm https://xmrig.com/docs/algorithms\n";
+    u += "  -a, --algo=ALGO               mining algorithm https://xmlcore.com/docs/algorithms\n";
     u += "      --coin=COIN               specify coin instead of algorithm\n";
     u += "  -u, --user=USERNAME           username for mining server\n";
     u += "  -p, --pass=PASSWORD           password for mining server\n";
@@ -55,12 +55,12 @@ static inline const std::string &usage()
     u += "      --nicehash                enable nicehash.com support\n";
     u += "      --rig-id=ID               rig identifier for pool-side statistics (needs pool support)\n";
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     u += "      --tls                     enable SSL/TLS support (needs pool support)\n";
     u += "      --tls-fingerprint=HEX     pool TLS certificate fingerprint for strict certificate pinning\n";
 #   endif
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
     u += "      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n";
     u += "      --self-select=URL         self-select block templates from URL\n";
@@ -70,7 +70,7 @@ static inline const std::string &usage()
     u += "  -R, --retry-pause=N           time to pause between retries (default: 5)\n";
     u += "      --user-agent              set custom user-agent string for pool\n";
     u += "      --donate-level=N          donate level, default 1%% (1 minute in 100 minutes)\n";
-    u += "      --donate-over-proxy=N     control donate over xmrig-proxy feature\n";
+    u += "      --donate-over-proxy=N     control donate over xmlcore-proxy feature\n";
 
     u += "\nCPU backend:\n";
 
@@ -83,7 +83,7 @@ static inline const std::string &usage()
     u += "      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n";
     u += "      --cpu-no-yield            prefer maximum hashrate rather than system response/stability\n";
     u += "      --no-huge-pages           disable huge pages support\n";
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     u += "      --hugepage-size=N         custom hugepage size in kB\n";
 #   endif
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
@@ -92,7 +92,7 @@ static inline const std::string &usage()
     u += "      --argon2-impl=IMPL        argon2 implementation: x86_64, SSE2, SSSE3, XOP, AVX2, AVX-512F\n";
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     u += "      --randomx-init=N          threads count to initialize RandomX dataset\n";
     u += "      --randomx-no-numa         disable NUMA support for RandomX\n";
     u += "      --randomx-mode=MODE       RandomX mode: auto, fast, light\n";
@@ -102,12 +102,12 @@ static inline const std::string &usage()
     u += "      --randomx-cache-qos       enable Cache QoS\n";
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
     u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
 #   endif
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     u += "\nOpenCL backend:\n";
     u += "      --opencl                  enable OpenCL mining backend\n";
     u += "      --opencl-devices=N        comma separated list of OpenCL devices to use\n";
@@ -117,19 +117,19 @@ static inline const std::string &usage()
     u += "      --print-platforms         print available OpenCL platforms and exit\n";
 #   endif
 
-#   ifdef XMRIG_FEATURE_CUDA
+#   ifdef xmlcore_FEATURE_CUDA
     u += "\nCUDA backend:\n";
     u += "      --cuda                    enable CUDA mining backend\n";
-    u += "      --cuda-loader=PATH        path to CUDA plugin (xmrig-cuda.dll or libxmrig-cuda.so)\n";
+    u += "      --cuda-loader=PATH        path to CUDA plugin (xmlcore-cuda.dll or libxmlcore-cuda.so)\n";
     u += "      --cuda-devices=N          comma separated list of CUDA devices to use\n";
     u += "      --cuda-bfactor-hint=N     bfactor hint for autoconfig (0-12)\n";
     u += "      --cuda-bsleep-hint=N      bsleep hint for autoconfig\n";
 #   endif
-#   ifdef XMRIG_FEATURE_NVML
+#   ifdef xmlcore_FEATURE_NVML
     u += "      --no-nvml                 disable NVML (NVIDIA Management Library) support\n";
 #   endif
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     u += "\nAPI:\n";
     u += "      --api-worker-id=ID        custom worker-id for API\n";
     u += "      --api-id=ID               custom instance ID for API\n";
@@ -139,7 +139,7 @@ static inline const std::string &usage()
     u += "      --http-no-restricted      enable full remote access to HTTP API (only if access token set)\n";
 #   endif
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     u += "\nTLS:\n";
     u += "      --tls-gen=HOSTNAME        generate TLS certificate for specific hostname\n";
     u += "      --tls-cert=FILE           load TLS certificate chain from a file in the PEM format\n";
@@ -158,7 +158,7 @@ static inline const std::string &usage()
 
     u += "  -l, --log-file=FILE           log all output to a file\n";
     u += "      --print-time=N            print hashrate report every N seconds\n";
-#   if defined(XMRIG_FEATURE_NVML) || defined(XMRIG_FEATURE_ADL)
+#   if defined(xmlcore_FEATURE_NVML) || defined(xmlcore_FEATURE_ADL)
     u += "      --health-print-time=N     print health report every N seconds\n";
 #   endif
     u += "      --no-color                disable colored output\n";
@@ -172,20 +172,20 @@ static inline const std::string &usage()
     u += "  -h, --help                    display this help and exit\n";
     u += "      --dry-run                 test configuration and exit\n";
 
-#   ifdef XMRIG_FEATURE_HWLOC
+#   ifdef xmlcore_FEATURE_HWLOC
     u += "      --export-topology         export hwloc topology to a XML file and exit\n";
 #   endif
 
-#   ifdef XMRIG_OS_WIN
+#   ifdef xmlcore_OS_WIN
     u += "      --title                   set custom console window title\n";
     u += "      --no-title                disable setting console window title\n";
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     u += "      --stress                  run continuous stress test to check system stability\n";
     u += "      --bench=N                 run benchmark, N can be between 1M and 10M\n";
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     u += "      --submit                  perform an online benchmark and submit result for sharing\n";
     u += "      --verify=ID               verify submitted benchmark by ID\n";
 #   endif
@@ -193,7 +193,7 @@ static inline const std::string &usage()
     u += "      --hash=HASH               compare benchmark result with specified hash\n";
 #   endif
 
-#   ifdef XMRIG_FEATURE_DMI
+#   ifdef xmlcore_FEATURE_DMI
     u += "      --no-dmi                  disable DMI/SMBIOS reader\n";
 #   endif
 
@@ -201,6 +201,6 @@ static inline const std::string &usage()
 }
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
-#endif /* XMRIG_USAGE_H */
+#endif /* xmlcore_USAGE_H */

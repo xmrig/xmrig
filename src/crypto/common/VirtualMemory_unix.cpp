@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,12 +28,12 @@
 #include <sys/mman.h>
 
 
-#ifdef XMRIG_OS_APPLE
+#ifdef xmlcore_OS_APPLE
 #   include <libkern/OSCacheControl.h>
 #   include <mach/vm_statistics.h>
 #   include <pthread.h>
 #   include <TargetConditionals.h>
-#   ifdef XMRIG_ARM
+#   ifdef xmlcore_ARM
 #       define MEXTRA MAP_JIT
 #   else
 #       define MEXTRA 0
@@ -43,7 +43,7 @@
 #endif
 
 
-#ifdef XMRIG_OS_LINUX
+#ifdef xmlcore_OS_LINUX
 #   include "crypto/common/LinuxMemory.h"
 #endif
 
@@ -58,14 +58,14 @@
 #endif
 
 
-#ifdef XMRIG_SECURE_JIT
+#ifdef xmlcore_SECURE_JIT
 #   define SECURE_PROT_EXEC 0
 #else
 #   define SECURE_PROT_EXEC PROT_EXEC
 #endif
 
 
-#if defined(XMRIG_OS_LINUX) || (!defined(XMRIG_OS_APPLE) && !defined(__FreeBSD__))
+#if defined(xmlcore_OS_LINUX) || (!defined(xmlcore_OS_APPLE) && !defined(__FreeBSD__))
 static inline int hugePagesFlag(size_t size)
 {
     return (static_cast<int>(log2(size)) & MAP_HUGE_MASK) << MAP_HUGE_SHIFT;
@@ -73,9 +73,9 @@ static inline int hugePagesFlag(size_t size)
 #endif
 
 
-bool xmrig::VirtualMemory::isHugepagesAvailable()
+bool xmlcore::VirtualMemory::isHugepagesAvailable()
 {
-#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+#   if defined(xmlcore_OS_MACOS) && defined(xmlcore_ARM)
     return false;
 #   else
     return true;
@@ -83,9 +83,9 @@ bool xmrig::VirtualMemory::isHugepagesAvailable()
 }
 
 
-bool xmrig::VirtualMemory::isOneGbPagesAvailable()
+bool xmlcore::VirtualMemory::isOneGbPagesAvailable()
 {
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     return Cpu::info()->hasOneGbPages();
 #   else
     return false;
@@ -93,9 +93,9 @@ bool xmrig::VirtualMemory::isOneGbPagesAvailable()
 }
 
 
-bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRW(void *p, size_t size)
 {
-#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+#   if defined(xmlcore_OS_APPLE) && defined(xmlcore_ARM)
     pthread_jit_write_protect_np(false);
     return true;
 #   else
@@ -104,15 +104,15 @@ bool xmrig::VirtualMemory::protectRW(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRWX(void *p, size_t size)
 {
     return mprotect(p, size, PROT_READ | PROT_WRITE | PROT_EXEC) == 0;
 }
 
 
-bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+bool xmlcore::VirtualMemory::protectRX(void *p, size_t size)
 {
-#   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
+#   if defined(xmlcore_OS_APPLE) && defined(xmlcore_ARM)
     pthread_jit_write_protect_np(true);
     flushInstructionCache(p, size);
     return true;
@@ -122,11 +122,11 @@ bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 }
 
 
-void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
+void *xmlcore::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages)
 {
-#   if defined(XMRIG_OS_APPLE)
+#   if defined(xmlcore_OS_APPLE)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANON | MEXTRA, -1, 0);
-#   ifdef XMRIG_ARM
+#   ifdef xmlcore_ARM
     pthread_jit_write_protect_np(false);
 #   endif
 #   elif defined(__FreeBSD__)
@@ -158,9 +158,9 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 }
 
 
-void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
+void *xmlcore::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
-#   if defined(XMRIG_OS_APPLE)
+#   if defined(xmlcore_OS_APPLE)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
 #   elif defined(__FreeBSD__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
@@ -172,9 +172,9 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 }
 
 
-void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
+void *xmlcore::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 {
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     if (isOneGbPagesAvailable()) {
         void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | hugePagesFlag(kOneGiB), 0, 0);
 
@@ -186,9 +186,9 @@ void *xmrig::VirtualMemory::allocateOneGbPagesMemory(size_t size)
 }
 
 
-void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
+void xmlcore::VirtualMemory::flushInstructionCache(void *p, size_t size)
 {
-#   if defined(XMRIG_OS_APPLE)
+#   if defined(xmlcore_OS_APPLE)
     sys_icache_invalidate(p, size);
 #   elif defined (HAVE_BUILTIN_CLEAR_CACHE) || defined (__GNUC__)
     __builtin___clear_cache(reinterpret_cast<char*>(p), reinterpret_cast<char*>(p) + size);
@@ -196,13 +196,13 @@ void xmrig::VirtualMemory::flushInstructionCache(void *p, size_t size)
 }
 
 
-void xmrig::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
+void xmlcore::VirtualMemory::freeLargePagesMemory(void *p, size_t size)
 {
     munmap(p, size);
 }
 
 
-void xmrig::VirtualMemory::osInit(size_t hugePageSize)
+void xmlcore::VirtualMemory::osInit(size_t hugePageSize)
 {
     if (hugePageSize) {
         m_hugePageSize = hugePageSize;
@@ -210,9 +210,9 @@ void xmrig::VirtualMemory::osInit(size_t hugePageSize)
 }
 
 
-bool xmrig::VirtualMemory::allocateLargePagesMemory()
+bool xmlcore::VirtualMemory::allocateLargePagesMemory()
 {
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     LinuxMemory::reserve(m_size, m_node, hugePageSize());
 #   endif
 
@@ -233,9 +233,9 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
 }
 
 
-bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
+bool xmlcore::VirtualMemory::allocateOneGbPagesMemory()
 {
-#   ifdef XMRIG_OS_LINUX
+#   ifdef xmlcore_OS_LINUX
     LinuxMemory::reserve(m_size, m_node, kOneGiB);
 #   endif
 
@@ -256,7 +256,7 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 }
 
 
-void xmrig::VirtualMemory::freeLargePagesMemory()
+void xmlcore::VirtualMemory::freeLargePagesMemory()
 {
     if (m_flags.test(FLAG_LOCK)) {
         munlock(m_scratchpad, m_size);

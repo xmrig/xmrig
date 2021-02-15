@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,8 +18,8 @@
  */
 
 
-#ifndef XMRIG_HTTPSCLIENT_H
-#define XMRIG_HTTPSCLIENT_H
+#ifndef xmlcore_HTTPSCLIENT_H
+#define xmlcore_HTTPSCLIENT_H
 
 
 using BIO       = struct bio_st;
@@ -32,13 +32,13 @@ using X509      = struct x509_st;
 #include "base/tools/String.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class HttpsClient : public HttpClient
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpsClient)
 
     HttpsClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener);
     ~HttpsClient() override;
@@ -66,7 +66,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif // XMRIG_HTTPSCLIENT_H
+#endif // xmlcore_HTTPSCLIENT_H

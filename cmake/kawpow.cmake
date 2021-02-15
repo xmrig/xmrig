@@ -1,5 +1,5 @@
 if (WITH_KAWPOW)
-    add_definitions(/DXMRIG_ALGO_KAWPOW)
+    add_definitions(/Dxmlcore_ALGO_KAWPOW)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/kawpow/KPCache.h
@@ -14,6 +14,6 @@ if (WITH_KAWPOW)
     add_subdirectory(src/3rdparty/libethash)
     set(ETHASH_LIBRARY ethash)
 else()
-    remove_definitions(/DXMRIG_ALGO_KAWPOW)
+    remove_definitions(/Dxmlcore_ALGO_KAWPOW)
     set(ETHASH_LIBRARY "")
 endif()

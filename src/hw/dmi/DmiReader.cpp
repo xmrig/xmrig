@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
  * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "hw/dmi/DmiTools.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static void dmi_get_header(dmi_header *h, uint8_t *data)
@@ -37,11 +37,11 @@ static void dmi_get_header(dmi_header *h, uint8_t *data)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::DmiReader::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::DmiReader::toJSON(rapidjson::Document &doc) const
 {
     rapidjson::Value obj;
     toJSON(obj, doc);
@@ -50,7 +50,7 @@ rapidjson::Value xmrig::DmiReader::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::DmiReader::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+void xmlcore::DmiReader::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -72,7 +72,7 @@ void xmrig::DmiReader::toJSON(rapidjson::Value &out, rapidjson::Document &doc) c
 #endif
 
 
-bool xmrig::DmiReader::decode(uint8_t *buf, const Cleanup &cleanup)
+bool xmlcore::DmiReader::decode(uint8_t *buf, const Cleanup &cleanup)
 {
     const bool rc = decode(buf);
 
@@ -82,7 +82,7 @@ bool xmrig::DmiReader::decode(uint8_t *buf, const Cleanup &cleanup)
 }
 
 
-bool xmrig::DmiReader::decode(uint8_t *buf)
+bool xmlcore::DmiReader::decode(uint8_t *buf)
 {
     if (!buf) {
         return false;
@@ -105,7 +105,7 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
             next++;
         }
 
-#       ifdef XMRIG_OS_APPLE
+#       ifdef xmlcore_OS_APPLE
         while ((unsigned long)(next - buf + 1) < m_size && (next[0] == 0 && next[1] == 0))
 #       endif
         next += 2;

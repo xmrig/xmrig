@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,15 +36,15 @@
 
 
 
-xmrig::EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
+xmlcore::EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
     Client(id, agent, listener)
 {
 }
 
 
-int64_t xmrig::EthStratumClient::submit(const JobResult& result)
+int64_t xmlcore::EthStratumClient::submit(const JobResult& result)
 {
-#   ifndef XMRIG_PROXY_PROJECT
+#   ifndef xmlcore_PROXY_PROJECT
     if ((m_state != ConnectedState) || !m_authorized) {
         return -1;
     }
@@ -91,7 +91,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     uint64_t actual_diff = ethash_swap_u64(*((uint64_t*)result.result()));
     actual_diff = actual_diff ? (uint64_t(-1) / actual_diff) : 0;
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, actual_diff, result.id, 0);
 #   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, actual_diff, 0, result.backend);
@@ -101,7 +101,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 }
 
 
-void xmrig::EthStratumClient::login()
+void xmlcore::EthStratumClient::login()
 {
     m_results.clear();
 
@@ -110,14 +110,14 @@ void xmrig::EthStratumClient::login()
 }
 
 
-void xmrig::EthStratumClient::onClose()
+void xmlcore::EthStratumClient::onClose()
 {
     m_authorized = false;
     Client::onClose();
 }
 
 
-bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
+bool xmlcore::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     auto it = m_callbacks.find(id);
     if (it != m_callbacks.end()) {
@@ -139,7 +139,7 @@ bool xmrig::EthStratumClient::handleResponse(int64_t id, const rapidjson::Value 
 }
 
 
-void xmrig::EthStratumClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
+void xmlcore::EthStratumClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
 {
     if (strcmp(method, "mining.set_target") == 0) {
         return;
@@ -240,7 +240,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 }
 
 
-void xmrig::EthStratumClient::setExtraNonce(const rapidjson::Value &nonce)
+void xmlcore::EthStratumClient::setExtraNonce(const rapidjson::Value &nonce)
 {
     if (!nonce.IsString()) {
         throw std::runtime_error("invalid mining.subscribe response: extra nonce is not a string");
@@ -272,7 +272,7 @@ void xmrig::EthStratumClient::setExtraNonce(const rapidjson::Value &nonce)
 }
 
 
-const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error) const
+const char *xmlcore::EthStratumClient::errorMessage(const rapidjson::Value &error) const
 {
     if (error.IsArray() && error.GetArray().Size() > 1) {
         auto &value = error.GetArray()[1];
@@ -293,7 +293,7 @@ const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error)
 }
 
 
-void xmrig::EthStratumClient::authorize()
+void xmlcore::EthStratumClient::authorize()
 {
     using namespace rapidjson;
 
@@ -310,7 +310,7 @@ void xmrig::EthStratumClient::authorize()
 }
 
 
-void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t)
+void xmlcore::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t)
 {
     try {
         if (!success) {
@@ -345,7 +345,7 @@ void xmrig::EthStratumClient::onAuthorizeResponse(const rapidjson::Value &result
 }
 
 
-void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t)
+void xmlcore::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t)
 {
     if (!success) {
         return;
@@ -377,7 +377,7 @@ void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result
 }
 
 
-void xmrig::EthStratumClient::subscribe()
+void xmlcore::EthStratumClient::subscribe()
 {
     using namespace rapidjson;
 

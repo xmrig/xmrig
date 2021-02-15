@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_MSR_H
-#define XMRIG_MSR_H
+#ifndef xmlcore_MSR_H
+#define xmlcore_MSR_H
 
 
 #include "base/tools/Object.h"
@@ -28,7 +28,7 @@
 #include <memory>
 
 
-namespace xmrig
+namespace xmlcore
 {
 
 
@@ -38,7 +38,7 @@ class MsrPrivate;
 class Msr
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(Msr)
+    xmlcore_DISABLE_COPY_MOVE(Msr)
 
     using Callback = std::function<bool(int32_t cpu)>;
 
@@ -63,7 +63,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_MSR_H */
+#endif /* xmlcore_MSR_H */

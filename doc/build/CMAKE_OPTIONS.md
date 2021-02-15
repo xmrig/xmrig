@@ -1,5 +1,5 @@
 # CMake options
-**Recent version of this document: https://xmrig.com/docs/miner/cmake-options**
+**Recent version of this document: https://xmlcore.com/docs/miner/cmake-options**
 
 ## Algorithms
 
@@ -12,14 +12,14 @@
 ## Features
 
 * **`-DWITH_HWLOC=OFF`**
-disable [hwloc](https://github.com/xmrig/xmrig/issues/1077) support.
+disable [hwloc](https://github.com/xmlcore/xmlcore/issues/1077) support.
 Disabling this feature is not recommended in most cases.
 This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 * **`-DWITH_LIBCPUID=OFF`** disable built in libcpuid support, this feature always disabled if hwloc enabled, if both hwloc and libcpuid disabled auto configuration for CPU will very limited.
 * **`-DWITH_HTTP=OFF`** disable built in HTTP support, this feature used for HTTP API and daemon (solo mining) support.
 * **`-DWITH_TLS=OFF`** disable SSL/TLS support (secure connections to pool). This feature add external dependency to OpenSSL.
 * **`-DWITH_ASM=OFF`** disable assembly optimizations for modern CryptoNight algorithms.
-* **`-DWITH_EMBEDDED_CONFIG=ON`** Enable [embedded](https://github.com/xmrig/xmrig/issues/957) config support.
+* **`-DWITH_EMBEDDED_CONFIG=ON`** Enable [embedded](https://github.com/xmlcore/xmlcore/issues/957) config support.
 * **`-DWITH_OPENCL=OFF`** Disable OpenCL backend.
 * **`-DWITH_CUDA=OFF`** Disable CUDA backend.
 * **`-DWITH_SSE4_1=OFF`** Disable SSE 4.1 for Blake2 (useful for arm builds).
@@ -32,7 +32,7 @@ This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 
 ## Special build options
 
-* **`-DXMRIG_DEPS=<path>`** path to precompiled dependencies https://github.com/xmrig/xmrig-deps
+* **`-Dxmlcore_DEPS=<path>`** path to precompiled dependencies https://github.com/xmlcore/xmlcore-deps
 * **`-DARM_TARGET=<number>`** override ARM target, possible values `7` (ARMv7) and `8` (ARMv8).
 * **`-DUV_INCLUDE_DIR=<path>`** custom path to libuv headers.
 * **`-DUV_LIBRARY=<path>`** custom path to libuv library.

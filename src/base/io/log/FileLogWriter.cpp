@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static void fsWriteCallback(uv_fs_t *req)
@@ -40,10 +40,10 @@ static void fsWriteCallback(uv_fs_t *req)
 static const char *kNewLine = "\n";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::FileLogWriter::open(const char *fileName)
+bool xmlcore::FileLogWriter::open(const char *fileName)
 {
     assert(fileName != nullptr);
     if (!fileName) {
@@ -58,7 +58,7 @@ bool xmrig::FileLogWriter::open(const char *fileName)
 }
 
 
-bool xmrig::FileLogWriter::write(const char *data, size_t size)
+bool xmlcore::FileLogWriter::write(const char *data, size_t size)
 {
     if (!isOpen()) {
         return false;
@@ -76,7 +76,7 @@ bool xmrig::FileLogWriter::write(const char *data, size_t size)
 }
 
 
-bool xmrig::FileLogWriter::writeLine(const char *data, size_t size)
+bool xmlcore::FileLogWriter::writeLine(const char *data, size_t size)
 {
     uv_buf_t buf[2] = {
         uv_buf_init(new char[size], size),

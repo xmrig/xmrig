@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WORKERJOB_H
-#define XMRIG_WORKERJOB_H
+#ifndef xmlcore_WORKERJOB_H
+#define xmlcore_WORKERJOB_H
 
 
 #include <cstring>
@@ -33,7 +33,7 @@
 #include "crypto/common/Nonce.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template<size_t N>
@@ -117,14 +117,14 @@ private:
 
 
 template<>
-inline uint32_t *xmrig::WorkerJob<1>::nonce(size_t)
+inline uint32_t *xmlcore::WorkerJob<1>::nonce(size_t)
 {
     return reinterpret_cast<uint32_t*>(blob() + nonceOffset());
 }
 
 
 template<>
-inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
+inline bool xmlcore::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 {
     m_rounds[index()]++;
 
@@ -147,7 +147,7 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
 
 
 template<>
-inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
+inline void xmlcore::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)
 {
     m_index           = job.index();
     m_jobs[index()]   = job;
@@ -161,7 +161,7 @@ inline void xmrig::WorkerJob<1>::save(const Job &job, uint32_t reserveCount, Non
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_WORKERJOB_H */
+#endif /* xmlcore_WORKERJOB_H */

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,23 +45,23 @@
 #include "crypto/rx/RxDataset.h"
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_ARGON2
+#ifdef xmlcore_ALGO_ARGON2
 #   include "crypto/argon2/Impl.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/Benchmark.h"
 #   include "backend/common/benchmark/BenchState.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 extern template class Threads<CpuThreads>;
@@ -158,7 +158,7 @@ public:
 
         status.start(threads, algo.l3());
 
-#       ifdef XMRIG_FEATURE_BENCHMARK
+#       ifdef xmlcore_FEATURE_BENCHMARK
         workers.start(threads, benchmark);
 #       else
         workers.start(threads);
@@ -178,7 +178,7 @@ public:
     {
         HugePagesInfo pages;
 
-    #   ifdef XMRIG_ALGO_RANDOMX
+    #   ifdef xmlcore_ALGO_RANDOMX
         if (algo.family() == Algorithm::RANDOM_X) {
             pages += Rx::hugePages();
         }
@@ -212,24 +212,24 @@ public:
     String profileName;
     Workers<CpuLaunchData> workers;
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     std::shared_ptr<Benchmark> benchmark;
 #   endif
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-const char *xmrig::backend_tag(uint32_t backend)
+const char *xmlcore::backend_tag(uint32_t backend)
 {
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     if (backend == Nonce::OPENCL) {
         return ocl_tag();
     }
 #   endif
 
-#   ifdef XMRIG_FEATURE_CUDA
+#   ifdef xmlcore_FEATURE_CUDA
     if (backend == Nonce::CUDA) {
         return cuda_tag();
     }
@@ -239,65 +239,65 @@ const char *xmrig::backend_tag(uint32_t backend)
 }
 
 
-const char *xmrig::cpu_tag()
+const char *xmlcore::cpu_tag()
 {
     return Tags::cpu();
 }
 
 
-xmrig::CpuBackend::CpuBackend(Controller *controller) :
+xmlcore::CpuBackend::CpuBackend(Controller *controller) :
     d_ptr(new CpuBackendPrivate(controller))
 {
     d_ptr->workers.setBackend(this);
 }
 
 
-xmrig::CpuBackend::~CpuBackend()
+xmlcore::CpuBackend::~CpuBackend()
 {
     delete d_ptr;
 }
 
 
-bool xmrig::CpuBackend::isEnabled() const
+bool xmlcore::CpuBackend::isEnabled() const
 {
     return d_ptr->controller->config()->cpu().isEnabled();
 }
 
 
-bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
+bool xmlcore::CpuBackend::isEnabled(const Algorithm &algorithm) const
 {
     return !d_ptr->controller->config()->cpu().threads().get(algorithm).isEmpty();
 }
 
 
-bool xmrig::CpuBackend::tick(uint64_t ticks)
+bool xmlcore::CpuBackend::tick(uint64_t ticks)
 {
     return d_ptr->workers.tick(ticks);
 }
 
 
-const xmrig::Hashrate *xmrig::CpuBackend::hashrate() const
+const xmlcore::Hashrate *xmlcore::CpuBackend::hashrate() const
 {
     return d_ptr->workers.hashrate();
 }
 
 
-const xmrig::String &xmrig::CpuBackend::profileName() const
+const xmlcore::String &xmlcore::CpuBackend::profileName() const
 {
     return d_ptr->profileName;
 }
 
 
-const xmrig::String &xmrig::CpuBackend::type() const
+const xmlcore::String &xmlcore::CpuBackend::type() const
 {
     return kType;
 }
 
 
-void xmrig::CpuBackend::prepare(const Job &nextJob)
+void xmlcore::CpuBackend::prepare(const Job &nextJob)
 {
-#   ifdef XMRIG_ALGO_ARGON2
-    const xmrig::Algorithm::Family f = nextJob.algorithm().family();
+#   ifdef xmlcore_ALGO_ARGON2
+    const xmlcore::Algorithm::Family f = nextJob.algorithm().family();
     if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
         if (argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
             LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
@@ -311,7 +311,7 @@ void xmrig::CpuBackend::prepare(const Job &nextJob)
 }
 
 
-void xmrig::CpuBackend::printHashrate(bool details)
+void xmlcore::CpuBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
         return;
@@ -334,7 +334,7 @@ void xmrig::CpuBackend::printHashrate(bool details)
          i++;
     }
 
-#   ifdef XMRIG_FEATURE_OPENCL
+#   ifdef xmlcore_FEATURE_OPENCL
     Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
                Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
@@ -344,12 +344,12 @@ void xmrig::CpuBackend::printHashrate(bool details)
 }
 
 
-void xmrig::CpuBackend::printHealth()
+void xmlcore::CpuBackend::printHealth()
 {
 }
 
 
-void xmrig::CpuBackend::setJob(const Job &job)
+void xmlcore::CpuBackend::setJob(const Job &job)
 {
     if (!isEnabled()) {
         return stop();
@@ -373,7 +373,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
     stop();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     if (BenchState::size()) {
         d_ptr->benchmark = std::make_shared<Benchmark>(threads.size(), this);
     }
@@ -384,7 +384,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
 }
 
 
-void xmrig::CpuBackend::start(IWorker *worker, bool ready)
+void xmlcore::CpuBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
@@ -400,7 +400,7 @@ void xmrig::CpuBackend::start(IWorker *worker, bool ready)
 }
 
 
-void xmrig::CpuBackend::stop()
+void xmlcore::CpuBackend::stop()
 {
     if (d_ptr->threads.empty()) {
         return;
@@ -415,8 +415,8 @@ void xmrig::CpuBackend::stop()
 }
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::CpuBackend::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator         = doc.GetAllocator();
@@ -431,18 +431,18 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("priority",   cpu.priority(), allocator);
     out.AddMember("msr",        Rx::isMSR(), allocator);
 
-#   ifdef XMRIG_FEATURE_ASM
+#   ifdef xmlcore_FEATURE_ASM
     const Assembly assembly = Cpu::assembly(cpu.assembly());
     out.AddMember("asm", assembly.toJSON(), allocator);
 #   else
     out.AddMember("asm", false, allocator);
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     out.AddMember("astrobwt-max-size", cpu.astrobwtMaxSize(), allocator);
 #   endif
 
@@ -475,7 +475,7 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::CpuBackend::handleRequest(IApiRequest &request)
+void xmlcore::CpuBackend::handleRequest(IApiRequest &request)
 {
     if (request.type() == IApiRequest::REQ_SUMMARY) {
         request.reply().AddMember("hugepages", d_ptr->hugePages(request.version(), request.doc()), request.doc().GetAllocator());
@@ -484,14 +484,14 @@ void xmrig::CpuBackend::handleRequest(IApiRequest &request)
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
-xmrig::Benchmark *xmrig::CpuBackend::benchmark() const
+#ifdef xmlcore_FEATURE_BENCHMARK
+xmlcore::Benchmark *xmlcore::CpuBackend::benchmark() const
 {
     return d_ptr->benchmark.get();
 }
 
 
-void xmrig::CpuBackend::printBenchProgress() const
+void xmlcore::CpuBackend::printBenchProgress() const
 {
     if (d_ptr->benchmark) {
         d_ptr->benchmark->printProgress();

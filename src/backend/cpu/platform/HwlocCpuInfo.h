@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_HWLOCCPUINFO_H
-#define XMRIG_HWLOCCPUINFO_H
+#ifndef xmlcore_HWLOCCPUINFO_H
+#define xmlcore_HWLOCCPUINFO_H
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
@@ -29,13 +29,13 @@ using hwloc_obj_t           = struct hwloc_obj *;
 using hwloc_topology_t      = struct hwloc_topology *;
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class HwlocCpuInfo : public BasicCpuInfo
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(HwlocCpuInfo)
+    xmlcore_DISABLE_COPY_MOVE(HwlocCpuInfo)
 
 
     enum Feature : uint32_t {
@@ -80,7 +80,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_HWLOCCPUINFO_H */
+#endif /* xmlcore_HWLOCCPUINFO_H */

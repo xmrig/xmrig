@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,13 +21,13 @@
 #include "base/kernel/interfaces/IDnsListener.h"
 
 
-namespace xmrig {
+namespace xmlcore {
     Storage<Dns> Dns::m_storage;
     static const DnsRecord defaultRecord;
 }
 
 
-xmrig::Dns::Dns(IDnsListener *listener) :
+xmlcore::Dns::Dns(IDnsListener *listener) :
     m_listener(listener)
 {
     m_key = m_storage.add(this);
@@ -41,7 +41,7 @@ xmrig::Dns::Dns(IDnsListener *listener) :
 }
 
 
-xmrig::Dns::~Dns()
+xmlcore::Dns::~Dns()
 {
     m_storage.release(m_key);
 
@@ -49,7 +49,7 @@ xmrig::Dns::~Dns()
 }
 
 
-bool xmrig::Dns::resolve(const String &host)
+bool xmlcore::Dns::resolve(const String &host)
 {
     if (m_host != host) {
         m_host = host;
@@ -63,13 +63,13 @@ bool xmrig::Dns::resolve(const String &host)
 }
 
 
-const char *xmrig::Dns::error() const
+const char *xmlcore::Dns::error() const
 {
     return uv_strerror(m_status);
 }
 
 
-const xmrig::DnsRecord &xmrig::Dns::get(DnsRecord::Type prefered) const
+const xmlcore::DnsRecord &xmlcore::Dns::get(DnsRecord::Type prefered) const
 {
     if (count() == 0) {
         return defaultRecord;
@@ -90,7 +90,7 @@ const xmrig::DnsRecord &xmrig::Dns::get(DnsRecord::Type prefered) const
 }
 
 
-size_t xmrig::Dns::count(DnsRecord::Type type) const
+size_t xmlcore::Dns::count(DnsRecord::Type type) const
 {
     if (type == DnsRecord::A) {
         return m_ipv4.size();
@@ -104,14 +104,14 @@ size_t xmrig::Dns::count(DnsRecord::Type type) const
 }
 
 
-void xmrig::Dns::clear()
+void xmlcore::Dns::clear()
 {
     m_ipv4.clear();
     m_ipv6.clear();
 }
 
 
-void xmrig::Dns::onResolved(int status, addrinfo *res)
+void xmlcore::Dns::onResolved(int status, addrinfo *res)
 {
     m_status = status;
 
@@ -142,7 +142,7 @@ void xmrig::Dns::onResolved(int status, addrinfo *res)
 }
 
 
-void xmrig::Dns::onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res)
+void xmlcore::Dns::onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res)
 {
     Dns *dns = m_storage.get(req->data);
     if (dns) {

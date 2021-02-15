@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,15 +16,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_STORAGE_H
-#define XMRIG_STORAGE_H
+#ifndef xmlcore_STORAGE_H
+#define xmlcore_STORAGE_H
 
 
 #include <cassert>
 #include <map>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 template <class TYPE>
@@ -79,7 +79,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_STORAGE_H */
+#endif /* xmlcore_STORAGE_H */

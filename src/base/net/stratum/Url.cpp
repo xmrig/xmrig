@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,13 +38,13 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 static const char kStratumTcp[]            = "stratum+tcp://";
 static const char kStratumSsl[]            = "stratum+ssl://";
 static const char kSOCKS5[]                = "socks5://";
 
-#ifdef XMRIG_FEATURE_HTTP
+#ifdef xmlcore_FEATURE_HTTP
 static const char kDaemonHttp[]            = "daemon+http://";
 static const char kDaemonHttps[]           = "daemon+https://";
 #endif
@@ -52,13 +52,13 @@ static const char kDaemonHttps[]           = "daemon+https://";
 }
 
 
-xmrig::Url::Url(const char *url)
+xmlcore::Url::Url(const char *url)
 {
     parse(url);
 }
 
 
-xmrig::Url::Url(const char *host, uint16_t port, bool tls, Scheme scheme) :
+xmlcore::Url::Url(const char *host, uint16_t port, bool tls, Scheme scheme) :
     m_tls(tls),
     m_scheme(scheme),
     m_host(host),
@@ -74,13 +74,13 @@ xmrig::Url::Url(const char *host, uint16_t port, bool tls, Scheme scheme) :
 }
 
 
-bool xmrig::Url::isEqual(const Url &other) const
+bool xmlcore::Url::isEqual(const Url &other) const
 {
     return (m_tls == other.m_tls && m_scheme == other.m_scheme && m_host == other.m_host && m_url == other.m_url && m_port == other.m_port);
 }
 
 
-bool xmrig::Url::parse(const char *url)
+bool xmlcore::Url::parse(const char *url)
 {
     if (url == nullptr) {
         return false;
@@ -102,7 +102,7 @@ bool xmrig::Url::parse(const char *url)
             m_scheme = SOCKS5;
             m_tls    = false;
         }
-#       ifdef XMRIG_FEATURE_HTTP
+#       ifdef xmlcore_FEATURE_HTTP
         else if (strncasecmp(url, kDaemonHttps, sizeof(kDaemonHttps) - 1) == 0) {
             m_scheme = DAEMON;
             m_tls    = true;
@@ -145,7 +145,7 @@ bool xmrig::Url::parse(const char *url)
 }
 
 
-bool xmrig::Url::parseIPv6(const char *addr)
+bool xmlcore::Url::parseIPv6(const char *addr)
 {
     const char *end = strchr(addr, ']');
     if (!end) {

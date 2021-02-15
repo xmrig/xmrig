@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "base/tools/Handle.h"
 
 
-xmrig::Console::Console(IConsoleListener *listener)
+xmlcore::Console::Console(IConsoleListener *listener)
     : m_listener(listener)
 {
     if (!isSupported()) {
@@ -42,7 +42,7 @@ xmrig::Console::Console(IConsoleListener *listener)
 }
 
 
-xmrig::Console::~Console()
+xmlcore::Console::~Console()
 {
     uv_tty_reset_mode();
 
@@ -50,14 +50,14 @@ xmrig::Console::~Console()
 }
 
 
-bool xmrig::Console::isSupported() const
+bool xmlcore::Console::isSupported() const
 {
     const uv_handle_type type = uv_guess_handle(0);
     return type == UV_TTY || type == UV_NAMED_PIPE;
 }
 
 
-void xmrig::Console::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
+void xmlcore::Console::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
 {
     auto console = static_cast<Console*>(handle->data);
     buf->len  = 1;
@@ -65,7 +65,7 @@ void xmrig::Console::onAllocBuffer(uv_handle_t *handle, size_t, uv_buf_t *buf)
 }
 
 
-void xmrig::Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void xmlcore::Console::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     if (nread < 0) {
         return uv_close(reinterpret_cast<uv_handle_t*>(stream), nullptr);

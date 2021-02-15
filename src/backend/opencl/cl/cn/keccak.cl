@@ -1,5 +1,5 @@
-#ifndef XMRIG_KECCAK_CL
-#define XMRIG_KECCAK_CL
+#ifndef xmlcore_KECCAK_CL
+#define xmlcore_KECCAK_CL
 
 
 static const __constant ulong keccakf_rndc[24] =

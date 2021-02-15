@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 // https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
@@ -104,16 +104,16 @@ static DH *get_dh2048()
     return dh;
 }
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::TlsContext::~TlsContext()
+xmlcore::TlsContext::~TlsContext()
 {
     SSL_CTX_free(m_ctx);
 }
 
 
-xmrig::TlsContext *xmrig::TlsContext::create(const TlsConfig &config)
+xmlcore::TlsContext *xmlcore::TlsContext::create(const TlsConfig &config)
 {
     if (!config.isEnabled()) {
         return nullptr;
@@ -130,7 +130,7 @@ xmrig::TlsContext *xmrig::TlsContext::create(const TlsConfig &config)
 }
 
 
-bool xmrig::TlsContext::load(const TlsConfig &config)
+bool xmlcore::TlsContext::load(const TlsConfig &config)
 {
     m_ctx = SSL_CTX_new(SSLv23_server_method());
     if (m_ctx == nullptr) {
@@ -166,7 +166,7 @@ bool xmrig::TlsContext::load(const TlsConfig &config)
 }
 
 
-bool xmrig::TlsContext::setCiphers(const char *ciphers)
+bool xmlcore::TlsContext::setCiphers(const char *ciphers)
 {
     if (ciphers == nullptr || SSL_CTX_set_cipher_list(m_ctx, ciphers) == 1) {
         return true;
@@ -178,7 +178,7 @@ bool xmrig::TlsContext::setCiphers(const char *ciphers)
 }
 
 
-bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
+bool xmlcore::TlsContext::setCipherSuites(const char *ciphersuites)
 {
     if (ciphersuites == nullptr) {
         return true;
@@ -196,7 +196,7 @@ bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
 }
 
 
-bool xmrig::TlsContext::setDH(const char *dhparam)
+bool xmlcore::TlsContext::setDH(const char *dhparam)
 {
     DH *dh = nullptr;
 
@@ -237,7 +237,7 @@ bool xmrig::TlsContext::setDH(const char *dhparam)
 }
 
 
-void xmrig::TlsContext::setProtocols(uint32_t protocols)
+void xmlcore::TlsContext::setProtocols(uint32_t protocols)
 {
     if (protocols == 0) {
         return;

@@ -382,7 +382,7 @@ void SelectSoftAESImpl(size_t threadsCount)
   double fast_speed = 0.0;
   for (size_t run = 0; run < 3; ++run) {
     for (size_t i = 0; i < impl.size(); ++i) {
-      const uint64_t t1 = xmrig::Chrono::highResolutionMSecs();
+      const uint64_t t1 = xmlcore::Chrono::highResolutionMSecs();
       std::vector<uint32_t> count(threadsCount, 0);
       std::vector<std::thread> threads;
       for (size_t t = 0; t < threadsCount; ++t) {
@@ -393,7 +393,7 @@ void SelectSoftAESImpl(size_t threadsCount)
           do {
           (*impl[i])(scratchpad.data(), scratchpad.size(), hash, state);
           ++count[t];
-          } while (xmrig::Chrono::highResolutionMSecs() - t1 < test_length_ms);
+          } while (xmlcore::Chrono::highResolutionMSecs() - t1 < test_length_ms);
         });
       }
       uint32_t total = 0;
@@ -401,7 +401,7 @@ void SelectSoftAESImpl(size_t threadsCount)
         threads[t].join();
         total += count[t];
       }
-      const uint64_t t2 = xmrig::Chrono::highResolutionMSecs();
+      const uint64_t t2 = xmlcore::Chrono::highResolutionMSecs();
       const double speed = total * 1e3 / (t2 - t1);
       if (speed > fast_speed) {
         fast_idx = i;

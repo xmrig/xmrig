@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include <uv.h>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static http_parser_settings http_settings;
@@ -40,7 +40,7 @@ static uint64_t SEQUENCE = 0;
 class HttpWriteBaton : public Baton<uv_write_t>
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(HttpWriteBaton)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(HttpWriteBaton)
 
     inline HttpWriteBaton(std::string &&body, HttpContext *ctx) :
         m_ctx(ctx),
@@ -68,10 +68,10 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListener> &listener) :
+xmlcore::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListener> &listener) :
     HttpData(SEQUENCE++),
     m_timestamp(Chrono::steadyMSecs()),
     m_listener(listener)
@@ -94,14 +94,14 @@ xmrig::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListen
 }
 
 
-xmrig::HttpContext::~HttpContext()
+xmlcore::HttpContext::~HttpContext()
 {
     delete m_tcp;
     delete m_parser;
 }
 
 
-void xmrig::HttpContext::write(std::string &&data, bool close)
+void xmlcore::HttpContext::write(std::string &&data, bool close)
 {
     if (uv_is_writable(stream()) != 1) {
         return;
@@ -112,13 +112,13 @@ void xmrig::HttpContext::write(std::string &&data, bool close)
 }
 
 
-bool xmrig::HttpContext::isRequest() const
+bool xmlcore::HttpContext::isRequest() const
 {
     return m_parser->type == HTTP_REQUEST;
 }
 
 
-size_t xmrig::HttpContext::parse(const char *data, size_t size)
+size_t xmlcore::HttpContext::parse(const char *data, size_t size)
 {
     if (size == 0) {
         return size;
@@ -128,7 +128,7 @@ size_t xmrig::HttpContext::parse(const char *data, size_t size)
 }
 
 
-std::string xmrig::HttpContext::ip() const
+std::string xmlcore::HttpContext::ip() const
 {
     char ip[46]           = {};
     sockaddr_storage addr = {};
@@ -146,13 +146,13 @@ std::string xmrig::HttpContext::ip() const
 }
 
 
-uint64_t xmrig::HttpContext::elapsed() const
+uint64_t xmlcore::HttpContext::elapsed() const
 {
     return Chrono::steadyMSecs() - m_timestamp;
 }
 
 
-void xmrig::HttpContext::close(int status)
+void xmlcore::HttpContext::close(int status)
 {
     if (!get(id())) {
         return;
@@ -173,7 +173,7 @@ void xmrig::HttpContext::close(int status)
 }
 
 
-xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
+xmlcore::HttpContext *xmlcore::HttpContext::get(uint64_t id)
 {
     if (storage.count(id) == 0) {
         return nullptr;
@@ -183,7 +183,7 @@ xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 }
 
 
-void xmrig::HttpContext::closeAll()
+void xmlcore::HttpContext::closeAll()
 {
     for (auto &kv : storage) {
         if (!uv_is_closing(kv.second->handle())) {
@@ -193,7 +193,7 @@ void xmrig::HttpContext::closeAll()
 }
 
 
-int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_t length)
+int xmlcore::HttpContext::onHeaderField(http_parser *parser, const char *at, size_t length)
 {
     auto ctx = static_cast<HttpContext*>(parser->data);
 
@@ -212,7 +212,7 @@ int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_
 }
 
 
-int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_t length)
+int xmlcore::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_t length)
 {
     auto ctx = static_cast<HttpContext*>(parser->data);
 
@@ -227,7 +227,7 @@ int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_
 }
 
 
-void xmrig::HttpContext::attach(http_parser_settings *settings)
+void xmlcore::HttpContext::attach(http_parser_settings *settings)
 {
     settings->on_message_begin  = nullptr;
     settings->on_status         = nullptr;
@@ -280,7 +280,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
 }
 
 
-void xmrig::HttpContext::setHeader()
+void xmlcore::HttpContext::setHeader()
 {
     std::transform(m_lastHeaderField.begin(), m_lastHeaderField.end(), m_lastHeaderField.begin(), ::tolower);
     headers.insert({ m_lastHeaderField, m_lastHeaderValue });

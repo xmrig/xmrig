@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CPUINFO_H
-#define XMRIG_CPUINFO_H
+#ifndef xmlcore_CPUINFO_H
+#define xmlcore_CPUINFO_H
 
 
 #include "backend/cpu/CpuThreads.h"
@@ -26,13 +26,13 @@
 #include "crypto/common/Assembly.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ICpuInfo
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ICpuInfo)
+    xmlcore_DISABLE_COPY_MOVE(ICpuInfo)
 
     enum Vendor : uint32_t {
         VENDOR_UNKNOWN,
@@ -114,7 +114,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif // XMRIG_CPUINFO_H
+#endif // xmlcore_CPUINFO_H

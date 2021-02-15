@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,37 +38,37 @@
 #include "net/JobResults.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 #   include "crypto/randomx/randomx.h"
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
+#ifdef xmlcore_ALGO_ASTROBWT
 #   include "crypto/astrobwt/AstroBWT.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/BenchState.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 static constexpr uint32_t kReserveCount = 32768;
 
 
-#ifdef XMRIG_ALGO_CN_HEAVY
+#ifdef xmlcore_ALGO_CN_HEAVY
 static std::mutex cn_heavyZen3MemoryMutex;
 VirtualMemory* cn_heavyZen3Memory = nullptr;
 #endif
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
+xmlcore::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
@@ -81,7 +81,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_threads(data.threads),
     m_ctx()
 {
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
     if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
@@ -99,15 +99,15 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 
 
 template<size_t N>
-xmrig::CpuWorker<N>::~CpuWorker()
+xmlcore::CpuWorker<N>::~CpuWorker()
 {
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     RxVm::destroy(m_vm);
 #   endif
 
     CnCtx::release(m_ctx, N);
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     if (m_memory != cn_heavyZen3Memory)
 #   endif
     {
@@ -116,9 +116,9 @@ xmrig::CpuWorker<N>::~CpuWorker()
 }
 
 
-#ifdef XMRIG_ALGO_RANDOMX
+#ifdef xmlcore_ALGO_RANDOMX
 template<size_t N>
-void xmrig::CpuWorker<N>::allocateRandomX_VM()
+void xmlcore::CpuWorker<N>::allocateRandomX_VM()
 {
     RxDataset *dataset = Rx::dataset(m_job.currentJob(), node());
 
@@ -142,9 +142,9 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
 
 
 template<size_t N>
-bool xmrig::CpuWorker<N>::selfTest()
+bool xmlcore::CpuWorker<N>::selfTest()
 {
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (m_algorithm.family() == Algorithm::RANDOM_X) {
         return N == 1;
     }
@@ -169,14 +169,14 @@ bool xmrig::CpuWorker<N>::selfTest()
         return rc;
     }
 
-#   ifdef XMRIG_ALGO_CN_LITE
+#   ifdef xmlcore_ALGO_CN_LITE
     if (m_algorithm.family() == Algorithm::CN_LITE) {
         return verify(Algorithm::CN_LITE_0,    test_output_v0_lite) &&
                verify(Algorithm::CN_LITE_1,    test_output_v1_lite);
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     if (m_algorithm.family() == Algorithm::CN_HEAVY) {
         return verify(Algorithm::CN_HEAVY_0,    test_output_v0_heavy)  &&
                verify(Algorithm::CN_HEAVY_XHV,  test_output_xhv_heavy) &&
@@ -184,14 +184,14 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_PICO
+#   ifdef xmlcore_ALGO_CN_PICO
     if (m_algorithm.family() == Algorithm::CN_PICO) {
         return verify(Algorithm::CN_PICO_0, test_output_pico_trtl) &&
                verify(Algorithm::CN_PICO_TLO, test_output_pico_tlo);
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
                verify(Algorithm::AR2_CHUKWA_V2, argon2_chukwa_v2_test_out) &&
@@ -199,7 +199,7 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (m_algorithm.family() == Algorithm::ASTROBWT) {
         return verify(Algorithm::ASTROBWT_DERO, astrobwt_dero_test_out);
     }
@@ -210,7 +210,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::hashrateData(uint64_t &hashCount, uint64_t &, uint64_t &rawHashes) const
+void xmlcore::CpuWorker<N>::hashrateData(uint64_t &hashCount, uint64_t &, uint64_t &rawHashes) const
 {
     hashCount = m_count;
     rawHashes = m_count;
@@ -218,7 +218,7 @@ void xmrig::CpuWorker<N>::hashrateData(uint64_t &hashCount, uint64_t &, uint64_t
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::start()
+void xmlcore::CpuWorker<N>::start()
 {
     while (Nonce::sequence(Nonce::CPU) > 0) {
         if (Nonce::isPaused()) {
@@ -234,7 +234,7 @@ void xmrig::CpuWorker<N>::start()
             consumeJob();
         }
 
-#       ifdef XMRIG_ALGO_RANDOMX
+#       ifdef xmlcore_ALGO_RANDOMX
         bool first = true;
         alignas(16) uint64_t tempHash[8] = {};
 #       endif
@@ -251,7 +251,7 @@ void xmrig::CpuWorker<N>::start()
                 current_job_nonces[i] = *m_job.nonce(i);
             }
 
-#           ifdef XMRIG_FEATURE_BENCHMARK
+#           ifdef xmlcore_FEATURE_BENCHMARK
             if (m_benchSize) {
                 if (current_job_nonces[0] >= m_benchSize) {
                     return BenchState::done();
@@ -266,7 +266,7 @@ void xmrig::CpuWorker<N>::start()
 
             bool valid = true;
 
-#           ifdef XMRIG_ALGO_RANDOMX
+#           ifdef xmlcore_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
@@ -282,7 +282,7 @@ void xmrig::CpuWorker<N>::start()
             else
 #           endif
             {
-#               ifdef XMRIG_ALGO_ASTROBWT
+#               ifdef xmlcore_ALGO_ASTROBWT
                 if (job.algorithm().family() == Algorithm::ASTROBWT) {
                     if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2))
                         valid = false;
@@ -302,7 +302,7 @@ void xmrig::CpuWorker<N>::start()
                 for (size_t i = 0; i < N; ++i) {
                     const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
 
-#                   ifdef XMRIG_FEATURE_BENCHMARK
+#                   ifdef xmlcore_FEATURE_BENCHMARK
                     if (m_benchSize) {
                         if (current_job_nonces[i] < m_benchSize) {
                             BenchState::add(value);
@@ -328,9 +328,9 @@ void xmrig::CpuWorker<N>::start()
 
 
 template<size_t N>
-bool xmrig::CpuWorker<N>::nextRound()
+bool xmlcore::CpuWorker<N>::nextRound()
 {
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     const uint32_t count = m_benchSize ? 1U : kReserveCount;
 #   else
     constexpr uint32_t count = kReserveCount;
@@ -347,7 +347,7 @@ bool xmrig::CpuWorker<N>::nextRound()
 
 
 template<size_t N>
-bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool xmlcore::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = fn(algorithm);
     if (!func) {
@@ -360,7 +360,7 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
 
 
 template<size_t N>
-bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
+bool xmlcore::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
     cn_hash_fun func = fn(algorithm);
     if (!func) {
@@ -386,7 +386,7 @@ bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *ref
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 template<>
 bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
@@ -407,16 +407,16 @@ bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceV
     return true;
 }
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::allocateCnCtx()
+void xmlcore::CpuWorker<N>::allocateCnCtx()
 {
     if (m_ctx[0] == nullptr) {
         int shift = 0;
 
-#       ifdef XMRIG_ALGO_CN_HEAVY
+#       ifdef xmlcore_ALGO_CN_HEAVY
         // cn-heavy optimization for Zen3 CPUs
         if (m_memory == cn_heavyZen3Memory) {
             shift = (id() / 8) * m_algorithm.l3() * 8 + (id() % 8) * 64;
@@ -429,7 +429,7 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
 
 
 template<size_t N>
-void xmrig::CpuWorker<N>::consumeJob()
+void xmlcore::CpuWorker<N>::consumeJob()
 {
     if (Nonce::sequence(Nonce::CPU) == 0) {
         return;
@@ -437,7 +437,7 @@ void xmrig::CpuWorker<N>::consumeJob()
 
     auto job = m_miner->job();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     m_benchSize          = job.benchSize();
     const uint32_t count = m_benchSize ? 1U : kReserveCount;
 #   else
@@ -446,7 +446,7 @@ void xmrig::CpuWorker<N>::consumeJob()
 
     m_job.add(job, count, Nonce::CPU);
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
         allocateRandomX_VM();
     }
@@ -458,7 +458,7 @@ void xmrig::CpuWorker<N>::consumeJob()
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 template class CpuWorker<1>;
 template class CpuWorker<2>;
@@ -466,5 +466,5 @@ template class CpuWorker<3>;
 template class CpuWorker<4>;
 template class CpuWorker<5>;
 
-} // namespace xmrig
+} // namespace xmlcore
 

@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_NETWORKSTATE_H
-#define XMRIG_NETWORKSTATE_H
+#ifndef xmlcore_NETWORKSTATE_H
+#define xmlcore_NETWORKSTATE_H
 
 
 #include "base/crypto/Algorithm.h"
@@ -36,7 +36,7 @@
 #include <vector>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class NetworkState : public StrategyProxy
@@ -48,7 +48,7 @@ public:
     inline uint64_t accepted() const            { return m_accepted; }
     inline uint64_t rejected() const            { return m_rejected; }
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     rapidjson::Value getConnection(rapidjson::Document &doc, int version) const;
     rapidjson::Value getResults(rapidjson::Document &doc, int version) const;
 #   endif
@@ -89,7 +89,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_NETWORKSTATE_H */
+#endif /* xmlcore_NETWORKSTATE_H */

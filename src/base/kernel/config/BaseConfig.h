@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_BASECONFIG_H
-#define XMRIG_BASECONFIG_H
+#ifndef xmlcore_BASECONFIG_H
+#define xmlcore_BASECONFIG_H
 
 
 #include "base/kernel/config/Title.h"
@@ -32,12 +32,12 @@
 #include "base/net/stratum/Pools.h"
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include "base/net/tls/TlsConfig.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IJsonReader;
@@ -63,7 +63,7 @@ public:
     static const char *kVerbose;
     static const char *kWatch;
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     static const char *kTls;
 #   endif
 
@@ -83,7 +83,7 @@ public:
     inline const Title &title() const                       { return m_title; }
     inline uint32_t printTime() const                       { return m_printTime; }
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     inline const TlsConfig &tls() const                     { return m_tls; }
 #   endif
 
@@ -114,7 +114,7 @@ protected:
     Title m_title;
     uint32_t m_printTime = 60;
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     TlsConfig m_tls;
 #   endif
 
@@ -123,7 +123,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_BASECONFIG_H */
+#endif /* xmlcore_BASECONFIG_H */

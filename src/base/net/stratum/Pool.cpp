@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,19 +38,19 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "base/net/stratum/AutoClient.h"
 #   include "base/net/stratum/EthStratumClient.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_HTTP
+#ifdef xmlcore_FEATURE_HTTP
 #   include "base/net/stratum/DaemonClient.h"
 #   include "base/net/stratum/SelfSelectClient.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "base/net/stratum/benchmark/BenchClient.h"
 #   include "base/net/stratum/benchmark/BenchConfig.h"
 #endif
@@ -61,7 +61,7 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 const String Pool::kDefaultPassword       = "x";
@@ -89,7 +89,7 @@ const char *Pool::kNicehashHost           = "nicehash.com";
 }
 
 
-xmrig::Pool::Pool(const char *url) :
+xmlcore::Pool::Pool(const char *url) :
     m_flags(1 << FLAG_ENABLED),
     m_pollInterval(kDefaultPollInterval),
     m_url(url)
@@ -97,7 +97,7 @@ xmrig::Pool::Pool(const char *url) :
 }
 
 
-xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode) :
+xmlcore::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode) :
     m_keepAlive(keepAlive),
     m_mode(mode),
     m_flags(1 << FLAG_ENABLED),
@@ -111,7 +111,7 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
 }
 
 
-xmrig::Pool::Pool(const rapidjson::Value &object) :
+xmlcore::Pool::Pool(const rapidjson::Value &object) :
     m_flags(1 << FLAG_ENABLED),
     m_pollInterval(kDefaultPollInterval),
     m_url(Json::getString(object, kUrl))
@@ -145,8 +145,8 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
 }
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
-xmrig::Pool::Pool(const std::shared_ptr<BenchConfig> &benchmark) :
+#ifdef xmlcore_FEATURE_BENCHMARK
+xmlcore::Pool::Pool(const std::shared_ptr<BenchConfig> &benchmark) :
     m_mode(MODE_BENCHMARK),
     m_flags(1 << FLAG_ENABLED),
     m_url(BenchConfig::kBenchmark),
@@ -155,7 +155,7 @@ xmrig::Pool::Pool(const std::shared_ptr<BenchConfig> &benchmark) :
 }
 
 
-xmrig::BenchConfig *xmrig::Pool::benchmark() const
+xmlcore::BenchConfig *xmlcore::Pool::benchmark() const
 {
     assert(m_mode == MODE_BENCHMARK && m_benchmark);
 
@@ -163,28 +163,28 @@ xmrig::BenchConfig *xmrig::Pool::benchmark() const
 }
 
 
-uint32_t xmrig::Pool::benchSize() const
+uint32_t xmlcore::Pool::benchSize() const
 {
     return benchmark()->size();
 }
 #endif
 
 
-bool xmrig::Pool::isEnabled() const
+bool xmlcore::Pool::isEnabled() const
 {
-#   ifndef XMRIG_FEATURE_TLS
+#   ifndef xmlcore_FEATURE_TLS
     if (isTLS()) {
         return false;
     }
 #   endif
 
-#   ifndef XMRIG_FEATURE_HTTP
+#   ifndef xmlcore_FEATURE_HTTP
     if (m_mode == MODE_DAEMON) {
         return false;
     }
 #   endif
 
-#   ifndef XMRIG_FEATURE_HTTP
+#   ifndef xmlcore_FEATURE_HTTP
     if (m_mode == MODE_SELF_SELECT) {
         return false;
     }
@@ -198,7 +198,7 @@ bool xmrig::Pool::isEnabled() const
 }
 
 
-bool xmrig::Pool::isEqual(const Pool &other) const
+bool xmlcore::Pool::isEqual(const Pool &other) const
 {
     return (m_flags           == other.m_flags
             && m_keepAlive    == other.m_keepAlive
@@ -217,12 +217,12 @@ bool xmrig::Pool::isEqual(const Pool &other) const
 }
 
 
-xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) const
+xmlcore::IClient *xmlcore::Pool::createClient(int id, IClientListener *listener) const
 {
     IClient *client = nullptr;
 
     if (m_mode == MODE_POOL) {
-#       ifdef XMRIG_ALGO_KAWPOW
+#       ifdef xmlcore_ALGO_KAWPOW
         if ((m_algorithm.family() == Algorithm::KAWPOW) || (m_coin == Coin::RAVEN)) {
             client = new EthStratumClient(id, Platform::userAgent(), listener);
         }
@@ -232,7 +232,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
             client = new Client(id, Platform::userAgent(), listener);
         }
     }
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     else if (m_mode == MODE_DAEMON) {
         client = new DaemonClient(id, listener);
     }
@@ -240,12 +240,12 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
         client = new SelfSelectClient(id, Platform::userAgent(), listener);
     }
 #   endif
-#   ifdef XMRIG_ALGO_KAWPOW
+#   ifdef xmlcore_ALGO_KAWPOW
     else if (m_mode == MODE_AUTO_ETH) {
         client = new AutoClient(id, Platform::userAgent(), listener);
     }
 #   endif
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     else if (m_mode == MODE_BENCHMARK) {
         client = new BenchClient(m_benchmark, listener);
     }
@@ -261,7 +261,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
 }
 
 
-rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::Pool::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
 
@@ -278,7 +278,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
         obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
 
-#       ifndef XMRIG_PROXY_PROJECT
+#       ifndef xmlcore_PROXY_PROJECT
         obj.AddMember(StringRef(kNicehash), isNicehash(), allocator);
 #       endif
 
@@ -307,7 +307,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 }
 
 
-std::string xmrig::Pool::printableName() const
+std::string xmlcore::Pool::printableName() const
 {
     std::string out(CSI "1;" + std::to_string(isEnabled() ? (isTLS() ? 32 : 36) : 31) + "m" + url().data() + CLEAR);
 
@@ -327,7 +327,7 @@ std::string xmrig::Pool::printableName() const
 
 
 #ifdef APP_DEBUG
-void xmrig::Pool::print() const
+void xmlcore::Pool::print() const
 {
     LOG_NOTICE("url:       %s", url().data());
     LOG_DEBUG ("host:      %s", host().data());
@@ -342,7 +342,7 @@ void xmrig::Pool::print() const
 #endif
 
 
-void xmrig::Pool::setKeepAlive(const rapidjson::Value &value)
+void xmlcore::Pool::setKeepAlive(const rapidjson::Value &value)
 {
     if (value.IsInt()) {
         setKeepAlive(value.GetInt());

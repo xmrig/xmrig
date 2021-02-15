@@ -6,7 +6,7 @@ Algorithm can be defined in 3 ways:
 2. Per pool `coin` option, currently only usable values for this option is `monero` and `arqma`.
 3. Per pool `algo` option.
 
-Option `coin` useful for pools without [algorithm negotiation](https://xmrig.com/docs/extensions/algorithm-negotiation) support or daemon to allow automatically switch algorithm in next hard fork. If you use xmrig-proxy don't need specify algorithm on miner side.
+Option `coin` useful for pools without [algorithm negotiation](https://xmlcore.com/docs/extensions/algorithm-negotiation) support or daemon to allow automatically switch algorithm in next hard fork. If you use xmlcore-proxy don't need specify algorithm on miner side.
 
 ## Algorithm names
 
@@ -42,7 +42,7 @@ Option `coin` useful for pools without [algorithm negotiation](https://xmrig.com
 | `cn/0` | 2 MB | 0.5.0+ | CryptoNight (original). |  |
 
 ## Migration to v3
-Since version 3 mining [algorithm](#algorithm-names) should specified for each pool separately (`algo` option), earlier versions was use one global `algo` option and per pool `variant` option (this option was removed in v3). If your pool support [mining algorithm negotiation](https://github.com/xmrig/xmrig-proxy/issues/168) you may not specify this option at all.
+Since version 3 mining [algorithm](#algorithm-names) should specified for each pool separately (`algo` option), earlier versions was use one global `algo` option and per pool `variant` option (this option was removed in v3). If your pool support [mining algorithm negotiation](https://github.com/xmlcore/xmlcore-proxy/issues/168) you may not specify this option at all.
  
 #### Example
 ```json

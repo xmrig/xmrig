@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 #include <algorithm>
 
 
-xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread, size_t threads) :
+xmlcore::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread, size_t threads) :
     algorithm(algorithm),
     assembly(config.assembly()),
     astrobwtAVX2(config.astrobwtAVX2()),
@@ -49,7 +49,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
 }
 
 
-bool xmrig::CpuLaunchData::isEqual(const CpuLaunchData &other) const
+bool xmlcore::CpuLaunchData::isEqual(const CpuLaunchData &other) const
 {
     return (algorithm.l3()      == other.algorithm.l3()
             && assembly         == other.assembly
@@ -62,7 +62,7 @@ bool xmrig::CpuLaunchData::isEqual(const CpuLaunchData &other) const
 }
 
 
-xmrig::CnHash::AlgoVariant xmrig::CpuLaunchData::av() const
+xmlcore::CnHash::AlgoVariant xmlcore::CpuLaunchData::av() const
 {
     if (intensity <= 2) {
         return static_cast<CnHash::AlgoVariant>(!hwAES ? (intensity + 2) : intensity);
@@ -72,7 +72,7 @@ xmrig::CnHash::AlgoVariant xmrig::CpuLaunchData::av() const
 }
 
 
-const char *xmrig::CpuLaunchData::tag()
+const char *xmlcore::CpuLaunchData::tag()
 {
     return cpu_tag();
 }

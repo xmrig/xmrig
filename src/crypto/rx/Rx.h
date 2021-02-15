@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_H
-#define XMRIG_RX_H
+#ifndef xmlcore_RX_H
+#define xmlcore_RX_H
 
 
 #include <cstdint>
@@ -29,7 +29,7 @@
 #include "crypto/common/HugePagesInfo.h"
 
 
-namespace xmrig
+namespace xmlcore
 {
 
 
@@ -52,7 +52,7 @@ public:
     template<typename T> static bool init(const T &seed, const RxConfig &config, const CpuConfig &cpu);
     template<typename T> static bool isReady(const T &seed);
 
-#   ifdef XMRIG_FEATURE_MSR
+#   ifdef xmlcore_FEATURE_MSR
     static bool isMSR();
 #   else
     static constexpr bool isMSR()   { return false; }
@@ -60,7 +60,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_RX_H */
+#endif /* xmlcore_RX_H */

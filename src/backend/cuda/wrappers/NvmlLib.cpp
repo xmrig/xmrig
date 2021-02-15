@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@
 
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static uv_lib_t nvmlLib;
@@ -78,10 +78,10 @@ char NvmlLib::m_nvmlVersion[80]     = { 0 };
 String NvmlLib::m_loader;
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::NvmlLib::init(const char *fileName)
+bool xmlcore::NvmlLib::init(const char *fileName)
 {
     if (!m_initialized) {
         m_loader      = fileName;
@@ -93,13 +93,13 @@ bool xmrig::NvmlLib::init(const char *fileName)
 }
 
 
-const char *xmrig::NvmlLib::lastError() noexcept
+const char *xmlcore::NvmlLib::lastError() noexcept
 {
     return uv_dlerror(&nvmlLib);
 }
 
 
-void xmrig::NvmlLib::close()
+void xmlcore::NvmlLib::close()
 {
     if (m_ready) {
         pNvmlShutdown();
@@ -109,7 +109,7 @@ void xmrig::NvmlLib::close()
 }
 
 
-bool xmrig::NvmlLib::assign(std::vector<CudaDevice> &devices)
+bool xmlcore::NvmlLib::assign(std::vector<CudaDevice> &devices)
 {
     uint32_t count = 0;
     if (pNvmlDeviceGetCount(&count) != NVML_SUCCESS) {
@@ -138,7 +138,7 @@ bool xmrig::NvmlLib::assign(std::vector<CudaDevice> &devices)
 }
 
 
-NvmlHealth xmrig::NvmlLib::health(nvmlDevice_t device)
+NvmlHealth xmlcore::NvmlLib::health(nvmlDevice_t device)
 {
     if (!device) {
         return {};
@@ -175,7 +175,7 @@ NvmlHealth xmrig::NvmlLib::health(nvmlDevice_t device)
 }
 
 
-bool xmrig::NvmlLib::dlopen()
+bool xmlcore::NvmlLib::dlopen()
 {
     if (!m_loader.isNull()) {
         return uv_dlopen(m_loader, &nvmlLib) == 0;
@@ -196,7 +196,7 @@ bool xmrig::NvmlLib::dlopen()
 }
 
 
-bool xmrig::NvmlLib::load()
+bool xmlcore::NvmlLib::load()
 {
     try {
         DLSYM(NvmlDeviceGetClockInfo);

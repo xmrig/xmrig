@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,14 +16,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PROXYURL_H
-#define XMRIG_PROXYURL_H
+#ifndef xmlcore_PROXYURL_H
+#define xmlcore_PROXYURL_H
 
 
 #include "base/net/stratum/Url.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ProxyUrl : public Url
@@ -40,7 +40,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_PROXYURL_H */
+#endif /* xmlcore_PROXYURL_H */

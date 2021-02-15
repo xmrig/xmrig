@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TLSGEN_H
-#define XMRIG_TLSGEN_H
+#ifndef xmlcore_TLSGEN_H
+#define xmlcore_TLSGEN_H
 
 
 #include "base/tools/Object.h"
@@ -28,13 +28,13 @@ using EVP_PKEY  = struct evp_pkey_st;
 using X509      = struct x509_st;
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class TlsGen
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(TlsGen)
+    xmlcore_DISABLE_COPY_MOVE(TlsGen)
 
     TlsGen() : m_cert("cert.pem"), m_certKey("cert_key.pem") {}
     ~TlsGen();
@@ -55,7 +55,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_TLSGEN_H */
+#endif /* xmlcore_TLSGEN_H */

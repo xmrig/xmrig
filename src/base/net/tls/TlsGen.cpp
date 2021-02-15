@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include <fstream>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kLocalhost = "localhost";
@@ -63,17 +63,17 @@ bool isFileExist(const char *fileName)
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::TlsGen::~TlsGen()
+xmlcore::TlsGen::~TlsGen()
 {
     EVP_PKEY_free(m_pkey);
     X509_free(m_x509);
 }
 
 
-void xmrig::TlsGen::generate(const char *commonName)
+void xmlcore::TlsGen::generate(const char *commonName)
 {
     if (isFileExist(m_cert) && isFileExist(m_certKey)) {
         return;
@@ -94,7 +94,7 @@ void xmrig::TlsGen::generate(const char *commonName)
 }
 
 
-bool xmrig::TlsGen::generate_x509(const char *commonName)
+bool xmlcore::TlsGen::generate_x509(const char *commonName)
 {
     m_x509 = X509_new();
     if (!m_x509) {
@@ -118,7 +118,7 @@ bool xmrig::TlsGen::generate_x509(const char *commonName)
 }
 
 
-bool xmrig::TlsGen::write()
+bool xmlcore::TlsGen::write()
 {
     auto pkey_file = fopen(m_certKey, "wb");
     if (!pkey_file) {

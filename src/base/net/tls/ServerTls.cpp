@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,13 +26,13 @@
 #include <openssl/ssl.h>
 
 
-xmrig::ServerTls::ServerTls(SSL_CTX *ctx) :
+xmlcore::ServerTls::ServerTls(SSL_CTX *ctx) :
     m_ctx(ctx)
 {
 }
 
 
-xmrig::ServerTls::~ServerTls()
+xmlcore::ServerTls::~ServerTls()
 {
     if (m_ssl) {
         SSL_free(m_ssl);
@@ -40,7 +40,7 @@ xmrig::ServerTls::~ServerTls()
 }
 
 
-bool xmrig::ServerTls::isHTTP(const char *data, size_t size)
+bool xmlcore::ServerTls::isHTTP(const char *data, size_t size)
 {
     assert(size > 0);
 
@@ -50,7 +50,7 @@ bool xmrig::ServerTls::isHTTP(const char *data, size_t size)
 }
 
 
-bool xmrig::ServerTls::isTLS(const char *data, size_t size)
+bool xmlcore::ServerTls::isTLS(const char *data, size_t size)
 {
     assert(size > 0);
 
@@ -60,7 +60,7 @@ bool xmrig::ServerTls::isTLS(const char *data, size_t size)
 }
 
 
-bool xmrig::ServerTls::send(const char *data, size_t size)
+bool xmlcore::ServerTls::send(const char *data, size_t size)
 {
     SSL_write(m_ssl, data, size);
 
@@ -68,7 +68,7 @@ bool xmrig::ServerTls::send(const char *data, size_t size)
 }
 
 
-void xmrig::ServerTls::read(const char *data, size_t size)
+void xmlcore::ServerTls::read(const char *data, size_t size)
 {
     if (!m_ssl) {
         m_ssl = SSL_new(m_ctx);
@@ -105,7 +105,7 @@ void xmrig::ServerTls::read(const char *data, size_t size)
 }
 
 
-void xmrig::ServerTls::read()
+void xmlcore::ServerTls::read()
 {
     static char buf[16384]{};
 

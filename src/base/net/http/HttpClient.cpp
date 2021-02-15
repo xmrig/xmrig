@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,16 +30,16 @@
 #include <sstream>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kCRLF = "\r\n";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
+xmlcore::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener) :
     HttpContext(HTTP_RESPONSE, listener),
     m_tag(tag),
     m_req(std::move(req))
@@ -56,13 +56,13 @@ xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::we
 }
 
 
-bool xmrig::HttpClient::connect()
+bool xmlcore::HttpClient::connect()
 {
     return m_dns->resolve(m_req.host);
 }
 
 
-void xmrig::HttpClient::onResolved(const Dns &dns, int status)
+void xmlcore::HttpClient::onResolved(const Dns &dns, int status)
 {
     this->status = status;
 
@@ -85,13 +85,13 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
 }
 
 
-void xmrig::HttpClient::onTimer(const Timer *)
+void xmlcore::HttpClient::onTimer(const Timer *)
 {
     close(UV_ETIMEDOUT);
 }
 
 
-void xmrig::HttpClient::handshake()
+void xmlcore::HttpClient::handshake()
 {
     headers.insert({ "Host",       host() });
     headers.insert({ "Connection", "close" });
@@ -117,7 +117,7 @@ void xmrig::HttpClient::handshake()
 }
 
 
-void xmrig::HttpClient::read(const char *data, size_t size)
+void xmlcore::HttpClient::read(const char *data, size_t size)
 {
     if (parse(data, size) < size) {
         close(UV_EPROTO);
@@ -125,7 +125,7 @@ void xmrig::HttpClient::read(const char *data, size_t size)
 }
 
 
-void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
+void xmlcore::HttpClient::onConnect(uv_connect_t *req, int status)
 {
     auto client = static_cast<HttpClient *>(req->data);
     delete req;

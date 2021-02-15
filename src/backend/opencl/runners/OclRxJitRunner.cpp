@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,12 +35,12 @@
 #include "backend/opencl/wrappers/OclError.h"
 
 
-xmrig::OclRxJitRunner::OclRxJitRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
+xmlcore::OclRxJitRunner::OclRxJitRunner(size_t index, const OclLaunchData &data) : OclRxBaseRunner(index, data)
 {
 }
 
 
-xmrig::OclRxJitRunner::~OclRxJitRunner()
+xmlcore::OclRxJitRunner::~OclRxJitRunner()
 {
     delete m_randomx_jit;
     delete m_randomx_run;
@@ -52,13 +52,13 @@ xmrig::OclRxJitRunner::~OclRxJitRunner()
 }
 
 
-size_t xmrig::OclRxJitRunner::bufferSize() const
+size_t xmlcore::OclRxJitRunner::bufferSize() const
 {
     return OclRxBaseRunner::bufferSize() + align(256 * m_intensity) + align(5120 * m_intensity) + align(10048 * m_intensity);
 }
 
 
-void xmrig::OclRxJitRunner::build()
+void xmlcore::OclRxJitRunner::build()
 {
     OclRxBaseRunner::build();
 
@@ -78,7 +78,7 @@ void xmrig::OclRxJitRunner::build()
 }
 
 
-void xmrig::OclRxJitRunner::execute(uint32_t iteration)
+void xmlcore::OclRxJitRunner::execute(uint32_t iteration)
 {
     m_randomx_jit->enqueue(m_queue, m_intensity, iteration);
 
@@ -88,7 +88,7 @@ void xmrig::OclRxJitRunner::execute(uint32_t iteration)
 }
 
 
-void xmrig::OclRxJitRunner::init()
+void xmlcore::OclRxJitRunner::init()
 {
     OclRxBaseRunner::init();
 
@@ -98,7 +98,7 @@ void xmrig::OclRxJitRunner::init()
 }
 
 
-bool xmrig::OclRxJitRunner::loadAsmProgram()
+bool xmlcore::OclRxJitRunner::loadAsmProgram()
 {
     // Adrenaline drivers on Windows and amdgpu-pro drivers on Linux use ELF header's flags (offset 0x30) to store internal device ID
     // Read it from compiled OpenCL code and substitute this ID into pre-compiled binary to make sure the driver accepts it

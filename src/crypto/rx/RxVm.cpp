@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,12 +25,12 @@
 #include "crypto/rx/RxVm.h"
 
 
-#if defined(XMRIG_FEATURE_SSE4_1)
+#if defined(xmlcore_FEATURE_SSE4_1)
 extern "C" uint32_t rx_blake2b_use_sse41;
 #endif
 
 
-randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node)
+randomx_vm *xmlcore::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node)
 {
     int flags = 0;
 
@@ -51,7 +51,7 @@ randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
         flags |= RANDOMX_FLAG_AMD;
     }
 
-#   if defined(XMRIG_FEATURE_SSE4_1)
+#   if defined(xmlcore_FEATURE_SSE4_1)
     rx_blake2b_use_sse41 = Cpu::info()->has(ICpuInfo::FLAG_SSE41) ? 1 : 0;
 #   endif
 
@@ -59,7 +59,7 @@ randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
 }
 
 
-void xmrig::RxVm::destroy(randomx_vm* vm)
+void xmlcore::RxVm::destroy(randomx_vm* vm)
 {
     if (vm) {
         randomx_destroy_vm(vm);

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_AUTOCLIENT_H
-#define XMRIG_AUTOCLIENT_H
+#ifndef xmlcore_AUTOCLIENT_H
+#define xmlcore_AUTOCLIENT_H
 
 
 #include "base/net/stratum/EthStratumClient.h"
@@ -26,13 +26,13 @@
 #include <utility>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class AutoClient : public EthStratumClient
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(AutoClient)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(AutoClient)
 
     AutoClient(int id, const char *agent, IClientListener *listener);
     ~AutoClient() override = default;
@@ -55,7 +55,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_AUTOCLIENT_H */
+#endif /* xmlcore_AUTOCLIENT_H */

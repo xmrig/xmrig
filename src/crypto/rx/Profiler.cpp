@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,7 +29,7 @@
 #include <algorithm>
 
 
-#ifdef XMRIG_FEATURE_PROFILING
+#ifdef xmlcore_FEATURE_PROFILING
 
 
 ProfileScopeData* ProfileScopeData::s_data[MAX_DATA_COUNT] = {};
@@ -93,11 +93,11 @@ NOINLINE void ProfileScopeData::Init()
 
         if (t2 - t1 > 1000000000) {
             s_tscSpeed = (count2 - count1) * 1e9 / (t2 - t1);
-            LOG_INFO("%s TSC speed = %.3f GHz", xmrig::Tags::profiler(), s_tscSpeed / 1e9);
+            LOG_INFO("%s TSC speed = %.3f GHz", xmlcore::Tags::profiler(), s_tscSpeed / 1e9);
             return;
         }
     }
 }
 
 
-#endif /* XMRIG_FEATURE_PROFILING */
+#endif /* xmlcore_FEATURE_PROFILING */

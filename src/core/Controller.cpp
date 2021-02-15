@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include "net/Network.h"
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/Api.h"
 #   include "hw/api/HwApi.h"
 #endif
@@ -34,19 +34,19 @@
 #include <cassert>
 
 
-xmrig::Controller::Controller(Process *process) :
+xmlcore::Controller::Controller(Process *process) :
     Base(process)
 {
 }
 
 
-xmrig::Controller::~Controller()
+xmlcore::Controller::~Controller()
 {
     VirtualMemory::destroy();
 }
 
 
-int xmrig::Controller::init()
+int xmlcore::Controller::init()
 {
     Base::init();
 
@@ -54,7 +54,7 @@ int xmrig::Controller::init()
 
     m_network = std::make_shared<Network>(this);
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     m_hwApi = std::make_shared<HwApi>();
     api()->addListener(m_hwApi.get());
 #   endif
@@ -63,7 +63,7 @@ int xmrig::Controller::init()
 }
 
 
-void xmrig::Controller::start()
+void xmlcore::Controller::start()
 {
     Base::start();
 
@@ -73,7 +73,7 @@ void xmrig::Controller::start()
 }
 
 
-void xmrig::Controller::stop()
+void xmlcore::Controller::stop()
 {
     Base::stop();
 
@@ -84,7 +84,7 @@ void xmrig::Controller::stop()
 }
 
 
-xmrig::Miner *xmrig::Controller::miner() const
+xmlcore::Miner *xmlcore::Controller::miner() const
 {
     assert(m_miner);
 
@@ -92,7 +92,7 @@ xmrig::Miner *xmrig::Controller::miner() const
 }
 
 
-xmrig::Network *xmrig::Controller::network() const
+xmlcore::Network *xmlcore::Controller::network() const
 {
     assert(m_network);
 
@@ -100,7 +100,7 @@ xmrig::Network *xmrig::Controller::network() const
 }
 
 
-void xmrig::Controller::execCommand(char command)
+void xmlcore::Controller::execCommand(char command)
 {
     miner()->execCommand(command);
     network()->execCommand(command);

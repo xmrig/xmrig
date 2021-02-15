@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
 #include <utility>
 
 
-#ifdef XMRIG_FEATURE_TLS
+#ifdef xmlcore_FEATURE_TLS
 #   include <openssl/ssl.h>
 #   include <openssl/err.h>
 #   include "base/net/stratum/Tls.h"
@@ -60,11 +60,11 @@
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 Storage<Client> Client::m_storage;
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
 #ifdef APP_DEBUG
@@ -79,7 +79,7 @@ static const char *states[] = {
 #endif
 
 
-xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
+xmlcore::Client::Client(int id, const char *agent, IClientListener *listener) :
     BaseClient(id, listener),
     m_agent(agent),
     m_sendBuf(1024)
@@ -90,14 +90,14 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
 }
 
 
-xmrig::Client::~Client()
+xmlcore::Client::~Client()
 {
     delete m_dns;
     delete m_socket;
 }
 
 
-bool xmrig::Client::disconnect()
+bool xmlcore::Client::disconnect()
 {
     m_keepAlive = 0;
     m_expire    = 0;
@@ -107,9 +107,9 @@ bool xmrig::Client::disconnect()
 }
 
 
-bool xmrig::Client::isTLS() const
+bool xmlcore::Client::isTLS() const
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     return m_pool.isTLS() && m_tls;
 #   else
     return false;
@@ -117,9 +117,9 @@ bool xmrig::Client::isTLS() const
 }
 
 
-const char *xmrig::Client::tlsFingerprint() const
+const char *xmlcore::Client::tlsFingerprint() const
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (isTLS() && m_pool.fingerprint() == nullptr) {
         return m_tls->fingerprint();
     }
@@ -129,9 +129,9 @@ const char *xmrig::Client::tlsFingerprint() const
 }
 
 
-const char *xmrig::Client::tlsVersion() const
+const char *xmlcore::Client::tlsVersion() const
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (isTLS()) {
         return m_tls->version();
     }
@@ -141,7 +141,7 @@ const char *xmrig::Client::tlsVersion() const
 }
 
 
-int64_t xmrig::Client::send(const rapidjson::Value &obj, Callback callback)
+int64_t xmlcore::Client::send(const rapidjson::Value &obj, Callback callback)
 {
     assert(obj["id"] == sequence());
 
@@ -151,7 +151,7 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj, Callback callback)
 }
 
 
-int64_t xmrig::Client::send(const rapidjson::Value &obj)
+int64_t xmlcore::Client::send(const rapidjson::Value &obj)
 {
     using namespace rapidjson;
 
@@ -179,9 +179,9 @@ int64_t xmrig::Client::send(const rapidjson::Value &obj)
 }
 
 
-int64_t xmrig::Client::submit(const JobResult &result)
+int64_t xmlcore::Client::submit(const JobResult &result)
 {
-#   ifndef XMRIG_PROXY_PROJECT
+#   ifndef xmlcore_PROXY_PROJECT
     if (result.clientId != m_rpcId || m_rpcId.isNull() || m_state != ConnectedState) {
         return -1;
     }
@@ -195,7 +195,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
 
     using namespace rapidjson;
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     const char *nonce = result.nonce;
     const char *data  = result.result;
 #   else
@@ -221,7 +221,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
 
     JsonRequest::create(doc, m_sequence, "submit", params);
 
-#   ifdef XMRIG_PROXY_PROJECT
+#   ifdef xmlcore_PROXY_PROJECT
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), result.id, 0);
 #   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
@@ -231,7 +231,7 @@ int64_t xmrig::Client::submit(const JobResult &result)
 }
 
 
-void xmrig::Client::connect()
+void xmlcore::Client::connect()
 {
     if (m_pool.proxy().isValid()) {
         m_socks5 = new Socks5(this);
@@ -240,7 +240,7 @@ void xmrig::Client::connect()
         return;
     }
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (m_pool.isTLS()) {
         m_tls = new Tls(this);
     }
@@ -250,14 +250,14 @@ void xmrig::Client::connect()
 }
 
 
-void xmrig::Client::connect(const Pool &pool)
+void xmlcore::Client::connect(const Pool &pool)
 {
     setPool(pool);
     connect();
 }
 
 
-void xmrig::Client::deleteLater()
+void xmlcore::Client::deleteLater()
 {
     if (!m_listener) {
         return;
@@ -271,7 +271,7 @@ void xmrig::Client::deleteLater()
 }
 
 
-void xmrig::Client::tick(uint64_t now)
+void xmlcore::Client::tick(uint64_t now)
 {
     if (m_state == ConnectedState) {
         if (m_expire && now > m_expire) {
@@ -295,7 +295,7 @@ void xmrig::Client::tick(uint64_t now)
 }
 
 
-void xmrig::Client::onResolved(const Dns &dns, int status)
+void xmlcore::Client::onResolved(const Dns &dns, int status)
 {
     assert(m_listener != nullptr);
     if (!m_listener) {
@@ -317,7 +317,7 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
 }
 
 
-bool xmrig::Client::close()
+bool xmlcore::Client::close()
 {
     if (m_state == ClosingState) {
         return m_socket != nullptr;
@@ -337,7 +337,7 @@ bool xmrig::Client::close()
 }
 
 
-bool xmrig::Client::isCriticalError(const char *message)
+bool xmlcore::Client::isCriticalError(const char *message)
 {
     if (!message) {
         return false;
@@ -363,7 +363,7 @@ bool xmrig::Client::isCriticalError(const char *message)
 }
 
 
-bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
+bool xmlcore::Client::parseJob(const rapidjson::Value &params, int *code)
 {
     if (!params.IsObject()) {
         *code = 2;
@@ -377,7 +377,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-#   ifdef XMRIG_FEATURE_HTTP
+#   ifdef xmlcore_FEATURE_HTTP
     if (m_pool.mode() == Pool::MODE_SELF_SELECT) {
         job.setExtraNonce(Json::getString(params, "extra_nonce"));
         job.setPoolWallet(Json::getString(params, "pool_wallet"));
@@ -429,7 +429,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return true;
     }
 
-    if (m_jobs == 0) { // https://github.com/xmrig/xmrig/issues/459
+    if (m_jobs == 0) { // https://github.com/xmlcore/xmlcore/issues/459
         return false;
     }
 
@@ -442,9 +442,9 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 }
 
 
-bool xmrig::Client::send(BIO *bio)
+bool xmlcore::Client::send(BIO *bio)
 {
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     uv_buf_t buf;
     buf.len = BIO_get_mem_data(bio, &buf.base);
 
@@ -471,7 +471,7 @@ bool xmrig::Client::send(BIO *bio)
 }
 
 
-bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo) const
+bool xmlcore::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo) const
 {
     if (!algorithm.isValid()) {
         if (!isQuiet()) {
@@ -497,7 +497,7 @@ bool xmrig::Client::verifyAlgorithm(const Algorithm &algorithm, const char *algo
 }
 
 
-bool xmrig::Client::write(const uv_buf_t &buf)
+bool xmlcore::Client::write(const uv_buf_t &buf)
 {
     const int rc = uv_try_write(stream(), &buf, 1);
     if (static_cast<size_t>(rc) == buf.len) {
@@ -514,7 +514,7 @@ bool xmrig::Client::write(const uv_buf_t &buf)
 }
 
 
-int xmrig::Client::resolve(const String &host)
+int xmlcore::Client::resolve(const String &host)
 {
     setState(HostLookupState);
 
@@ -536,11 +536,11 @@ int xmrig::Client::resolve(const String &host)
 }
 
 
-int64_t xmrig::Client::send(size_t size)
+int64_t xmlcore::Client::send(size_t size)
 {
     LOG_DEBUG("[%s] send (%d bytes): \"%.*s\"", url(), size, static_cast<int>(size) - 1, m_sendBuf.data());
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (isTLS()) {
         if (!m_tls->send(m_sendBuf.data(), size)) {
             return -1;
@@ -566,7 +566,7 @@ int64_t xmrig::Client::send(size_t size)
 }
 
 
-void xmrig::Client::connect(sockaddr *addr)
+void xmlcore::Client::connect(sockaddr *addr)
 {
     setState(ConnectingState);
 
@@ -589,13 +589,13 @@ void xmrig::Client::connect(sockaddr *addr)
 }
 
 
-void xmrig::Client::handshake()
+void xmlcore::Client::handshake()
 {
     if (m_socks5) {
         return m_socks5->handshake();
     }
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (isTLS()) {
         m_expire = Chrono::steadyMSecs() + kResponseTimeout;
 
@@ -609,7 +609,7 @@ void xmrig::Client::handshake()
 }
 
 
-bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
+bool xmlcore::Client::parseLogin(const rapidjson::Value &result, int *code)
 {
     setRpcId(Json::getString(result, "id"));
     if (rpcId().isNull()) {
@@ -626,7 +626,7 @@ bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
 }
 
 
-void xmrig::Client::login()
+void xmlcore::Client::login()
 {
     using namespace rapidjson;
     m_results.clear();
@@ -651,14 +651,14 @@ void xmrig::Client::login()
 }
 
 
-void xmrig::Client::onClose()
+void xmlcore::Client::onClose()
 {
     delete m_socket;
 
     m_socket = nullptr;
     setState(UnconnectedState);
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (m_tls) {
         delete m_tls;
         m_tls = nullptr;
@@ -669,7 +669,7 @@ void xmrig::Client::onClose()
 }
 
 
-void xmrig::Client::parse(char *line, size_t len)
+void xmlcore::Client::parse(char *line, size_t len)
 {
     startTimeout();
 
@@ -721,7 +721,7 @@ void xmrig::Client::parse(char *line, size_t len)
 }
 
 
-void xmrig::Client::parseExtensions(const rapidjson::Value &result)
+void xmlcore::Client::parseExtensions(const rapidjson::Value &result)
 {
     m_extensions.reset();
 
@@ -754,7 +754,7 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
             setExtension(EXT_KEEPALIVE, true);
             startTimeout();
         }
-#       ifdef XMRIG_FEATURE_TLS
+#       ifdef xmlcore_FEATURE_TLS
         else if (strcmp(name, "tls") == 0) {
             setExtension(EXT_TLS, true);
         }
@@ -763,7 +763,7 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
 }
 
 
-void xmrig::Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
+void xmlcore::Client::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &)
 {
     if (strcmp(method, "job") == 0) {
         int code = -1;
@@ -779,7 +779,7 @@ void xmrig::Client::parseNotification(const char *method, const rapidjson::Value
 }
 
 
-void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
+void xmlcore::Client::parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     if (handleResponse(id, result, error)) {
         return;
@@ -828,7 +828,7 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 }
 
 
-void xmrig::Client::ping()
+void xmlcore::Client::ping()
 {
     send(snprintf(m_sendBuf.data(), m_sendBuf.size(), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId.data()));
 
@@ -836,7 +836,7 @@ void xmrig::Client::ping()
 }
 
 
-void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
+void xmlcore::Client::read(ssize_t nread, const uv_buf_t *buf)
 {
     const auto size = static_cast<size_t>(nread);
     if (nread < 0) {
@@ -860,7 +860,7 @@ void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
             delete m_socks5;
             m_socks5 = nullptr;
 
-#           ifdef XMRIG_FEATURE_TLS
+#           ifdef xmlcore_FEATURE_TLS
             if (m_pool.isTLS() && !m_tls) {
                 m_tls = new Tls(this);
             }
@@ -872,7 +872,7 @@ void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
         return;
     }
 
-#   ifdef XMRIG_FEATURE_TLS
+#   ifdef xmlcore_FEATURE_TLS
     if (isTLS()) {
         LOG_DEBUG("[%s] TLS received (%d bytes)", url(), static_cast<int>(nread));
 
@@ -886,7 +886,7 @@ void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
 }
 
 
-void xmrig::Client::reconnect()
+void xmlcore::Client::reconnect()
 {
     if (!m_listener) {
         m_storage.remove(m_key);
@@ -907,7 +907,7 @@ void xmrig::Client::reconnect()
 }
 
 
-void xmrig::Client::setState(SocketState state)
+void xmlcore::Client::setState(SocketState state)
 {
     LOG_DEBUG("[%s] state: \"%s\" -> \"%s\"", url(), states[m_state], states[state]);
 
@@ -936,7 +936,7 @@ void xmrig::Client::setState(SocketState state)
 }
 
 
-void xmrig::Client::startTimeout()
+void xmlcore::Client::startTimeout()
 {
     m_expire = 0;
 
@@ -948,7 +948,7 @@ void xmrig::Client::startTimeout()
 }
 
 
-void xmrig::Client::onClose(uv_handle_t *handle)
+void xmlcore::Client::onClose(uv_handle_t *handle)
 {
     auto client = getClient(handle->data);
     if (!client) {
@@ -959,7 +959,7 @@ void xmrig::Client::onClose(uv_handle_t *handle)
 }
 
 
-void xmrig::Client::onConnect(uv_connect_t *req, int status)
+void xmlcore::Client::onConnect(uv_connect_t *req, int status)
 {
     auto client = getClient(req->data);
     delete req;
@@ -997,7 +997,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
 }
 
 
-void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
+void xmlcore::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf)
 {
     auto client = getClient(stream->data);
     if (client) {

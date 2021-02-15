@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 #include "base/net/http/HttpData.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kError  = "error";
@@ -61,10 +61,10 @@ static inline const char *rpcError(int code) {
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
+xmlcore::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
     ApiRequest(SOURCE_HTTP, restricted),
     m_req(req),
     m_res(req.id()),
@@ -106,7 +106,7 @@ xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
 }
 
 
-bool xmrig::HttpApiRequest::accept()
+bool xmlcore::HttpApiRequest::accept()
 {
     using namespace rapidjson;
 
@@ -131,7 +131,7 @@ bool xmrig::HttpApiRequest::accept()
 }
 
 
-const rapidjson::Value &xmrig::HttpApiRequest::json() const
+const rapidjson::Value &xmlcore::HttpApiRequest::json() const
 {
     if (type() == REQ_JSON_RPC) {
         return Json::getValue(m_body, "params");
@@ -141,13 +141,13 @@ const rapidjson::Value &xmrig::HttpApiRequest::json() const
 }
 
 
-xmrig::IApiRequest::Method xmrig::HttpApiRequest::method() const
+xmlcore::IApiRequest::Method xmlcore::HttpApiRequest::method() const
 {
     return static_cast<IApiRequest::Method>(m_req.method);
 }
 
 
-void xmrig::HttpApiRequest::done(int status)
+void xmlcore::HttpApiRequest::done(int status)
 {
     ApiRequest::done(status);
 
@@ -175,7 +175,7 @@ void xmrig::HttpApiRequest::done(int status)
 }
 
 
-void xmrig::HttpApiRequest::setRpcError(int code, const char *message)
+void xmlcore::HttpApiRequest::setRpcError(int code, const char *message)
 {
     using namespace rapidjson;
     auto &allocator = doc().GetAllocator();
@@ -188,13 +188,13 @@ void xmrig::HttpApiRequest::setRpcError(int code, const char *message)
 }
 
 
-void xmrig::HttpApiRequest::setRpcResult(rapidjson::Value &result)
+void xmlcore::HttpApiRequest::setRpcResult(rapidjson::Value &result)
 {
     rpcDone(kResult, result);
 }
 
 
-void xmrig::HttpApiRequest::rpcDone(const char *key, rapidjson::Value &value)
+void xmlcore::HttpApiRequest::rpcDone(const char *key, rapidjson::Value &value)
 {
     ApiRequest::done(0);
 

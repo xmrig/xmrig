@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,7 @@
 #include "base/net/dns/DnsRecord.h"
 
 
-xmrig::DnsRecord::DnsRecord(const addrinfo *addr) :
+xmlcore::DnsRecord::DnsRecord(const addrinfo *addr) :
     m_type(addr->ai_family == AF_INET6 ? AAAA : A)
 {
     char *buf = nullptr;
@@ -41,7 +41,7 @@ xmrig::DnsRecord::DnsRecord(const addrinfo *addr) :
 }
 
 
-sockaddr *xmrig::DnsRecord::addr(uint16_t port) const
+sockaddr *xmlcore::DnsRecord::addr(uint16_t port) const
 {
     if (m_type == A) {
         auto addr = new sockaddr_in();

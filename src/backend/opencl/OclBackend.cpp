@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,25 +49,25 @@
 #include "core/Controller.h"
 
 
-#ifdef XMRIG_ALGO_KAWPOW
+#ifdef xmlcore_ALGO_KAWPOW
 #   include "crypto/kawpow/KPCache.h"
 #   include "crypto/kawpow/KPHash.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_ADL
+#ifdef xmlcore_FEATURE_ADL
 #include "backend/opencl/wrappers/AdlLib.h"
 
-namespace xmrig { static const char *kAdlLabel = "ADL"; }
+namespace xmlcore { static const char *kAdlLabel = "ADL"; }
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 extern template class Threads<OclThreads>;
@@ -165,7 +165,7 @@ public:
             return printDisabled(kLabel, RED_S " (no devices)");
         }
 
-#       ifdef XMRIG_FEATURE_ADL
+#       ifdef xmlcore_FEATURE_ADL
         if (cl.isAdlEnabled()) {
             if (AdlLib::init()) {
                 Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") "press " MAGENTA_BG(WHITE_BOLD_S "e") " for health report",
@@ -211,7 +211,7 @@ public:
 
         size_t algo_l3 = algo.l3();
 
-#       ifdef XMRIG_ALGO_ASTROBWT
+#       ifdef xmlcore_ALGO_ASTROBWT
         if (algo.family() == Algorithm::ASTROBWT) {
             algo_l3 = OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
         }
@@ -221,7 +221,7 @@ public:
         for (const auto &data : threads) {
             size_t mem_used = data.thread.intensity() * algo_l3 / oneMiB;
 
-#           ifdef XMRIG_ALGO_KAWPOW
+#           ifdef xmlcore_ALGO_KAWPOW
             if (algo.family() == Algorithm::KAWPOW) {
                 const uint32_t epoch = job.height() / KPHash::EPOCH_LENGTH;
                 mem_used = (KPCache::cache_size(epoch) + KPCache::dag_size(epoch)) / oneMiB;
@@ -249,7 +249,7 @@ public:
     }
 
 
-#   ifdef XMRIG_FEATURE_ADL
+#   ifdef xmlcore_FEATURE_ADL
     void printHealth()
     {
         if (!AdlLib::isReady()) {
@@ -287,70 +287,70 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-const char *xmrig::ocl_tag()
+const char *xmlcore::ocl_tag()
 {
     return Tags::opencl();
 }
 
 
-xmrig::OclBackend::OclBackend(Controller *controller) :
+xmlcore::OclBackend::OclBackend(Controller *controller) :
     d_ptr(new OclBackendPrivate(controller))
 {
     d_ptr->workers.setBackend(this);
 }
 
 
-xmrig::OclBackend::~OclBackend()
+xmlcore::OclBackend::~OclBackend()
 {
     delete d_ptr;
 
     OclLib::close();
 
-#   ifdef XMRIG_FEATURE_ADL
+#   ifdef xmlcore_FEATURE_ADL
     AdlLib::close();
 #   endif
 }
 
 
-bool xmrig::OclBackend::isEnabled() const
+bool xmlcore::OclBackend::isEnabled() const
 {
     return d_ptr->controller->config()->cl().isEnabled() && OclLib::isInitialized() && d_ptr->platform.isValid() && !d_ptr->devices.empty();
 }
 
 
-bool xmrig::OclBackend::isEnabled(const Algorithm &algorithm) const
+bool xmlcore::OclBackend::isEnabled(const Algorithm &algorithm) const
 {
     return !d_ptr->controller->config()->cl().threads().get(algorithm).isEmpty();
 }
 
 
-const xmrig::Hashrate *xmrig::OclBackend::hashrate() const
+const xmlcore::Hashrate *xmlcore::OclBackend::hashrate() const
 {
     return d_ptr->workers.hashrate();
 }
 
 
-const xmrig::String &xmrig::OclBackend::profileName() const
+const xmlcore::String &xmlcore::OclBackend::profileName() const
 {
     return d_ptr->profileName;
 }
 
 
-const xmrig::String &xmrig::OclBackend::type() const
+const xmlcore::String &xmlcore::OclBackend::type() const
 {
     return kType;
 }
 
 
-void xmrig::OclBackend::execCommand(char)
+void xmlcore::OclBackend::execCommand(char)
 {
 }
 
 
-void xmrig::OclBackend::prepare(const Job &job)
+void xmlcore::OclBackend::prepare(const Job &job)
 {
     if (d_ptr) {
         d_ptr->workers.jobEarlyNotification(job);
@@ -358,7 +358,7 @@ void xmrig::OclBackend::prepare(const Job &job)
 }
 
 
-void xmrig::OclBackend::printHashrate(bool details)
+void xmlcore::OclBackend::printHashrate(bool details)
 {
     if (!details || !hashrate()) {
         return;
@@ -404,15 +404,15 @@ void xmrig::OclBackend::printHashrate(bool details)
 }
 
 
-void xmrig::OclBackend::printHealth()
+void xmlcore::OclBackend::printHealth()
 {
-#   ifdef XMRIG_FEATURE_ADL
+#   ifdef xmlcore_FEATURE_ADL
     d_ptr->printHealth();
 #   endif
 }
 
 
-void xmrig::OclBackend::setJob(const Job &job)
+void xmlcore::OclBackend::setJob(const Job &job)
 {
     const auto &cl = d_ptr->controller->config()->cl();
     if (cl.isEnabled()) {
@@ -450,7 +450,7 @@ void xmrig::OclBackend::setJob(const Job &job)
 }
 
 
-void xmrig::OclBackend::start(IWorker *worker, bool ready)
+void xmlcore::OclBackend::start(IWorker *worker, bool ready)
 {
     mutex.lock();
 
@@ -468,7 +468,7 @@ void xmrig::OclBackend::start(IWorker *worker, bool ready)
 }
 
 
-void xmrig::OclBackend::stop()
+void xmlcore::OclBackend::stop()
 {
     if (d_ptr->threads.empty()) {
         return;
@@ -485,14 +485,14 @@ void xmrig::OclBackend::stop()
 }
 
 
-bool xmrig::OclBackend::tick(uint64_t ticks)
+bool xmlcore::OclBackend::tick(uint64_t ticks)
 {
     return d_ptr->workers.tick(ticks);
 }
 
 
-#ifdef XMRIG_FEATURE_API
-rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
+#ifdef xmlcore_FEATURE_API
+rapidjson::Value xmlcore::OclBackend::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -530,7 +530,7 @@ rapidjson::Value xmrig::OclBackend::toJSON(rapidjson::Document &doc) const
 }
 
 
-void xmrig::OclBackend::handleRequest(IApiRequest &)
+void xmlcore::OclBackend::handleRequest(IApiRequest &)
 {
 }
 #endif

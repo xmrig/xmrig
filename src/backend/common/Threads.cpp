@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,28 +29,28 @@
 #include "crypto/cn/CnAlgo.h"
 
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 #   include "backend/opencl/OclThreads.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 #   include "backend/cuda/CudaThreads.h"
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kAsterisk = "*";
 static const char *kCn2      = "cn/2";
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
 template <class T>
-const T &xmrig::Threads<T>::get(const String &profileName) const
+const T &xmlcore::Threads<T>::get(const String &profileName) const
 {
     static T empty;
     if (profileName.isNull() || !has(profileName)) {
@@ -62,7 +62,7 @@ const T &xmrig::Threads<T>::get(const String &profileName) const
 
 
 template <class T>
-size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
+size_t xmlcore::Threads<T>::read(const rapidjson::Value &value)
 {
     using namespace rapidjson;
 
@@ -106,7 +106,7 @@ size_t xmrig::Threads<T>::read(const rapidjson::Value &value)
 
 
 template <class T>
-xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool strict) const
+xmlcore::String xmlcore::Threads<T>::profileName(const Algorithm &algorithm, bool strict) const
 {
     if (isDisabled(algorithm)) {
         return String();
@@ -145,7 +145,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
 
 
 template <class T>
-void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
+void xmlcore::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -164,16 +164,16 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
 }
 
 
-namespace xmrig {
+namespace xmlcore {
 
 template class Threads<CpuThreads>;
 
-#ifdef XMRIG_FEATURE_OPENCL
+#ifdef xmlcore_FEATURE_OPENCL
 template class Threads<OclThreads>;
 #endif
 
-#ifdef XMRIG_FEATURE_CUDA
+#ifdef xmlcore_FEATURE_CUDA
 template class Threads<CudaThreads>;
 #endif
 
-} // namespace xmrig
+} // namespace xmlcore

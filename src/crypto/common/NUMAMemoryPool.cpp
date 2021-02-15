@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -8,7 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2019 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include <algorithm>
 
 
-xmrig::NUMAMemoryPool::NUMAMemoryPool(size_t size, bool hugePages) :
+xmlcore::NUMAMemoryPool::NUMAMemoryPool(size_t size, bool hugePages) :
     m_hugePages(hugePages),
     m_nodeSize(std::max<size_t>(size / Cpu::info()->nodes(), 1)),
     m_size(size)
@@ -42,7 +42,7 @@ xmrig::NUMAMemoryPool::NUMAMemoryPool(size_t size, bool hugePages) :
 }
 
 
-xmrig::NUMAMemoryPool::~NUMAMemoryPool()
+xmlcore::NUMAMemoryPool::~NUMAMemoryPool()
 {
     for (auto kv : m_map) {
         delete kv.second;
@@ -50,7 +50,7 @@ xmrig::NUMAMemoryPool::~NUMAMemoryPool()
 }
 
 
-bool xmrig::NUMAMemoryPool::isHugePages(uint32_t node) const
+bool xmlcore::NUMAMemoryPool::isHugePages(uint32_t node) const
 {
     if (!m_size) {
         return false;
@@ -60,7 +60,7 @@ bool xmrig::NUMAMemoryPool::isHugePages(uint32_t node) const
 }
 
 
-uint8_t *xmrig::NUMAMemoryPool::get(size_t size, uint32_t node)
+uint8_t *xmlcore::NUMAMemoryPool::get(size_t size, uint32_t node)
 {
     if (!m_size) {
         return nullptr;
@@ -70,7 +70,7 @@ uint8_t *xmrig::NUMAMemoryPool::get(size_t size, uint32_t node)
 }
 
 
-void xmrig::NUMAMemoryPool::release(uint32_t node)
+void xmlcore::NUMAMemoryPool::release(uint32_t node)
 {
     const auto pool = get(node);
     if (pool) {
@@ -79,13 +79,13 @@ void xmrig::NUMAMemoryPool::release(uint32_t node)
 }
 
 
-xmrig::IMemoryPool *xmrig::NUMAMemoryPool::get(uint32_t node) const
+xmlcore::IMemoryPool *xmlcore::NUMAMemoryPool::get(uint32_t node) const
 {
     return m_map.count(node) ? m_map.at(node) : nullptr;
 }
 
 
-xmrig::IMemoryPool *xmrig::NUMAMemoryPool::getOrCreate(uint32_t node) const
+xmlcore::IMemoryPool *xmlcore::NUMAMemoryPool::getOrCreate(uint32_t node) const
 {
     auto pool = get(node);
     if (!pool) {

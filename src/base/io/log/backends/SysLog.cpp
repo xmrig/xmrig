@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,19 +25,19 @@
 #include "version.h"
 
 
-xmrig::SysLog::SysLog()
+xmlcore::SysLog::SysLog()
 {
     openlog(APP_ID, LOG_PID, LOG_USER);
 }
 
 
-xmrig::SysLog::~SysLog()
+xmlcore::SysLog::~SysLog()
 {
     closelog();
 }
 
 
-void xmrig::SysLog::print(uint64_t, int level, const char *line, size_t offset, size_t, bool colors)
+void xmlcore::SysLog::print(uint64_t, int level, const char *line, size_t offset, size_t, bool colors)
 {
     if (colors) {
         return;

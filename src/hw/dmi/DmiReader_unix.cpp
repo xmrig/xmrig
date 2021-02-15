@@ -1,8 +1,8 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
  * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
  * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore        <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 #define FLAG_NO_FILE_OFFSET     (1 << 0)
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 static const char *kMemDevice       = "/dev/mem";
@@ -49,7 +49,7 @@ static const char *kSysTableFile    = "/sys/firmware/dmi/tables/DMI";
 
 static inline void safe_memcpy(void *dest, const void *src, size_t n)
 {
-#   ifdef XMRIG_ARM
+#   ifdef xmlcore_ARM
     for (size_t i = 0; i < n; i++) {
         *((uint8_t *)dest + i) = *((const uint8_t *)src + i);
     }
@@ -322,10 +322,10 @@ static off_t address_from_efi()
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-bool xmrig::DmiReader::read()
+bool xmlcore::DmiReader::read()
 {
     size_t size  = 0x20;
     uint8_t *buf = read_file(0, &size, kSysEntryFile);

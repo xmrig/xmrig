@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CUDALAUNCHDATA_H
-#define XMRIG_CUDALAUNCHDATA_H
+#ifndef xmlcore_CUDALAUNCHDATA_H
+#define xmlcore_CUDALAUNCHDATA_H
 
 
 #include "backend/cuda/CudaThread.h"
@@ -25,7 +25,7 @@
 #include "crypto/common/Nonce.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class CudaDevice;
@@ -55,7 +55,7 @@ public:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_OCLLAUNCHDATA_H */
+#endif /* xmlcore_OCLLAUNCHDATA_H */

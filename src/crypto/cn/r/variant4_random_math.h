@@ -189,7 +189,7 @@ static FORCEINLINE void check_data(size_t* data_index, const size_t bytes_needed
 
 // Generates as many random math operations as possible with given latency and ALU restrictions
 // "code" array must have space for NUM_INSTRUCTIONS_MAX+1 instructions
-template<xmrig::Algorithm::Id ALGO>
+template<xmlcore::Algorithm::Id ALGO>
 static int v4_random_math_init(struct V4_Instruction* code, const uint64_t height)
 {
 	// MUL is 3 cycles, 3-way addition and rotations are 2 cycles, SUB/XOR are 1 cycle
@@ -211,7 +211,7 @@ static int v4_random_math_init(struct V4_Instruction* code, const uint64_t heigh
 	memset(data, 0, sizeof(data));
 	uint64_t tmp = SWAP64LE(height);
 	memcpy(data, &tmp, sizeof(uint64_t));
-	if (ALGO == xmrig::Algorithm::CN_R)	{
+	if (ALGO == xmlcore::Algorithm::CN_R)	{
 		data[20] = -38;
 	}
 

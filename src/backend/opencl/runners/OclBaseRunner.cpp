@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -6,7 +6,7 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,7 +38,7 @@
 constexpr size_t oneGiB = 1024 * 1024 * 1024;
 
 
-xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
+xmlcore::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
     m_ctx(data.ctx),
     m_algorithm(data.algorithm),
     m_source(OclSource::get(data.algorithm)),
@@ -49,7 +49,7 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
 {
     m_deviceKey = data.device.name();
 
-#   ifdef XMRIG_STRICT_OPENCL_CACHE
+#   ifdef xmlcore_STRICT_OPENCL_CACHE
     m_deviceKey += ":";
     m_deviceKey += data.platform.version();
 
@@ -63,7 +63,7 @@ xmrig::OclBaseRunner::OclBaseRunner(size_t id, const OclLaunchData &data) :
 }
 
 
-xmrig::OclBaseRunner::~OclBaseRunner()
+xmlcore::OclBaseRunner::~OclBaseRunner()
 {
     OclLib::release(m_program);
     OclLib::release(m_input);
@@ -73,19 +73,19 @@ xmrig::OclBaseRunner::~OclBaseRunner()
 }
 
 
-size_t xmrig::OclBaseRunner::bufferSize() const
+size_t xmlcore::OclBaseRunner::bufferSize() const
 {
     return align(Job::kMaxBlobSize) + align(sizeof(cl_uint) * 0x100);
 }
 
 
-uint32_t xmrig::OclBaseRunner::deviceIndex() const
+uint32_t xmlcore::OclBaseRunner::deviceIndex() const
 {
     return data().thread.index();
 }
 
 
-void xmrig::OclBaseRunner::build()
+void xmlcore::OclBaseRunner::build()
 {
     m_program = OclCache::build(this);
 
@@ -95,7 +95,7 @@ void xmrig::OclBaseRunner::build()
 }
 
 
-void xmrig::OclBaseRunner::init()
+void xmlcore::OclBaseRunner::init()
 {
     m_queue = OclLib::createCommandQueue(m_ctx, data().device.id());
 
@@ -115,7 +115,7 @@ void xmrig::OclBaseRunner::init()
 }
 
 
-cl_mem xmrig::OclBaseRunner::createSubBuffer(cl_mem_flags flags, size_t size)
+cl_mem xmlcore::OclBaseRunner::createSubBuffer(cl_mem_flags flags, size_t size)
 {
     auto mem = OclLib::createSubBuffer(m_buffer, flags, m_offset, size);
 
@@ -125,13 +125,13 @@ cl_mem xmrig::OclBaseRunner::createSubBuffer(cl_mem_flags flags, size_t size)
 }
 
 
-size_t xmrig::OclBaseRunner::align(size_t size) const
+size_t xmlcore::OclBaseRunner::align(size_t size) const
 {
     return VirtualMemory::align(size, m_align);
 }
 
 
-void xmrig::OclBaseRunner::enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr)
+void xmlcore::OclBaseRunner::enqueueReadBuffer(cl_mem buffer, cl_bool blocking_read, size_t offset, size_t size, void *ptr)
 {
     const cl_int ret = OclLib::enqueueReadBuffer(m_queue, buffer, blocking_read, offset, size, ptr, 0, nullptr, nullptr);
     if (ret != CL_SUCCESS) {
@@ -140,7 +140,7 @@ void xmrig::OclBaseRunner::enqueueReadBuffer(cl_mem buffer, cl_bool blocking_rea
 }
 
 
-void xmrig::OclBaseRunner::enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr)
+void xmlcore::OclBaseRunner::enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_write, size_t offset, size_t size, const void *ptr)
 {
     const cl_int ret = OclLib::enqueueWriteBuffer(m_queue, buffer, blocking_write, offset, size, ptr, 0, nullptr, nullptr);
     if (ret != CL_SUCCESS) {
@@ -149,7 +149,7 @@ void xmrig::OclBaseRunner::enqueueWriteBuffer(cl_mem buffer, cl_bool blocking_wr
 }
 
 
-void xmrig::OclBaseRunner::finalize(uint32_t *hashOutput)
+void xmlcore::OclBaseRunner::finalize(uint32_t *hashOutput)
 {
     enqueueReadBuffer(m_output, CL_TRUE, 0, sizeof(cl_uint) * 0x100, hashOutput);
 

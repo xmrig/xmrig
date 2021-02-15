@@ -1,4 +1,4 @@
-/* XMRig
+/* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
  * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
@@ -7,7 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,13 +45,13 @@
 #include "net/strategies/DonateStrategy.h"
 
 
-#ifdef XMRIG_FEATURE_API
+#ifdef xmlcore_FEATURE_API
 #   include "base/api/Api.h"
 #   include "base/api/interfaces/IApiRequest.h"
 #endif
 
 
-#ifdef XMRIG_FEATURE_BENCHMARK
+#ifdef xmlcore_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/BenchState.h"
 #endif
 
@@ -63,13 +63,13 @@
 #include <memory>
 
 
-xmrig::Network::Network(Controller *controller) :
+xmlcore::Network::Network(Controller *controller) :
     m_controller(controller)
 {
     JobResults::setListener(this, controller->config()->cpu().isHwAES());
     controller->addListener(this);
 
-#   ifdef XMRIG_FEATURE_API
+#   ifdef xmlcore_FEATURE_API
     controller->api()->addListener(this);
 #   endif
 
@@ -86,7 +86,7 @@ xmrig::Network::Network(Controller *controller) :
 }
 
 
-xmrig::Network::~Network()
+xmlcore::Network::~Network()
 {
     JobResults::stop();
 
@@ -97,13 +97,13 @@ xmrig::Network::~Network()
 }
 
 
-void xmrig::Network::connect()
+void xmlcore::Network::connect()
 {
     m_strategy->connect();
 }
 
 
-void xmrig::Network::execCommand(char command)
+void xmlcore::Network::execCommand(char command)
 {
     switch (command) {
     case 's':
@@ -122,7 +122,7 @@ void xmrig::Network::execCommand(char command)
 }
 
 
-void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
+void xmlcore::Network::onActive(IStrategy *strategy, IClient *client)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("%s " WHITE_BOLD("dev donate started"), Tags::network());
@@ -131,7 +131,7 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 
     const auto &pool = client->pool();
 
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     if (pool.mode() == Pool::MODE_BENCHMARK) {
         return;
     }
@@ -148,7 +148,7 @@ void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 }
 
 
-void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
+void xmlcore::Network::onConfigChanged(Config *config, Config *previousConfig)
 {
     if (config->pools() == previousConfig->pools() || !config->pools().active()) {
         return;
@@ -164,7 +164,7 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
 }
 
 
-void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &)
+void xmlcore::Network::onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &)
 {
     if (m_donate && m_donate->isActive() && m_donate != strategy) {
         return;
@@ -174,7 +174,7 @@ void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job,
 }
 
 
-void xmrig::Network::onJobResult(const JobResult &result)
+void xmlcore::Network::onJobResult(const JobResult &result)
 {
     if (result.index == 1 && m_donate) {
         m_donate->submit(result);
@@ -185,7 +185,7 @@ void xmrig::Network::onJobResult(const JobResult &result)
 }
 
 
-void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
+void xmlcore::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &doc, rapidjson::Value &params)
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -209,7 +209,7 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
 }
 
 
-void xmrig::Network::onPause(IStrategy *strategy)
+void xmlcore::Network::onPause(IStrategy *strategy)
 {
     if (m_donate && m_donate == strategy) {
         LOG_NOTICE("%s " WHITE_BOLD("dev donate finished"), Tags::network());
@@ -224,7 +224,7 @@ void xmrig::Network::onPause(IStrategy *strategy)
 }
 
 
-void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult &result, const char *error)
+void xmlcore::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult &result, const char *error)
 {
     uint64_t diff     = result.diff;
     const char *scale = NetworkState::scaleDiff(diff);
@@ -240,7 +240,7 @@ void xmrig::Network::onResultAccepted(IStrategy *, IClient *, const SubmitResult
 }
 
 
-void xmrig::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algorithm &algorithm, bool *ok)
+void xmlcore::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algorithm &algorithm, bool *ok)
 {
     if (!m_controller->miner()->isEnabled(algorithm)) {
         *ok = false;
@@ -250,8 +250,8 @@ void xmrig::Network::onVerifyAlgorithm(IStrategy *, const IClient *, const Algor
 }
 
 
-#ifdef XMRIG_FEATURE_API
-void xmrig::Network::onRequest(IApiRequest &request)
+#ifdef xmlcore_FEATURE_API
+void xmlcore::Network::onRequest(IApiRequest &request)
 {
     if (request.type() == IApiRequest::REQ_SUMMARY) {
         request.accept();
@@ -263,9 +263,9 @@ void xmrig::Network::onRequest(IApiRequest &request)
 #endif
 
 
-void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
+void xmlcore::Network::setJob(IClient *client, const Job &job, bool donate)
 {
-#   ifdef XMRIG_FEATURE_BENCHMARK
+#   ifdef xmlcore_FEATURE_BENCHMARK
     if (!BenchState::size())
 #   endif
     {
@@ -285,7 +285,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 }
 
 
-void xmrig::Network::tick()
+void xmlcore::Network::tick()
 {
     const uint64_t now = Chrono::steadyMSecs();
 
@@ -297,8 +297,8 @@ void xmrig::Network::tick()
 }
 
 
-#ifdef XMRIG_FEATURE_API
-void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+#ifdef xmlcore_FEATURE_API
+void xmlcore::Network::getConnection(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -308,7 +308,7 @@ void xmrig::Network::getConnection(rapidjson::Value &reply, rapidjson::Document 
 }
 
 
-void xmrig::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
+void xmlcore::Network::getResults(rapidjson::Value &reply, rapidjson::Document &doc, int version) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();

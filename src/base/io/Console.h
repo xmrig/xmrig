@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CONSOLE_H
-#define XMRIG_CONSOLE_H
+#ifndef xmlcore_CONSOLE_H
+#define xmlcore_CONSOLE_H
 
 
 #include "base/tools/Object.h"
@@ -28,14 +28,14 @@ using uv_handle_t   = struct uv_handle_s;
 using uv_stream_t   = struct uv_stream_s;
 using uv_tty_t      = struct uv_tty_s;
 
-#ifdef XMRIG_OS_WIN
+#ifdef xmlcore_OS_WIN
 using ssize_t = intptr_t;
 #else
 #   include <sys/types.h>
 #endif
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class IConsoleListener;
@@ -44,7 +44,7 @@ class IConsoleListener;
 class Console
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Console)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(Console)
 
     Console(IConsoleListener *listener);
     ~Console();
@@ -61,7 +61,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} /* namespace xmlcore */
 
 
-#endif /* XMRIG_CONSOLE_H */
+#endif /* xmlcore_CONSOLE_H */

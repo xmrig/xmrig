@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018      Riku Voipio <riku.voipio@iki.fi>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #include <cctype>
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 struct lscpu_desc
@@ -333,4 +333,4 @@ String cpu_name_arm()
 }
 
 
-} // namespace xmrig
+} // namespace xmlcore

@@ -1,6 +1,6 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,8 +17,8 @@
  */
 
 
-#ifndef XMRIG_SERVERTLS_H
-#define XMRIG_SERVERTLS_H
+#ifndef xmlcore_SERVERTLS_H
+#define xmlcore_SERVERTLS_H
 
 
 using BIO       = struct bio_st;
@@ -30,13 +30,13 @@ using SSL_CTX   = struct ssl_ctx_st;
 #include "base/tools/Object.h"
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 class ServerTls
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(ServerTls)
+    xmlcore_DISABLE_COPY_MOVE_DEFAULT(ServerTls)
 
     ServerTls(SSL_CTX *ctx);
     virtual ~ServerTls();
@@ -63,7 +63,7 @@ private:
 };
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#endif /* XMRIG_SERVERTLS_H */
+#endif /* xmlcore_SERVERTLS_H */

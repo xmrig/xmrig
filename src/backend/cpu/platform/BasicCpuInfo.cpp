@@ -1,7 +1,7 @@
-/* XMRig
+/* xmlcore
  * Copyright (c) 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2016-2021 xmlcore       <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@
 #define EDX_Reg  (3)
 
 
-namespace xmrig {
+namespace xmlcore {
 
 
 constexpr size_t kCpuFlagsSize                                  = 14;
@@ -57,7 +57,7 @@ static const std::array<const char *, kCpuFlagsSize> flagNames  = { "aes", "avx"
 static_assert(kCpuFlagsSize == ICpuInfo::FLAG_MAX, "kCpuFlagsSize and FLAG_MAX mismatch");
 
 
-#ifdef XMRIG_FEATURE_MSR
+#ifdef xmlcore_FEATURE_MSR
 constexpr size_t kMsrArraySize                                  = 5;
 static const std::array<const char *, kMsrArraySize> msrNames   = { MSR_NAMES_LIST };
 static_assert(kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
@@ -152,25 +152,25 @@ static inline bool has_cat_l3()     { return has_feature(EXTENDED_FEATURES,     
 static inline bool is_vm()          { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 31); }
 
 
-} // namespace xmrig
+} // namespace xmlcore
 
 
-#ifdef XMRIG_ALGO_ARGON2
+#ifdef xmlcore_ALGO_ARGON2
 extern "C" {
 
 
-int cpu_flags_has_avx2()    { return xmrig::has_avx2(); }
-int cpu_flags_has_avx512f() { return xmrig::has_avx512f(); }
-int cpu_flags_has_sse2()    { return xmrig::has_sse2(); }
-int cpu_flags_has_ssse3()   { return xmrig::has_ssse3(); }
-int cpu_flags_has_xop()     { return xmrig::has_xop(); }
+int cpu_flags_has_avx2()    { return xmlcore::has_avx2(); }
+int cpu_flags_has_avx512f() { return xmlcore::has_avx512f(); }
+int cpu_flags_has_sse2()    { return xmlcore::has_sse2(); }
+int cpu_flags_has_ssse3()   { return xmlcore::has_ssse3(); }
+int cpu_flags_has_xop()     { return xmlcore::has_xop(); }
 
 
 }
 #endif
 
 
-xmrig::BasicCpuInfo::BasicCpuInfo() :
+xmlcore::BasicCpuInfo::BasicCpuInfo() :
     m_threads(std::thread::hardware_concurrency())
 {
     cpu_brand_string(m_brand);
@@ -195,7 +195,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         m_units[i] = i;
     }
 
-#   ifdef XMRIG_FEATURE_ASM
+#   ifdef xmlcore_FEATURE_ASM
     if (hasAES()) {
         char vendor[13] = { 0 };
         int32_t data[4] = { 0 };
@@ -295,13 +295,13 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 }
 
 
-const char *xmrig::BasicCpuInfo::backend() const
+const char *xmlcore::BasicCpuInfo::backend() const
 {
     return "basic/1";
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
+xmlcore::CpuThreads xmlcore::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
 {
     const size_t count = std::thread::hardware_concurrency();
 
@@ -309,25 +309,25 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
         return 1;
     }
 
-#   ifdef XMRIG_ALGO_CN_LITE
+#   ifdef xmlcore_ALGO_CN_LITE
     if (algorithm.family() == Algorithm::CN_LITE) {
         return CpuThreads(count, 1);
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_PICO
+#   ifdef xmlcore_ALGO_CN_PICO
     if (algorithm.family() == Algorithm::CN_PICO) {
         return CpuThreads(count, 2);
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   ifdef xmlcore_ALGO_CN_HEAVY
     if (algorithm.family() == Algorithm::CN_HEAVY) {
         return CpuThreads(std::max<size_t>(count / 4, 1), 1);
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_RANDOMX
+#   ifdef xmlcore_ALGO_RANDOMX
     if (algorithm.family() == Algorithm::RANDOM_X) {
         if (algorithm == Algorithm::RX_WOW) {
             return count;
@@ -337,13 +337,13 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ARGON2
+#   ifdef xmlcore_ALGO_ARGON2
     if (algorithm.family() == Algorithm::ARGON2) {
         return count;
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
+#   ifdef xmlcore_ALGO_ASTROBWT
     if (algorithm.family() == Algorithm::ASTROBWT) {
         CpuThreads threads;
         for (size_t i = 0; i < count; ++i) {
@@ -357,7 +357,7 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
 }
 
 
-rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
+rapidjson::Value xmlcore::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
@@ -381,13 +381,13 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("nodes",      static_cast<uint64_t>(nodes()), allocator);
     out.AddMember("backend",    StringRef(backend()), allocator);
 
-#   ifdef XMRIG_FEATURE_MSR
+#   ifdef xmlcore_FEATURE_MSR
     out.AddMember("msr",        StringRef(msrNames[msrMod()]), allocator);
 #   else
     out.AddMember("msr",        "none", allocator);
 #   endif
 
-#   ifdef XMRIG_FEATURE_ASM
+#   ifdef xmlcore_FEATURE_ASM
     out.AddMember("assembly",   StringRef(Assembly(assembly()).toString()), allocator);
 #   else
     out.AddMember("assembly",   "none", allocator);
