@@ -33,7 +33,7 @@ xmrig::Console::Console(IConsoleListener *listener)
     m_input->data = this;
     uv_tty_init(uv_default_loop(), reinterpret_cast<uv_tty_t*>(m_input), 0, 1);
 
-    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(m_input))) {
+    if (uv_is_readable(reinterpret_cast<uv_stream_t*>(m_input))) {
         uv_tty_set_mode(reinterpret_cast<uv_tty_t*>(m_input), UV_TTY_MODE_RAW);
         uv_read_start(m_input, Console::onAllocBuffer, Console::onRead);
     } else {
