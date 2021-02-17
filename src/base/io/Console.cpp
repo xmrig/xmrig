@@ -44,9 +44,9 @@ xmrig::Console::Console(IConsoleListener *listener)
          */
         m_input = reinterpret_cast<uv_stream_t*>(new uv_pipe_t);
         m_input->data = this;
-        int r = uv_pipe_init(uv_default_loop(), reinterpret_cast<uv_pipe_t*>(m_input), 0);
-        r = uv_pipe_open(reinterpret_cast<uv_pipe_t*>(m_input), 0);
-        r = uv_read_start(m_input, Console::onAllocBuffer, Console::onRead);
+        uv_pipe_init(uv_default_loop(), reinterpret_cast<uv_pipe_t*>(m_input), 0);
+        uv_pipe_open(reinterpret_cast<uv_pipe_t*>(m_input), 0);
+        uv_read_start(m_input, Console::onAllocBuffer, Console::onRead);
     }
 }
 
