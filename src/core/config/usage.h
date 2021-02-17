@@ -64,6 +64,7 @@ static inline const std::string &usage()
     u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
     u += "      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n";
     u += "      --self-select=URL         self-select block templates from URL\n";
+    u += "      --submit-to-origin        also submit solution back to self-select URL\n";
 #   endif
 
     u += "  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n";

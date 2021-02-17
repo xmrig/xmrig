@@ -73,6 +73,7 @@ public:
         DaemonKey            = 1018,
         DaemonPollKey        = 1019,
         SelfSelectKey        = 1028,
+        SubmitToOriginKey    = 1049,
         DataDirKey           = 1035,
         TitleKey             = 1037,
         NoTitleKey           = 1038,
