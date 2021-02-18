@@ -1,13 +1,8 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2019       jtgrassie       <https://github.com/jtgrassie>
+ * Copyright (c) 2021       Hansie Odendaal <https://github.com/hansieodendaal>
+ * Copyright (c) 2018-2021  SChernykh       <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021  XMRig           <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,8 +52,9 @@ static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashin
 } /* namespace xmrig */
 
 
-xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener, bool submit_to_origin) :
-    m_listener(listener), m_submit_to_origin(submit_to_origin)
+xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener, bool submitToOrigin) :
+    m_submitToOrigin(submitToOrigin),
+    m_listener(listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
     m_client        = new Client(id, agent, this);
@@ -68,6 +64,16 @@ xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientList
 xmrig::SelfSelectClient::~SelfSelectClient()
 {
     delete m_client;
+}
+
+
+int64_t xmrig::SelfSelectClient::submit(const JobResult &result)
+{
+    if (m_submitToOrigin) {
+        submitOriginDaemon(result);
+    }
+
+    return m_client->submit(result);
 }
 
 
@@ -205,7 +211,7 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
     auto &allocator = doc.GetAllocator();
 
     m_blocktemplate = Json::getString(result,kBlocktemplateBlob);
-    m_blockdiff = Json::getUint64(result, kDifficulty);
+    m_blockDiff     = Json::getUint64(result, kDifficulty);
 
     Value params(kObjectType);
     params.AddMember(StringRef(kId),            m_job.clientId().toJSON(), allocator);
@@ -241,27 +247,21 @@ void xmrig::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
     });
 }
 
-int64_t xmrig::SelfSelectClient::submit(const JobResult& result)
-{
-    if (m_submit_to_origin) {
-        submitOriginDaemon(result);
-    }
-    return m_client->submit(result);
-}
 
 void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
 {
-    if (result.diff == 0 || m_blockdiff == 0) {
+    if (result.diff == 0 || m_blockDiff == 0) {
         return;
     }
     
-    if (result.actualDiff() < m_blockdiff) {
-        m_origin_not_submitted++;
+    if (result.actualDiff() < m_blockDiff) {
+        m_originNotSubmitted++;
         LOG_DEBUG("%s " RED_BOLD("not submitted to origin daemon, difficulty too low") " (%" PRId64 "/%" PRId64 ") "
             BLACK_BOLD(" diff ") BLACK_BOLD("%" PRIu64) BLACK_BOLD(" vs. ") BLACK_BOLD("%" PRIu64),
-            Tags::origin(), m_origin_submitted, m_origin_not_submitted, m_blockdiff, result.actualDiff());
+            Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff());
         return;
     }
+
     char *data = m_blocktemplate.data();
     Cvt::toHex(data + 78, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
 
@@ -277,10 +277,10 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     FetchRequest req(HTTP_POST, pool().daemon().host(), pool().daemon().port(), "/json_rpc", doc, pool().daemon().isTLS(), isQuiet());
     fetch(tag(), std::move(req), m_httpListener);
     
-    m_origin_submitted++;
+    m_originSubmitted++;
     LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") " 
         " diff " WHITE("%" PRIu64) " vs. " WHITE("%" PRIu64),
-        Tags::origin(), m_origin_submitted, m_origin_not_submitted, m_blockdiff, result.actualDiff(), result.diff);
+        Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff(), result.diff);
 
     // Ensure that the latest block template is available after block submission
     getBlockTemplate();
