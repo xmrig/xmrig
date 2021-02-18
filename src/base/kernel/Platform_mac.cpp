@@ -107,3 +107,10 @@ bool xmrig::Platform::isOnBatteryPower()
 {
     return IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited;
 }
+
+
+bool xmrig::Platform::isUserActive()
+{
+    // TODO
+    return false;
+}
