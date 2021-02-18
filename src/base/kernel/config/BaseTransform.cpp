@@ -260,6 +260,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DryRunKey:      /* --dry-run */
     case IConfig::HttpEnabledKey: /* --http-enabled */
     case IConfig::DaemonKey:      /* --daemon */
+    case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
     case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
     case IConfig::PauseOnActiveKey:  /* --pause-on-active */
@@ -291,6 +292,8 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::TlsKey: /* --tls */
         return add(doc, Pools::kPools, Pool::kTls, enable);
 
+    case IConfig::SubmitToOriginKey: /* --submit-to-origin */
+        return add(doc, Pools::kPools, Pool::kSubmitToOrigin, enable);
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonKey: /* --daemon */
         return add(doc, Pools::kPools, Pool::kDaemon, enable);
