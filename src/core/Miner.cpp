@@ -628,33 +628,23 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->ticks++;
 
+    auto autoPause = [this](bool &state, bool pause, const char *pauseMessage, const char *activeMessage)
+    {
+        if ((pause && !state) || (!pause && state)) {
+            LOG_INFO("%s %s", Tags::miner(), pause ? pauseMessage : activeMessage);
+
+            state = pause;
+            setEnabled(!pause);
+        }
+    };
+
     if (d_ptr->controller->config()->isPauseOnBattery()) {
-        const bool battery_power = Platform::isOnBatteryPower();
-        if (battery_power && !d_ptr->battery_power) {
-            LOG_INFO("%s " YELLOW_BOLD("on battery power"), Tags::miner());
-            d_ptr->battery_power = true;
-        }
-        else if (!battery_power && d_ptr->battery_power) {
-            LOG_INFO("%s " GREEN_BOLD("on AC power"), Tags::miner());
-            d_ptr->battery_power = false;
-        }
+        autoPause(d_ptr->battery_power, Platform::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
     }
 
     if (d_ptr->controller->config()->isPauseOnActive()) {
-        const bool user_active = Platform::isUserActive();
-        if (user_active && !d_ptr->user_active) {
-            LOG_INFO("%s " YELLOW_BOLD("user active"), Tags::miner());
-            d_ptr->user_active = true;
-        }
-        else if (!user_active && d_ptr->user_active) {
-            LOG_INFO("%s " GREEN_BOLD("user inactive"), Tags::miner());
-            d_ptr->user_active = false;
-        }
+        autoPause(d_ptr->user_active, Platform::isUserActive(), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
-
-    const bool batteryEnabled = !(d_ptr->controller->config()->isPauseOnBattery() && d_ptr->battery_power);
-    const bool userActiveEnabled = !(d_ptr->controller->config()->isPauseOnActive() && d_ptr->user_active);
-    setEnabled(batteryEnabled && userActiveEnabled);
 
     if (stopMiner) {
         stop();
