@@ -601,7 +601,8 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 void xmrig::Miner::onTimer(const Timer *)
 {
     double maxHashrate          = 0.0;
-    const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
+    const auto config           = d_ptr->controller->config();
+    const auto healthPrintTime  = config->healthPrintTime();
 
     bool stopMiner = false;
 
@@ -621,7 +622,7 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
-    const auto printTime = d_ptr->controller->config()->printTime();
+    const auto printTime = config->printTime();
     if (printTime && d_ptr->ticks && (d_ptr->ticks % (printTime * 2)) == 0) {
         d_ptr->printHashrate(false);
     }
@@ -638,12 +639,12 @@ void xmrig::Miner::onTimer(const Timer *)
         }
     };
 
-    if (d_ptr->controller->config()->isPauseOnBattery()) {
+    if (config->isPauseOnBattery()) {
         autoPause(d_ptr->battery_power, Platform::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
     }
 
-    if (d_ptr->controller->config()->isPauseOnActive()) {
-        autoPause(d_ptr->user_active, Platform::isUserActive(), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
+    if (config->isPauseOnActive()) {
+        autoPause(d_ptr->user_active, Platform::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
 
     if (stopMiner) {
