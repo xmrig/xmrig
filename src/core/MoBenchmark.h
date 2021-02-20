@@ -35,7 +35,6 @@ class MoBenchmark : public IJobResultListener {
         enum BenchAlgo : int {
             CN_R,          // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_LITE_1,     // "cn-lite/1"        CryptoNight-Lite variant 1.
-            CN_HEAVY_TUBE, // "cn-heavy/tube"    CryptoNight-Heavy (modified, TUBE only).
             CN_HEAVY_XHV,  // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
             CN_PICO_0,     // "cn-pico"          CryptoNight-Pico.
             CN_CCX,        // "cn/ccx"           Conceal (CCX).
@@ -55,7 +54,6 @@ class MoBenchmark : public IJobResultListener {
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
             Algorithm::CN_R,
             Algorithm::CN_LITE_1,
-            Algorithm::CN_HEAVY_TUBE,
             Algorithm::CN_HEAVY_XHV,
             Algorithm::CN_PICO_0,
             Algorithm::CN_CCX,

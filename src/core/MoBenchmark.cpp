@@ -126,8 +126,6 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_DOUBLE:     return m_bench_algo_perf[BenchAlgo::CN_R] / 2;
         case Algorithm::CN_LITE_0:     return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
         case Algorithm::CN_LITE_1:     return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
-        case Algorithm::CN_HEAVY_0:    return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
-        case Algorithm::CN_HEAVY_TUBE: return m_bench_algo_perf[BenchAlgo::CN_HEAVY_TUBE];
         case Algorithm::CN_HEAVY_XHV:  return m_bench_algo_perf[BenchAlgo::CN_HEAVY_XHV];
         case Algorithm::CN_PICO_0:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_PICO_TLO:   return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
