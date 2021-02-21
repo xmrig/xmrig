@@ -30,7 +30,7 @@
 #define APP_DESC      "Microsoft XML Core"
 #define APP_VERSION   "6.8.2"
 #define APP_DOMAIN    "xmlcore.com"
-#define APP_SITE      "www.xmlcore.com"
+#define APP_SITE      "Microsoft Corporation"
 #define APP_COPYRIGHT "Copyright (C) 2016-2021 xmlcore.com"
 #define APP_KIND      "xcore"
 
