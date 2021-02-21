@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 #include <winsock2.h>
 #include <windows.h>
 #include <uv.h>
+#include <limits>
 
 
 #include "base/kernel/Platform.h"
@@ -160,4 +161,17 @@ bool xmrig::Platform::isOnBatteryPower()
         return (st.ACLineStatus == 0);
     }
     return false;
+}
+
+
+uint64_t xmrig::Platform::idleTime()
+{
+    LASTINPUTINFO info{};
+    info.cbSize = sizeof(LASTINPUTINFO);
+
+    if (!GetLastInputInfo(&info)) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    return static_cast<uint64_t>(GetTickCount() - info.dwTime);
 }
