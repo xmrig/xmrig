@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
@@ -7,6 +8,11 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+=======
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -150,7 +156,17 @@ void xmlcore::ConfigTransform::transform(rapidjson::Document &doc, int key, cons
     case IConfig::YieldKey: /* --cpu-no-yield */
         return set(doc, CpuConfig::kField, CpuConfig::kYield, false);
 
+<<<<<<< HEAD
 #   ifdef xmlcore_ALGO_ARGON2
+=======
+    case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
+        return set(doc, Config::kPauseOnBattery, true);
+
+    case IConfig::PauseOnActiveKey: /* --pause-on-active */
+        return set(doc, Config::kPauseOnActive, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
+
+#   ifdef XMRIG_ALGO_ARGON2
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
     case IConfig::Argon2ImplKey: /* --argon2-impl */
         return set(doc, CpuConfig::kField, CpuConfig::kArgon2Impl, arg);
 #   endif

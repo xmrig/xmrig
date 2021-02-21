@@ -1,6 +1,12 @@
+<<<<<<< HEAD
 /* xmlcore
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+=======
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -106,4 +112,19 @@ void xmlcore::Platform::setThreadPriority(int priority)
 bool xmlcore::Platform::isOnBatteryPower()
 {
     return IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited;
+}
+
+
+uint64_t xmrig::Platform::idleTime()
+{
+    uint64_t idle_time  = 0;
+    const auto service  = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOHIDSystem"));
+    const auto property = IORegistryEntryCreateCFProperty(service, CFSTR("HIDIdleTime"), kCFAllocatorDefault, 0);
+
+    CFNumberGetValue((CFNumberRef)property, kCFNumberSInt64Type, &idle_time);
+
+    CFRelease(property);
+    IOObjectRelease(service);
+
+    return idle_time / 1000000U;
 }

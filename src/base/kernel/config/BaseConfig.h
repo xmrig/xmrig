@@ -1,12 +1,6 @@
-/* xmlcore
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -55,7 +49,6 @@ public:
     static const char *kDryRun;
     static const char *kHttp;
     static const char *kLogFile;
-    static const char *kPauseOnBattery;
     static const char *kPrintTime;
     static const char *kSyslog;
     static const char *kTitle;
@@ -72,7 +65,6 @@ public:
     inline bool isAutoSave() const                          { return m_autoSave; }
     inline bool isBackground() const                        { return m_background; }
     inline bool isDryRun() const                            { return m_dryRun; }
-    inline bool isPauseOnBattery() const                    { return m_pauseOnBattery; }
     inline bool isSyslog() const                            { return m_syslog; }
     inline const char *logFile() const                      { return m_logFile.data(); }
     inline const char *userAgent() const                    { return m_userAgent.data(); }
@@ -100,7 +92,6 @@ protected:
     bool m_autoSave         = true;
     bool m_background       = false;
     bool m_dryRun           = false;
-    bool m_pauseOnBattery   = false;
     bool m_syslog           = false;
     bool m_upgrade          = false;
     bool m_watch            = true;
@@ -112,7 +103,7 @@ protected:
     String m_logFile;
     String m_userAgent;
     Title m_title;
-    uint32_t m_printTime = 60;
+    uint32_t m_printTime    = 60;
 
 #   ifdef xmlcore_FEATURE_TLS
     TlsConfig m_tls;

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
@@ -7,6 +8,11 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+=======
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,6 +63,7 @@ static const option options[] = {
     { "daemon",                0, nullptr, IConfig::DaemonKey             },
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
     { "self-select",           1, nullptr, IConfig::SelfSelectKey         },
+    { "submit-to-origin",      0, nullptr, IConfig::SubmitToOriginKey     },
 #   endif
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
@@ -98,7 +105,12 @@ static const option options[] = {
     { "title",                 1, nullptr, IConfig::TitleKey              },
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
     { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
+<<<<<<< HEAD
 #   ifdef xmlcore_FEATURE_BENCHMARK
+=======
+    { "pause-on-active",       1, nullptr, IConfig::PauseOnActiveKey     },
+#   ifdef XMRIG_FEATURE_BENCHMARK
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
     { "stress",                0, nullptr, IConfig::StressKey             },
     { "bench",                 1, nullptr, IConfig::BenchKey              },
     { "benchmark",             1, nullptr, IConfig::BenchKey              },

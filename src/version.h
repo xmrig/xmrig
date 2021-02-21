@@ -35,8 +35,8 @@
 #define APP_KIND      "xcore"
 
 #define APP_VER_MAJOR  6
-#define APP_VER_MINOR  8
-#define APP_VER_PATCH  2
+#define APP_VER_MINOR  9
+#define APP_VER_PATCH  0
 
 #ifdef _MSC_VER
 #   if (_MSC_VER >= 1920)

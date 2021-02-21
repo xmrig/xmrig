@@ -105,7 +105,8 @@ R"===(
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
-            "self-select": null
+            "self-select": null,
+            "submit-to-origin": false
         }
     ],
     "print-time": 60,
@@ -126,7 +127,8 @@ R"===(
     "user-agent": null,
     "verbose": 0,
     "watch": true,
-    "pause-on-battery": false
+    "pause-on-battery": false,
+    "pause-on-active": false
 }
 )===";
 #endif

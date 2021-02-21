@@ -19,7 +19,7 @@ xmlcore is a high performance, open source, cross platform RandomX, KawPow, Cryp
 * **[Build from source](https://xmlcore.com/docs/miner/build)**
 
 ## Usage
-The preferred way to configure the miner is the [JSON config file](src/config.json) as it is more flexible and human friendly. The [command line interface](https://xmlcore.com/docs/miner/command-line-options) does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing API calls.
+The preferred way to configure the miner is the [JSON config file](https://xmrig.com/docs/miner/config) as it is more flexible and human friendly. The [command line interface](https://xmrig.com/docs/miner/command-line-options) does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing [API](https://xmrig.com/docs/miner/api) calls.
 
 * **[Wizard](https://xmlcore.com/wizard)** helps you create initial configuration for the miner.
 * **[Workers](http://workers.xmlcore.info)** helps manage your miners via HTTP API.

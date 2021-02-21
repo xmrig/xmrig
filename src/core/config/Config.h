@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
@@ -7,6 +8,11 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+=======
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,7 +56,14 @@ class Config : public BaseConfig
 public:
     xmlcore_DISABLE_COPY_MOVE(Config);
 
+<<<<<<< HEAD
 #   ifdef xmlcore_FEATURE_OPENCL
+=======
+    static const char *kPauseOnBattery;
+    static const char *kPauseOnActive;
+
+#   ifdef XMRIG_FEATURE_OPENCL
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
     static const char *kOcl;
 #   endif
 
@@ -69,7 +82,11 @@ public:
     Config();
     ~Config() override;
 
+    inline bool isPauseOnActive() const { return idleTime() > 0; }
+
+    bool isPauseOnBattery() const;
     const CpuConfig &cpu() const;
+    uint32_t idleTime() const;
 
 #   ifdef xmlcore_FEATURE_OPENCL
     const OclConfig &cl() const;

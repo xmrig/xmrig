@@ -300,7 +300,11 @@ xmlcore::cn_hash_fun xmlcore::CnHash::fn(const Algorithm &algorithm, AlgoVariant
 
 #   ifdef xmlcore_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
+<<<<<<< HEAD
     if ((av == AV_SINGLE) && (xmlcore::Cpu::info()->arch() == xmlcore::ICpuInfo::ARCH_ZEN3)) {
+=======
+    if ((av == AV_SINGLE) && (assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
         switch (algorithm.id()) {
         case xmlcore::Algorithm::CN_HEAVY_0:
             return cryptonight_single_hash<xmlcore::Algorithm::CN_HEAVY_0, false, 3>;

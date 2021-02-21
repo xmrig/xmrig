@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /* xmlcore
  * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
  * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
@@ -8,6 +9,12 @@
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
+=======
+/* XMRig
+ * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+>>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -80,6 +87,7 @@ const char *Pool::kPass                   = "pass";
 const char *Pool::kRigId                  = "rig-id";
 const char *Pool::kSelfSelect             = "self-select";
 const char *Pool::kSOCKS5                 = "socks5";
+const char *Pool::kSubmitToOrigin         = "submit-to-origin";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
@@ -137,7 +145,8 @@ xmlcore::Pool::Pool(const rapidjson::Value &object) :
     setKeepAlive(Json::getValue(object, kKeepalive));
 
     if (m_daemon.isValid()) {
-        m_mode = MODE_SELF_SELECT;
+        m_mode           = MODE_SELF_SELECT;
+        m_submitToOrigin = Json::getBool(object, kSubmitToOrigin, m_submitToOrigin);
     }
     else if (Json::getBool(object, kDaemon)) {
         m_mode = MODE_DAEMON;
@@ -237,7 +246,7 @@ xmlcore::IClient *xmlcore::Pool::createClient(int id, IClientListener *listener)
         client = new DaemonClient(id, listener);
     }
     else if (m_mode == MODE_SELF_SELECT) {
-        client = new SelfSelectClient(id, Platform::userAgent(), listener);
+        client = new SelfSelectClient(id, Platform::userAgent(), listener, m_submitToOrigin);
     }
 #   endif
 #   ifdef xmlcore_ALGO_KAWPOW
@@ -300,7 +309,8 @@ rapidjson::Value xmlcore::Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
     }
     else {
-        obj.AddMember(StringRef(kSelfSelect), m_daemon.url().toJSON(), allocator);
+        obj.AddMember(StringRef(kSelfSelect),     m_daemon.url().toJSON(), allocator);
+        obj.AddMember(StringRef(kSubmitToOrigin), m_submitToOrigin, allocator);
     }
 
     return obj;
@@ -319,7 +329,7 @@ std::string xmlcore::Pool::printableName() const
     }
 
     if (m_mode == MODE_SELF_SELECT) {
-        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + CLEAR;
+        out += std::string(" self-select ") + CSI "1;" + std::to_string(m_daemon.isTLS() ? 32 : 36) + "m" + m_daemon.url().data() + WHITE_BOLD_S + (m_submitToOrigin ? " submit-to-origin" : "") + CLEAR;
     }
 
     return out;
