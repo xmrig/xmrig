@@ -187,3 +187,16 @@ jobs:
           zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys
           git commit -m "xmrig "${GITHUB_REF:10}" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
           git push
+      - name: Update hiveos repo
+        run: |
+          git clone https://$GITHUB_ACTOR:${{secrets.xmrig_setup_key}}@github.com/MoneroOcean/hiveos.git
+          cd hiveos
+          git config user.name  MoneroOcean
+          git config user.email support@moneroocean.stream
+          tar xf ../centos7_build/centos7_build.tar.gz
+          mv xmrig mo_xmrig/xmrig
+          mv config.json mo_xmrig/config_global.json
+          tar -zcvf mo_xmrig-${GITHUB_REF:10}.tar.gz mo_xmrig
+          git add -u
+          git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-${GITHUB_REF:10}.tar.gz
+          git push
