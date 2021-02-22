@@ -1,12 +1,11 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2010      Jeff Garzik <jgarzik@pobox.com>
+ * Copyright (c) 2012-2014 pooler      <pooler@litecoinpool.org>
+ * Copyright (c) 2014      Lucas Jones <https://github.com/lucasjones>
+ * Copyright (c) 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
+ * Copyright (c) 2016      Jay D Dee   <jayddee246@gmail.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,6 +63,7 @@ static inline const std::string &usage()
     u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
     u += "      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n";
     u += "      --self-select=URL         self-select block templates from URL\n";
+    u += "      --submit-to-origin        also submit solution back to self-select URL\n";
 #   endif
 
     u += "  -r, --retries=N               number of times to retry before switch to backup server (default: 5)\n";
@@ -181,6 +181,7 @@ static inline const std::string &usage()
     u += "      --no-title                disable setting console window title\n";
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
+    u += "      --pause-on-active=N       pause mine when the user is active (resume after N seconds of last activity)\n";
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     u += "      --stress                  run continuous stress test to check system stability\n";

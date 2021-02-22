@@ -156,8 +156,10 @@ elseif (XMRIG_OS_APPLE)
         src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
+
     find_library(IOKIT_LIBRARY IOKit)
-    set(EXTRA_LIBS ${IOKIT_LIBRARY})
+    find_library(CORESERVICES_LIBRARY CoreServices)
+    set(EXTRA_LIBS ${IOKIT_LIBRARY} ${CORESERVICES_LIBRARY})
 else()
     list(APPEND SOURCES_OS
         src/App_unix.cpp

@@ -352,6 +352,7 @@ public:
     Algorithms algorithms;
     bool active         = false;
     bool battery_power  = false;
+    bool user_active    = false;
     bool enabled        = true;
     bool reset          = true;
     Controller *controller;
@@ -600,7 +601,8 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 void xmrig::Miner::onTimer(const Timer *)
 {
     double maxHashrate          = 0.0;
-    const auto healthPrintTime  = d_ptr->controller->config()->healthPrintTime();
+    const auto config           = d_ptr->controller->config();
+    const auto healthPrintTime  = config->healthPrintTime();
 
     bool stopMiner = false;
 
@@ -620,25 +622,29 @@ void xmrig::Miner::onTimer(const Timer *)
 
     d_ptr->maxHashrate[d_ptr->algorithm] = std::max(d_ptr->maxHashrate[d_ptr->algorithm], maxHashrate);
 
-    const auto printTime = d_ptr->controller->config()->printTime();
+    const auto printTime = config->printTime();
     if (printTime && d_ptr->ticks && (d_ptr->ticks % (printTime * 2)) == 0) {
         d_ptr->printHashrate(false);
     }
 
     d_ptr->ticks++;
 
-    if (d_ptr->controller->config()->isPauseOnBattery()) {
-        const bool battery_power = Platform::isOnBatteryPower();
-        if (battery_power && d_ptr->enabled) {
-            LOG_INFO("%s " YELLOW_BOLD("on battery power"), Tags::miner());
-            d_ptr->battery_power = true;
-            setEnabled(false);
+    auto autoPause = [this](bool &state, bool pause, const char *pauseMessage, const char *activeMessage)
+    {
+        if ((pause && !state) || (!pause && state)) {
+            LOG_INFO("%s %s", Tags::miner(), pause ? pauseMessage : activeMessage);
+
+            state = pause;
+            setEnabled(!pause);
         }
-        else if (!battery_power && !d_ptr->enabled && d_ptr->battery_power) {
-            LOG_INFO("%s " GREEN_BOLD("on AC power"), Tags::miner());
-            d_ptr->battery_power = false;
-            setEnabled(true);
-        }
+    };
+
+    if (config->isPauseOnBattery()) {
+        autoPause(d_ptr->battery_power, Platform::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
+    }
+
+    if (config->isPauseOnActive()) {
+        autoPause(d_ptr->user_active, Platform::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
 
     if (stopMiner) {

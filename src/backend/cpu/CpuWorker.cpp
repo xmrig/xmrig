@@ -83,7 +83,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 {
 #   ifdef XMRIG_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
-    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
         if (!cn_heavyZen3Memory) {
             cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * m_threads, data.hugePages, false, false, node());

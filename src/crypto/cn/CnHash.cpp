@@ -305,7 +305,7 @@ xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av,
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
-    if ((av == AV_SINGLE) && (xmrig::Cpu::info()->arch() == xmrig::ICpuInfo::ARCH_ZEN3)) {
+    if ((av == AV_SINGLE) && (assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
         switch (algorithm.id()) {
         case xmrig::Algorithm::CN_HEAVY_0:
             return cryptonight_single_hash<xmrig::Algorithm::CN_HEAVY_0, false, 3>;

@@ -1,3 +1,5 @@
+**:warning: Recent version of this page https://xmrig.com/docs/miner/config/cpu.**
+
 # CPU backend
 
 All CPU related settings contains in one `cpu` object in config file, CPU backend allow specify multiple profiles and allow switch between them without restrictions by pool request or config change. Default auto-configuration create reasonable minimum of profiles which cover all supported algorithms.

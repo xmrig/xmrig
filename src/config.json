@@ -78,7 +78,8 @@
             "tls-fingerprint": null,
             "daemon": false,
             "socks5": null,
-            "self-select": null
+            "self-select": null,
+            "submit-to-origin": false
         }
     ],
     "print-time": 60,
@@ -101,5 +102,6 @@
     "watch": true,
     "rebench-algo": false,
     "bench-algo-time": 20,
-    "pause-on-battery": false
+    "pause-on-battery": false,
+    "pause-on-active": false
 }
