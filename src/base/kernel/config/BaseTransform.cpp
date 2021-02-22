@@ -334,9 +334,6 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
         return set(doc, BaseConfig::kRebenchAlgo, enable);
 #   endif
 
-    case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
-        return set(doc, BaseConfig::kPauseOnBattery, enable);
-
     default:
         break;
     }
