@@ -187,6 +187,7 @@ jobs:
           zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys
           git commit -m "xmrig "${GITHUB_REF:10}" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
           git push
+          cd ..
       - name: Update hiveos repo
         run: |
           git clone https://$GITHUB_ACTOR:${{secrets.xmrig_setup_key}}@github.com/MoneroOcean/hiveos.git
