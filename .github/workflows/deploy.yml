@@ -198,6 +198,6 @@ jobs:
           mv xmrig mo_xmrig/xmrig
           mv config.json mo_xmrig/config_global.json
           tar -zcvf mo_xmrig-${GITHUB_REF:10}.tar.gz mo_xmrig
-          git add -u
+          git add mo_xmrig-${GITHUB_REF:10}.tar.gz
           git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-${GITHUB_REF:10}.tar.gz
           git push
