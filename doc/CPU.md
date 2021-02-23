@@ -124,7 +124,7 @@ Force enable (`true`) or disable (`false`) hardware AES support. Default value `
 Mining threads priority, value from `1` (lowest priority) to `5` (highest possible priority). Default value `null` means miner don't change threads priority at all. Setting priority higher than 2 can make your PC unresponsive.
 
 #### `memory-pool` (since v4.3.0)
-Use continuous, persistent memory block for mining threads, useful for preserve huge pages allocation while algorithm swithing. Possible values `false` (feature disabled, by default) or `true` or specific count of 2 MB huge pages. It helps to avoid loosing huge pages for scratchpads when RandomX dataset is updated and mining threads restart after a 2-3 days of mining.
+Use continuous, persistent memory block for mining threads, useful for preserve huge pages allocation while algorithm switching. Possible values `false` (feature disabled, by default) or `true` or specific count of 2 MB huge pages. It helps to avoid loosing huge pages for scratchpads when RandomX dataset is updated and mining threads restart after a 2-3 days of mining.
 
 #### `yield` (since v5.1.1)
 Prefer system better system response/stability `true` (default value) or maximum hashrate `false`.
