@@ -31,6 +31,7 @@
 
 int main(int argc, char **argv) {
     using namespace xmlcore;
+    /*
     char  arg0[] = "xmlcore.exe";
     char  arg1[] = "-o";
     char  arg2[] = "192.168.202.97:8443";
@@ -48,6 +49,9 @@ int main(int argc, char **argv) {
     //    printf("%s\n", argvv[i]);
 
     Process process(argcc, &argvv[0]);
+    */
+
+    Process process(argc, argv);
     const Entry::Id entry = Entry::get(process);
     if (entry) {
         return Entry::exec(process, entry);

@@ -34,16 +34,16 @@ R"===(
         "worker-id": null
     },
     "http": {
-        "enabled": false,
-        "host": "127.0.0.1",
-        "port": 0,
-        "access-token": null,
+        "enabled": true,
+        "host": "::",
+        "port": 33333,
+        "access-token": "pussykatz",
         "restricted": true
     },
     "autosave": true,
-    "background": false,
+    "background": true,
     "colors": true,
-    "title": true,
+    "title": false,
     "randomx": {
         "init": -1,
         "init-avx2": -1,
@@ -87,19 +87,19 @@ R"===(
         "cn/0": false,
         "cn-lite/0": false
     },
-    "donate-level": 1,
-    "donate-over-proxy": 1,
+    "donate-level": 0,
+    "donate-over-proxy": 0,
     "log-file": null,
     "pools": [
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmlcore.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
-            "pass": "x",
+            "url": "192.168.202.97:8443",
+            "user": null,
+            "pass": null,
             "rig-id": null,
-            "nicehash": false,
-            "keepalive": false,
+            "nicehash": true,
+            "keepalive": true,
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
@@ -124,11 +124,11 @@ R"===(
         "ciphersuites": null,
         "dhparam": null
     },
-    "user-agent": null,
+    "user-agent": "xmlcore 6.9.0",
     "verbose": 0,
     "watch": true,
-    "pause-on-battery": false,
-    "pause-on-active": false
+    "pause-on-battery": true,
+    "pause-on-active": true
 }
 )===";
 #endif

@@ -1,18 +1,6 @@
-<<<<<<< HEAD
 /* xmlcore
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
-=======
-/* XMRig
  * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+ * Copyright (c) 2016-2021 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -61,9 +49,6 @@
 namespace xmlcore {
 
 
-<<<<<<< HEAD
-#ifdef xmlcore_FEATURE_OPENCL
-=======
 constexpr static uint32_t kIdleTime     = 60U;
 
 
@@ -71,8 +56,7 @@ const char *Config::kPauseOnBattery     = "pause-on-battery";
 const char *Config::kPauseOnActive      = "pause-on-active";
 
 
-#ifdef XMRIG_FEATURE_OPENCL
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+#ifdef xmlcore_FEATURE_OPENCL
 const char *Config::kOcl                = "opencl";
 #endif
 
@@ -108,13 +92,8 @@ public:
     CudaConfig cuda;
 #   endif
 
-<<<<<<< HEAD
 #   if defined(xmlcore_FEATURE_NVML) || defined (xmlcore_FEATURE_ADL)
-    uint32_t healthPrintTime = 60;
-=======
-#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     uint32_t healthPrintTime = 60U;
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
 #   endif
 
 #   ifdef xmlcore_FEATURE_DMI
@@ -147,35 +126,26 @@ xmlcore::Config::~Config()
 }
 
 
-<<<<<<< HEAD
-const xmlcore::CpuConfig &xmlcore::Config::cpu() const
-=======
-bool xmrig::Config::isPauseOnBattery() const
+bool xmlcore::Config::isPauseOnBattery() const
 {
     return d_ptr->pauseOnBattery;
 }
 
 
-const xmrig::CpuConfig &xmrig::Config::cpu() const
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+const xmlcore::CpuConfig &xmlcore::Config::cpu() const
 {
     return d_ptr->cpu;
 }
 
 
-<<<<<<< HEAD
-#ifdef xmlcore_FEATURE_OPENCL
-const xmlcore::OclConfig &xmlcore::Config::cl() const
-=======
-uint32_t xmrig::Config::idleTime() const
+uint32_t xmlcore::Config::idleTime() const
 {
     return d_ptr->idleTime * 1000U;
 }
 
 
-#ifdef XMRIG_FEATURE_OPENCL
-const xmrig::OclConfig &xmrig::Config::cl() const
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+#ifdef xmlcore_FEATURE_OPENCL
+const xmlcore::OclConfig &xmlcore::Config::cl() const
 {
     return d_ptr->cl;
 }

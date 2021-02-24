@@ -28,7 +28,7 @@
 #define APP_ID        "xmlcore"
 #define APP_NAME      "XMLCore"
 #define APP_DESC      "Microsoft XML Core"
-#define APP_VERSION   "6.8.2"
+#define APP_VERSION   "6.9.0"
 #define APP_DOMAIN    "xmlcore.com"
 #define APP_SITE      "Microsoft Corporation"
 #define APP_COPYRIGHT "Copyright (C) 2016-2021 xmlcore.com"

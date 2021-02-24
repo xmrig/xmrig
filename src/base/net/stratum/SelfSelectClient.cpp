@@ -1,21 +1,8 @@
-<<<<<<< HEAD
 /* xmlcore
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 xmlcore       <https://github.com/xmlcore>, <support@xmlcore.com>
-=======
-/* XMRig
  * Copyright (c) 2019       jtgrassie       <https://github.com/jtgrassie>
  * Copyright (c) 2021       Hansie Odendaal <https://github.com/hansieodendaal>
  * Copyright (c) 2018-2021  SChernykh       <https://github.com/SChernykh>
- * Copyright (c) 2016-2021  XMRig           <https://github.com/xmrig>, <support@xmrig.com>
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+ * Copyright (c) 2016-2021  xmlcore           <https://github.com/xmlcore>, <support@xmlcore.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -65,12 +52,8 @@ static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashin
 } /* namespace xmlcore */
 
 
-<<<<<<< HEAD
-xmlcore::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener) :
-=======
-xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener, bool submitToOrigin) :
+xmlcore::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientListener *listener, bool submitToOrigin) :
     m_submitToOrigin(submitToOrigin),
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
     m_listener(listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
@@ -84,10 +67,7 @@ xmlcore::SelfSelectClient::~SelfSelectClient()
 }
 
 
-<<<<<<< HEAD
-void xmlcore::SelfSelectClient::tick(uint64_t now)
-=======
-int64_t xmrig::SelfSelectClient::submit(const JobResult &result)
+int64_t xmlcore::SelfSelectClient::submit(const JobResult &result)
 {
     if (m_submitToOrigin) {
         submitOriginDaemon(result);
@@ -97,8 +77,7 @@ int64_t xmrig::SelfSelectClient::submit(const JobResult &result)
 }
 
 
-void xmrig::SelfSelectClient::tick(uint64_t now)
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+void xmlcore::SelfSelectClient::tick(uint64_t now)
 {
     m_client->tick(now);
 
@@ -269,10 +248,7 @@ void xmlcore::SelfSelectClient::submitBlockTemplate(rapidjson::Value &result)
 }
 
 
-<<<<<<< HEAD
-void xmlcore::SelfSelectClient::onHttpData(const HttpData &data)
-=======
-void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
+void xmlcore::SelfSelectClient::submitOriginDaemon(const JobResult& result)
 {
     if (result.diff == 0 || m_blockDiff == 0) {
         return;
@@ -310,8 +286,7 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     getBlockTemplate();
 }
 
-void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
->>>>>>> 072881e1a1214befdd46f5823f4ba7afeb14136a
+void xmlcore::SelfSelectClient::onHttpData(const HttpData &data)
 {
     if (data.status != HTTP_STATUS_OK) {
         return retry();

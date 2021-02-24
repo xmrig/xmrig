@@ -28,7 +28,7 @@ This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 
 * **`-DWITH_DEBUG_LOG=ON`** enable debug log (mostly network requests).
 * **`-DHWLOC_DEBUG=ON`** enable some debug log for hwloc.
-* **`-DCMAKE_BUILD_TYPE=Debug`** enable debug build, only useful for investigate crashes, this option slow down miner.
+* **`-DCMAKE_BUILD_TYPE=Release`** enable debug build, only useful for investigate crashes, this option slow down miner.
 
 ## Special build options
 

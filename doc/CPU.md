@@ -1,4 +1,4 @@
-**:warning: Recent version of this page https://xmrig.com/docs/miner/config/cpu.**
+**:warning: Recent version of this page https://xmlcore.com/docs/miner/config/cpu.**
 
 # CPU backend
 
