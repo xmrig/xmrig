@@ -197,7 +197,9 @@ jobs:
           tar xf ../centos7_build/centos7_build.tar.gz
           mv xmrig mo_xmrig/xmrig
           mv config.json mo_xmrig/config_global.json
-          tar -zcvf mo_xmrig-${GITHUB_REF:10}.tar.gz mo_xmrig
-          git add mo_xmrig-${GITHUB_REF:10}.tar.gz mo_xmrig/xmrig mo_xmrig/config_global.json
-          git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-${GITHUB_REF:10}.tar.gz
+          export VER=${GITHUB_REF:10}
+          export VER=${VER//-/_}
+          tar -zcvf mo_xmrig-$VER.tar.gz mo_xmrig
+          git add mo_xmrig-$VER.tar.gz mo_xmrig/xmrig mo_xmrig/config_global.json
+          git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-$VER.tar.gz
           git push
