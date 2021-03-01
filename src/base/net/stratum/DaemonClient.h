@@ -89,6 +89,8 @@ private:
     String m_tlsFingerprint;
     String m_tlsVersion;
     Timer *m_timer;
+    uint64_t m_blocktemplateRequestHeight = 0;
+    String m_blocktemplateRequestHash;
 };
 
 

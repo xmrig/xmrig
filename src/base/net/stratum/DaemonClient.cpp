@@ -179,12 +179,30 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
                 return send(kGetInfo);
             }
 
-            if (isOutdated(Json::getUint64(doc, kHeight), Json::getString(doc, kHash))) {
-                getBlockTemplate();
+            const uint64_t height = Json::getUint64(doc, kHeight);
+            const String hash = Json::getString(doc, kHash);
+
+            if (isOutdated(height, hash)) {
+                // Multiple /getheight responses can come at once resulting in multiple getBlockTemplate() calls
+                if ((height != m_blocktemplateRequestHeight) || (hash != m_blocktemplateRequestHash)) {
+                    m_blocktemplateRequestHeight = height;
+                    m_blocktemplateRequestHash = hash;
+                    getBlockTemplate();
+                }
             }
         }
-        else if (data.url == kGetInfo && isOutdated(Json::getUint64(doc, kHeight), Json::getString(doc, "top_block_hash"))) {
-            getBlockTemplate();
+        else if (data.url == kGetInfo) {
+            const uint64_t height = Json::getUint64(doc, kHeight);
+            const String hash = Json::getString(doc, "top_block_hash");
+
+            if (isOutdated(height, hash)) {
+                // Multiple /getinfo responses can come at once resulting in multiple getBlockTemplate() calls
+                if ((height != m_blocktemplateRequestHeight) || (hash != m_blocktemplateRequestHash)) {
+                    m_blocktemplateRequestHeight = height;
+                    m_blocktemplateRequestHash = hash;
+                    getBlockTemplate();
+                }
+            }
         }
 
         return;
