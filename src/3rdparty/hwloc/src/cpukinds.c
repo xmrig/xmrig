@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Inria.  All rights reserved.
+ * Copyright © 2020-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -270,7 +270,7 @@ hwloc__cpukinds_check_duplicate_rankings(struct hwloc_topology *topology)
   unsigned i,j;
   for(i=0; i<topology->nr_cpukinds; i++)
     for(j=i+1; j<topology->nr_cpukinds; j++)
-      if (topology->cpukinds[i].forced_efficiency == topology->cpukinds[j].forced_efficiency)
+      if (topology->cpukinds[i].ranking_value == topology->cpukinds[j].ranking_value)
         /* if any duplicate, fail */
         return -1;
   return 0;

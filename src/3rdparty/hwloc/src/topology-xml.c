@@ -1462,6 +1462,9 @@ hwloc__xml_v2import_distances(hwloc_topology_t topology,
 	unsigned long long u;
 	if (heterotypes) {
 	  hwloc_obj_type_t t = HWLOC_OBJ_TYPE_NONE;
+          if (!*tmp)
+            /* reached the end of this indexes attribute */
+            break;
 	  if (hwloc_type_sscanf(tmp, &t, NULL, 0) < 0) {
 	    if (hwloc__xml_verbose())
 	      fprintf(stderr, "%s: %s with unrecognized heterogeneous type %s\n",
