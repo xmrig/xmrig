@@ -75,9 +75,9 @@ static inline const std::string &usage()
     u += "\nCPU backend:\n";
 
     u += "      --no-cpu                  disable CPU mining backend\n";
-    u += "  -t, --threads=N               number of CPU threads\n";
-    u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
+    u += "  -t, --threads=N               number of CPU threads, proper CPU affinity required for some optimizations.\n";
     u += "      --cpu-affinity            set process affinity to CPU core(s), mask 0x3 for cores 0 and 1\n";
+    u += "  -v, --av=N                    algorithm variation, 0 auto select\n";
     u += "      --cpu-priority            set process priority (0 idle, 2 normal to 5 highest)\n";
     u += "      --cpu-max-threads-hint=N  maximum CPU threads count (in percentage) hint for autoconfig\n";
     u += "      --cpu-memory-pool=N       number of 2 MB pages for persistent memory pool, -1 (auto), 0 (disable)\n";
