@@ -119,8 +119,10 @@ bool xmrig::Job::setTarget(const char *target)
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
+    assert(sizeof(m_rawTarget) > (size * 2));
+
     memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, len);
+    memcpy(m_rawTarget, target, std::min(size * 2, sizeof(m_rawTarget)));
 #   endif
 
     m_diff = toDiff(m_target);
@@ -134,8 +136,7 @@ void xmrig::Job::setDiff(uint64_t diff)
     m_target = toDiff(diff);
 
 #   ifdef XMRIG_PROXY_PROJECT
-    Buffer::toHex(reinterpret_cast<uint8_t *>(&m_target), 8, m_rawTarget);
-    m_rawTarget[16] = '\0';
+    Cvt::toHex(m_rawTarget, sizeof(m_rawTarget), reinterpret_cast<uint8_t *>(&m_target), sizeof(m_target));
 #   endif
 }
 
