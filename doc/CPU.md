@@ -91,11 +91,11 @@ RandomX mining mode: `auto`, `fast` (2 GB memory), `light` (256 MB memory).
 #### `1gb-pages`
 Use 1GB hugepages for RandomX dataset (Linux only). Enabled (`true`) or disabled (`false`). It gives 1-3% speedup.
 
+#### `wrmsr`
+[MSR mod](https://xmrig.com/docs/miner/randomx-optimization-guide/msr). Enabled (`true`) or disabled (`false`). It gives up to 15% speedup depending on your system. _(**Note**: Userspace MSR writes are no longer enabled by default; the flag `msr.allow_writes=on` must be set for Linux Kernels 5.9 and after.)_
+
 #### `rdmsr`
 Restore MSR register values to their original values on exit. Used together with `wrmsr`. Enabled (`true`) or disabled (`false`).
-
-#### `wrmsr`
-[MSR mod](https://xmrig.com/docs/miner/randomx-optimization-guide/msr). Enabled (`true`) or disabled (`false`). It gives up to 15% speedup depending on your system.
 
 #### `cache_qos`
 [Cache QoS](https://xmrig.com/docs/miner/randomx-optimization-guide/qos). Enabled (`true`) or disabled (`false`). It's useful when you can't or don't want to mine on all CPU cores to make mining hashrate more stable.
