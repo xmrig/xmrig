@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +19,7 @@
 
 
 #include "base/net/http/HttpResponse.h"
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpContext.h"
 
@@ -78,7 +72,7 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
     setHeader("Connection", "close");
 
     std::stringstream ss;
-    ss << "HTTP/1.1 " << statusCode() << " " << http_status_str(static_cast<http_status>(statusCode())) << kCRLF;
+    ss << "HTTP/1.1 " << statusCode() << " " << HttpData::statusName(statusCode()) << kCRLF;
 
     for (auto &header : m_headers) {
         ss << header.first << ": " << header.second << kCRLF;
@@ -97,7 +91,7 @@ void xmrig::HttpResponse::end(const char *data, size_t size)
 
         Log::print(err ? Log::ERR : Log::INFO, CYAN("%s ") CLEAR MAGENTA_BOLD("%s") WHITE_BOLD(" %s ") CSI "1;%dm%d " CLEAR WHITE_BOLD("%zu ") CYAN_BOLD("%" PRIu64 "ms ") BLACK_BOLD("\"%s\""),
                    ctx->ip().c_str(),
-                   http_method_str(static_cast<http_method>(ctx->method)),
+                   llhttp_method_name(static_cast<llhttp_method>(ctx->method)),
                    ctx->url.c_str(),
                    err ? 31 : 32,
                    statusCode(),

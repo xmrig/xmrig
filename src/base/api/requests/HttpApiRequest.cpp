@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,7 +18,7 @@
 
 
 #include "base/api/requests/HttpApiRequest.h"
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
 #include "base/net/http/HttpData.h"
@@ -53,8 +47,8 @@ static inline const char *rpcError(int code) {
         return "Invalid params";
     }
 
-    if (code >= HTTP_STATUS_BAD_REQUEST && code <= HTTP_STATUS_NETWORK_AUTHENTICATION_REQUIRED) {
-        return http_status_str(static_cast<http_status>(code));
+    if (code >= 400 && code < 600) {
+        return HttpData::statusName(code);
     }
 
     return "Internal error";
@@ -155,10 +149,10 @@ void xmrig::HttpApiRequest::done(int status)
         using namespace rapidjson;
         auto &allocator = doc().GetAllocator();
 
-        m_res.setStatus(HTTP_STATUS_OK);
+        m_res.setStatus(200);
 
-        if (status != HTTP_STATUS_OK) {
-            setRpcError(status == HTTP_STATUS_NOT_FOUND ? RPC_METHOD_NOT_FOUND : status);
+        if (status != 200) {
+            setRpcError(status == 404 /* NOT_FOUND */ ? RPC_METHOD_NOT_FOUND : status);
         }
         else if (!reply().HasMember(kResult)) {
             Value result(kObjectType);
@@ -205,6 +199,6 @@ void xmrig::HttpApiRequest::rpcDone(const char *key, rapidjson::Value &value)
     reply().AddMember("jsonrpc", "2.0", allocator);
     reply().AddMember(StringRef(kId), Value().CopyFrom(Json::getValue(m_body, kId), allocator), allocator);
 
-    m_res.setStatus(HTTP_STATUS_OK);
+    m_res.setStatus(200);
     m_res.end();
 }

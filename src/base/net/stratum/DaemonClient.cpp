@@ -25,7 +25,6 @@
 
 
 #include "base/net/stratum/DaemonClient.h"
-#include "3rdparty/http-parser/http_parser.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
@@ -151,7 +150,7 @@ void xmrig::DaemonClient::connect(const Pool &pool)
 
 void xmrig::DaemonClient::onHttpData(const HttpData &data)
 {
-    if (data.status != HTTP_STATUS_OK) {
+    if (data.status != 200) {
         return retry();
     }
 
