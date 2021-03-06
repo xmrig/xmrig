@@ -86,7 +86,7 @@ jobs:
         run: |
           yum install -y centos-release-scl epel-release
           yum install -y devtoolset-9
-          yum install -y git cmake libstdc++-static openssl-devel libmicrohttpd-devel libuv-devel glibc-static libuv-static
+          yum install -y git cmake libstdc++-static openssl-devel libmicrohttpd-devel libuv-devel libhwloc-devel glibc-static libuv-static
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
@@ -94,7 +94,7 @@ jobs:
       - name: Build project on CentOS 7
         run: |
           source /opt/rh/devtoolset-9/enable
-          cmake . -DWITH_TLS=OFF -DWITH_HWLOC=OFF
+          cmake . -DWITH_TLS=OFF
           make -j$(nproc)
           cp src/config.json .
           mv xmrig-notls xmrig
