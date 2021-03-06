@@ -87,7 +87,7 @@ jobs:
         run: |
           yum install -y centos-release-scl epel-release
           yum install -y devtoolset-9
-          yum install -y git cmake libstdc++-static openssl-devel libmicrohttpd-devel libuv-devel hwloc-devel glibc-static libuv-static
+          yum install -y git cmake3 libstdc++-static openssl-devel automake libtool autoconf libmicrohttpd-devel libuv-devel hwloc-devel glibc-static libuv-static
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
@@ -95,10 +95,12 @@ jobs:
       - name: Build project on CentOS 7
         run: |
           source /opt/rh/devtoolset-9/enable
-          cmake . -DWITH_TLS=OFF
+          cd scripts
+          ./build_deps.sh
+          cd ..
+          cmake3 . -DXMRIG_DEPS=scripts/deps
           make -j$(nproc)
           cp src/config.json .
-          mv xmrig-notls xmrig
           tar cfz centos7_build.tar.gz xmrig config.json
       - name: Upload CentOS 7 build artifacts
         uses: actions/upload-artifact@v1
