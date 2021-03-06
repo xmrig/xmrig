@@ -22,7 +22,8 @@ jobs:
     steps:
       - name: Prepare Ubuntu tools
         run: |
-          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+          sudo apt update
+          sudo apt install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
       - name: Checkout code
         uses: actions/checkout@master
       - name: Build project on Ubuntu
