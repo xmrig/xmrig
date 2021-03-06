@@ -87,7 +87,7 @@ jobs:
         run: |
           yum install -y centos-release-scl epel-release
           yum install -y devtoolset-9
-          yum install -y git cmake3 libstdc++-static openssl-devel automake libtool autoconf libmicrohttpd-devel libuv-devel hwloc-devel glibc-static libuv-static
+          yum install -y wget git cmake3 automake libtool autoconf libstdc++-static glibc-static
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
