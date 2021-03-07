@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #define XMRIG_HTTPCONTEXT_H
 
 
-using http_parser           = struct http_parser;
-using http_parser_settings  = struct http_parser_settings;
+using llhttp_settings_t     = struct llhttp_settings_s;
+using llhttp_t              = struct llhttp__internal_s;
 using uv_connect_t          = struct uv_connect_s;
 using uv_handle_t           = struct uv_handle_s;
 using uv_stream_t           = struct uv_stream_s;
@@ -76,15 +76,15 @@ protected:
 private:
     inline IHttpListener *httpListener() const { return m_listener.expired() ? nullptr : m_listener.lock().get(); }
 
-    static int onHeaderField(http_parser *parser, const char *at, size_t length);
-    static int onHeaderValue(http_parser *parser, const char *at, size_t length);
-    static void attach(http_parser_settings *settings);
+    static int onHeaderField(llhttp_t *parser, const char *at, size_t length);
+    static int onHeaderValue(llhttp_t *parser, const char *at, size_t length);
+    static void attach(llhttp_settings_t *settings);
 
     void setHeader();
 
     bool m_wasHeaderValue           = false;
     const uint64_t m_timestamp;
-    http_parser *m_parser;
+    llhttp_t *m_parser;
     std::string m_lastHeaderField;
     std::string m_lastHeaderValue;
     std::weak_ptr<IHttpListener> m_listener;

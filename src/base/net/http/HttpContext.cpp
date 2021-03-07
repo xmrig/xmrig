@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 
 
 #include "base/net/http/HttpContext.h"
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "base/kernel/interfaces/IHttpListener.h"
 #include "base/tools/Baton.h"
 #include "base/tools/Chrono.h"
@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-static http_parser_settings http_settings;
+static llhttp_settings_t http_settings;
 static std::map<uint64_t, HttpContext *> storage;
 static uint64_t SEQUENCE = 0;
 
@@ -78,13 +78,13 @@ xmrig::HttpContext::HttpContext(int parser_type, const std::weak_ptr<IHttpListen
 {
     storage[id()] = this;
 
-    m_parser = new http_parser;
+    m_parser = new llhttp_t;
     m_tcp    = new uv_tcp_t;
 
     uv_tcp_init(uv_default_loop(), m_tcp);
     uv_tcp_nodelay(m_tcp, 1);
 
-    http_parser_init(m_parser, static_cast<http_parser_type>(parser_type));
+    llhttp_init(m_parser, static_cast<llhttp_type_t>(parser_type), &http_settings);
 
     m_parser->data = m_tcp->data = this;
 
@@ -124,7 +124,7 @@ size_t xmrig::HttpContext::parse(const char *data, size_t size)
         return size;
     }
 
-    return http_parser_execute(m_parser, &http_settings, data, size);
+    return llhttp_execute(m_parser, data, size);
 }
 
 
@@ -175,11 +175,9 @@ void xmrig::HttpContext::close(int status)
 
 xmrig::HttpContext *xmrig::HttpContext::get(uint64_t id)
 {
-    if (storage.count(id) == 0) {
-        return nullptr;
-    }
+    const auto it = storage.find(id);
 
-    return storage[id];
+    return it == storage.end() ? nullptr : it->second;
 }
 
 
@@ -193,7 +191,7 @@ void xmrig::HttpContext::closeAll()
 }
 
 
-int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_t length)
+int xmrig::HttpContext::onHeaderField(llhttp_t *parser, const char *at, size_t length)
 {
     auto ctx = static_cast<HttpContext*>(parser->data);
 
@@ -212,7 +210,7 @@ int xmrig::HttpContext::onHeaderField(http_parser *parser, const char *at, size_
 }
 
 
-int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_t length)
+int xmrig::HttpContext::onHeaderValue(llhttp_t *parser, const char *at, size_t length)
 {
     auto ctx = static_cast<HttpContext*>(parser->data);
 
@@ -227,14 +225,14 @@ int xmrig::HttpContext::onHeaderValue(http_parser *parser, const char *at, size_
 }
 
 
-void xmrig::HttpContext::attach(http_parser_settings *settings)
+void xmrig::HttpContext::attach(llhttp_settings_t *settings)
 {
     settings->on_message_begin  = nullptr;
     settings->on_status         = nullptr;
     settings->on_chunk_header   = nullptr;
     settings->on_chunk_complete = nullptr;
 
-    settings->on_url = [](http_parser *parser, const char *at, size_t length) -> int
+    settings->on_url = [](llhttp_t *parser, const char *at, size_t length) -> int
     {
         static_cast<HttpContext*>(parser->data)->url = std::string(at, length);
         return 0;
@@ -243,7 +241,7 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
     settings->on_header_field = onHeaderField;
     settings->on_header_value = onHeaderValue;
 
-    settings->on_headers_complete = [](http_parser* parser) -> int {
+    settings->on_headers_complete = [](llhttp_t *parser) -> int {
         auto ctx = static_cast<HttpContext*>(parser->data);
         ctx->status = parser->status_code;
 
@@ -258,14 +256,14 @@ void xmrig::HttpContext::attach(http_parser_settings *settings)
         return 0;
     };
 
-    settings->on_body = [](http_parser *parser, const char *at, size_t len) -> int
+    settings->on_body = [](llhttp_t *parser, const char *at, size_t len) -> int
     {
         static_cast<HttpContext*>(parser->data)->body.append(at, len);
 
         return 0;
     };
 
-    settings->on_message_complete = [](http_parser *parser) -> int
+    settings->on_message_complete = [](llhttp_t *parser) -> int
     {
         auto ctx      = static_cast<HttpContext*>(parser->data);
         auto listener = ctx->httpListener();

@@ -354,6 +354,7 @@ public:
     bool battery_power  = false;
     bool user_active    = false;
     bool enabled        = true;
+    int32_t auto_pause = 0;
     bool reset          = true;
     Controller *controller;
     Job job;
@@ -635,7 +636,8 @@ void xmrig::Miner::onTimer(const Timer *)
             LOG_INFO("%s %s", Tags::miner(), pause ? pauseMessage : activeMessage);
 
             state = pause;
-            setEnabled(!pause);
+            d_ptr->auto_pause += pause ? 1 : -1;
+            setEnabled(d_ptr->auto_pause == 0);
         }
     };
 

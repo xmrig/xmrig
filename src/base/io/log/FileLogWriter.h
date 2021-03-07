@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 #include <cstddef>
+#include <cstdint>
 
 
 namespace xmrig {
@@ -33,13 +34,21 @@ public:
     FileLogWriter(const char *fileName) { open(fileName); }
 
     inline bool isOpen() const  { return m_file >= 0; }
+    inline int64_t pos() const  { return m_pos; }
 
     bool open(const char *fileName);
     bool write(const char *data, size_t size);
     bool writeLine(const char *data, size_t size);
 
 private:
-    int m_file = -1;
+#   ifdef XMRIG_OS_WIN
+    char m_endl[3]  = "\r\n";
+#   else
+    char m_endl[2]  = "\n";
+#   endif
+
+    int m_file      = -1;
+    int64_t m_pos   = 0;
 };
 
 

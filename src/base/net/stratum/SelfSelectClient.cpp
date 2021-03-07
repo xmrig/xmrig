@@ -20,7 +20,6 @@
 
 
 #include "base/net/stratum/SelfSelectClient.h"
-#include "3rdparty/http-parser/http_parser.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
@@ -288,7 +287,7 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
 
 void xmrig::SelfSelectClient::onHttpData(const HttpData &data)
 {
-    if (data.status != HTTP_STATUS_OK) {
+    if (data.status != 200) {
         return retry();
     }
 

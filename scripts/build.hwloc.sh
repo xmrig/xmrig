@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-HWLOC_VERSION="2.4.0"
+HWLOC_VERSION="2.4.1"
 
 mkdir -p deps
 mkdir -p deps/include
