@@ -206,7 +206,7 @@ void xmrig::NetworkState::printConnection() const
 void xmrig::NetworkState::printResults() const
 {
     if (!m_hashes) {
-        LOG_NOTICE(YELLOW_BOLD_S "no any results yet");
+        LOG_NOTICE(YELLOW_BOLD_S "no results yet");
 
         return;
     }
