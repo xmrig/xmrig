@@ -91,11 +91,11 @@ RandomX mining mode: `auto`, `fast` (2 GB memory), `light` (256 MB memory).
 #### `1gb-pages`
 Use 1GB hugepages for RandomX dataset (Linux only). Enabled (`true`) or disabled (`false`). It gives 1-3% speedup.
 
+#### `wrmsr`
+[MSR mod](https://xmrig.com/docs/miner/randomx-optimization-guide/msr). Enabled (`true`) or disabled (`false`). It gives up to 15% speedup depending on your system. _(**Note**: Userspace MSR writes are no longer enabled by default; the flag `msr.allow_writes=on` must be set for Linux Kernels 5.9 and after.)_
+
 #### `rdmsr`
 Restore MSR register values to their original values on exit. Used together with `wrmsr`. Enabled (`true`) or disabled (`false`).
-
-#### `wrmsr`
-[MSR mod](https://xmrig.com/docs/miner/randomx-optimization-guide/msr). Enabled (`true`) or disabled (`false`). It gives up to 15% speedup depending on your system.
 
 #### `cache_qos`
 [Cache QoS](https://xmrig.com/docs/miner/randomx-optimization-guide/qos). Enabled (`true`) or disabled (`false`). It's useful when you can't or don't want to mine on all CPU cores to make mining hashrate more stable.
@@ -124,7 +124,7 @@ Force enable (`true`) or disable (`false`) hardware AES support. Default value `
 Mining threads priority, value from `1` (lowest priority) to `5` (highest possible priority). Default value `null` means miner don't change threads priority at all. Setting priority higher than 2 can make your PC unresponsive.
 
 #### `memory-pool` (since v4.3.0)
-Use continuous, persistent memory block for mining threads, useful for preserve huge pages allocation while algorithm swithing. Possible values `false` (feature disabled, by default) or `true` or specific count of 2 MB huge pages. It helps to avoid loosing huge pages for scratchpads when RandomX dataset is updated and mining threads restart after a 2-3 days of mining.
+Use continuous, persistent memory block for mining threads, useful for preserve huge pages allocation while algorithm switching. Possible values `false` (feature disabled, by default) or `true` or specific count of 2 MB huge pages. It helps to avoid loosing huge pages for scratchpads when RandomX dataset is updated and mining threads restart after a 2-3 days of mining.
 
 #### `yield` (since v5.1.1)
 Prefer system better system response/stability `true` (default value) or maximum hashrate `false`.

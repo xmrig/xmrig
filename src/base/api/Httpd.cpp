@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,9 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/api/Httpd.h"
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "base/api/Api.h"
 #include "base/io/log/Log.h"
 #include "base/net/http/HttpApiResponse.h"
@@ -155,25 +148,25 @@ void xmrig::Httpd::onHttpData(const HttpData &data)
         }
 #       endif
 
-        return HttpResponse(data.id(), HTTP_STATUS_NOT_FOUND).end();
+        return HttpResponse(data.id(), 404 /* NOT_FOUND */).end();
     }
 
     if (data.method > 4) {
-        return HttpApiResponse(data.id(), HTTP_STATUS_METHOD_NOT_ALLOWED).end();
+        return HttpApiResponse(data.id(), 405 /* METHOD_NOT_ALLOWED */).end();
     }
 
     const int status = auth(data);
-    if (status != HTTP_STATUS_OK) {
+    if (status != 200) {
         return HttpApiResponse(data.id(), status).end();
     }
 
     if (data.method != HTTP_GET) {
         if (m_base->config()->http().isRestricted()) {
-            return HttpApiResponse(data.id(), HTTP_STATUS_FORBIDDEN).end();
+            return HttpApiResponse(data.id(), 403 /* FORBIDDEN */).end();
         }
 
         if (!data.headers.count(HttpData::kContentTypeL) || data.headers.at(HttpData::kContentTypeL) != HttpData::kApplicationJson) {
-            return HttpApiResponse(data.id(), HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE).end();
+            return HttpApiResponse(data.id(), 415 /* UNSUPPORTED_MEDIA_TYPE */).end();
         }
     }
 
@@ -186,19 +179,19 @@ int xmrig::Httpd::auth(const HttpData &req) const
     const Http &config = m_base->config()->http();
 
     if (!req.headers.count(kAuthorization)) {
-        return config.isAuthRequired() ? HTTP_STATUS_UNAUTHORIZED : HTTP_STATUS_OK;
+        return config.isAuthRequired() ? 401 /* UNAUTHORIZED */ : 200;
     }
 
     if (config.token().isNull()) {
-        return HTTP_STATUS_UNAUTHORIZED;
+        return 401 /* UNAUTHORIZED */;
     }
 
     const std::string &token = req.headers.at(kAuthorization);
     const size_t size        = token.size();
 
     if (token.size() < 8 || config.token().size() != size - 7 || memcmp("Bearer ", token.c_str(), 7) != 0) {
-        return HTTP_STATUS_FORBIDDEN;
+        return 403 /* FORBIDDEN */;
     }
 
-    return strncmp(config.token().data(), token.c_str() + 7, config.token().size()) == 0 ? HTTP_STATUS_OK : HTTP_STATUS_FORBIDDEN;
+    return strncmp(config.token().data(), token.c_str() + 7, config.token().size()) == 0 ? 200 : 403 /* FORBIDDEN */;
 }

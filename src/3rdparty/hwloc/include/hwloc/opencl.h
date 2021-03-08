@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2020 Inria.  All rights reserved.
+ * Copyright © 2012-2021 Inria.  All rights reserved.
  * Copyright © 2013, 2018 Université Bordeaux.  All right reserved.
  * See COPYING in top-level directory.
  */
@@ -82,9 +82,10 @@ hwloc_opencl_get_device_pci_busid(cl_device_id device,
 	if (CL_SUCCESS == clret
 	    && HWLOC_CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD == amdtopo.raw.type) {
 		*domain = 0; /* can't do anything better */
-		*bus = (unsigned) amdtopo.pcie.bus;
-		*dev = (unsigned) amdtopo.pcie.device;
-		*func = (unsigned) amdtopo.pcie.function;
+		/* cl_device_topology_amd stores bus ID in cl_char, dont convert those signed char directly to unsigned int */
+		*bus = (unsigned) (unsigned char) amdtopo.pcie.bus;
+		*dev = (unsigned) (unsigned char) amdtopo.pcie.device;
+		*func = (unsigned) (unsigned char) amdtopo.pcie.function;
 		return 0;
 	}
 

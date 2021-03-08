@@ -11,10 +11,10 @@
 #ifndef HWLOC_CONFIG_H
 #define HWLOC_CONFIG_H
 
-#define HWLOC_VERSION "2.4.0"
+#define HWLOC_VERSION "2.4.1"
 #define HWLOC_VERSION_MAJOR 2
 #define HWLOC_VERSION_MINOR 4
-#define HWLOC_VERSION_RELEASE 0
+#define HWLOC_VERSION_RELEASE 1
 #define HWLOC_VERSION_GREEK ""
 
 #define __hwloc_restrict

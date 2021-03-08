@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Inria.  All rights reserved.
+ * Copyright © 2010-2021 Inria.  All rights reserved.
  * Copyright © 2010-2013 Université Bordeaux
  * Copyright © 2010-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -908,6 +908,16 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
   int gotnuma = 0;
   int fulldiscovery = (flags & HWLOC_X86_DISC_FLAG_FULL);
 
+#ifdef HWLOC_DEBUG
+  hwloc_debug("\nSummary of x86 CPUID topology:\n");
+  for(i=0; i<nbprocs; i++) {
+    hwloc_debug("PU %u present=%u apicid=%u on PKG %d CORE %d DIE %d NODE %d\n",
+                i, infos[i].present, infos[i].apicid,
+                infos[i].ids[PKG], infos[i].ids[CORE], infos[i].ids[DIE], infos[i].ids[NODE]);
+  }
+  hwloc_debug("\n");
+#endif
+
   for (i = 0; i < nbprocs; i++)
     if (infos[i].present) {
       hwloc_bitmap_set(complete_cpuset, i);
@@ -1587,7 +1597,8 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
   }
 
   if (topology->levels[0][0]->cpuset) {
-    /* somebody else discovered things */
+    /* somebody else discovered things, reconnect levels so that we can look at them */
+    hwloc_topology_reconnect(topology, 0);
     if (topology->nb_levels == 2 && topology->level_nbobjects[1] == data->nbprocs) {
       /* only PUs were discovered, as much as we would, complete the topology with everything else */
       alreadypus = 1;
@@ -1595,7 +1606,6 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
     }
 
     /* several object types were added, we can't easily complete, just do partial discovery */
-    hwloc_topology_reconnect(topology, 0);
     ret = hwloc_look_x86(backend, flags);
     if (ret)
       hwloc_obj_add_info(topology->levels[0][0], "Backend", "x86");

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #define XMRIG_FETCH_H
 
 
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "3rdparty/rapidjson/fwd.h"
 #include "base/tools/String.h"
 
@@ -41,24 +41,24 @@ class FetchRequest
 {
 public:
     FetchRequest() = default;
-    FetchRequest(http_method method, const String &host, uint16_t port, const String &path, bool tls = false, bool quiet = false, const char *data = nullptr, size_t size = 0, const char *contentType = nullptr);
-    FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls = false, bool quiet = false);
+    FetchRequest(llhttp_method method, const String &host, uint16_t port, const String &path, bool tls = false, bool quiet = false, const char *data = nullptr, size_t size = 0, const char *contentType = nullptr);
+    FetchRequest(llhttp_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls = false, bool quiet = false);
 
     void setBody(const char *data, size_t size, const char *contentType = nullptr);
     void setBody(const rapidjson::Value &value);
 
     inline bool hasBody() const { return method != HTTP_GET && method != HTTP_HEAD && !body.empty(); }
 
-    bool quiet          = false;
-    bool tls            = false;
-    http_method method  = HTTP_GET;
+    bool quiet              = false;
+    bool tls                = false;
+    llhttp_method method    = HTTP_GET;
     std::map<const std::string, const std::string> headers;
     std::string body;
     String fingerprint;
     String host;
     String path;
-    uint16_t port       = 0;
-    uint64_t timeout    = 0;
+    uint16_t port           = 0;
+    uint64_t timeout        = 0;
 };
 
 
