@@ -45,7 +45,7 @@ public:
             return;
         }
 
-        uv_close(reinterpret_cast<uv_handle_t *>(handle), [](uv_handle_t *handle) { delete handle; });
+        uv_close(reinterpret_cast<uv_handle_t *>(handle), [](uv_handle_t *handle) { delete reinterpret_cast<T>(handle); });
     }
 };
 
