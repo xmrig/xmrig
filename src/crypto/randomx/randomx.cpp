@@ -48,9 +48,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 
 extern "C" {
-#include "crypto/randomx/defyx/yescrypt.h"
 #include "crypto/randomx/panthera/yespower.h"
-#include "crypto/randomx/defyx/KangarooTwelve.h"
+#include "crypto/randomx/panthera/KangarooTwelve.h"
 }
 
 #include "crypto/rx/Profiler.h"
@@ -122,15 +121,11 @@ RandomX_ConfigurationScala::RandomX_ConfigurationScala()
 	RANDOMX_FREQ_CBRANCH = 16;
 }
 
-RandomX_ConfigurationScala2::RandomX_ConfigurationScala2()
-{
-}
-
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonMemory(262144)
-        , CacheAccesses(8)
-        , DatasetBaseSize(2147483648)
-        , ArgonIterations(3)
+	, CacheAccesses(8)
+	, DatasetBaseSize(2147483648)
+	, ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
 	, ScratchpadL1_Size(16384)
@@ -391,30 +386,10 @@ RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 RandomX_ConfigurationScala RandomX_ScalaConfig;
-RandomX_ConfigurationScala2 RandomX_Scala2Config;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 static std::mutex vm_pool_mutex;
-
-int rx_sipesh_k12(void *out, size_t outlen, const void *in, size_t inlen)
-{
-	const void *salt = in;
-	size_t saltlen = inlen;
-	yescrypt_local_t local;
-	int retval;
-
-	if (yescrypt_init_local(&local)) return -1;
-	retval = yescrypt_kdf(NULL, &local,
-		(const uint8_t*)in, inlen,
-		(const uint8_t*)salt, saltlen,
-		(uint64_t)2048, 8, 1, 0, 0, (yescrypt_flags_t)1,
-		(uint8_t*)out, outlen
-	);
-	if (yescrypt_free_local(&local) || retval) return -1;
-	retval = KangarooTwelve((const unsigned char *)in, inlen, (unsigned char *)out, 32, 0, 0);
-	return retval;
-}
 
 int rx_yespower_k12(void *out, size_t outlen, const void *in, size_t inlen)
 {
