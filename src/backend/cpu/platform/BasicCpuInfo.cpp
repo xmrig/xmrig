@@ -336,6 +336,14 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
             return count_limit;
         }
 
+        if (algorithm == Algorithm::RX_XLA) {
+            CpuThreads threads;
+            for (size_t i = 0; i < count_limit2; ++i) {
+                threads.add(i, 0);
+            }
+            return threads;
+        }
+
         return count_limit2;
     }
 #   endif
