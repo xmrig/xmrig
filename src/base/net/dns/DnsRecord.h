@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,7 +33,7 @@ namespace xmrig {
 class DnsRecord
 {
 public:
-    enum Type {
+    enum Type : uint32_t {
         Unknown,
         A,
         AAAA
@@ -42,15 +42,15 @@ public:
     DnsRecord() {}
     DnsRecord(const addrinfo *addr);
 
-    sockaddr *addr(uint16_t port = 0) const;
+    const sockaddr *addr(uint16_t port = 0) const;
+    String ip() const;
 
     inline bool isValid() const     { return m_type != Unknown; }
-    inline const String &ip() const { return m_ip; }
     inline Type type() const        { return m_type; }
 
 private:
-    Type m_type = Unknown;
-    String m_ip;
+    mutable uint8_t m_data[28]{};
+    const Type m_type = Unknown;
 };
 
 

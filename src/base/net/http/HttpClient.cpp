@@ -74,14 +74,10 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
         return;
     }
 
-    sockaddr *addr = dns.get().addr(port());
-
     auto req  = new uv_connect_t;
     req->data = this;
 
-    uv_tcp_connect(req, m_tcp, addr, onConnect);
-
-    delete addr;
+    uv_tcp_connect(req, m_tcp, dns.get().addr(port()), onConnect);
 }
 
 

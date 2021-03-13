@@ -566,7 +566,7 @@ int64_t xmrig::Client::send(size_t size)
 }
 
 
-void xmrig::Client::connect(sockaddr *addr)
+void xmrig::Client::connect(const sockaddr *addr)
 {
     setState(ConnectingState);
 
@@ -584,8 +584,6 @@ void xmrig::Client::connect(sockaddr *addr)
 #   endif
 
     uv_tcp_connect(req, m_socket, addr, onConnect);
-
-    delete addr;
 }
 
 

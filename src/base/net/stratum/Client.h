@@ -108,7 +108,7 @@ private:
     bool write(const uv_buf_t &buf);
     int resolve(const String &host);
     int64_t send(size_t size);
-    void connect(sockaddr *addr);
+    void connect(const sockaddr *addr);
     void handshake();
     void parse(char *line, size_t len);
     void parseExtensions(const rapidjson::Value &result);
