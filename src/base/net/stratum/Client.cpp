@@ -295,14 +295,14 @@ void xmrig::Client::tick(uint64_t now)
 }
 
 
-void xmrig::Client::onResolved(const Dns &dns, int status)
+void xmrig::Client::onResolved(const DnsRecords &records, int status)
 {
     assert(m_listener != nullptr);
     if (!m_listener) {
         return reconnect();
     }
 
-    if (status < 0 && dns.isEmpty()) {
+    if (status < 0 && records.isEmpty()) {
         if (!isQuiet()) {
             LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
         }
@@ -310,7 +310,7 @@ void xmrig::Client::onResolved(const Dns &dns, int status)
         return reconnect();
     }
 
-    const auto &record = dns.get();
+    const auto &record = records.get();
     m_ip = record.ip();
 
     connect(record.addr(m_socks5 ? m_pool.proxy().port() : m_pool.port()));

@@ -50,6 +50,7 @@ using BIO = struct bio_st;
 namespace xmrig {
 
 
+class Dns;
 class IClientListener;
 class JobResult;
 
@@ -79,7 +80,7 @@ protected:
     void deleteLater() override;
     void tick(uint64_t now) override;
 
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status) override;
 
     inline bool hasExtension(Extension extension) const noexcept override   { return m_extensions.test(extension); }
     inline const char *mode() const override                                { return "pool"; }

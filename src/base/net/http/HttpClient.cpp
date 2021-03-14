@@ -62,11 +62,11 @@ bool xmrig::HttpClient::connect()
 }
 
 
-void xmrig::HttpClient::onResolved(const Dns &dns, int status)
+void xmrig::HttpClient::onResolved(const DnsRecords &records, int status)
 {
     this->status = status;
 
-    if (status < 0 && dns.isEmpty()) {
+    if (status < 0 && records.isEmpty()) {
         if (!isQuiet()) {
             LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
         }
@@ -77,7 +77,7 @@ void xmrig::HttpClient::onResolved(const Dns &dns, int status)
     auto req  = new uv_connect_t;
     req->data = this;
 
-    uv_tcp_connect(req, m_tcp, dns.get().addr(port()), onConnect);
+    uv_tcp_connect(req, m_tcp, records.get().addr(port()), onConnect);
 }
 
 

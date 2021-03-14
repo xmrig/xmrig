@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,6 @@
 
 namespace xmrig {
     Storage<Dns> Dns::m_storage;
-    static const DnsRecord defaultRecord;
 }
 
 
@@ -54,7 +53,7 @@ bool xmrig::Dns::resolve(const String &host)
     if (m_host != host) {
         m_host = host;
 
-        clear();
+        m_records.clear();
     }
 
     m_status = uv_getaddrinfo(uv_default_loop(), m_resolver, Dns::onResolved, m_host.data(), nullptr, &m_hints);
@@ -63,82 +62,21 @@ bool xmrig::Dns::resolve(const String &host)
 }
 
 
-const char *xmrig::Dns::error() const
-{
-    return uv_strerror(m_status);
-}
-
-
-const xmrig::DnsRecord &xmrig::Dns::get(DnsRecord::Type prefered) const
-{
-    if (count() == 0) {
-        return defaultRecord;
-    }
-
-    const size_t ipv4 = m_ipv4.size();
-    const size_t ipv6 = m_ipv6.size();
-
-    if (ipv6 && (prefered == DnsRecord::AAAA || !ipv4)) {
-        return m_ipv6[ipv6 == 1 ? 0 : static_cast<size_t>(rand()) % ipv6];
-    }
-
-    if (ipv4) {
-        return m_ipv4[ipv4 == 1 ? 0 : static_cast<size_t>(rand()) % ipv4];
-    }
-
-    return defaultRecord;
-}
-
-
-size_t xmrig::Dns::count(DnsRecord::Type type) const
-{
-    if (type == DnsRecord::A) {
-        return m_ipv4.size();
-    }
-
-    if (type == DnsRecord::AAAA) {
-        return m_ipv6.size();
-    }
-
-    return m_ipv4.size() + m_ipv6.size();
-}
-
-
-void xmrig::Dns::clear()
-{
-    m_ipv4.clear();
-    m_ipv6.clear();
-}
-
-
 void xmrig::Dns::onResolved(int status, addrinfo *res)
 {
     m_status = status;
 
     if (m_status < 0) {
-        return m_listener->onResolved(*this, status);
+        return m_listener->onResolved(m_records, status);
     }
 
-    clear();
+    m_records.parse(res);
 
-    addrinfo *ptr = res;
-    while (ptr != nullptr) {
-        if (ptr->ai_family == AF_INET) {
-            m_ipv4.emplace_back(ptr);
-        }
-
-        if (ptr->ai_family == AF_INET6) {
-            m_ipv6.emplace_back(ptr);
-        }
-
-        ptr = ptr->ai_next;
-    }
-
-    if (isEmpty()) {
+    if (m_records.isEmpty()) {
         m_status = UV_EAI_NONAME;
     }
 
-    m_listener->onResolved(*this, m_status);
+    m_listener->onResolved(m_records, m_status);
 }
 
 

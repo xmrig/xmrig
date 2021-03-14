@@ -185,16 +185,16 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
 }
 
 
-void xmrig::BenchClient::onResolved(const Dns &dns, int status)
+void xmrig::BenchClient::onResolved(const DnsRecords &records, int status)
 {
 #   ifdef XMRIG_FEATURE_HTTP
     assert(!m_httpListener);
 
     if (status < 0) {
-        return setError(dns.error(), "DNS error");
+        return setError(uv_strerror(status), "DNS error");
     }
 
-    m_ip            = dns.get().ip();
+    m_ip            = records.get().ip();
     m_httpListener  = std::make_shared<HttpListener>(this, tag());
 
     if (m_mode == ONLINE_BENCH) {
@@ -310,7 +310,7 @@ void xmrig::BenchClient::resolve()
     m_dns = std::make_shared<Dns>(this);
 
     if (!m_dns->resolve(BenchConfig::kApiHost)) {
-        setError(m_dns->error(), "getaddrinfo error");
+        setError(uv_strerror(m_dns->status()), "getaddrinfo error");
     }
 }
 

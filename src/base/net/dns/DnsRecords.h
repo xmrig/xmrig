@@ -16,32 +16,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_IDNSLISTENER_H
-#define XMRIG_IDNSLISTENER_H
+#ifndef XMRIG_DNSRECORDS_H
+#define XMRIG_DNSRECORDS_H
 
 
-#include "base/tools/Object.h"
+#include "base/net/dns/DnsRecord.h"
 
 
 namespace xmrig {
 
 
-class DnsRecords;
-
-
-class IDnsListener
+class DnsRecords
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(IDnsListener)
+    inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
 
-    IDnsListener()          = default;
-    virtual ~IDnsListener() = default;
+    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::A) const;
+    size_t count(DnsRecord::Type type = DnsRecord::Unknown) const;
+    void clear();
+    void parse(addrinfo *res);
 
-    virtual void onResolved(const DnsRecords &records, int status) = 0;
+private:
+    std::vector<DnsRecord> m_ipv4;
+    std::vector<DnsRecord> m_ipv6;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif // XMRIG_IDNSLISTENER_H
+#endif /* XMRIG_DNSRECORDS_H */

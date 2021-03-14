@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-class String;
+class Dns;
 
 
 class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
@@ -51,7 +51,7 @@ public:
     bool connect();
 
 protected:
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status) override;
     void onTimer(const Timer *timer) override;
 
     virtual void handshake();

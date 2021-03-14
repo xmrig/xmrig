@@ -70,7 +70,7 @@ protected:
     void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts) override;
     void onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status) override;
 
 private:
     enum Mode : uint32_t {
