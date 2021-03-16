@@ -37,7 +37,7 @@ public:
     IDnsListener()          = default;
     virtual ~IDnsListener() = default;
 
-    virtual void onResolved(const DnsRecords &records, int status) = 0;
+    virtual void onResolved(const DnsRecords &records, int status, const char *error)   = 0;
 };
 
 

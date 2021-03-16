@@ -16,36 +16,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNS_H
-#define XMRIG_DNS_H
+#ifndef XMRIG_IDNSBACKEND_H
+#define XMRIG_IDNSBACKEND_H
 
 
-#include "base/tools/String.h"
+#include "base/tools/Object.h"
 
 
-#include <map>
 #include <memory>
 
 
 namespace xmrig {
 
 
+class DnsRecords;
 class DnsRequest;
-class IDnsBackend;
 class IDnsListener;
+class String;
 
 
-class Dns
+class IDnsBackend
 {
 public:
-    static std::shared_ptr<DnsRequest> resolve(const String &host, IDnsListener *listener, uint64_t ttl = 60000);
+    XMRIG_DISABLE_COPY_MOVE(IDnsBackend)
 
-private:
-    static std::map<String, std::shared_ptr<IDnsBackend> > m_backends;
+    IDnsBackend()           = default;
+    virtual ~IDnsBackend()  = default;
+
+    virtual const DnsRecords &records() const                                                               = 0;
+    virtual std::shared_ptr<DnsRequest> resolve(const String &host, IDnsListener *listener, uint64_t ttl)   = 0;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DNS_H */
+#endif // XMRIG_IDNSBACKEND_H

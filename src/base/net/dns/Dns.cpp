@@ -18,74 +18,23 @@
 
 
 #include "base/net/dns/Dns.h"
-#include "base/kernel/interfaces/IDnsListener.h"
+#include "base/net/dns/DnsUvBackend.h"
 
 
 namespace xmrig {
-    Storage<Dns> Dns::m_storage;
-}
 
 
-xmrig::Dns::Dns(IDnsListener *listener) :
-    m_listener(listener)
+std::map<String, std::shared_ptr<IDnsBackend> > Dns::m_backends;
+
+
+} // namespace xmrig
+
+
+std::shared_ptr<xmrig::DnsRequest> xmrig::Dns::resolve(const String &host, IDnsListener *listener, uint64_t ttl)
 {
-    m_key = m_storage.add(this);
-
-    m_resolver = new uv_getaddrinfo_t;
-    m_resolver->data = m_storage.ptr(m_key);
-
-    m_hints.ai_family   = AF_UNSPEC;
-    m_hints.ai_socktype = SOCK_STREAM;
-    m_hints.ai_protocol = IPPROTO_TCP;
-}
-
-
-xmrig::Dns::~Dns()
-{
-    m_storage.release(m_key);
-
-    delete m_resolver;
-}
-
-
-bool xmrig::Dns::resolve(const String &host)
-{
-    if (m_host != host) {
-        m_host = host;
-
-        m_records.clear();
+    if (m_backends.find(host) == m_backends.end()) {
+        m_backends.insert({ host, std::make_shared<DnsUvBackend>() });
     }
 
-    m_status = uv_getaddrinfo(uv_default_loop(), m_resolver, Dns::onResolved, m_host.data(), nullptr, &m_hints);
-
-    return m_status == 0;
-}
-
-
-void xmrig::Dns::onResolved(int status, addrinfo *res)
-{
-    m_status = status;
-
-    if (m_status < 0) {
-        return m_listener->onResolved(m_records, status);
-    }
-
-    m_records.parse(res);
-
-    if (m_records.isEmpty()) {
-        m_status = UV_EAI_NONAME;
-    }
-
-    m_listener->onResolved(m_records, m_status);
-}
-
-
-void xmrig::Dns::onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res)
-{
-    Dns *dns = m_storage.get(req->data);
-    if (dns) {
-        dns->onResolved(status, res);
-    }
-
-    uv_freeaddrinfo(res);
+    return m_backends.at(host)->resolve(host, listener, ttl);
 }
