@@ -31,7 +31,7 @@ class DnsRecords
 public:
     inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
 
-    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::A) const;
+    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::Unknown) const;
     size_t count(DnsRecord::Type type = DnsRecord::Unknown) const;
     void clear();
     void parse(addrinfo *res);

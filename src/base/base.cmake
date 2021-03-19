@@ -44,6 +44,7 @@ set(HEADERS_BASE
     src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/net/dns/Dns.h
+    src/base/net/dns/DnsConfig.h
     src/base/net/dns/DnsRecord.h
     src/base/net/dns/DnsRecords.h
     src/base/net/dns/DnsRequest.h
@@ -103,6 +104,7 @@ set(SOURCES_BASE
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/net/dns/Dns.cpp
+    src/base/net/dns/DnsConfig.cpp
     src/base/net/dns/DnsRecord.cpp
     src/base/net/dns/DnsRecords.cpp
     src/base/net/dns/DnsUvBackend.cpp

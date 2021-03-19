@@ -21,6 +21,7 @@
 
 
 #include "base/net/dns/DnsRecords.h"
+#include "base/net/dns/Dns.h"
 
 
 const xmrig::DnsRecord &xmrig::DnsRecords::get(DnsRecord::Type prefered) const
@@ -34,7 +35,7 @@ const xmrig::DnsRecord &xmrig::DnsRecords::get(DnsRecord::Type prefered) const
     const size_t ipv4 = m_ipv4.size();
     const size_t ipv6 = m_ipv6.size();
 
-    if (ipv6 && (prefered == DnsRecord::AAAA || !ipv4)) {
+    if (ipv6 && (prefered == DnsRecord::AAAA || Dns::config().isIPv6() || !ipv4)) {
         return m_ipv6[ipv6 == 1 ? 0 : static_cast<size_t>(rand()) % ipv6];
     }
 

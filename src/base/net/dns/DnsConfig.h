@@ -16,26 +16,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef XMRIG_DNSCONFIG_H
+#define XMRIG_DNSCONFIG_H
 
-#include "base/net/dns/Dns.h"
-#include "base/net/dns/DnsUvBackend.h"
+
+#include "3rdparty/rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-DnsConfig Dns::m_config;
-std::map<String, std::shared_ptr<IDnsBackend> > Dns::m_backends;
-
-
-} // namespace xmrig
-
-
-std::shared_ptr<xmrig::DnsRequest> xmrig::Dns::resolve(const String &host, IDnsListener *listener, uint64_t ttl)
+class DnsConfig
 {
-    if (m_backends.find(host) == m_backends.end()) {
-        m_backends.insert({ host, std::make_shared<DnsUvBackend>() });
-    }
+public:
+    static const char *kField;
+    static const char *kIPv6;
+    static const char *kTTL;
 
-    return m_backends.at(host)->resolve(host, listener, ttl == 0 ? m_config.ttl() : ttl);
-}
+    DnsConfig() = default;
+    DnsConfig(const rapidjson::Value &object);
+
+    inline bool isIPv6() const  { return m_ipv6; }
+    inline uint32_t ttl() const { return m_ttl * 1000U; }
+
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+
+
+private:
+    bool m_ipv6     = false;
+    uint32_t m_ttl  = 30U;
+};
+
+
+} /* namespace xmrig */
+
+
+#endif /* XMRIG_DNSCONFIG_H */

@@ -17,25 +17,41 @@
  */
 
 
-#include "base/net/dns/Dns.h"
-#include "base/net/dns/DnsUvBackend.h"
+#include "base/net/dns/DnsConfig.h"
+#include "3rdparty/rapidjson/document.h"
+#include "base/io/json/Json.h"
+
+
+#include <algorithm>
 
 
 namespace xmrig {
 
 
-DnsConfig Dns::m_config;
-std::map<String, std::shared_ptr<IDnsBackend> > Dns::m_backends;
+const char *DnsConfig::kField   = "dns";
+const char *DnsConfig::kIPv6    = "ipv6";
+const char *DnsConfig::kTTL     = "ttl";
 
 
 } // namespace xmrig
 
 
-std::shared_ptr<xmrig::DnsRequest> xmrig::Dns::resolve(const String &host, IDnsListener *listener, uint64_t ttl)
+xmrig::DnsConfig::DnsConfig(const rapidjson::Value &value)
 {
-    if (m_backends.find(host) == m_backends.end()) {
-        m_backends.insert({ host, std::make_shared<DnsUvBackend>() });
-    }
+    m_ipv6  = Json::getBool(value, kIPv6, m_ipv6);
+    m_ttl   = std::max(Json::getUint(value, kTTL, m_ttl), 1U);
+}
 
-    return m_backends.at(host)->resolve(host, listener, ttl == 0 ? m_config.ttl() : ttl);
+
+rapidjson::Value xmrig::DnsConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
+
+    auto &allocator = doc.GetAllocator();
+    Value obj(kObjectType);
+
+    obj.AddMember(StringRef(kIPv6), m_ipv6, allocator);
+    obj.AddMember(StringRef(kTTL),  m_ttl, allocator);
+
+    return obj;
 }
