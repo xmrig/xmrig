@@ -940,7 +940,7 @@ void xmrig::Client::startTimeout()
 {
     m_expire = 0;
 
-    if (has<EXT_KEEPALIVE>()) {
+    if (has<EXT_KEEPALIVE>() && m_pool.keepAlive() > 0) {
         const uint64_t ms = static_cast<uint64_t>(m_pool.keepAlive() > 0 ? m_pool.keepAlive() : Pool::kKeepAliveTimeout) * 1000;
 
         m_keepAlive = Chrono::steadyMSecs() + ms;
