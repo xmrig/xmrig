@@ -33,6 +33,7 @@
 #include "base/kernel/config/BaseConfig.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/kernel/Process.h"
+#include "base/net/dns/DnsConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
 #include "core/config/Config_platform.h"
@@ -244,6 +245,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpPort:       /* --http-port */
     case IConfig::DonateLevelKey: /* --donate-level */
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
+    case IConfig::DnsTtlKey:      /* --dns-ttl */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -256,6 +258,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DaemonKey:      /* --daemon */
     case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
+    case IConfig::DnsIPv6Key:     /* --dns-ipv6 */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -316,6 +319,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
 
+    case IConfig::DnsIPv6Key: /* --dns-ipv6 */
+        return set(doc, DnsConfig::kField, DnsConfig::kIPv6, enable);
+
     default:
         break;
     }
@@ -343,6 +349,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
     case IConfig::PrintTimeKey: /* --print-time */
         return set(doc, BaseConfig::kPrintTime, arg);
+
+    case IConfig::DnsTtlKey: /* --dns-ttl */
+        return set(doc, DnsConfig::kField, DnsConfig::kTTL, arg);
 
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
