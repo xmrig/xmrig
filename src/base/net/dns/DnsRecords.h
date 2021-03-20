@@ -16,45 +16,33 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORD_H
-#define XMRIG_DNSRECORD_H
+#ifndef XMRIG_DNSRECORDS_H
+#define XMRIG_DNSRECORDS_H
 
 
-struct addrinfo;
-struct sockaddr;
-
-
-#include "base/tools/String.h"
+#include "base/net/dns/DnsRecord.h"
 
 
 namespace xmrig {
 
 
-class DnsRecord
+class DnsRecords
 {
 public:
-    enum Type : uint32_t {
-        Unknown,
-        A,
-        AAAA
-    };
+    inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
 
-    DnsRecord() {}
-    DnsRecord(const addrinfo *addr);
-
-    const sockaddr *addr(uint16_t port = 0) const;
-    String ip() const;
-
-    inline bool isValid() const     { return m_type != Unknown; }
-    inline Type type() const        { return m_type; }
+    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::Unknown) const;
+    size_t count(DnsRecord::Type type = DnsRecord::Unknown) const;
+    void clear();
+    void parse(addrinfo *res);
 
 private:
-    mutable uint8_t m_data[28]{};
-    const Type m_type = Unknown;
+    std::vector<DnsRecord> m_ipv4;
+    std::vector<DnsRecord> m_ipv6;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DNSRECORD_H */
+#endif /* XMRIG_DNSRECORDS_H */

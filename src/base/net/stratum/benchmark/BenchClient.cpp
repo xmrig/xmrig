@@ -27,6 +27,7 @@
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
+#include "base/net/dns/DnsRecords.h"
 #include "base/net/http/Fetch.h"
 #include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
@@ -185,16 +186,18 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
 }
 
 
-void xmrig::BenchClient::onResolved(const Dns &dns, int status)
+void xmrig::BenchClient::onResolved(const DnsRecords &records, int status, const char *error)
 {
 #   ifdef XMRIG_FEATURE_HTTP
     assert(!m_httpListener);
 
+    m_dns.reset();
+
     if (status < 0) {
-        return setError(dns.error(), "DNS error");
+        return setError(error, "DNS error");
     }
 
-    m_ip            = dns.get().ip();
+    m_ip            = records.get().ip();
     m_httpListener  = std::make_shared<HttpListener>(this, tag());
 
     if (m_mode == ONLINE_BENCH) {
@@ -307,11 +310,7 @@ void xmrig::BenchClient::onGetReply(const rapidjson::Value &value)
 
 void xmrig::BenchClient::resolve()
 {
-    m_dns = std::make_shared<Dns>(this);
-
-    if (!m_dns->resolve(BenchConfig::kApiHost)) {
-        setError(m_dns->error(), "getaddrinfo error");
-    }
+    m_dns = Dns::resolve(BenchConfig::kApiHost, this);
 }
 
 

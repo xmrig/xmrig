@@ -70,7 +70,7 @@ protected:
     void onBenchDone(uint64_t result, uint64_t diff, uint64_t ts) override;
     void onBenchReady(uint64_t ts, uint32_t threads, const IBackend *backend) override;
     void onHttpData(const HttpData &data) override;
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status, const char *error) override;
 
 private:
     enum Mode : uint32_t {
@@ -110,7 +110,7 @@ private:
     Pool m_pool;
     Request m_request           = NO_REQUEST;
     std::shared_ptr<BenchConfig> m_benchmark;
-    std::shared_ptr<Dns> m_dns;
+    std::shared_ptr<DnsRequest> m_dns;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_ip;
     String m_token;

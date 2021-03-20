@@ -16,45 +16,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORD_H
-#define XMRIG_DNSRECORD_H
+#ifndef XMRIG_DNSCONFIG_H
+#define XMRIG_DNSCONFIG_H
 
 
-struct addrinfo;
-struct sockaddr;
-
-
-#include "base/tools/String.h"
+#include "3rdparty/rapidjson/fwd.h"
 
 
 namespace xmrig {
 
 
-class DnsRecord
+class DnsConfig
 {
 public:
-    enum Type : uint32_t {
-        Unknown,
-        A,
-        AAAA
-    };
+    static const char *kField;
+    static const char *kIPv6;
+    static const char *kTTL;
 
-    DnsRecord() {}
-    DnsRecord(const addrinfo *addr);
+    DnsConfig() = default;
+    DnsConfig(const rapidjson::Value &object);
 
-    const sockaddr *addr(uint16_t port = 0) const;
-    String ip() const;
+    inline bool isIPv6() const  { return m_ipv6; }
+    inline uint32_t ttl() const { return m_ttl * 1000U; }
 
-    inline bool isValid() const     { return m_type != Unknown; }
-    inline Type type() const        { return m_type; }
+    rapidjson::Value toJSON(rapidjson::Document &doc) const;
+
 
 private:
-    mutable uint8_t m_data[28]{};
-    const Type m_type = Unknown;
+    bool m_ipv6     = false;
+    uint32_t m_ttl  = 30U;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DNSRECORD_H */
+#endif /* XMRIG_DNSCONFIG_H */

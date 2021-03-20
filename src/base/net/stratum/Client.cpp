@@ -48,10 +48,11 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
+#include "base/net/dns/DnsRecords.h"
 #include "base/net/stratum/Socks5.h"
 #include "base/net/tools/NetBuffer.h"
-#include "base/tools/Cvt.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/Cvt.h"
 #include "net/JobResult.h"
 
 
@@ -86,13 +87,11 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
 {
     m_reader.setListener(this);
     m_key = m_storage.add(this);
-    m_dns = new Dns(this);
 }
 
 
 xmrig::Client::~Client()
 {
-    delete m_dns;
     delete m_socket;
 }
 
@@ -295,22 +294,24 @@ void xmrig::Client::tick(uint64_t now)
 }
 
 
-void xmrig::Client::onResolved(const Dns &dns, int status)
+void xmrig::Client::onResolved(const DnsRecords &records, int status, const char *error)
 {
+    m_dns.reset();
+
     assert(m_listener != nullptr);
     if (!m_listener) {
         return reconnect();
     }
 
-    if (status < 0 && dns.isEmpty()) {
+    if (status < 0 && records.isEmpty()) {
         if (!isQuiet()) {
-            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
+            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), error);
         }
 
         return reconnect();
     }
 
-    const auto &record = dns.get();
+    const auto &record = records.get();
     m_ip = record.ip();
 
     connect(record.addr(m_socks5 ? m_pool.proxy().port() : m_pool.port()));
@@ -524,13 +525,7 @@ int xmrig::Client::resolve(const String &host)
         m_failures = 0;
     }
 
-    if (!m_dns->resolve(host)) {
-        if (!isQuiet()) {
-            LOG_ERR("%s " RED("getaddrinfo error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(m_dns->status()));
-        }
-
-        return 1;
-    }
+    m_dns = Dns::resolve(host, this);
 
     return 0;
 }
@@ -566,7 +561,7 @@ int64_t xmrig::Client::send(size_t size)
 }
 
 
-void xmrig::Client::connect(sockaddr *addr)
+void xmrig::Client::connect(const sockaddr *addr)
 {
     setState(ConnectingState);
 
@@ -584,8 +579,6 @@ void xmrig::Client::connect(sockaddr *addr)
 #   endif
 
     uv_tcp_connect(req, m_socket, addr, onConnect);
-
-    delete addr;
 }
 
 
