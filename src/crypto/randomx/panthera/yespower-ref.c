@@ -44,7 +44,9 @@
  * yespower-opt.c.
  */
 
+#if !defined(_MSC_VER)
 #warning "This reference implementation is deliberately mostly not optimized. Use yespower-opt.c instead unless you're testing (against) the reference implementation on purpose."
+#endif
 
 #include <errno.h>
 #include <stdint.h>

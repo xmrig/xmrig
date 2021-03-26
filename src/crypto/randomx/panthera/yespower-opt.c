@@ -49,6 +49,7 @@
  * no slowdown from the prefixes is generally observed on AMD CPUs supporting
  * XOP, some slowdown is sometimes observed on Intel CPUs with AVX.
  */
+#if !defined(_MSC_VER)
 #ifdef __XOP__
 #warning "Note: XOP is enabled.  That's great."
 #elif defined(__AVX__)
@@ -59,6 +60,7 @@
 #warning "SSE2 not enabled.  Expect poor performance."
 #else
 #warning "Note: building generic code for non-x86.  That's OK."
+#endif
 #endif
 
 /*
@@ -101,6 +103,10 @@
 #include "yespower.h"
 
 #include "yespower-platform.c"
+
+#if defined(_MSC_VER)
+#define __thread
+#endif
 
 #if __STDC_VERSION__ >= 199901L
 /* Have restrict */
@@ -527,7 +533,9 @@ static volatile uint64_t Smask2var = Smask2;
 /* 64-bit without AVX.  This relies on out-of-order execution and register
  * renaming.  It may actually be fastest on CPUs with AVX(2) as well - e.g.,
  * it runs great on Haswell. */
+#if !defined(_MSC_VER)
 #warning "Note: using x86-64 inline assembly for pwxform.  That's great."
+#endif
 #undef MAYBE_MEMORY_BARRIER
 #define MAYBE_MEMORY_BARRIER \
 	__asm__("" : : : "memory");
