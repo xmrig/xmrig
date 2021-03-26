@@ -112,9 +112,7 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         }
         else
 #       endif
-        {
-            m_runner = new OclCnRunner(id, data);
-        }
+        m_runner = new OclCnRunner(id, data);
         break;
     }
 
