@@ -46,7 +46,9 @@ public:
         MODE_POOL,
         MODE_DAEMON,
         MODE_SELF_SELECT,
+#       ifdef XMRIG_ALGO_KAWPOW
         MODE_AUTO_ETH,
+#       endif
 #       ifdef XMRIG_FEATURE_BENCHMARK
         MODE_BENCHMARK,
 #       endif
@@ -142,7 +144,11 @@ private:
     bool m_submitToOrigin           = false;
     Coin m_coin;
     int m_keepAlive                 = 0;
+#   ifdef XMRIG_ALGO_KAWPOW
     Mode m_mode                     = MODE_AUTO_ETH;
+#   else
+    Mode m_mode                     = MODE_POOL;
+#   endif
     ProxyUrl m_proxy;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;
