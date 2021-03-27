@@ -29,7 +29,11 @@
 namespace xmrig {
 
 
-Storage<DnsUvBackend> DnsUvBackend::m_storage;
+Storage<DnsUvBackend>& DnsUvBackend::getStorage()
+{
+    static Storage<DnsUvBackend>* storage = new Storage<DnsUvBackend>();
+    return *storage;
+}
 
 static addrinfo hints{};
 
@@ -45,13 +49,13 @@ xmrig::DnsUvBackend::DnsUvBackend()
         hints.ai_protocol   = IPPROTO_TCP;
     }
 
-    m_key = m_storage.add(this);
+    m_key = getStorage().add(this);
 }
 
 
 xmrig::DnsUvBackend::~DnsUvBackend()
 {
-    m_storage.release(m_key);
+    getStorage().release(m_key);
 }
 
 
@@ -76,7 +80,7 @@ std::shared_ptr<xmrig::DnsRequest> xmrig::DnsUvBackend::resolve(const String &ho
 bool xmrig::DnsUvBackend::resolve(const String &host)
 {
     m_req = std::make_shared<uv_getaddrinfo_t>();
-    m_req->data = m_storage.ptr(m_key);
+    m_req->data = getStorage().ptr(m_key);
 
     m_status = uv_getaddrinfo(uv_default_loop(), m_req.get(), DnsUvBackend::onResolved, host.data(), nullptr, &hints);
 
@@ -121,7 +125,7 @@ void xmrig::DnsUvBackend::onResolved(int status, addrinfo *res)
 
 void xmrig::DnsUvBackend::onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res)
 {
-    auto backend = m_storage.get(req->data);
+    auto backend = getStorage().get(req->data);
     if (backend) {
         backend->onResolved(status, res);
     }
