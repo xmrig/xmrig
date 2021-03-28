@@ -61,7 +61,7 @@ private:
     uint64_t m_ts           = 0;
     uintptr_t m_key;
 
-    static Storage<DnsUvBackend> m_storage;
+    static Storage<DnsUvBackend>& getStorage();
 };
 
 
