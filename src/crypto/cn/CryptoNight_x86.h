@@ -739,7 +739,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #       ifdef XMRIG_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             int64_t n = ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0];
-            int32_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
+            int64_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
             int64_t q = n / (d | 0x5);
 
             ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0] = n ^ q;
