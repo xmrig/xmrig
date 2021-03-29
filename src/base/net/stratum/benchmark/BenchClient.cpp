@@ -48,8 +48,8 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     std::vector<char> blob(112 * 2 + 1, '0');
     blob.back() = '\0';
 
-    m_job.setBlob(blob.data());
     m_job.setAlgorithm(m_benchmark->algorithm());
+    m_job.setBlob(blob.data());
     m_job.setDiff(std::numeric_limits<uint64_t>::max());
     m_job.setHeight(1);
     m_job.setId("00000000");
