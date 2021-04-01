@@ -20,6 +20,9 @@
 #define XMRIG_WORKERS_H
 
 
+#include <memory>
+
+
 #include "backend/common/Thread.h"
 #include "backend/cpu/CpuLaunchData.h"
 
