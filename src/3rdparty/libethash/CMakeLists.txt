@@ -1,4 +1,6 @@
-cmake_minimum_required (VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.9)
+cmake_policy(SET CMP0069 NEW)
+
 project (ethash C)
 
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -Os")

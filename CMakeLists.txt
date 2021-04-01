@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.9)
+cmake_policy(SET CMP0069 NEW)
+
 project(xmrig)
 
 option(WITH_HWLOC           "Enable hwloc support" ON)
@@ -31,6 +33,7 @@ option(WITH_DMI             "Enable DMI/SMBIOS reader" ON)
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_TARGET           "Force use specific ARM target 8 or 7" 0)
 option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
+option(WITH_IPO             "Enable IPO / LTO optimizations" OFF)
 
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
@@ -82,7 +85,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
     src/crypto/common/HugePagesInfo.h
-    src/crypto/common/MemoryPool.h
+    src/crypto/common/MemoryPool.hhttps://gcc.gnu.org/onlinedocs/gccint/LTO-Overview.html
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
@@ -168,6 +171,19 @@ else()
         set(EXTRA_LIBS pthread rt dl)
     elseif (XMRIG_OS_FREEBSD)
         set(EXTRA_LIBS kvm pthread)
+    endif()
+endif()
+
+
+if(WITH_IPO)
+    include(CheckIPOSupported)
+    check_ipo_supported(RESULT IPO_SUPPORTED OUTPUT IPO_ERROR)
+
+    if( IPO_SUPPORTED )
+        message(STATUS "IPO / LTO enabled")
+        set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)
+    else()
+        message(STATUS "IPO / LTO not supported: <${IPO_ERROR}>")
     endif()
 endif()
 
