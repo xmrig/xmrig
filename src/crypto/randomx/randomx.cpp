@@ -262,7 +262,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
 	} while (0)
 
-#elif defined(XMRIG_FEATURE_ASM) && defined(XMRIG_ARMv8)
+#elif defined(XMRIG_ARMv8)
 
 	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
