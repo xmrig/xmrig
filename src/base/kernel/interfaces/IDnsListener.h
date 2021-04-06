@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 namespace xmrig {
 
 
-class Dns;
+class DnsRecords;
 
 
 class IDnsListener
@@ -37,7 +37,7 @@ public:
     IDnsListener()          = default;
     virtual ~IDnsListener() = default;
 
-    virtual void onResolved(const Dns &dns, int status) = 0;
+    virtual void onResolved(const DnsRecords &records, int status, const char *error)   = 0;
 };
 
 

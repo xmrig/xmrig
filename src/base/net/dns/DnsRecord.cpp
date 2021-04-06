@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,38 +24,34 @@
 
 
 xmrig::DnsRecord::DnsRecord(const addrinfo *addr) :
-    m_type(addr->ai_family == AF_INET6 ? AAAA : A)
+    m_type(addr->ai_family == AF_INET6 ? AAAA : (addr->ai_family == AF_INET ? A : Unknown))
+{
+    static_assert(sizeof(m_data) >= sizeof(sockaddr_in6), "Not enough storage for IPv6 address.");
+
+    memcpy(m_data, addr->ai_addr, m_type == AAAA ? sizeof(sockaddr_in6) : sizeof(sockaddr_in));
+}
+
+
+const sockaddr *xmrig::DnsRecord::addr(uint16_t port) const
+{
+    reinterpret_cast<sockaddr_in*>(m_data)->sin_port = htons(port);
+
+    return reinterpret_cast<const sockaddr *>(m_data);
+}
+
+
+xmrig::String xmrig::DnsRecord::ip() const
 {
     char *buf = nullptr;
 
     if (m_type == AAAA) {
         buf = new char[45]();
-        uv_ip6_name(reinterpret_cast<sockaddr_in6*>(addr->ai_addr), buf, 45);
+        uv_ip6_name(reinterpret_cast<sockaddr_in6*>(m_data), buf, 45);
     }
     else {
         buf = new char[16]();
-        uv_ip4_name(reinterpret_cast<sockaddr_in*>(addr->ai_addr), buf, 16);
+        uv_ip4_name(reinterpret_cast<sockaddr_in*>(m_data), buf, 16);
     }
 
-    m_ip = buf;
-}
-
-
-sockaddr *xmrig::DnsRecord::addr(uint16_t port) const
-{
-    if (m_type == A) {
-        auto addr = new sockaddr_in();
-        uv_ip4_addr(m_ip.data(), port, addr);
-
-        return reinterpret_cast<sockaddr *>(addr);
-    }
-
-    if (m_type == AAAA) {
-        auto addr = new sockaddr_in6();
-        uv_ip6_addr(m_ip.data(), port, addr);
-
-        return reinterpret_cast<sockaddr *>(addr);
-    }
-
-    return nullptr;
+    return buf;
 }

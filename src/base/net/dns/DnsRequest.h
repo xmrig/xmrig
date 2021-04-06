@@ -16,45 +16,35 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORD_H
-#define XMRIG_DNSRECORD_H
+#ifndef XMRIG_DNSREQUEST_H
+#define XMRIG_DNSREQUEST_H
 
 
-struct addrinfo;
-struct sockaddr;
+#include "base/tools/Object.h"
 
 
-#include "base/tools/String.h"
+#include <cstdint>
 
 
 namespace xmrig {
 
 
-class DnsRecord
+class IDnsListener;
+
+
+class DnsRequest
 {
 public:
-    enum Type : uint32_t {
-        Unknown,
-        A,
-        AAAA
-    };
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(DnsRequest)
 
-    DnsRecord() {}
-    DnsRecord(const addrinfo *addr);
+    DnsRequest(IDnsListener *listener) : listener(listener) {}
+    ~DnsRequest() = default;
 
-    const sockaddr *addr(uint16_t port = 0) const;
-    String ip() const;
-
-    inline bool isValid() const     { return m_type != Unknown; }
-    inline Type type() const        { return m_type; }
-
-private:
-    mutable uint8_t m_data[28]{};
-    const Type m_type = Unknown;
+    IDnsListener *listener;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_DNSRECORD_H */
+#endif /* XMRIG_DNSREQUEST_H */
