@@ -28,6 +28,7 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IJsonReader.h"
+#include "base/net/dns/Dns.h"
 #include "crypto/common/Assembly.h"
 
 
@@ -305,6 +306,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kTls),                      m_tls.toJSON(doc), allocator);
 #   endif
 
+    doc.AddMember(StringRef(DnsConfig::kField),         Dns::config().toJSON(doc), allocator);
     doc.AddMember(StringRef(kUserAgent),                m_userAgent.toJSON(), allocator);
     doc.AddMember(StringRef(kVerbose),                  Log::verbose(), allocator);
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);

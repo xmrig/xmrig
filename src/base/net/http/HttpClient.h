@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-class String;
+class DnsRequest;
 
 
 class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
@@ -51,7 +51,7 @@ public:
     bool connect();
 
 protected:
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status, const char *error) override;
     void onTimer(const Timer *timer) override;
 
     virtual void handshake();
@@ -65,7 +65,7 @@ private:
 
     const char *m_tag;
     FetchRequest m_req;
-    std::shared_ptr<Dns> m_dns;
+    std::shared_ptr<DnsRequest> m_dns;
     std::shared_ptr<Timer> m_timer;
 };
 

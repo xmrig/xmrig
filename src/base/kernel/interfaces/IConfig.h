@@ -82,6 +82,8 @@ public:
         HugePageSizeKey      = 1050,
         PauseOnActiveKey     = 1051,
         SubmitToOriginKey    = 1052,
+        DnsIPv6Key           = 1053,
+        DnsTtlKey            = 1054,
 
         // xmrig common
         CPUPriorityKey       = 1021,

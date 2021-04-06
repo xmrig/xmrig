@@ -49,13 +49,13 @@ if (WITH_RANDOMX)
 		src/crypto/randomx/panthera/yespower-opt.c
     )
 
-    if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+    if (WITH_ASM AND CMAKE_C_COMPILER_ID MATCHES MSVC)
         enable_language(ASM_MASM)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    elseif (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp

@@ -743,8 +743,18 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #       ifdef XMRIG_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             int64_t n = ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0];
-            int32_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
-            int64_t q = n / (d | 0x5);
+            int64_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
+
+            int64_t d5;
+
+#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8))
+            d5 = d | 5;
+#           else
+            // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit
+            asm("mov %1, %0\n\tor $5, %0" : "=r"(d5) : "r"(d));
+#           endif
+
+            int64_t q = n / d5;
 
             ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0] = n ^ q;
 

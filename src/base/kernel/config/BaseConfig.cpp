@@ -23,6 +23,7 @@
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IJsonReader.h"
+#include "base/net/dns/Dns.h"
 #include "version.h"
 
 
@@ -119,6 +120,8 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 
     m_http.load(reader.getObject(kHttp));
     m_pools.load(reader);
+
+    Dns::set(reader.getObject(DnsConfig::kField));
 
     return m_pools.active() > 0;
 }

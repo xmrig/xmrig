@@ -103,7 +103,7 @@ namespace randomx {
 #endif
 #endif
 
-#if defined(_M_X64) || defined(__x86_64__)
+#if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
 	#define RANDOMX_HAVE_COMPILER 1
 	class JitCompilerX86;
 	using JitCompiler = JitCompilerX86;

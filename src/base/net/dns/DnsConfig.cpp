@@ -16,45 +16,42 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORD_H
-#define XMRIG_DNSRECORD_H
+
+#include "base/net/dns/DnsConfig.h"
+#include "3rdparty/rapidjson/document.h"
+#include "base/io/json/Json.h"
 
 
-struct addrinfo;
-struct sockaddr;
-
-
-#include "base/tools/String.h"
+#include <algorithm>
 
 
 namespace xmrig {
 
 
-class DnsRecord
+const char *DnsConfig::kField   = "dns";
+const char *DnsConfig::kIPv6    = "ipv6";
+const char *DnsConfig::kTTL     = "ttl";
+
+
+} // namespace xmrig
+
+
+xmrig::DnsConfig::DnsConfig(const rapidjson::Value &value)
 {
-public:
-    enum Type : uint32_t {
-        Unknown,
-        A,
-        AAAA
-    };
-
-    DnsRecord() {}
-    DnsRecord(const addrinfo *addr);
-
-    const sockaddr *addr(uint16_t port = 0) const;
-    String ip() const;
-
-    inline bool isValid() const     { return m_type != Unknown; }
-    inline Type type() const        { return m_type; }
-
-private:
-    mutable uint8_t m_data[28]{};
-    const Type m_type = Unknown;
-};
+    m_ipv6  = Json::getBool(value, kIPv6, m_ipv6);
+    m_ttl   = std::max(Json::getUint(value, kTTL, m_ttl), 1U);
+}
 
 
-} /* namespace xmrig */
+rapidjson::Value xmrig::DnsConfig::toJSON(rapidjson::Document &doc) const
+{
+    using namespace rapidjson;
 
+    auto &allocator = doc.GetAllocator();
+    Value obj(kObjectType);
 
-#endif /* XMRIG_DNSRECORD_H */
+    obj.AddMember(StringRef(kIPv6), m_ipv6, allocator);
+    obj.AddMember(StringRef(kTTL),  m_ttl, allocator);
+
+    return obj;
+}

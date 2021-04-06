@@ -59,6 +59,9 @@ static inline const std::string &usage()
     u += "      --tls-fingerprint=HEX     pool TLS certificate fingerprint for strict certificate pinning\n";
 #   endif
 
+    u += "      --dns-ipv6                prefer IPv6 records from DNS responses\n";
+    u += "      --dns-ttl=N               N seconds (default: 30) TTL for internal DNS cache\n";
+
 #   ifdef XMRIG_FEATURE_HTTP
     u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
     u += "      --daemon-poll-interval=N  daemon poll interval in milliseconds (default: 1000)\n";

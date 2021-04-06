@@ -32,6 +32,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConfigTransform.h
     src/base/kernel/interfaces/IConsoleListener.h
+    src/base/kernel/interfaces/IDnsBackend.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -43,7 +44,11 @@ set(HEADERS_BASE
     src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/net/dns/Dns.h
+    src/base/net/dns/DnsConfig.h
     src/base/net/dns/DnsRecord.h
+    src/base/net/dns/DnsRecords.h
+    src/base/net/dns/DnsRequest.h
+    src/base/net/dns/DnsUvBackend.h
     src/base/net/http/Http.h
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
@@ -99,7 +104,10 @@ set(SOURCES_BASE
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/net/dns/Dns.cpp
+    src/base/net/dns/DnsConfig.cpp
     src/base/net/dns/DnsRecord.cpp
+    src/base/net/dns/DnsRecords.cpp
+    src/base/net/dns/DnsUvBackend.cpp
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
