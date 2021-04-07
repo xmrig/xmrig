@@ -1,3 +1,6 @@
+# v6.11.1
+- [#2239](https://github.com/xmrig/xmrig/pull/2239) Fixed broken `coin` setting functionality.
+
 # v6.11.0
 - [#2196](https://github.com/xmrig/xmrig/pull/2196) Improved DNS subsystem and added new DNS specific options.
 - [#2172](https://github.com/xmrig/xmrig/pull/2172) Fixed build on Alpine 3.13.
