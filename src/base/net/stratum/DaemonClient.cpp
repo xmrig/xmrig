@@ -248,7 +248,9 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (m_pool.coin().isValid()) {
-        job.setAlgorithm(m_pool.coin().algorithm(job.blob()[0]));
+        uint8_t blobVersion = 0;
+        Cvt::fromHex(&blobVersion, 1, m_blockhashingblob.data(), 2);
+        job.setAlgorithm(m_pool.coin().algorithm(blobVersion));
     }
 
     if (blocktemplate.isNull() || !job.setBlob(m_blockhashingblob)) {

@@ -130,12 +130,17 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
         }
     }
 
-    if (!m_job.setBlob(result[kBlockhashingBlob].GetString())) {
-        return false;
+    const char *blobData = Json::getString(result, kBlockhashingBlob);
+    if (pool().coin().isValid()) {
+        uint8_t blobVersion = 0;
+        if (blobData) {
+            Cvt::fromHex(&blobVersion, 1, blobData, 2);
+        }
+        m_job.setAlgorithm(pool().coin().algorithm(blobVersion));
     }
 
-    if (pool().coin().isValid()) {
-        m_job.setAlgorithm(pool().coin().algorithm(m_job.blob()[0]));
+    if (!m_job.setBlob(blobData)) {
+        return false;
     }
 
     m_job.setHeight(Json::getUint64(result, kHeight));
