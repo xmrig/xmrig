@@ -381,11 +381,16 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     }
 
     const char *algo = Json::getString(params, "algo");
+    const char *blobData = Json::getString(params, "blob");
     if (algo) {
         job.setAlgorithm(algo);
     }
     else if (m_pool.coin().isValid()) {
-        job.setAlgorithm(m_pool.coin().algorithm(job.blob()[0]));
+        uint8_t blobVersion = 0;
+        if (blobData) {
+            Cvt::fromHex(&blobVersion, 1, blobData, 2);
+        }
+        job.setAlgorithm(m_pool.coin().algorithm(blobVersion));
     }
 
 #   ifdef XMRIG_FEATURE_HTTP
@@ -401,7 +406,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     else
 #   endif
     {
-        if (!job.setBlob(params["blob"].GetString())) {
+        if (!job.setBlob(blobData)) {
             *code = 4;
             return false;
         }
