@@ -1,8 +1,8 @@
 #ifndef INCLUDE_LLHTTP_H_
 #define INCLUDE_LLHTTP_H_
 
-#define LLHTTP_VERSION_MAJOR 4
-#define LLHTTP_VERSION_MINOR 0
+#define LLHTTP_VERSION_MAJOR 5
+#define LLHTTP_VERSION_MINOR 1
 #define LLHTTP_VERSION_PATCH 0
 
 #ifndef LLHTTP_STRICT_MODE
@@ -79,7 +79,8 @@ enum llhttp_errno {
   HPE_CB_CHUNK_COMPLETE = 20,
   HPE_PAUSED = 21,
   HPE_PAUSED_UPGRADE = 22,
-  HPE_USER = 23
+  HPE_PAUSED_H2_UPGRADE = 23,
+  HPE_USER = 24
 };
 typedef enum llhttp_errno llhttp_errno_t;
 
@@ -98,7 +99,8 @@ typedef enum llhttp_flags llhttp_flags_t;
 
 enum llhttp_lenient_flags {
   LENIENT_HEADERS = 0x1,
-  LENIENT_CHUNKED_LENGTH = 0x2
+  LENIENT_CHUNKED_LENGTH = 0x2,
+  LENIENT_KEEP_ALIVE = 0x4
 };
 typedef enum llhttp_lenient_flags llhttp_lenient_flags_t;
 
@@ -190,7 +192,8 @@ typedef enum llhttp_method llhttp_method_t;
   XX(20, CB_CHUNK_COMPLETE, CB_CHUNK_COMPLETE) \
   XX(21, PAUSED, PAUSED) \
   XX(22, PAUSED_UPGRADE, PAUSED_UPGRADE) \
-  XX(23, USER, USER) \
+  XX(23, PAUSED_H2_UPGRADE, PAUSED_H2_UPGRADE) \
+  XX(24, USER, USER) \
 
 
 #define HTTP_METHOD_MAP(XX) \
@@ -255,6 +258,12 @@ extern "C" {
 #endif
 #include <stddef.h>
 
+#if defined(__wasm__)
+#define LLHTTP_EXPORT __attribute__((visibility("default")))
+#else
+#define LLHTTP_EXPORT
+#endif
+
 typedef llhttp__internal_t llhttp_t;
 typedef struct llhttp_settings_s llhttp_settings_t;
 
@@ -305,15 +314,46 @@ struct llhttp_settings_s {
  * the `parser` here. In practice, `settings` has to be either a static
  * variable or be allocated with `malloc`, `new`, etc.
  */
+LLHTTP_EXPORT
 void llhttp_init(llhttp_t* parser, llhttp_type_t type,
                  const llhttp_settings_t* settings);
+
+#if defined(__wasm__)
+
+LLHTTP_EXPORT
+llhttp_t* llhttp_alloc(llhttp_type_t type);
+
+LLHTTP_EXPORT
+void llhttp_free(llhttp_t* parser);
+
+LLHTTP_EXPORT
+uint8_t llhttp_get_type(llhttp_t* parser);
+
+LLHTTP_EXPORT
+uint8_t llhttp_get_http_major(llhttp_t* parser);
+
+LLHTTP_EXPORT
+uint8_t llhttp_get_http_minor(llhttp_t* parser);
+
+LLHTTP_EXPORT
+uint8_t llhttp_get_method(llhttp_t* parser);
+
+LLHTTP_EXPORT
+int llhttp_get_status_code(llhttp_t* parser);
+
+LLHTTP_EXPORT
+uint8_t llhttp_get_upgrade(llhttp_t* parser);
+
+#endif  // defined(__wasm__)
 
 /* Reset an already initialized parser back to the start state, preserving the
  * existing parser type, callback settings, user data, and lenient flags.
  */
+LLHTTP_EXPORT
 void llhttp_reset(llhttp_t* parser);
 
 /* Initialize the settings object */
+LLHTTP_EXPORT
 void llhttp_settings_init(llhttp_settings_t* settings);
 
 /* Parse full or partial request/response, invoking user callbacks along the
@@ -332,6 +372,7 @@ void llhttp_settings_init(llhttp_settings_t* settings);
  * to return the same error upon each successive call up until `llhttp_init()`
  * is called.
  */
+LLHTTP_EXPORT
 llhttp_errno_t llhttp_execute(llhttp_t* parser, const char* data, size_t len);
 
 /* This method should be called when the other side has no further bytes to
@@ -342,16 +383,19 @@ llhttp_errno_t llhttp_execute(llhttp_t* parser, const char* data, size_t len);
  * connection. This method will invoke `on_message_complete()` callback if the
  * request was terminated safely. Otherwise a error code would be returned.
  */
+LLHTTP_EXPORT
 llhttp_errno_t llhttp_finish(llhttp_t* parser);
 
 /* Returns `1` if the incoming message is parsed until the last byte, and has
  * to be completed by calling `llhttp_finish()` on EOF
  */
+LLHTTP_EXPORT
 int llhttp_message_needs_eof(const llhttp_t* parser);
 
 /* Returns `1` if there might be any other messages following the last that was
  * successfully parsed.
  */
+LLHTTP_EXPORT
 int llhttp_should_keep_alive(const llhttp_t* parser);
 
 /* Make further calls of `llhttp_execute()` return `HPE_PAUSED` and set
@@ -360,6 +404,7 @@ int llhttp_should_keep_alive(const llhttp_t* parser);
  * Important: do not call this from user callbacks! User callbacks must return
  * `HPE_PAUSED` if pausing is required.
  */
+LLHTTP_EXPORT
 void llhttp_pause(llhttp_t* parser);
 
 /* Might be called to resume the execution after the pause in user's callback.
@@ -367,6 +412,7 @@ void llhttp_pause(llhttp_t* parser);
  *
  * Call this only if `llhttp_execute()` returns `HPE_PAUSED`.
  */
+LLHTTP_EXPORT
 void llhttp_resume(llhttp_t* parser);
 
 /* Might be called to resume the execution after the pause in user's callback.
@@ -374,9 +420,11 @@ void llhttp_resume(llhttp_t* parser);
  *
  * Call this only if `llhttp_execute()` returns `HPE_PAUSED_UPGRADE`
  */
+LLHTTP_EXPORT
 void llhttp_resume_after_upgrade(llhttp_t* parser);
 
 /* Returns the latest return error */
+LLHTTP_EXPORT
 llhttp_errno_t llhttp_get_errno(const llhttp_t* parser);
 
 /* Returns the verbal explanation of the latest returned error.
@@ -384,6 +432,7 @@ llhttp_errno_t llhttp_get_errno(const llhttp_t* parser);
  * Note: User callback should set error reason when returning the error. See
  * `llhttp_set_error_reason()` for details.
  */
+LLHTTP_EXPORT
 const char* llhttp_get_error_reason(const llhttp_t* parser);
 
 /* Assign verbal description to the returned error. Must be called in user
@@ -391,6 +440,7 @@ const char* llhttp_get_error_reason(const llhttp_t* parser);
  *
  * Note: `HPE_USER` error code might be useful in user callbacks.
  */
+LLHTTP_EXPORT
 void llhttp_set_error_reason(llhttp_t* parser, const char* reason);
 
 /* Returns the pointer to the last parsed byte before the returned error. The
@@ -398,12 +448,15 @@ void llhttp_set_error_reason(llhttp_t* parser, const char* reason);
  *
  * Note: this method might be useful for counting the number of parsed bytes.
  */
+LLHTTP_EXPORT
 const char* llhttp_get_error_pos(const llhttp_t* parser);
 
 /* Returns textual name of error code */
+LLHTTP_EXPORT
 const char* llhttp_errno_name(llhttp_errno_t err);
 
 /* Returns textual name of HTTP method */
+LLHTTP_EXPORT
 const char* llhttp_method_name(llhttp_method_t method);
 
 
@@ -416,6 +469,7 @@ const char* llhttp_method_name(llhttp_method_t method);
  *
  * **(USE AT YOUR OWN RISK)**
  */
+LLHTTP_EXPORT
 void llhttp_set_lenient_headers(llhttp_t* parser, int enabled);
 
 
@@ -429,7 +483,22 @@ void llhttp_set_lenient_headers(llhttp_t* parser, int enabled);
  *
  * **(USE AT YOUR OWN RISK)**
  */
+LLHTTP_EXPORT
 void llhttp_set_lenient_chunked_length(llhttp_t* parser, int enabled);
+
+
+/* Enables/disables lenient handling of `Connection: close` and HTTP/1.0
+ * requests responses.
+ *
+ * Normally `llhttp` would error on (in strict mode) or discard (in loose mode)
+ * the HTTP request/response after the request/response with `Connection: close`
+ * and `Content-Length`. This is important to prevent cache poisoning attacks,
+ * but might interact badly with outdated and insecure clients. With this flag
+ * the extra request/response will be parsed normally.
+ *
+ * **(USE AT YOUR OWN RISK)**
+ */
+void llhttp_set_lenient_keep_alive(llhttp_t* parser, int enabled);
 
 #ifdef __cplusplus
 }  /* extern "C" */
