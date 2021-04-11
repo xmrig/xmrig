@@ -1,3 +1,6 @@
+# v6.11.2
+- [#2207](https://github.com/xmrig/xmrig/issues/2207) Fixed regression in HTTP parser and llhttp updated to v5.1.0.
+
 # v6.11.1
 - [#2239](https://github.com/xmrig/xmrig/pull/2239) Fixed broken `coin` setting functionality.
 
