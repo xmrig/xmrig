@@ -119,7 +119,7 @@ void xmrig::HttpClient::handshake()
 
 void xmrig::HttpClient::read(const char *data, size_t size)
 {
-    if (parse(data, size) < size) {
+    if (!parse(data, size)) {
         close(UV_EPROTO);
     }
 }

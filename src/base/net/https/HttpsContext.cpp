@@ -74,7 +74,7 @@ bool xmrig::HttpsContext::write(BIO *bio)
 
 void xmrig::HttpsContext::parse(char *data, size_t size)
 {
-    if (HttpContext::parse(data, size) < size) {
+    if (!HttpContext::parse(data, size)) {
         close();
     }
 }
