@@ -334,13 +334,11 @@ void xmrig::CpuBackend::printHashrate(bool details)
          i++;
     }
 
-#   ifdef XMRIG_FEATURE_OPENCL
     Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
                Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                );
-#   endif
 }
 
 
