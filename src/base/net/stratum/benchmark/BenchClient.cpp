@@ -334,6 +334,7 @@ void xmrig::BenchClient::send(Request request)
         {
             doc.AddMember(StringRef(BenchConfig::kSize),    m_benchmark->size(), allocator);
             doc.AddMember(StringRef(BenchConfig::kAlgo),    m_benchmark->algorithm().toJSON(), allocator);
+            doc.AddMember(StringRef(BenchConfig::kUser),    m_benchmark->user().toJSON(), allocator);
             doc.AddMember("version",                        APP_VERSION, allocator);
             doc.AddMember("threads",                        m_threads, allocator);
             doc.AddMember("steady_ready_ts",                m_readyTime, allocator);

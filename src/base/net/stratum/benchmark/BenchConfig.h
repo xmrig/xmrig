@@ -39,6 +39,7 @@ public:
     static const char *kSize;
     static const char *kSubmit;
     static const char *kToken;
+    static const char *kUser;
     static const char *kVerify;
 
 #   ifndef XMRIG_DEBUG_BENCHMARK_API
@@ -59,6 +60,7 @@ public:
     inline const String &id() const             { return m_id; }
     inline const String &seed() const           { return m_seed; }
     inline const String &token() const          { return m_token; }
+    inline const String &user() const           { return m_user; }
     inline uint32_t size() const                { return m_size; }
     inline uint64_t hash() const                { return m_hash; }
 
@@ -73,8 +75,9 @@ private:
     String m_id;
     String m_seed;
     String m_token;
+    String m_user;
     uint32_t m_size;
-    uint64_t m_hash;
+    uint64_t m_hash = 0;
 };
 
 
