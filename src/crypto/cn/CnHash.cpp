@@ -293,12 +293,6 @@ xmrig::CnHash::CnHash()
 #   ifdef XMRIG_ALGO_CN_FEMTO
     ADD_FN(Algorithm::CN_UPX2);
     ADD_FN_ASM(Algorithm::CN_UPX2);
-
-#   if defined(_MSC_VER) && defined(XMRIG_FEATURE_ASM)
-    // This is somehow faster on Ryzen
-    m_map[Algorithm::CN_UPX2][AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash<Algorithm::CN_UPX2, false>;
-#   endif
-
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2

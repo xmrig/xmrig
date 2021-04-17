@@ -789,6 +789,7 @@ extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_double_mainloop_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_upx_double_mainloop_zen3_asm(cryptonight_ctx * *ctx);
 
 
 namespace xmrig {
@@ -986,7 +987,12 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 #   endif
 #   ifdef XMRIG_ALGO_CN_FEMTO
     else if (ALGO == Algorithm::CN_UPX2) {
-        cn_upx2_double_mainloop_asm(ctx);
+        if (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) {
+            cnv2_upx_double_mainloop_zen3_asm(ctx);
+        }
+        else {
+            cn_upx2_double_mainloop_asm(ctx);
+        }
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
