@@ -129,6 +129,12 @@ static AlgoName const algorithm_names[] = {
 #   endif
     { "cryptonight/ccx",           "cn/ccx",           Algorithm::CN_CCX          },
     { "cryptonight/conceal",       "cn/conceal",       Algorithm::CN_CCX          },
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    { "cryptonight/upx2",          "cn/upx2",          Algorithm::CN_UPX2          },
+    // Algo names from other miners
+    { "cn-extremelite/upx2",       "cn/upx2",          Algorithm::CN_UPX2          },
+    { "cryptonight-upx/2",         "cn/upx2",          Algorithm::CN_UPX2          },
+#   endif
 };
 
 
@@ -198,6 +204,9 @@ size_t xmrig::Algorithm::l3() const
 
     case CN_PICO:
         return oneMiB / 4;
+
+    case CN_FEMTO:
+        return oneMiB / 8;
 
     default:
         break;
@@ -327,6 +336,11 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_PICO_0:
     case CN_PICO_TLO:
         return CN_PICO;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    case CN_UPX2:
+        return CN_FEMTO;
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX

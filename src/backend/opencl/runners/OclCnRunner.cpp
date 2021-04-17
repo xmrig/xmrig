@@ -39,10 +39,12 @@
 xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
     uint32_t stridedIndex = data.thread.stridedIndex();
+    Algorithm::Family f = m_algorithm.family();
+
     if (data.device.vendorId() == OCL_VENDOR_NVIDIA) {
         stridedIndex = 0;
     }
-    else if (stridedIndex == 1 && (m_algorithm.family() == Algorithm::CN_PICO || (m_algorithm.family() == Algorithm::CN && CnAlgo<>::base(m_algorithm) == Algorithm::CN_2))) {
+    else if (stridedIndex == 1 && (f == Algorithm::CN_PICO || f == Algorithm::CN_FEMTO || (f == Algorithm::CN && CnAlgo<>::base(m_algorithm) == Algorithm::CN_2))) {
         stridedIndex = 2;
     }
 

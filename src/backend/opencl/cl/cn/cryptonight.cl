@@ -514,7 +514,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
         c = AES_Round(AES0, AES1, AES2, AES3, c, ((uint4 *)a)[0]);
 
         {
-#           if (ALGO == ALGO_CN_RWZ)
+#           if ((ALGO == ALGO_CN_RWZ) || (ALGO == ALGO_CN_UPX2))
             const ulong2 chunk1 = as_ulong2(SCRATCHPAD_CHUNK(3));
             const ulong2 chunk2 = as_ulong2(SCRATCHPAD_CHUNK(2));
             const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(1));
@@ -561,7 +561,7 @@ __kernel void cn1(__global ulong *input, __global uint4 *Scratchpad, __global ul
             t ^= chunk2;
             const ulong2 chunk3 = as_ulong2(SCRATCHPAD_CHUNK(3));
 
-#           if (ALGO == ALGO_CN_RWZ)
+#           if ((ALGO == ALGO_CN_RWZ) || (ALGO == ALGO_CN_UPX2))
             SCRATCHPAD_CHUNK(1) = as_uint4(chunk1 + bx1);
             SCRATCHPAD_CHUNK(2) = as_uint4(chunk3 + bx0);
             SCRATCHPAD_CHUNK(3) = as_uint4(chunk2 + ((ulong2 *)a)[0]);

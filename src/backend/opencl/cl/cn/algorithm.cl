@@ -17,16 +17,17 @@
 #define ALGO_CN_PICO_0      16
 #define ALGO_CN_PICO_TLO    17
 #define ALGO_CN_CCX         18
-#define ALGO_RX_0           19
-#define ALGO_RX_WOW         20
-#define ALGO_RX_ARQMA       21
-#define ALGO_RX_SFX         22
-#define ALGO_RX_KEVA        23
-#define ALGO_AR2_CHUKWA     24
-#define ALGO_AR2_CHUKWA_V2  25
-#define ALGO_AR2_WRKZ       26
-#define ALGO_ASTROBWT_DERO  27
-#define ALGO_KAWPOW_RVN     28
+#define ALGO_CN_UPX2        19
+#define ALGO_RX_0           20
+#define ALGO_RX_WOW         21
+#define ALGO_RX_ARQMA       22
+#define ALGO_RX_SFX         23
+#define ALGO_RX_KEVA        24
+#define ALGO_AR2_CHUKWA     25
+#define ALGO_AR2_CHUKWA_V2  26
+#define ALGO_AR2_WRKZ       27
+#define ALGO_ASTROBWT_DERO  28
+#define ALGO_KAWPOW_RVN     29
 
 #define FAMILY_UNKNOWN      0
 #define FAMILY_CN           1

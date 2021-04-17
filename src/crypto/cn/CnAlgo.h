@@ -96,6 +96,11 @@ public:
             return CN_ITER / 8;
 #       endif
 
+#       ifdef XMRIG_ALGO_CN_FEMTO
+        case Algorithm::CN_UPX2:
+            return CN_ITER / 32;
+#       endif
+
         default:
             break;
         }
@@ -107,6 +112,12 @@ public:
     {
 #       ifdef XMRIG_ALGO_CN_PICO
         if (algo == Algorithm::CN_PICO_0) {
+            return 0x1FFF0;
+        }
+#       endif
+
+#       ifdef XMRIG_ALGO_CN_FEMTO
+        if (algo == Algorithm::CN_UPX2) {
             return 0x1FFF0;
         }
 #       endif
@@ -150,6 +161,9 @@ public:
         case Algorithm::CN_PICO_0:
         case Algorithm::CN_PICO_TLO:
 #       endif
+#       ifdef XMRIG_ALGO_CN_FEMTO
+        case Algorithm::CN_UPX2:
+#       endif
             return Algorithm::CN_2;
 
         default:
@@ -176,6 +190,7 @@ template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_FAST>::base() con
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_RTO>::base() const           { return Algorithm::CN_1; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_1>::base() const        { return Algorithm::CN_1; }
 template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_TUBE>::base() const    { return Algorithm::CN_1; }
+template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_UPX2>::base() const          { return Algorithm::CN_2; }
 
 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_FAST>::iterations() const         { return CN_ITER / 2; }
@@ -192,6 +207,7 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_ZLS>::iterations() con
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::iterations() const       { return CN_ITER / 8; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations() const     { return CN_ITER / 8; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_CCX>::iterations() const          { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::iterations() const         { return CN_ITER / 32; }
 
 
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }
@@ -201,9 +217,11 @@ template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::memory() co
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_XHV>::memory() const          { return CN_MEMORY * 2; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const             { return CN_MEMORY / 8; }
 template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() const           { return CN_MEMORY / 8; }
+template<> constexpr inline size_t CnAlgo<Algorithm::CN_UPX2>::memory() const               { return CN_MEMORY / 16; }
 
 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::mask() const               { return 0x1FFF0; }
 
 
 } /* namespace xmrig */
