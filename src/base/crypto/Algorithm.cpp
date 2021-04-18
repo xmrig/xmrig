@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -130,10 +130,9 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight/ccx",           "cn/ccx",           Algorithm::CN_CCX          },
     { "cryptonight/conceal",       "cn/conceal",       Algorithm::CN_CCX          },
 #   ifdef XMRIG_ALGO_CN_FEMTO
-    { "cryptonight/upx2",          "cn/upx2",          Algorithm::CN_UPX2          },
-    // Algo names from other miners
-    { "cn-extremelite/upx2",       "cn/upx2",          Algorithm::CN_UPX2          },
-    { "cryptonight-upx/2",         "cn/upx2",          Algorithm::CN_UPX2          },
+    { "cryptonight/upx2",          "cn/upx2",          Algorithm::CN_UPX2         },
+    { "cn-extremelite/upx2",       nullptr,            Algorithm::CN_UPX2         },
+    { "cryptonight-upx/2",         nullptr,            Algorithm::CN_UPX2         },
 #   endif
 };
 
