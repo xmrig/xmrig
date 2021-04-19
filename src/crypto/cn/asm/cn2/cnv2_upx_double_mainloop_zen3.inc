@@ -7,7 +7,7 @@
 	push	r13
 	push	r14
 	push	r15
-	sub	rsp, 216
+	sub	rsp, 232
 
 	mov	rdi, QWORD PTR [rcx+8]
 
@@ -84,6 +84,8 @@
 	movq	xmm10, rax
 	mov	rax, 4389456576511
 	mov	QWORD PTR [rsp+16], rax
+	mov	rax, -4389456576512
+	mov	QWORD PTR [rsp+216], rax
 	punpcklqdq xmm10, xmm0
 
 	ALIGN(64)
@@ -170,14 +172,13 @@ upx2_main_loop:
 	movq	xmm0, rax
 	paddq	xmm0, xmm11
 	sqrtsd	xmm1, xmm0
-	mov	r13, -4389456576512
 	movq	rdx, xmm1
 	mov	rax, rdx
 	shr	rdx, 19
 	shr	rax, 20
 	mov	rcx, rdx
 	sub	rcx, rax
-	add	rax, r13
+	add	rax, QWORD PTR [rsp+216]
 	sub	rcx, QWORD PTR [rsp+16]
 	mov	r13, QWORD PTR [rsp]
 	imul	rcx, rax
@@ -251,12 +252,10 @@ upx2_main_loop:
 	shr	rdx, 19
 	mov	rcx, rdx
 	sub	rcx, rax
-	mov	rbx, 4389456576511
-	sub	rcx, rbx
+	sub	rcx, QWORD PTR [rsp+16]
 	movdqa	xmm9, xmm7
-	mov	rbx, -4389456576512
 	movdqa	xmm7, xmm6
-	add	rax, rbx
+	add	rax, QWORD PTR [rsp+216]
 	imul	rcx, rax
 	mov	rax, r9
 	sub	rcx, r8
@@ -264,10 +263,9 @@ upx2_main_loop:
 	adc	rdx, 0
 	xor	rcx, 32
 	and	ecx, 131056
-	movq	xmm0, rdx
+	mov	QWORD PTR [rsp+32], rdx
 	movdqu	xmm1, XMMWORD PTR [rcx+r13]
 	mul	rdi
-	movdqa	XMMWORD PTR [rsp+32], xmm0
 	paddq	xmm1, xmm5
 	mov	r8, rax
 	xor	r8, QWORD PTR [rcx+r13+8]
@@ -298,10 +296,10 @@ upx2_main_loop:
 	sub	QWORD PTR [rsp+8], 1
 	jne	upx2_main_loop
 
-	ldmxcsr DWORD PTR [rsp+28]
+	ldmxcsr DWORD PTR [rsp+24]
 
 	movaps	xmm13, XMMWORD PTR [rsp+80]
-	lea	r11, QWORD PTR [rsp+216]
+	lea	r11, QWORD PTR [rsp+232]
 	movaps	xmm6, XMMWORD PTR [r11-24]
 	movaps	xmm7, XMMWORD PTR [r11-40]
 	movaps	xmm8, XMMWORD PTR [r11-56]
