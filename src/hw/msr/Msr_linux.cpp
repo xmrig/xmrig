@@ -57,7 +57,12 @@ public:
 
 xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
 {
-    if (system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") != 0) {
+    if(access("/sys/module/msr/parameters/allow_writes", F_OK) == 0) {
+        if(system("echo on > /sys/module/msr/parameters/allow_writes") != 0) {
+            d_ptr->available = false;
+        }
+    }
+    else if (system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") != 0) {
         LOG_WARN("%s " YELLOW_BOLD("msr kernel module is not available"), Msr::tag());
 
         d_ptr->available = false;
