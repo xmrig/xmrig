@@ -41,7 +41,7 @@ public:
     size_t size         = 0;
 
     inline bool isFullyAllocated() const { return allocated == total; }
-    inline double percent() const        { return allocated == 0 ? 0.0 : static_cast<double>(allocated) / total * 100.0; }
+    inline int percent() const           { return allocated ? static_cast<int>((allocated * 100 + total / 2) / total) : 0; }
     inline void reset()                  { allocated = 0; total = 0; size = 0; }
 
     inline HugePagesInfo &operator+=(const HugePagesInfo &other)

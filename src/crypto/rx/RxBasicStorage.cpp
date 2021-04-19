@@ -97,7 +97,7 @@ private:
         if (m_dataset->get() != nullptr) {
             const auto pages = m_dataset->hugePages();
 
-            LOG_INFO("%s" GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu)") " huge pages %s%1.0f%% %u/%u" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
+            LOG_INFO("%s" GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") BLACK_BOLD(" (%zu+%zu)") " huge pages %s%d%% %u/%u" CLEAR " %sJIT" BLACK_BOLD(" (%" PRIu64 " ms)"),
                      Tags::randomx(),
                      pages.size / oneMiB,
                      RxDataset::maxSize() / oneMiB,

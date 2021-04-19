@@ -269,7 +269,7 @@ private:
     {
         const auto pages = dataset->hugePages();
 
-        LOG_INFO("%s" CYAN_BOLD("#%u ") GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") " huge pages %s%3.0f%%" CLEAR BLACK_BOLD(" (%" PRIu64 " ms)"),
+        LOG_INFO("%s" CYAN_BOLD("#%u ") GREEN_BOLD("allocated") CYAN_BOLD(" %zu MB") " huge pages %s%d%%" CLEAR BLACK_BOLD(" (%" PRIu64 " ms)"),
                  Tags::randomx(),
                  nodeId,
                  pages.size / oneMiB,
