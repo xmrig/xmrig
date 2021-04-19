@@ -298,7 +298,7 @@ upx2_main_loop:
 	sub	QWORD PTR [rsp+8], 1
 	jne	upx2_main_loop
 
-	ldmxcsr DWORD PTR [rsp+28]
+	ldmxcsr DWORD PTR [rsp+24]
 
 	movaps	xmm13, XMMWORD PTR [rsp+80]
 	lea	r11, QWORD PTR [rsp+216]
