@@ -124,6 +124,7 @@ public:
 #       ifdef XMRIG_ALGO_CN_GPU
         if (algo == Algorithm::CN_GPU) {
             return 0x1FFFC0;
+	}
 #       endif
 
 #       ifdef XMRIG_ALGO_CN_FEMTO
