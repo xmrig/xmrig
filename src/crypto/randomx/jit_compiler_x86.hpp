@@ -104,6 +104,9 @@ namespace randomx {
 		uint8_t* allocatedCode = nullptr;
 		size_t allocatedSize = 0;
 
+		uint8_t* imul_rcp_storage = nullptr;
+		uint32_t imul_rcp_storage_used = 0;
+
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
 		template<bool rax>

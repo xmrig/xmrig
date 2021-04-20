@@ -99,8 +99,11 @@ cn_mainloop_fun        cn_double_mainloop_ryzen_asm               = nullptr;
 cn_mainloop_fun        cn_double_mainloop_bulldozer_asm           = nullptr;
 cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 
+cn_mainloop_fun        cn_upx2_mainloop_asm                       = nullptr;
+cn_mainloop_fun        cn_upx2_double_mainloop_asm                = nullptr;
 
-template<typename T, typename U>
+
+template<Algorithm::Id SOURCE_ALGO = Algorithm::CN_2, typename T, typename U>
 static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t mask = CnAlgo<Algorithm::CN_HALF>().mask())
 {
     auto p = reinterpret_cast<const uint8_t*>(src);
@@ -124,11 +127,11 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
     auto patched_data = reinterpret_cast<uint8_t*>(dst);
     for (size_t i = 0; i + sizeof(uint32_t) <= size; ++i) {
         switch (*(uint32_t*)(patched_data + i)) {
-        case CnAlgo<Algorithm::CN_2>().iterations():
+        case CnAlgo<SOURCE_ALGO>().iterations():
             *(uint32_t*)(patched_data + i) = iterations;
             break;
 
-        case CnAlgo<Algorithm::CN_2>().mask():
+        case CnAlgo<SOURCE_ALGO>().mask():
             *(uint32_t*)(patched_data + i) = mask;
             break;
         }
@@ -138,7 +141,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 
 static void patchAsmVariants()
 {
-    const int allocation_size = 81920;
+    const int allocation_size = 131072;
     auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size, false));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
@@ -168,6 +171,11 @@ static void patchAsmVariants()
     cn_tlo_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x11000);
     cn_tlo_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x12000);
     cn_tlo_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0x13000);
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    cn_upx2_mainloop_asm                        = reinterpret_cast<cn_mainloop_fun>         (base + 0x14000);
+    cn_upx2_double_mainloop_asm                 = reinterpret_cast<cn_mainloop_fun>         (base + 0x15000);
 #   endif
 
     {
@@ -218,6 +226,16 @@ static void patchAsmVariants()
         patchCode(cn_double_mainloop_bulldozer_asm,          cnv2_mainloop_bulldozer_asm,           ITER);
         patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    {
+        constexpr uint32_t ITER = CnAlgo<Algorithm::CN_UPX2>().iterations();
+        constexpr uint32_t MASK = CnAlgo<Algorithm::CN_UPX2>().mask();
+
+        patchCode<Algorithm::CN_RWZ>(cn_upx2_mainloop_asm,        cnv2_rwz_mainloop_asm,            ITER,   MASK);
+        patchCode<Algorithm::CN_RWZ>(cn_upx2_double_mainloop_asm, cnv2_rwz_double_mainloop_asm,     ITER,   MASK);
+    }
+#endif
 
     VirtualMemory::protectRX(base, allocation_size);
     VirtualMemory::flushInstructionCache(base, allocation_size);
@@ -271,6 +289,11 @@ xmrig::CnHash::CnHash()
 #   endif
 
     ADD_FN(Algorithm::CN_CCX);
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    ADD_FN(Algorithm::CN_UPX2);
+    ADD_FN_ASM(Algorithm::CN_UPX2);
+#   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
     m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;

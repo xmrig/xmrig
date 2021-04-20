@@ -32,6 +32,7 @@ PUBLIC randomx_prefetch_scratchpad
 PUBLIC randomx_prefetch_scratchpad_end
 PUBLIC randomx_program_prologue
 PUBLIC randomx_program_prologue_first_load
+PUBLIC randomx_program_imul_rcp_store
 PUBLIC randomx_program_loop_begin
 PUBLIC randomx_program_loop_load
 PUBLIC randomx_program_loop_load_xop
@@ -94,11 +95,16 @@ randomx_program_prologue_first_load PROC
 	nop
 	nop
 	nop
-	jmp randomx_program_loop_begin
+	jmp randomx_program_imul_rcp_store
 randomx_program_prologue_first_load ENDP
 
 ALIGN 64
 	include asm/program_xmm_constants.inc
+
+randomx_program_imul_rcp_store PROC
+	include asm/program_imul_rcp_store.inc
+	jmp randomx_program_loop_begin
+randomx_program_imul_rcp_store ENDP
 
 ALIGN 64
 randomx_program_loop_begin PROC

@@ -428,7 +428,10 @@ namespace randomx {
         xmrig::RxFix::setMainLoopBounds(mainLoopBounds);
 #		endif
 
-		memcpy(code + prologueSize - 48, &pcfg.eMask, sizeof(pcfg.eMask));
+		imul_rcp_storage = code + (ADDR(randomx_program_imul_rcp_store) - codePrologue) + 2;
+		imul_rcp_storage_used = 0;
+
+		memcpy(imul_rcp_storage - 34, &pcfg.eMask, sizeof(pcfg.eMask));
 		codePos = codePosFirst;
 		prevCFROUND = 0;
 
@@ -1012,13 +1015,24 @@ namespace randomx {
 		
 		uint64_t divisor = instr.getImm32();
 		if (!isZeroOrPowerOf2(divisor)) {
-			*(uint32_t*)(p + pos) = 0xb848;
-			pos += 2;
-
-			emit64(randomx_reciprocal_fast(divisor), p, pos);
-
 			const uint32_t dst = instr.dst % RegistersCount;
-			emit32(0xc0af0f4c + (dst << 27), p, pos);
+
+			const uint64_t reciprocal = randomx_reciprocal_fast(divisor);
+			if (imul_rcp_storage_used < 16) {
+				*(uint64_t*)(imul_rcp_storage) = reciprocal;
+				*(uint64_t*)(p + pos) = 0x2444AF0F4Cull + (dst << 27) + (static_cast<uint64_t>(248 - imul_rcp_storage_used * 8) << 40);
+				++imul_rcp_storage_used;
+				imul_rcp_storage += 11;
+				pos += 6;
+			}
+			else {
+				*(uint32_t*)(p + pos) = 0xb848;
+				pos += 2;
+
+				emit64(reciprocal, p, pos);
+
+				emit32(0xc0af0f4c + (dst << 27), p, pos);
+			}
 
 			registerUsage[dst] = pos;
 		}

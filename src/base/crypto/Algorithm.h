@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,6 +64,7 @@ public:
         CN_PICO_0,     // "cn-pico"          CryptoNight-Pico
         CN_PICO_TLO,   // "cn-pico/tlo"      CryptoNight-Pico (TLO)
         CN_CCX,        // "cn/ccx"           Conceal (CCX)
+        CN_UPX2,       // "cn/upx2"          Uplexa (UPX2)
         RX_0,          // "rx/0"             RandomX (reference configuration).
         RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
         RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
@@ -83,6 +84,7 @@ public:
         CN_LITE,
         CN_HEAVY,
         CN_PICO,
+        CN_FEMTO,
         RANDOM_X,
         ARGON2,
         ASTROBWT,
@@ -94,7 +96,7 @@ public:
     inline Algorithm(Id id) : m_id(id)                     {}
     Algorithm(const rapidjson::Value &value);
 
-    inline bool isCN() const                          { auto f = family(); return f == CN || f == CN_LITE || f == CN_HEAVY || f == CN_PICO; }
+    inline bool isCN() const                          { auto f = family(); return f == CN || f == CN_LITE || f == CN_HEAVY || f == CN_PICO || f == CN_FEMTO; }
     inline bool isEqual(const Algorithm &other) const { return m_id == other.m_id; }
     inline bool isValid() const                       { return m_id != INVALID && family() != UNKNOWN; }
     inline const char *name() const                   { return name(false); }
