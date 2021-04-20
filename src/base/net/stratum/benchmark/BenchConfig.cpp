@@ -41,6 +41,7 @@ const char *BenchConfig::kSeed      = "seed";
 const char *BenchConfig::kSize      = "size";
 const char *BenchConfig::kSubmit    = "submit";
 const char *BenchConfig::kToken     = "token";
+const char *BenchConfig::kUser      = "user";
 const char *BenchConfig::kVerify    = "verify";
 
 #ifndef XMRIG_DEBUG_BENCHMARK_API
@@ -59,8 +60,8 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
     m_id(id),
     m_seed(Json::getString(object, kSeed)),
     m_token(Json::getString(object, kToken)),
-    m_size(size),
-    m_hash(0)
+    m_user(Json::getString(object, kUser)),
+    m_size(size)
 {
     if (!m_algorithm.isValid() || m_algorithm.family() != Algorithm::RANDOM_X) {
         m_algorithm = Algorithm::RX_0;
@@ -111,6 +112,7 @@ rapidjson::Value xmrig::BenchConfig::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kVerify),   m_id.toJSON(), allocator);
     out.AddMember(StringRef(kToken),    m_token.toJSON(), allocator);
     out.AddMember(StringRef(kSeed),     m_seed.toJSON(), allocator);
+    out.AddMember(StringRef(kUser),     m_user.toJSON(), allocator);
 
     if (m_hash) {
         out.AddMember(StringRef(kHash), Value(fmt::format("{:016X}", m_hash).c_str(), allocator), allocator);

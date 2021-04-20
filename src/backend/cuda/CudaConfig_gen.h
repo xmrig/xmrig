@@ -106,6 +106,15 @@ size_t inline generate<Algorithm::CN_PICO>(Threads<CudaThreads> &threads, const 
 #endif
 
 
+#ifdef XMRIG_ALGO_CN_FEMTO
+template<>
+size_t inline generate<Algorithm::CN_FEMTO>(Threads<CudaThreads>& threads, const std::vector<CudaDevice>& devices)
+{
+    return generate("cn/upx2", threads, Algorithm::CN_UPX2, devices);
+}
+#endif
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 template<>
 size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)

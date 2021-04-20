@@ -104,6 +104,15 @@ size_t inline generate<Algorithm::CN_PICO>(Threads<CpuThreads> &threads, uint32_
 #endif
 
 
+#ifdef XMRIG_ALGO_CN_FEMTO
+template<>
+size_t inline generate<Algorithm::CN_FEMTO>(Threads<CpuThreads>& threads, uint32_t limit)
+{
+    return generate("cn/upx2", threads, Algorithm::CN_UPX2, limit);
+}
+#endif
+
+
 #ifdef XMRIG_ALGO_RANDOMX
 template<>
 size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32_t limit)

@@ -204,6 +204,12 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    if (m_algorithm.family() == Algorithm::CN_FEMTO) {
+        return verify(Algorithm::CN_UPX2, test_output_femto_upx2);
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_ARGON2
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&

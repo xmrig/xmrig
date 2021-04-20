@@ -336,11 +336,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
-#   ifdef XMRIG_ALGO_CN_PICO
-    if (intensity && algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
+    Algorithm::Family family = algorithm.family();
+    if (intensity && ((family == Algorithm::CN_PICO) || (family == Algorithm::CN_FEMTO)) && (cacheHashes / PUs) >= 2) {
         intensity = 2;
     }
-#   endif
 
 #   ifdef XMRIG_ALGO_CN_GPU
     if (algorithm == Algorithm::CN_GPU) {

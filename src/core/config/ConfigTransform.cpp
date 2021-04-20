@@ -262,6 +262,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::BenchTokenKey:    /* --token */
     case IConfig::BenchSeedKey:     /* --seed */
     case IConfig::BenchHashKey:     /* --hash */
+    case IConfig::UserKey:          /* --user */
         return transformBenchmark(doc, key, arg);
 #   endif
 
@@ -347,6 +348,9 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::BenchHashKey: /* --hash */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kHash, arg);
+
+    case IConfig::UserKey: /* --user */
+        return set(doc, BenchConfig::kBenchmark, BenchConfig::kUser, arg);
     }
 }
 #endif

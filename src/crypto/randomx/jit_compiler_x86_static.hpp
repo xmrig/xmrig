@@ -33,6 +33,7 @@ extern "C" {
 	void randomx_prefetch_scratchpad_end();
 	void randomx_program_prologue();
 	void randomx_program_prologue_first_load();
+	void randomx_program_imul_rcp_store();
 	void randomx_program_loop_begin();
 	void randomx_program_loop_load();
 	void randomx_program_loop_load_xop();

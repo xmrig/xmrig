@@ -6,6 +6,7 @@ option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
 option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
 option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
 option(WITH_CN_GPU          "Enable CryptoNight-GPU algorithm" ON)
+option(WITH_CN_FEMTO        "Enable CryptoNight-UPX2 algorithm" ON)
 option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
 option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
 option(WITH_ASTROBWT        "Enable AstroBWT algorithms family" ON)
@@ -204,6 +205,10 @@ endif()
 
 if (WITH_CN_PICO)
     add_definitions(/DXMRIG_ALGO_CN_PICO)
+endif()
+
+if (WITH_CN_FEMTO)
+    add_definitions(/DXMRIG_ALGO_CN_FEMTO)
 endif()
 
 if (WITH_EMBEDDED_CONFIG)

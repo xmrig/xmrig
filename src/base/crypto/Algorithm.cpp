@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -135,6 +135,11 @@ static AlgoName const algorithm_names[] = {
     { "cryptonight/gpu",           "cn/gpu",           Algorithm::CN_GPU          },
     { "cryptonight_gpu",           nullptr,            Algorithm::CN_GPU          },
 #   endif
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    { "cryptonight/upx2",          "cn/upx2",          Algorithm::CN_UPX2         },
+    { "cn-extremelite/upx2",       nullptr,            Algorithm::CN_UPX2         },
+    { "cryptonight-upx/2",         nullptr,            Algorithm::CN_UPX2         },
+#   endif
 };
 
 
@@ -205,6 +210,9 @@ size_t xmrig::Algorithm::l3() const
 
     case CN_PICO:
         return oneMiB / 4;
+
+    case CN_FEMTO:
+        return oneMiB / 8;
 
     default:
         break;
@@ -344,6 +352,11 @@ xmrig::Algorithm::Family xmrig::Algorithm::family(Id id)
     case CN_PICO_0:
     case CN_PICO_TLO:
         return CN_PICO;
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    case CN_UPX2:
+        return CN_FEMTO;
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX

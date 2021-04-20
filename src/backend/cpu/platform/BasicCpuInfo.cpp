@@ -312,26 +312,35 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
         return 1;
     }
 
+    Algorithm::Family f = algorithm.family();
+
 #   ifdef XMRIG_ALGO_CN_LITE
-    if (algorithm.family() == Algorithm::CN_LITE) {
+    if (f == Algorithm::CN_LITE) {
         return CpuThreads(count_limit, 1);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    if (algorithm.family() == Algorithm::CN_PICO) {
+    if (f == Algorithm::CN_PICO) {
         return CpuThreads(count_limit, 2);
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    if (f == Algorithm::CN_FEMTO) {
+        return CpuThreads(count, 2);
+>>>>>>> ace8409a56ebe216c7921b1c5320a4f9b4f2c152
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_CN_HEAVY
-    if (algorithm.family() == Algorithm::CN_HEAVY) {
+    if (f == Algorithm::CN_HEAVY) {
         return CpuThreads(count_limit4, 1);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
+    if (f == Algorithm::RANDOM_X) {
         if (algorithm == Algorithm::RX_WOW) {
             return count_limit;
         }
@@ -349,13 +358,13 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
-    if (algorithm.family() == Algorithm::ARGON2) {
+    if (f == Algorithm::ARGON2) {
         return count_limit;
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
+    if (f == Algorithm::ASTROBWT) {
         CpuThreads threads;
         for (size_t i = 0; i < count_limit; ++i) {
             threads.add(i, 0);
