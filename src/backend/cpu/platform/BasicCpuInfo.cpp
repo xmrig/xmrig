@@ -329,7 +329,6 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
 #   ifdef XMRIG_ALGO_CN_FEMTO
     if (f == Algorithm::CN_FEMTO) {
         return CpuThreads(count, 2);
->>>>>>> ace8409a56ebe216c7921b1c5320a4f9b4f2c152
     }
 #   endif
 
