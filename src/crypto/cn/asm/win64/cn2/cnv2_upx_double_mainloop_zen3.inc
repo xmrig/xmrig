@@ -34,7 +34,7 @@
 	movdqa	XMMWORD PTR [rsp+32], xmm0
 
 	stmxcsr DWORD PTR [rsp+24]
-	mov DWORD PTR [rsp+28], 24448
+	mov DWORD PTR [rsp+28], 16256
 	ldmxcsr DWORD PTR [rsp+28]
 
 	mov	rcx, QWORD PTR [rbx+56]
