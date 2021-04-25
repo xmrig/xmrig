@@ -1,6 +1,6 @@
 #!/bin/bash
 
-modprobe msr
+modprobe msr allow_writes=on
 
 if cat /proc/cpuinfo | grep "AMD Ryzen" > /dev/null;
 	then
