@@ -140,7 +140,7 @@ inline void round_compute(float4 n0, float4 n1, float4 n2, float4 n3, float4 rnd
 }
 
 
-inline int4 single_comupte(float4 n0, float4 n1, float4 n2, float4 n3, float cnt, float4 rnd_c, __local float4* sum)
+inline int4 single_compute(float4 n0, float4 n1, float4 n2, float4 n3, float cnt, float4 rnd_c, __local float4* sum)
 {
     float4 c= (float4)(cnt);
     // 35 maths calls follow (140 FLOPS)
@@ -160,14 +160,14 @@ inline int4 single_comupte(float4 n0, float4 n1, float4 n2, float4 n3, float cnt
 }
 
 
-inline void single_comupte_wrap(const uint rot, int4 v0, int4 v1, int4 v2, int4 v3, float cnt, float4 rnd_c, __local float4* sum, __local int4* out)
+inline void single_compute_wrap(const uint rot, int4 v0, int4 v1, int4 v2, int4 v3, float cnt, float4 rnd_c, __local float4* sum, __local int4* out)
 {
     float4 n0 = convert_float4_rte(v0);
     float4 n1 = convert_float4_rte(v1);
     float4 n2 = convert_float4_rte(v2);
     float4 n3 = convert_float4_rte(v3);
 
-    int4 r = single_comupte(n0, n1, n2, n3, cnt, rnd_c, sum);
+    int4 r = single_compute(n0, n1, n2, n3, cnt, rnd_c, sum);
     *out = rot == 0 ? r : _mm_alignr_epi8(r, rot);
 }
 
@@ -256,7 +256,7 @@ __kernel void cn1(__global int *lpad_in, __global int *spad, uint numThreads)
         mem_fence(CLK_LOCAL_MEM_FENCE);
 
         {
-            single_comupte_wrap(
+            single_compute_wrap(
                 tidm,
                 *(smem->out + look[tid][0]),
                 *(smem->out + look[tid][1]),
@@ -327,7 +327,7 @@ inline void generate_512(uint idx, __local ulong* in, __global ulong* out)
 
 
 __attribute__((reqd_work_group_size(8, 8, 1)))
-__kernel void cn0(__global ulong *input, int, __global int *Scratchpad, __global ulong *states, uint Threads)
+__kernel void cn0(__global ulong *input, int inlen, __global int *Scratchpad, __global ulong *states, uint Threads)
 {
     const uint gIdx = getIdx();
     __local ulong State_buf[8 * 25];
