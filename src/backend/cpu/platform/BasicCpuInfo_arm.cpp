@@ -26,11 +26,14 @@
 #include <thread>
 
 
-#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
+#if __ARM_FEATURE_CRYPTO && !(defined(__APPLE__) || defined(__FreeBSD__))
 #   include <sys/auxv.h>
 #   include <asm/hwcap.h>
 #endif
 
+#if defined (__FreeBSD__)
+#include <machine/armreg.h>
+#endif
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 #include "3rdparty/rapidjson/document.h"
@@ -62,8 +65,14 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   endif
 
 #   if __ARM_FEATURE_CRYPTO
-#   if !defined(__APPLE__)
+#   if !(defined(__APPLE__) || defined(__FreeBSD__))
     m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
+#   elif defined(__FreeBSD__)
+    uint64_t id_aa64isar0;
+    id_aa64isar0 = READ_SPECIALREG(id_aa64isar0_el1);
+    if (ID_AA64ISAR0_AES_VAL(id_aa64isar0) == ID_AA64ISAR0_AES_BASE) {
+        m_flags.set(FLAG_AES, true);
+    }
 #   else
     m_flags.set(FLAG_AES, true);
 #   endif
