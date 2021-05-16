@@ -29,7 +29,11 @@ typedef unsigned long      uint64_t;
 #endif
 
 #ifndef PLATFORM
+#ifdef cl_amd_media_ops
 #define PLATFORM OPENCL_PLATFORM_AMD
+#else
+#define PLATFORM OPENCL_PLATFORM_UNKNOWN
+#endif
 #endif
 
 #define HASHES_PER_GROUP (GROUP_SIZE / PROGPOW_LANES)
