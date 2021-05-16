@@ -107,7 +107,7 @@ namespace randomx {
 		uint8_t* imul_rcp_storage = nullptr;
 		uint32_t imul_rcp_storage_used = 0;
 
-		void generateProgramPrologue(Program&, ProgramConfiguration&);
+		void generateProgramPrologue(Program&, ProgramConfiguration&, bool light);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);
 		template<bool rax>
 		static void genAddressReg(const Instruction&, const uint32_t src, uint8_t* code, uint32_t& codePos);
