@@ -90,6 +90,9 @@ int xmrig::App::exec()
     m_controller->config()->benchmark().set_controller(m_controller);
 
     if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
+        if (m_controller->config()->isShouldSave()) {
+            m_controller->config()->save();
+        }
         m_controller->config()->benchmark().start();
     } else {
         m_controller->start();

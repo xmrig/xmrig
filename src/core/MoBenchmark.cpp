@@ -77,6 +77,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     for (const auto &a : m_controller->miner()->algorithms()) {
+        if (algo_perf[a.id()] == 0.0f) continue;
         obj.AddMember(StringRef(a.shortName()), algo_perf[a.id()], allocator);
     }
 
