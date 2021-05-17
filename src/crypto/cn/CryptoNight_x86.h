@@ -830,7 +830,7 @@ void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
 }
 
 
-template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
+template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t)
 {
     constexpr CnAlgo<ALGO> props;
@@ -850,7 +850,7 @@ inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_
         cn_gpu_inner_ssse3<props.iterations(), props.mask()>(ctx[0]->state, ctx[0]->memory);
     }
 
-    cn_implode_scratchpad<ALGO, SOFT_AES, interleave>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
+    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
     keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
     memcpy(output, ctx[0]->state, 32);
 }
