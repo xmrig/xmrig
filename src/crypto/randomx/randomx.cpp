@@ -178,11 +178,6 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 		codeReadDatasetRyzenTweakedSize = b - a;
 	}
 	{
-		const uint8_t* a = addr(randomx_program_read_dataset_sshash_init);
-		const uint8_t* b = addr(randomx_program_read_dataset_sshash_fin);
-		memcpy(codeReadDatasetLightSshInitTweaked, a, b - a);
-	}
-	{
 		const uint8_t* a = addr(randomx_prefetch_scratchpad);
 		const uint8_t* b = addr(randomx_prefetch_scratchpad_end);
 		memcpy(codePrefetchScratchpadTweaked, a, b - a);
