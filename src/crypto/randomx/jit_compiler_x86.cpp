@@ -320,7 +320,7 @@ namespace randomx {
 
 		vm_flags = flags;
 
-		generateProgramPrologue(prog, pcfg, false);
+		generateProgramPrologue(prog, pcfg);
 
 		uint8_t* p;
 		uint32_t n;
@@ -339,8 +339,8 @@ namespace randomx {
 	}
 
 	void JitCompilerX86::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
-		generateProgramPrologue(prog, pcfg, true);
-		emit(RandomX_CurrentConfig.codeReadDatasetLightSshInitTweaked, readDatasetLightInitSize, code, codePos);
+		generateProgramPrologue(prog, pcfg);
+		emit(codeReadDatasetLightSshInit, readDatasetLightInitSize, code, codePos);
 		*(uint32_t*)(code + codePos) = 0xc381;
 		codePos += 2;
 		emit32(datasetOffset / CacheLineSize, code, codePos);
@@ -415,7 +415,7 @@ namespace randomx {
 		}
 	}
 
-	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg, bool light) {
+	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
 		codePos = ADDR(randomx_program_prologue_first_load) - ADDR(randomx_program_prologue);
 		*(uint32_t*)(code + codePos + 4) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		*(uint32_t*)(code + codePos + 14) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
@@ -429,7 +429,7 @@ namespace randomx {
 #		endif
 
 		imul_rcp_storage = code + (ADDR(randomx_program_imul_rcp_store) - codePrologue) + 2;
-		imul_rcp_storage_used = light ? 0xFFFFFFFFUL : 0;
+		imul_rcp_storage_used = 0;
 
 		memcpy(imul_rcp_storage - 34, &pcfg.eMask, sizeof(pcfg.eMask));
 		codePos = codePosFirst;
