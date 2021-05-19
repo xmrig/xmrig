@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern "C" {
 	void randomx_prefetch_scratchpad();
+	void randomx_prefetch_scratchpad_bmi2();
 	void randomx_prefetch_scratchpad_end();
 	void randomx_program_prologue();
 	void randomx_program_prologue_first_load();

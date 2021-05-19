@@ -29,6 +29,7 @@ IFDEF RAX
 _RANDOMX_JITX86_STATIC SEGMENT PAGE READ EXECUTE
 
 PUBLIC randomx_prefetch_scratchpad
+PUBLIC randomx_prefetch_scratchpad_bmi2
 PUBLIC randomx_prefetch_scratchpad_end
 PUBLIC randomx_program_prologue
 PUBLIC randomx_program_prologue_first_load
@@ -69,6 +70,14 @@ randomx_prefetch_scratchpad PROC
 	and edx, RANDOMX_SCRATCHPAD_MASK
 	prefetcht0 [rsi+rdx]
 randomx_prefetch_scratchpad ENDP
+
+randomx_prefetch_scratchpad_bmi2 PROC
+	rorx rdx, rax, 32
+	and eax, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rax]
+	and edx, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rdx]
+randomx_prefetch_scratchpad_bmi2 ENDP
 
 randomx_prefetch_scratchpad_end PROC
 randomx_prefetch_scratchpad_end ENDP
