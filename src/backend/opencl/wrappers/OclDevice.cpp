@@ -38,6 +38,21 @@ typedef union
     struct { cl_uint type; cl_uint data[5]; } raw;
     struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
 } topology_amd;
+#ifndef CL_DEVICE_TOPOLOGY_AMD
+#define CL_DEVICE_TOPOLOGY_AMD 0x4037
+#endif
+#ifndef CL_DEVICE_BOARD_NAME_AMD
+#define CL_DEVICE_BOARD_NAME_AMD 0x4038
+#endif
+#ifndef CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD
+#define CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD 1
+#endif
+#ifndef CL_DEVICE_PCI_BUS_ID_NV
+#define CL_DEVICE_PCI_BUS_ID_NV 0x4008
+#endif
+#ifndef CL_DEVICE_PCI_SLOT_ID_NV
+#define CL_DEVICE_PCI_SLOT_ID_NV 0x4009
+#endif
 
 
 namespace xmrig {
@@ -74,6 +89,28 @@ static ocl_gen_config_fun generators[] = {
 };
 
 
+static OclVendor getPlatformVendorId(const String &vendor, const String &extensions)
+{
+    if (extensions.contains("cl_amd_") || vendor.contains("Advanced Micro Devices") || vendor.contains("AMD")) {
+        return OCL_VENDOR_AMD;
+    }
+
+    if (extensions.contains("cl_nv_") || vendor.contains("NVIDIA")) {
+        return OCL_VENDOR_NVIDIA;
+    }
+
+    if (extensions.contains("cl_intel_") || vendor.contains("Intel")) {
+        return OCL_VENDOR_INTEL;
+    }
+
+    if (extensions.contains("cl_APPLE_") || vendor.contains("Apple")) {
+        return OCL_VENDOR_APPLE;
+    }
+
+    return OCL_VENDOR_UNKNOWN;
+}
+
+
 static OclVendor getVendorId(const String &vendor)
 {
     if (vendor.contains("Advanced Micro Devices") || vendor.contains("AMD")) {
@@ -81,19 +118,36 @@ static OclVendor getVendorId(const String &vendor)
     }
 
     if (vendor.contains("NVIDIA")) {
-        return  OCL_VENDOR_NVIDIA;
+        return OCL_VENDOR_NVIDIA;
     }
 
     if (vendor.contains("Intel")) {
         return OCL_VENDOR_INTEL;
     }
 
+    if (vendor.contains("Apple")) {
+        return OCL_VENDOR_APPLE;
+    }
+
     return OCL_VENDOR_UNKNOWN;
 }
 
 
-static OclDevice::Type getType(const String &name)
+static OclDevice::Type getType(const String &name, const OclVendor platformVendorId)
 {
+    if (platformVendorId == OCL_VENDOR_APPLE) {
+        // Apple Platform: uses product names, not gfx# or codenames
+        if (name.contains("AMD Radeon")) {
+            if (name.contains("Pro 5300M")) {
+                return OclDevice::Navi_14;
+            }
+
+            if (name.contains("RX 580")) {
+                return OclDevice::Polaris;
+            }
+        }
+    }
+
     if (name == "gfx900" || name == "gfx901") {
         return OclDevice::Vega_10;
     }
@@ -140,28 +194,31 @@ static OclDevice::Type getType(const String &name)
 xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform) :
     m_id(id),
     m_platform(platform),
-    m_board(OclLib::getString(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */)),
+    m_platformVendor(OclLib::getString(platform, CL_PLATFORM_VENDOR)),
     m_name(OclLib::getString(id, CL_DEVICE_NAME)),
     m_vendor(OclLib::getString(id, CL_DEVICE_VENDOR)),
+    m_extensions(OclLib::getString(id, CL_DEVICE_EXTENSIONS)),
     m_maxMemoryAlloc(OclLib::getUlong(id, CL_DEVICE_MAX_MEM_ALLOC_SIZE)),
     m_globalMemory(OclLib::getUlong(id, CL_DEVICE_GLOBAL_MEM_SIZE)),
     m_computeUnits(OclLib::getUint(id, CL_DEVICE_MAX_COMPUTE_UNITS, 1)),
     m_index(index)
 {
     m_vendorId  = getVendorId(m_vendor);
-    m_type      = getType(m_name);
+    m_platformVendorId = getPlatformVendorId(m_platformVendor, m_extensions);
+    m_type      = getType(m_name, m_platformVendorId);
 
-    if (m_vendorId == OCL_VENDOR_AMD) {
+    if (m_extensions.contains("cl_amd_device_attribute_query")) {
         topology_amd topology;
 
-        if (OclLib::getDeviceInfo(id, 0x4037 /* CL_DEVICE_TOPOLOGY_AMD */, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == 1) {
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_TOPOLOGY_AMD, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
             m_topology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
         }
+        m_board = OclLib::getString(id, CL_DEVICE_BOARD_NAME_AMD);
     }
-    else if (m_vendorId == OCL_VENDOR_NVIDIA) {
+    else if (m_extensions.contains("cl_nv_device_attribute_query")) {
         cl_uint bus = 0;
-        if (OclLib::getDeviceInfo(id, 0x4008 /* CL_DEVICE_PCI_BUS_ID_NV */, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
-            cl_uint slot  = OclLib::getUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_PCI_BUS_ID_NV, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
+            cl_uint slot  = OclLib::getUint(id, CL_DEVICE_PCI_SLOT_ID_NV);
             m_topology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
         }
     }
