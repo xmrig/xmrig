@@ -129,7 +129,8 @@ struct RandomX_ConfigurationBase
 	uint32_t codeReadDatasetTweakedSize;
 	uint8_t codeReadDatasetRyzenTweaked[72];
 	uint32_t codeReadDatasetRyzenTweakedSize;
-	uint8_t codePrefetchScratchpadTweaked[32];
+	uint8_t codePrefetchScratchpadTweaked[28];
+	uint32_t codePrefetchScratchpadTweakedSize;
 
 	uint32_t AddressMask_Calculated[4];
 	uint32_t ScratchpadL3Mask_Calculated;

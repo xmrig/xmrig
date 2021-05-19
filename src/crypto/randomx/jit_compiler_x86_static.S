@@ -38,6 +38,7 @@
 #endif
 
 .global DECL(randomx_prefetch_scratchpad)
+.global DECL(randomx_prefetch_scratchpad_bmi2)
 .global DECL(randomx_prefetch_scratchpad_end)
 .global DECL(randomx_program_prologue)
 .global DECL(randomx_program_prologue_first_load)
@@ -77,6 +78,13 @@ DECL(randomx_prefetch_scratchpad):
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	prefetcht0 [rsi+rax]
 	ror rdx, 32
+	and edx, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rdx]
+
+DECL(randomx_prefetch_scratchpad_bmi2):
+	rorx rdx, rax, 32
+	and eax, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rax]
 	and edx, RANDOMX_SCRATCHPAD_MASK
 	prefetcht0 [rsi+rdx]
 

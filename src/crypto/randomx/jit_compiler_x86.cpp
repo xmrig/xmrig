@@ -110,8 +110,6 @@ namespace randomx {
 	#define ADDR(x) ((uint8_t*)&x)
 #	endif
 
-	#define codePrefetchScratchpad ADDR(randomx_prefetch_scratchpad)
-	#define codePrefetchScratchpadEnd ADDR(randomx_prefetch_scratchpad_end)
 	#define codePrologue ADDR(randomx_program_prologue)
 	#define codeLoopBegin ADDR(randomx_program_loop_begin)
 	#define codeLoopLoad ADDR(randomx_program_loop_load)
@@ -134,7 +132,6 @@ namespace randomx {
 	#define codeShhEnd ADDR(randomx_sshash_end)
 	#define codeShhInit ADDR(randomx_sshash_init)
 
-	#define prefetchScratchpadSize (codePrefetchScratchpadEnd - codePrefetchScratchpad)
 	#define prologueSize (codeLoopBegin - codePrologue)
 	#define loopLoadSize (codeLoopLoadXOP - codeLoopLoad)
 	#define loopLoadXOPSize (codeProgamStart - codeLoopLoadXOP)
@@ -467,7 +464,7 @@ namespace randomx {
 	void JitCompilerX86::generateProgramEpilogue(Program& prog, ProgramConfiguration& pcfg) {
 		*(uint64_t*)(code + codePos) = 0xc03349c08b49ull + (static_cast<uint64_t>(pcfg.readReg0) << 16) + (static_cast<uint64_t>(pcfg.readReg1) << 40);
 		codePos += 6;
-		emit(RandomX_CurrentConfig.codePrefetchScratchpadTweaked, prefetchScratchpadSize, code, codePos);
+		emit(RandomX_CurrentConfig.codePrefetchScratchpadTweaked, RandomX_CurrentConfig.codePrefetchScratchpadTweakedSize, code, codePos);
 		memcpy(code + codePos, codeLoopStore, loopStoreSize);
 		codePos += loopStoreSize;
 
