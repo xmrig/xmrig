@@ -115,6 +115,7 @@ namespace randomx {
 	#define codeLoopLoad ADDR(randomx_program_loop_load)
 	#define codeLoopLoadXOP ADDR(randomx_program_loop_load_xop)
 	#define codeProgamStart ADDR(randomx_program_start)
+	#define codeReadDataset ADDR(randomx_program_read_dataset)
 	#define codeReadDatasetLightSshInit ADDR(randomx_program_read_dataset_sshash_init)
 	#define codeReadDatasetLightSshFin ADDR(randomx_program_read_dataset_sshash_fin)
 	#define codeDatasetInit ADDR(randomx_dataset_init)
@@ -135,6 +136,7 @@ namespace randomx {
 	#define prologueSize (codeLoopBegin - codePrologue)
 	#define loopLoadSize (codeLoopLoadXOP - codeLoopLoad)
 	#define loopLoadXOPSize (codeProgamStart - codeLoopLoadXOP)
+	#define readDatasetSize (codeReadDatasetLightSshInit - codeReadDataset)
 	#define readDatasetLightInitSize (codeReadDatasetLightSshFin - codeReadDatasetLightSshInit)
 	#define readDatasetLightFinSize (codeLoopStore - codeReadDatasetLightSshFin)
 	#define loopStoreSize (codeLoopEnd - codeLoopStore)
@@ -318,20 +320,7 @@ namespace randomx {
 		vm_flags = flags;
 
 		generateProgramPrologue(prog, pcfg);
-
-		uint8_t* p;
-		uint32_t n;
-		if (flags & RANDOMX_FLAG_AMD) {
-			p = RandomX_CurrentConfig.codeReadDatasetRyzenTweaked;
-			n = RandomX_CurrentConfig.codeReadDatasetRyzenTweakedSize;
-		}
-		else {
-			p = RandomX_CurrentConfig.codeReadDatasetTweaked;
-			n = RandomX_CurrentConfig.codeReadDatasetTweakedSize;
-		}
-		memcpy(code + codePos, p, n);
-		codePos += n;
-
+		emit(codeReadDataset, readDatasetSize, code, codePos);
 		generateProgramEpilogue(prog, pcfg);
 	}
 

@@ -35,6 +35,7 @@
 	mov rbx, r9                 ;# loop counter
 
 	mov rax, rbp
+	ror rbp, 32
 
 	;# zero integer registers
 	xor r8, r8
