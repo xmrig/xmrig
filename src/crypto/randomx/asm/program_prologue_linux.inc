@@ -22,6 +22,7 @@
 	mov rsi, rdx                ;# uint8_t* scratchpad
 
 	mov rax, rbp
+	ror rbp, 32
 
 	;# zero integer registers
 	xor r8, r8
