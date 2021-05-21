@@ -304,6 +304,9 @@ literal_v14: .fill 2,8,0
 literal_v15: .fill 2,8,0
 
 DECL(randomx_program_aarch64_vm_instructions_end):
+	# Calculate dataset pointer for dataset read
+	# Do it here to break false dependency from readReg2 and readReg3 (see next line)
+	lsr	x10, x9, 32
 
 	# mx ^= r[readReg2] ^ r[readReg3];
 	eor	x9, x9, x18
@@ -321,8 +324,6 @@ DECL(randomx_program_aarch64_cacheline_align_mask1):
 	# mx <-> ma
 	ror	x9, x9, 32
 
-	# Calculate dataset pointer for dataset read
-	mov	w10, w9
 DECL(randomx_program_aarch64_cacheline_align_mask2):
 	# Actual mask will be inserted by JIT compiler
 	and	x10, x10, 1
