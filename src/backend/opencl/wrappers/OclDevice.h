@@ -52,7 +52,8 @@ public:
         Raven,
         Navi_10,
         Navi_12,
-        Navi_14
+        Navi_14,
+        Navi_21
     };
 
     OclDevice() = delete;

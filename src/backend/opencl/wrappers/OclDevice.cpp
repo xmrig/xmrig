@@ -138,12 +138,52 @@ static OclDevice::Type getType(const String &name, const OclVendor platformVendo
     if (platformVendorId == OCL_VENDOR_APPLE) {
         // Apple Platform: uses product names, not gfx# or codenames
         if (name.contains("AMD Radeon")) {
-            if (name.contains("Pro 5300M")) {
+            if (name.contains(" 450 ") ||
+                name.contains(" 455 ") ||
+                name.contains(" 460 ")) {
+                return OclDevice::Baffin;
+            }
+
+            if (name.contains(" 555 ") || name.contains(" 555X ") ||
+                name.contains(" 560 ") || name.contains(" 560X ") ||
+                name.contains(" 570 ") || name.contains(" 570X ") ||
+                name.contains(" 575 ") || name.contains(" 575X ")) {
+                return OclDevice::Polaris;
+            }
+
+            if (name.contains(" 580 ") || name.contains(" 580X ")) {
+                return OclDevice::Ellesmere;
+            }
+
+            if (name.contains(" Vega ")) {
+                if (name.contains(" 48 ") ||
+                    name.contains(" 56 ") ||
+                    name.contains(" 64 ") ||
+                    name.contains(" 64X ")) {
+                    return OclDevice::Vega_10;
+                }
+                if (name.contains(" 16 ") ||
+                    name.contains(" 20 ") ||
+                    name.contains(" II ")) {
+                    return OclDevice::Vega_20;
+                }
+            }
+
+            if (name.contains(" 5700 ") || name.contains(" W5700X ")) {
+                return OclDevice::Navi_10;
+            }
+
+            if (name.contains(" 5600 ") || name.contains(" 5600M ")) {
+                return OclDevice::Navi_12;
+            }
+
+            if (name.contains(" 5300 ") || name.contains(" 5300M ") ||
+                name.contains(" 5500 ") || name.contains(" 5500M ")) {
                 return OclDevice::Navi_14;
             }
 
-            if (name.contains("RX 580")) {
-                return OclDevice::Polaris;
+            if (name.contains(" W6800 ") || name.contains(" W6900X ")) {
+                return OclDevice::Navi_21;
             }
         }
     }
@@ -170,6 +210,10 @@ static OclDevice::Type getType(const String &name, const OclVendor platformVendo
 
     if (name == "gfx1012") {
         return OclDevice::Navi_14;
+    }
+
+    if (name == "gfx1030") {
+        return OclDevice::Navi_21;
     }
 
     if (name == "gfx804") {

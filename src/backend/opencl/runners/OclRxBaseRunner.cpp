@@ -55,7 +55,7 @@ xmrig::OclRxBaseRunner::OclRxBaseRunner(size_t index, const OclLaunchData &data)
         m_gcn_version = 14;
     }
 
-    if (data.device.type() == OclDevice::Navi_10 || data.device.type() == OclDevice::Navi_12 || data.device.type() == OclDevice::Navi_14) {
+    if (data.device.type() == OclDevice::Navi_10 || data.device.type() == OclDevice::Navi_12 || data.device.type() == OclDevice::Navi_14 || data.device.type() == OclDevice::Navi_21) {
         m_gcn_version = 15;
     }
 

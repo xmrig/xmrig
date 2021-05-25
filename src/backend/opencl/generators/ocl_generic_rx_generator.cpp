@@ -67,6 +67,10 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
         isNavi = true;
         break;
 
+    case OclDevice::Navi_21:
+        isNavi = true;
+        break;
+
     default:
         break;
     }
