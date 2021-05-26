@@ -46,6 +46,7 @@ xmrig::OclAstroBWTRunner::OclAstroBWTRunner(size_t index, const OclLaunchData &d
     switch (data.device.type())
     {
     case OclDevice::Baffin:
+    case OclDevice::Ellesmere:
     case OclDevice::Polaris:
     case OclDevice::Lexa:
     case OclDevice::Vega_10:

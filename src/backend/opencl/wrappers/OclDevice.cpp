@@ -224,7 +224,11 @@ static OclDevice::Type getType(const String &name, const OclVendor platformVendo
         return OclDevice::Baffin;
     }
 
-    if (name == "gfx803" || name.contains("polaris") || name == "Ellesmere") {
+    if (name.contains("Ellesmere")) {
+        return OclDevice::Ellesmere;
+    }
+
+    if (name == "gfx803" || name.contains("polaris")) {
         return OclDevice::Polaris;
     }
 
