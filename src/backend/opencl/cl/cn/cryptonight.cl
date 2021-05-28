@@ -755,7 +755,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
 
 __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
-    const uint idx = get_global_id(0) - get_global_offset(0);
+    const uint idx = getIdx();
 
     // do not use early return here
     if(idx < BranchBuf[Threads]) {
@@ -802,7 +802,7 @@ __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global u
         if (p.s3 <= Target) {
             const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
-                output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
+                ((__global uint *)output)[outIdx] = BranchBuf[idx] + (uint)get_global_offset(0);
             }
         }
     }
@@ -838,7 +838,7 @@ __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global u
 
 __kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
-    const uint idx = get_global_id(0) - get_global_offset(0);
+    const uint idx = getIdx();
 
     // do not use early return here
     if (idx < BranchBuf[Threads]) {
@@ -874,7 +874,7 @@ __kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint
         if (h7l <= Target) {
             const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
-                output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
+                ((__global uint *)output)[outIdx] = BranchBuf[idx] + (uint)get_global_offset(0);
             }
         }
     }
@@ -886,7 +886,7 @@ __kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint
 
 __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
-    const uint idx = get_global_id(0) - get_global_offset(0);
+    const uint idx = getIdx();
 
     // do not use early return here
     if (idx < BranchBuf[Threads]) {
@@ -975,7 +975,7 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
         if (as_ulong(t) <= Target) {
             const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
-                output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
+                ((__global uint *)output)[outIdx] = BranchBuf[idx] + (uint)get_global_offset(0);
             }
         }
     }
@@ -987,7 +987,7 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
 
 __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global uint *output, ulong Target, uint Threads)
 {
-    const uint idx = get_global_id(0) - get_global_offset(0);
+    const uint idx = getIdx();
 
     // do not use early return here
     if (idx < BranchBuf[Threads]) {
@@ -1075,7 +1075,7 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
         if (State[7] <= Target) {
             const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
-                output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
+                ((__global uint *)output)[outIdx] = BranchBuf[idx] + (uint)get_global_offset(0);
             }
         }
     }
