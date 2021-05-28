@@ -800,7 +800,7 @@ __kernel void Skein(__global ulong *states, __global uint *BranchBuf, __global u
         // Note that comparison is equivalent to subtraction - we can't just compare 8 32-bit values
         // and expect an accurate result for target > 32-bit without implementing carries
         if (p.s3 <= Target) {
-            ulong outIdx = atomic_inc(output + 0xFF);
+            const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
                 output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
             }
@@ -872,7 +872,7 @@ __kernel void JH(__global ulong *states, __global uint *BranchBuf, __global uint
         // Note that comparison is equivalent to subtraction - we can't just compare 8 32-bit values
         // and expect an accurate result for target > 32-bit without implementing carries
         if (h7l <= Target) {
-            ulong outIdx = atomic_inc(output + 0xFF);
+            const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
                 output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
             }
@@ -973,7 +973,7 @@ __kernel void Blake(__global ulong *states, __global uint *BranchBuf, __global u
         // and expect an accurate result for target > 32-bit without implementing carries
         uint2 t = (uint2)(h[6],h[7]);
         if (as_ulong(t) <= Target) {
-            ulong outIdx = atomic_inc(output + 0xFF);
+            const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
                 output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
             }
@@ -1073,7 +1073,7 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
         // Note that comparison is equivalent to subtraction - we can't just compare 8 32-bit values
         // and expect an accurate result for target > 32-bit without implementing carries
         if (State[7] <= Target) {
-            ulong outIdx = atomic_inc(output + 0xFF);
+            const uint outIdx = atomic_inc(output + 0xFF);
             if (outIdx < 0xFF) {
                 output[outIdx] = BranchBuf[idx] + (uint) get_global_offset(0);
             }
