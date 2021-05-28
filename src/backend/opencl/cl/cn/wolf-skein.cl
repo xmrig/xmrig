@@ -15,11 +15,11 @@
  * The implemented function is modified because the last is in our case always a scalar.
  * We can ignore the bitwise AND operation.
  */
-inline uint2 xmrig_amd_bitalign(const uint2 src0, const uint2 src1, const uint src2)
+inline uint2 xmrig_amd_bitalign(const uint2 src0, const uint2 src1, const uint2 src2)
 {
     uint2 result;
-    result.s0 = (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2));
-    result.s1 = (uint) (((((long)src0.s1) << 32) | (long)src1.s1) >> (src2));
+    result.s0 = (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2.s0 & 31));
+    result.s1 = (uint) (((((long)src0.s1) << 32) | (long)src1.s1) >> (src2.s1 & 31));
     return result;
 }
 #endif
