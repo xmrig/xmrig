@@ -27,7 +27,7 @@
 *
 * @author   djm34
 */
-__constant static const int sigma[16][16] = {
+__constant STATIC const int sigma[16][16] = {
 		{ 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 },
 		{ 14, 10, 4, 8, 9, 15, 13, 6, 1, 12, 0, 2, 11, 7, 5, 3 },
 		{ 11, 8, 12, 0, 5, 2, 15, 13, 10, 14, 3, 6, 7, 1, 9, 4 },
@@ -47,7 +47,7 @@ __constant static const int sigma[16][16] = {
 };
 
 
-__constant static const sph_u32  c_IV256[8] = {
+__constant STATIC const sph_u32  c_IV256[8] = {
 	0x6A09E667, 0xBB67AE85,
 	0x3C6EF372, 0xA54FF53A,
 	0x510E527F, 0x9B05688C,
@@ -55,13 +55,13 @@ __constant static const sph_u32  c_IV256[8] = {
 };
 
 /* Second part (64-80) msg never change, store it */
-__constant static const sph_u32  c_Padding[16] = {
+__constant STATIC const sph_u32  c_Padding[16] = {
 	0, 0, 0, 0,
 	0x80000000, 0, 0, 0,
 	0, 0, 0, 0,
 	0, 1, 0, 640,
 };
-__constant static const sph_u32  c_u256[16] = {
+__constant STATIC const sph_u32  c_u256[16] = {
 	0x243F6A88, 0x85A308D3,
 	0x13198A2E, 0x03707344,
 	0xA4093822, 0x299F31D0,

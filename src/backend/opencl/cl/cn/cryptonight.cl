@@ -22,6 +22,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef cl_amd_media_ops2
+#pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
+#define STATIC static
+#else
+#define amd_bitalign(src0, src1, src2) ((((((long)src0) << 32) | (long)src1) >> (src2 & 31)))
+#define amd_bfe(src0, offset, width)   ((src0 << (32 - (offset) - width)) >> (32 - width))
+#define STATIC
+#endif
+
 /* For Mesa clover support */
 #ifdef cl_clang_storage_class_specifiers
 #   pragma OPENCL EXTENSION cl_clang_storage_class_specifiers : enable
@@ -39,7 +48,7 @@
 #include "keccak.cl"
 
 
-#if defined(__NV_CL_C_VERSION) && STRIDED_INDEX != 0
+#if (defined(__NV_CL_C_VERSION) || defined(__APPLE__)) && STRIDED_INDEX != 0
 #   undef STRIDED_INDEX
 #   define STRIDED_INDEX 0
 #endif
