@@ -266,7 +266,7 @@ bool xmrig::CpuBackend::isEnabled() const
 
 bool xmrig::CpuBackend::isEnabled(const Algorithm &algorithm) const
 {
-    return !d_ptr->controller->config()->cpu().threads().get(algorithm).isEmpty();
+    return algorithm.isValid() && !d_ptr->controller->config()->cpu().threads().get(algorithm).isEmpty();
 }
 
 
