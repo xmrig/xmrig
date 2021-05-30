@@ -22,13 +22,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef cl_amd_media_ops2
-#pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
-#define STATIC static
+#ifdef STATIC
+#   undef STATIC
+#endif
+#ifdef cl_amd_media_ops
+#   define STATIC static
 #else
-#define amd_bitalign(src0, src1, src2) ((((((long)src0) << 32) | (long)src1) >> (src2 & 31)))
-#define amd_bfe(src0, offset, width)   ((src0 << (32 - (offset) - width)) >> (32 - width))
-#define STATIC
+#   define STATIC
 #endif
 
 /* For Mesa clover support */

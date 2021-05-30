@@ -1,6 +1,32 @@
 #ifndef WOLF_SKEIN_CL
 #define WOLF_SKEIN_CL
 
+#ifdef STATIC
+#   undef STATIC
+#endif
+#ifdef cl_amd_media_ops
+#   define STATIC static
+#   pragma OPENCL EXTENSION cl_amd_media_ops : enable
+#else
+#   define STATIC
+/* taken from https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops.txt
+ * Build-in Function
+ *     uintn  amd_bitalign (uintn src0, uintn src1, uintn src2)
+ *   Description
+ *     dst.s0 =  (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2.s0 & 31))
+ *     similar operation applied to other components of the vectors.
+ *
+ * The implemented function is modified because the last is in our case always a scalar.
+ * We can ignore the bitwise AND operation.
+ */
+inline uint2 amd_bitalign(const uint2 src0, const uint2 src1, const uint src2)
+{
+    uint2 result;
+    result.s0 = (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2));
+    result.s1 = (uint) (((((long)src0.s1) << 32) | (long)src1.s1) >> (src2));
+    return result;
+}
+#endif
 
 // Vectorized Skein implementation macros and functions by Wolf
 
@@ -31,8 +57,12 @@ STATIC const __constant ulong SKEIN512_256_IV[8] =
 
 ulong SKEIN_ROT(const uint2 x, const uint y)
 {
-	if(y < 32) return(as_ulong(amd_bitalign(x, x.s10, 32 - y)));
-	else return(as_ulong(amd_bitalign(x.s10, x, 32 - (y - 32))));
+    if (y < 32) {
+        return(as_ulong(amd_bitalign(x, x.s10, 32 - y)));
+    }
+    else {
+        return(as_ulong(amd_bitalign(x.s10, x, 32 - (y - 32))));
+    }
 }
 
 void SkeinMix8(ulong4 *pv0, ulong4 *pv1, const uint rc0, const uint rc1, const uint rc2, const uint rc3)
