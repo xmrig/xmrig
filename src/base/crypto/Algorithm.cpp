@@ -119,6 +119,7 @@ static AlgoName const algorithm_names[] = {
     { "chukwa",                    nullptr,            Algorithm::AR2_CHUKWA      },
     { "argon2/chukwav2",           nullptr,            Algorithm::AR2_CHUKWA_V2   },
     { "chukwav2",                  nullptr,            Algorithm::AR2_CHUKWA_V2   },
+    { "argon2/ninja",              nullptr,            Algorithm::AR2_WRKZ        },
     { "argon2/wrkz",               nullptr,            Algorithm::AR2_WRKZ        },
 #   endif
 #   ifdef XMRIG_ALGO_ASTROBWT

@@ -231,11 +231,15 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
-    d_ptr->cl.read(reader.getValue(kOcl));
+    if (!pools().isBenchmark()) {
+        d_ptr->cl.read(reader.getValue(kOcl));
+    }
 #   endif
 
 #   ifdef XMRIG_FEATURE_CUDA
-    d_ptr->cuda.read(reader.getValue(kCuda));
+    if (!pools().isBenchmark()) {
+        d_ptr->cuda.read(reader.getValue(kCuda));
+    }
 #   endif
 
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
