@@ -28,7 +28,15 @@
 
 #if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
 #   include <sys/auxv.h>
-#   include <asm/hwcap.h>
+#   ifndef __FreeBSD__
+#       include <asm/hwcap.h>
+#   else
+#       include <stdint.h>
+#       include <machine/armreg.h>
+#       ifndef ID_AA64ISAR0_AES_VAL
+#           define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES        
+#       endif
+#   endif
 #endif
 
 
@@ -62,10 +70,13 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   endif
 
 #   if __ARM_FEATURE_CRYPTO
-#   if !defined(__APPLE__)
-    m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
-#   else
+#   if defined(__APPLE__)
     m_flags.set(FLAG_AES, true);
+#   elif defined(__FreeBSD__)
+    uint64_t isar0 = READ_SPECIALREG(id_aa64isar0_el1);
+    m_flags.set(FLAG_AES, ID_AA64ISAR0_AES_VAL(isar0) >= ID_AA64ISAR0_AES_BASE);
+#   else
+    m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
 #   endif
 #   endif
 

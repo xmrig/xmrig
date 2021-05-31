@@ -48,7 +48,7 @@ enum Version : uint32_t
 static uv_lib_t cudaLib;
 
 #if defined(__APPLE__)
-static String defaultLoader = "/System/Library/Frameworks/OpenCL.framework/OpenCL";
+static String defaultLoader = "libxmrig-cuda.dylib";
 #elif defined(_WIN32)
 static String defaultLoader = "xmrig-cuda.dll";
 #else
