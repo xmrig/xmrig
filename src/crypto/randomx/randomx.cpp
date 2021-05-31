@@ -250,7 +250,7 @@ void RandomX_ConfigurationBase::Apply()
 	*(uint32_t*)(codeReadDatasetRyzenTweaked + 24) = DatasetBaseMask;
 	*(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
 	*(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	const bool hasBMI2 = xmrig::Cpu::info()->hasBMI2();
 
