@@ -191,6 +191,18 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 		const uint8_t* b = addr(randomx_sshash_end);
 		memcpy(codeShhPrefetchTweaked, a, b - a);
 	}
+	{
+		const uint8_t* a = addr(randomx_program_read_dataset);
+		const uint8_t* b = addr(randomx_program_read_dataset_ryzen);
+		memcpy(codeReadDatasetTweaked, a, b - a);
+		codeReadDatasetTweakedSize = b - a;
+	}
+	{
+		const uint8_t* a = addr(randomx_program_read_dataset_ryzen);
+		const uint8_t* b = addr(randomx_program_read_dataset_sshash_init);
+		memcpy(codeReadDatasetRyzenTweaked, a, b - a);
+		codeReadDatasetRyzenTweakedSize = b - a;
+	}
 	if (xmrig::Cpu::info()->hasBMI2()) {
 		const uint8_t* a = addr(randomx_prefetch_scratchpad_bmi2);
 		const uint8_t* b = addr(randomx_prefetch_scratchpad_end);
