@@ -31,6 +31,8 @@
 #include "crypto/common/VirtualMemory.h"
 
 
+#include "crypto/cn/umul128.h"
+
 #if defined(XMRIG_ARM)
 #   include "crypto/cn/CryptoNight_arm.h"
 #else

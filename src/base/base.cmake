@@ -76,6 +76,9 @@ set(HEADERS_BASE
     src/base/tools/Handle.h
     src/base/tools/String.h
     src/base/tools/Timer.h
+    src/base/tools/cryptonote/BlobReader.h
+    src/base/tools/cryptonote/BlockTemplate.h
+    src/base/tools/cryptonote/WalletAddress.h
    )
 
 set(SOURCES_BASE
@@ -126,6 +129,8 @@ set(SOURCES_BASE
     src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
+    src/base/tools/cryptonote/BlockTemplate.cpp
+    src/base/tools/cryptonote/WalletAddress.cpp
    )
 
 

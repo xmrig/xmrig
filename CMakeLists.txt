@@ -11,7 +11,7 @@ option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
 option(WITH_ASTROBWT        "Enable AstroBWT algorithms family" ON)
 option(WITH_KAWPOW          "Enable KawPow algorithms family" ON)
 option(WITH_HTTP            "Enable HTTP protocol support (client/server)" ON)
-option(WITH_DEBUG_LOG       "Enable debug log output" OFF)
+option(WITH_DEBUG_LOG       "Enable debug log output" ON)
 option(WITH_TLS             "Enable OpenSSL support" ON)
 option(WITH_ASM             "Enable ASM PoW implementations" ON)
 option(WITH_MSR             "Enable MSR mod & 1st-gen Ryzen fix" ON)
@@ -82,6 +82,7 @@ set(HEADERS_CRYPTO
     src/crypto/cn/hash.h
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
+    src/crypto/cn/umul128.h
     src/crypto/common/HugePagesInfo.h
     src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h

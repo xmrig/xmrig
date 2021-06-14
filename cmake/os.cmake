@@ -1,3 +1,7 @@
+if (CMAKE_SIZEOF_VOID_P EQUAL 8)
+    add_definitions(/DXMRIG_64_BIT)
+endif()
+
 if (WIN32)
     set(XMRIG_OS_WIN ON)
 elseif (APPLE)
