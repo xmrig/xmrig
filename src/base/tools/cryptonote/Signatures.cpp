@@ -51,13 +51,16 @@ static void random32_unbiased(uint8_t* bytes)
     // l fits 15 times in 32 bytes (iow, 15 l is the highest multiple of l that fits in 32 bytes)
     static const uint8_t limit[32] = { 0xe3, 0x6a, 0x67, 0x72, 0x8b, 0xce, 0x13, 0x29, 0x8f, 0x30, 0x82, 0x8c, 0x0b, 0xa4, 0x10, 0x39, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0 };
 
-    do {
+    for (;;) {
         xmrig::Cvt::randomBytes(bytes, 32);
         if (!less32(bytes, limit)) {
             continue;
         }
         sc_reduce32(bytes);
-    } while (!sc_isnonzero(bytes));
+        if (sc_isnonzero(bytes)) {
+            break;
+        }
+    }
 }
 
 
