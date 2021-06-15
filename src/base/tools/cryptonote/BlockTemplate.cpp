@@ -1,4 +1,5 @@
 /* XMRig
+ * Copyright 2012-2013 The Cryptonote developers
  * Copyright 2014-2021 The Monero Project
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
@@ -22,9 +23,6 @@
 #include "base/tools/Cvt.h"
 #include "base/tools/cryptonote/BlobReader.h"
 #include "base/tools/cryptonote/BlockTemplate.h"
-
-
-#pragma optimize("", off)
 
 
 namespace xmrig {
@@ -170,7 +168,7 @@ void CBlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count
         size_t cnt = count;
         while (cnt & (cnt - 1)) cnt &= cnt - 1;
 
-        Buffer ints(HASH_SIZE);
+        Buffer ints(cnt * HASH_SIZE);
         memcpy(ints.data(), hashes, (cnt * 2 - count) * HASH_SIZE);
 
         for (i = cnt * 2 - count, j = cnt * 2 - count; j < cnt; i += 2, ++j) {

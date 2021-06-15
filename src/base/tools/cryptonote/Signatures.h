@@ -18,28 +18,20 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_WALLETADDRESS_H
-#define XMRIG_WALLETADDRESS_H
+#ifndef XMRIG_SIGNATURES_H
+#define XMRIG_SIGNATURES_H
 
 
-#include "base/tools/String.h"
+#include <cstdint>
 
 
 namespace xmrig {
 
 
-struct WalletAddress
-{
-    uint64_t tag;
-    uint8_t public_spend_key[32];
-    uint8_t public_view_key[32];
-    uint8_t checksum[4];
-
-    bool Decode(const String& address);
-};
-
+void generate_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8_t* sec, uint8_t* sig);
+bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8_t* sig);
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_WALLETADDRESS_H */
+#endif /* XMRIG_SIGNATURES_H */
