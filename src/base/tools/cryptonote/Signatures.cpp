@@ -77,6 +77,27 @@ static void hash_to_scalar(const void* data, size_t length, ec_scalar& res)
 }
 
 
+static void derivation_to_scalar(const uint8_t* derivation, size_t output_index, ec_scalar& res)
+{
+    struct {
+        uint8_t derivation[32];
+        uint8_t output_index[(sizeof(size_t) * 8 + 6) / 7];
+    } buf;
+
+    uint8_t* end = buf.output_index;
+    memcpy(buf.derivation, derivation, sizeof(buf.derivation));
+
+    size_t k = output_index;
+    while (k >= 0x80) {
+        *(end++) = (static_cast<uint8_t>(k) & 0x7F) | 0x80;
+        k >>= 7;
+    }
+    *(end++) = static_cast<uint8_t>(k);
+
+    hash_to_scalar(&buf, end - reinterpret_cast<uint8_t*>(&buf), res);
+}
+
+
 namespace xmrig {
 
 
@@ -130,8 +151,9 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
     ge_tobytes((uint8_t*)&buf.comm, &tmp2);
 
     static const ec_point infinity = { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} };
-    if (memcmp(&buf.comm, &infinity, 32) == 0)
+    if (memcmp(&buf.comm, &infinity, 32) == 0) {
         return false;
+    }
 
     hash_to_scalar(&buf, sizeof(s_comm), c);
     sc_sub((uint8_t*)&c, (uint8_t*)&c, (const uint8_t*)&sig.c);
@@ -139,6 +161,33 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
     return sc_isnonzero((uint8_t*)&c) == 0;
 }
 
+
+bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* derivation)
+{
+    ge_p3 point;
+    ge_p2 point2;
+    ge_p1p1 point3;
+
+    if (ge_frombytes_vartime(&point, key1) != 0) {
+        return false;
+    }
+
+    ge_scalarmult(&point2, key2, &point);
+    ge_mul8(&point3, &point2);
+    ge_p1p1_to_p2(&point2, &point3);
+    ge_tobytes(derivation, &point2);
+
+    return true;
+}
+
+
+void derive_secret_key(const uint8_t* derivation, size_t output_index, const uint8_t* base, uint8_t* derived_key)
+{
+    ec_scalar scalar;
+
+    derivation_to_scalar(derivation, output_index, scalar);
+    sc_add(derived_key, base, (uint8_t*) &scalar);
+}
 
 
 } /* namespace xmrig */
