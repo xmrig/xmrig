@@ -113,8 +113,9 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     // Other transaction hashes
     ar(num_hashes);
 
+#   ifdef XMRIG_PROXY_PROJECT
     hashes.resize((num_hashes + 1) * HASH_SIZE);
-    //CalculateMinerTxHash(hashes.data());
+    CalculateMinerTxHash(hashes.data());
 
     for (uint64_t i = 1; i <= num_hashes; ++i) {
         uint8_t h[HASH_SIZE];
@@ -122,8 +123,9 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
         memcpy(hashes.data() + i * HASH_SIZE, h, HASH_SIZE);
     }
 
-    //CalculateMerkleTreeHash(hashes.data(), num_hashes + 1, root_hash);
-    //CalculateHashingBlob();
+    CalculateMerkleTreeHash();
+    GenerateHashingBlob();
+#   endif
 
     return true;
 }
@@ -136,7 +138,7 @@ void BlockTemplate::CalculateMinerTxHash(uint8_t* hash)
     // Calculate 3 partial hashes
 
     // 1. Prefix
-    keccak(raw_blob.data() + miner_tx_prefix_begin_index, miner_tx_prefix_end_index - miner_tx_prefix_begin_index, hashes, HASH_SIZE);
+    keccak(raw_blob.data() + miner_tx_prefix_begin_index, static_cast<int>(miner_tx_prefix_end_index - miner_tx_prefix_begin_index), hashes, HASH_SIZE);
 
     // 2. Base RCT, single 0 byte in miner tx
     static const uint8_t known_second_hash[HASH_SIZE] = {
@@ -152,41 +154,72 @@ void BlockTemplate::CalculateMinerTxHash(uint8_t* hash)
 }
 
 
-
-void BlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count, uint8_t* root_hash)
+void BlockTemplate::CalculateMerkleTreeHash()
 {
-    if (count == 1) {
-        memcpy(root_hash, hashes, HASH_SIZE);
+    miner_tx_merkle_tree_branch.clear();
+
+    uint8_t* h = hashes.data();
+
+    if (num_hashes == 1) {
+        memcpy(root_hash, h, HASH_SIZE);
     }
-    else if (count == 2) {
-        keccak(hashes, HASH_SIZE * 2, root_hash, HASH_SIZE);
+    else if (num_hashes == 2) {
+        miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), h + HASH_SIZE, h + HASH_SIZE * 2);
+        keccak(h, HASH_SIZE * 2, root_hash, HASH_SIZE);
     }
     else {
-        size_t i, j;
+        size_t i, j, cnt;
 
-        size_t cnt = count;
-        while (cnt & (cnt - 1)) cnt &= cnt - 1;
+        for (i = 0, cnt = 1; cnt <= num_hashes; ++i, cnt <<= 1) {}
+
+        cnt >>= 1;
+
+        miner_tx_merkle_tree_branch.reserve(HASH_SIZE * (i - 1));
 
         Buffer ints(cnt * HASH_SIZE);
-        memcpy(ints.data(), hashes, (cnt * 2 - count) * HASH_SIZE);
+        memcpy(ints.data(), h, (cnt * 2 - num_hashes) * HASH_SIZE);
 
-        for (i = cnt * 2 - count, j = cnt * 2 - count; j < cnt; i += 2, ++j) {
-            keccak(hashes + i * HASH_SIZE, HASH_SIZE * 2, ints.data() + j * HASH_SIZE, HASH_SIZE);
+        for (i = cnt * 2 - num_hashes, j = cnt * 2 - num_hashes; j < cnt; i += 2, ++j) {
+            if (i == 0) {
+                miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), h + HASH_SIZE, h + HASH_SIZE * 2);
+            }
+            keccak(h + i * HASH_SIZE, HASH_SIZE * 2, ints.data() + j * HASH_SIZE, HASH_SIZE);
         }
 
         while (cnt > 2) {
             cnt >>= 1;
             for (i = 0, j = 0; j < cnt; i += 2, ++j) {
+                if (i == 0) {
+                    miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), ints.data() + HASH_SIZE, ints.data() + HASH_SIZE * 2);
+                }
                 keccak(ints.data() + i * HASH_SIZE, HASH_SIZE * 2, ints.data() + j * HASH_SIZE, HASH_SIZE);
             }
         }
 
+        miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), ints.data() + HASH_SIZE, ints.data() + HASH_SIZE * 2);
         keccak(ints.data(), HASH_SIZE * 2, root_hash, HASH_SIZE);
     }
 }
 
 
-void BlockTemplate::CalculateHashingBlob()
+void BlockTemplate::UpdateMinerTxHash()
+{
+    CalculateMinerTxHash(hashes.data());
+
+    memcpy(root_hash, hashes.data(), HASH_SIZE);
+
+    for (size_t i = 0; i < miner_tx_merkle_tree_branch.size(); i += HASH_SIZE) {
+        uint8_t h[HASH_SIZE * 2];
+
+        memcpy(h, root_hash, HASH_SIZE);
+        memcpy(h + HASH_SIZE, miner_tx_merkle_tree_branch.data() + i, HASH_SIZE);
+
+        keccak(h, HASH_SIZE * 2, root_hash, HASH_SIZE);
+    }
+}
+
+
+void BlockTemplate::GenerateHashingBlob()
 {
     hashingBlob.clear();
     hashingBlob.reserve(miner_tx_prefix_begin_index + HASH_SIZE + 3);

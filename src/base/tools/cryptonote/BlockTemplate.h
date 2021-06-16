@@ -73,6 +73,7 @@ struct BlockTemplate
     uint64_t num_hashes;
     Buffer hashes;
 
+    Buffer miner_tx_merkle_tree_branch;
     uint8_t root_hash[HASH_SIZE];
 
     Buffer hashingBlob;
@@ -81,8 +82,9 @@ struct BlockTemplate
 
 private:
     void CalculateMinerTxHash(uint8_t* hash);
-    static void CalculateMerkleTreeHash(const uint8_t* hashes, size_t count, uint8_t* root_hash);
-    void CalculateHashingBlob();
+    void CalculateMerkleTreeHash();
+    void UpdateMinerTxHash();
+    void GenerateHashingBlob();
 };
 
 
