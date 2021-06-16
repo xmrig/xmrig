@@ -34,6 +34,8 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
 bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* derivation);
 void derive_secret_key(const uint8_t* derivation, size_t output_index, const uint8_t* base, uint8_t* derived_key);
 
+void derive_view_secret_key(const uint8_t* spend_secret_key, uint8_t* view_secret_key);
+
 } /* namespace xmrig */
 
 

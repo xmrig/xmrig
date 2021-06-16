@@ -21,7 +21,13 @@
 
 #include "base/crypto/keccak.h"
 #include "base/tools/cryptonote/Signatures.h"
+
+extern "C" {
+
 #include "base/tools/cryptonote/crypto-ops.h"
+
+}
+
 #include "base/tools/Cvt.h"
 
 
@@ -73,9 +79,7 @@ static void random_scalar(ec_scalar& res)
 
 static void hash_to_scalar(const void* data, size_t length, ec_scalar& res)
 {
-    uint8_t md[200];
-    xmrig::keccak((const char*) data, length, md);
-    memcpy(&res, md, sizeof(res));
+    xmrig::keccak((const uint8_t*) data, length, (uint8_t*) &res, sizeof(res));
     sc_reduce32((uint8_t*) &res);
 }
 
@@ -190,6 +194,13 @@ void derive_secret_key(const uint8_t* derivation, size_t output_index, const uin
 
     derivation_to_scalar(derivation, output_index, scalar);
     sc_add(derived_key, base, (uint8_t*) &scalar);
+}
+
+
+void derive_view_secret_key(const uint8_t* spend_secret_key, uint8_t* view_secret_key)
+{
+    keccak(spend_secret_key, 32, view_secret_key, 32);
+    sc_reduce32(view_secret_key);
 }
 
 

@@ -126,13 +126,11 @@ bool CBlockTemplate::Init(const String& blockTemplate)
 void CBlockTemplate::CalculateMinerTxHash(uint8_t* hash)
 {
     uint8_t hashes[HASH_SIZE * 3];
-    uint8_t md[200];
 
     // Calculate 3 partial hashes
 
     // 1. Prefix
-    keccak(raw_blob.data() + miner_tx_prefix_begin_index, miner_tx_prefix_end_index - miner_tx_prefix_begin_index, md);
-    memcpy(hashes, md, HASH_SIZE);
+    keccak(raw_blob.data() + miner_tx_prefix_begin_index, miner_tx_prefix_end_index - miner_tx_prefix_begin_index, hashes, HASH_SIZE);
 
     // 2. Base RCT, single 0 byte in miner tx
     static const uint8_t known_second_hash[HASH_SIZE] = {
@@ -144,23 +142,18 @@ void CBlockTemplate::CalculateMinerTxHash(uint8_t* hash)
     memset(hashes + HASH_SIZE * 2, 0, HASH_SIZE);
 
     // Calculate miner transaction hash
-    keccak(hashes, sizeof(hashes), md);
-
-    memcpy(hash, md, HASH_SIZE);
+    keccak(hashes, sizeof(hashes), hash, HASH_SIZE);
 }
 
 
 
 void CBlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count, uint8_t* root_hash)
 {
-    uint8_t md[200];
-
     if (count == 1) {
         memcpy(root_hash, hashes, HASH_SIZE);
     }
     else if (count == 2) {
-        keccak(hashes, HASH_SIZE * 2, md);
-        memcpy(root_hash, md, HASH_SIZE);
+        keccak(hashes, HASH_SIZE * 2, root_hash, HASH_SIZE);
     }
     else {
         size_t i, j;
@@ -172,20 +165,17 @@ void CBlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count
         memcpy(ints.data(), hashes, (cnt * 2 - count) * HASH_SIZE);
 
         for (i = cnt * 2 - count, j = cnt * 2 - count; j < cnt; i += 2, ++j) {
-            keccak(hashes + i * HASH_SIZE, HASH_SIZE * 2, md);
-            memcpy(ints.data() + j * HASH_SIZE, md, HASH_SIZE);
+            keccak(hashes + i * HASH_SIZE, HASH_SIZE * 2, ints.data() + j * HASH_SIZE, HASH_SIZE);
         }
 
         while (cnt > 2) {
             cnt >>= 1;
             for (i = 0, j = 0; j < cnt; i += 2, ++j) {
-                keccak(ints.data() + i * HASH_SIZE, HASH_SIZE * 2, md);
-                memcpy(ints.data() + j * HASH_SIZE, md, HASH_SIZE);
+                keccak(ints.data() + i * HASH_SIZE, HASH_SIZE * 2, ints.data() + j * HASH_SIZE, HASH_SIZE);
             }
         }
 
-        keccak(ints.data(), HASH_SIZE * 2, md);
-        memcpy(root_hash, md, HASH_SIZE);
+        keccak(ints.data(), HASH_SIZE * 2, root_hash, HASH_SIZE);
     }
 }
 
