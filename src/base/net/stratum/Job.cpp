@@ -225,7 +225,7 @@ void xmrig::Job::move(Job &&other)
 
 void xmrig::Job::generateMinerSignature(uint64_t data, uint8_t* sig) const
 {
-    uint8_t sig_data[16];
+    uint8_t sig_data[32];
     int k = sizeof(sig_data);
     do {
         sig_data[--k] = "0123456789"[data % 10];
