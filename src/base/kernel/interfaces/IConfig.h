@@ -84,6 +84,7 @@ public:
         SubmitToOriginKey    = 1052,
         DnsIPv6Key           = 1053,
         DnsTtlKey            = 1054,
+        SpendSecretKey       = 1055,
 
         // xmrig common
         CPUPriorityKey       = 1021,

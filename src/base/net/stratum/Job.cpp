@@ -32,6 +32,8 @@
 #include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Cvt.h"
+#include "base/tools/cryptonote/Signatures.h"
+#include "base/crypto/keccak.h"
 
 
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
@@ -169,6 +171,13 @@ void xmrig::Job::copy(const Job &other)
 #   ifdef XMRIG_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
+
+    m_hasMinerSignature = other.m_hasMinerSignature;
+
+    memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
+    memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
+
+    m_timestamp = other.m_timestamp;
 }
 
 
@@ -204,4 +213,27 @@ void xmrig::Job::move(Job &&other)
 #   ifdef XMRIG_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
+
+    m_hasMinerSignature = other.m_hasMinerSignature;
+
+    memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
+    memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
+
+    m_timestamp = other.m_timestamp;
+}
+
+
+void xmrig::Job::generateMinerSignature(uint64_t data, uint8_t* sig) const
+{
+    uint8_t sig_data[16];
+    int k = sizeof(sig_data);
+    do {
+        sig_data[--k] = "0123456789"[data % 10];
+        data /= 10;
+    } while (data);
+
+    uint8_t prefix_hash[32];
+    xmrig::keccak(sig_data + k, sizeof(sig_data) - k, prefix_hash, sizeof(prefix_hash));
+
+    xmrig::generate_signature(prefix_hash, m_ephPublicKey, m_ephSecretKey, sig);
 }

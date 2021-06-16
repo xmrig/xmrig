@@ -274,10 +274,16 @@ void xmrig::CpuWorker<N>::start()
 
             bool valid = true;
 
+            uint8_t miner_signature_saved[64];
+            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
+
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
+                    if (job.hasMinerSignature()) {
+                        job.generateMinerSignature(m_job.currentJob().timestamp() + *m_job.nonce(), miner_signature_ptr);
+                    }
                     randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
                 }
 
@@ -285,6 +291,10 @@ void xmrig::CpuWorker<N>::start()
                     break;
                 }
 
+                if (job.hasMinerSignature()) {
+                    memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
+                    job.generateMinerSignature(m_job.currentJob().timestamp() + *m_job.nonce(), miner_signature_ptr);
+                }
                 randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
@@ -319,7 +329,7 @@ void xmrig::CpuWorker<N>::start()
                     else
 #                   endif
                     if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
+                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), miner_signature_saved);
                     }
                 }
                 m_count += N;

@@ -116,6 +116,21 @@ public:
     inline void setBenchSize(uint32_t size)             { m_benchSize = size; }
 #   endif
 
+    inline const uint8_t* ephSecretKey() const { return m_hasMinerSignature ? m_ephSecretKey : nullptr; }
+    inline uint64_t timestamp() const { return m_timestamp; }
+
+    inline void setEphemeralKeys(uint8_t* pub_key, uint8_t* sec_key)
+    {
+        m_hasMinerSignature = true;
+        memcpy(m_ephPublicKey, pub_key, sizeof(m_ephSecretKey));
+        memcpy(m_ephSecretKey, sec_key, sizeof(m_ephSecretKey));
+    }
+
+    inline void setTimestamp(uint64_t timestamp) { m_timestamp = timestamp; }
+
+    inline bool hasMinerSignature() const { return m_hasMinerSignature; }
+    void generateMinerSignature(uint64_t data, uint8_t* sig) const;
+
 private:
     void copy(const Job &other);
     void move(Job &&other);
@@ -144,6 +159,11 @@ private:
 #   ifdef XMRIG_FEATURE_BENCHMARK
     uint32_t m_benchSize = 0;
 #   endif
+
+    bool m_hasMinerSignature = false;
+    uint8_t m_ephPublicKey[32]{};
+    uint8_t m_ephSecretKey[32]{};
+    uint64_t m_timestamp = 0;
 };
 
 

@@ -22,6 +22,7 @@
 #define XMRIG_BLOCKTEMPLATE_H
 
 
+#include "base/crypto/Coin.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/String.h"
 
@@ -29,11 +30,12 @@
 namespace xmrig {
 
 
-struct CBlockTemplate
+struct BlockTemplate
 {
     enum {
         HASH_SIZE = 32,
         KEY_SIZE = 32,
+        SIGNATURE_SIZE = 64,
         NONCE_SIZE = 4,
     };
 
@@ -49,6 +51,9 @@ struct CBlockTemplate
     uint64_t timestamp;
     uint8_t prev_id[HASH_SIZE];
     uint8_t nonce[NONCE_SIZE];
+
+    bool has_miner_signature;
+    uint8_t miner_signature[SIGNATURE_SIZE];
 
     // Miner tx
     uint64_t tx_version;
@@ -72,7 +77,7 @@ struct CBlockTemplate
 
     Buffer hashingBlob;
 
-    bool Init(const String& blockTemplate);
+    bool Init(const String& blockTemplate, Coin coin);
 
 private:
     void CalculateMinerTxHash(uint8_t* hash);

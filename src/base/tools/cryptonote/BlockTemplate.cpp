@@ -28,7 +28,7 @@
 namespace xmrig {
 
 
-bool CBlockTemplate::Init(const String& blockTemplate)
+bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
 {
     raw_blob = Cvt::fromHex(blockTemplate);
 
@@ -40,6 +40,12 @@ bool CBlockTemplate::Init(const String& blockTemplate)
     ar(timestamp);
     ar(prev_id);
     ar(nonce);
+
+    // Wownero block template has miner signature starting from version 19
+    has_miner_signature = (coin == Coin::WOWNERO) && (major_version >= 19);
+    if (has_miner_signature) {
+        ar(miner_signature);
+    }
 
     // Miner transaction begin
     // Prefix begin
@@ -108,7 +114,7 @@ bool CBlockTemplate::Init(const String& blockTemplate)
     ar(num_hashes);
 
     hashes.resize((num_hashes + 1) * HASH_SIZE);
-    CalculateMinerTxHash(hashes.data());
+    //CalculateMinerTxHash(hashes.data());
 
     for (uint64_t i = 1; i <= num_hashes; ++i) {
         uint8_t h[HASH_SIZE];
@@ -116,14 +122,14 @@ bool CBlockTemplate::Init(const String& blockTemplate)
         memcpy(hashes.data() + i * HASH_SIZE, h, HASH_SIZE);
     }
 
-    CalculateMerkleTreeHash(hashes.data(), num_hashes + 1, root_hash);
-    CalculateHashingBlob();
+    //CalculateMerkleTreeHash(hashes.data(), num_hashes + 1, root_hash);
+    //CalculateHashingBlob();
 
     return true;
 }
 
 
-void CBlockTemplate::CalculateMinerTxHash(uint8_t* hash)
+void BlockTemplate::CalculateMinerTxHash(uint8_t* hash)
 {
     uint8_t hashes[HASH_SIZE * 3];
 
@@ -147,7 +153,7 @@ void CBlockTemplate::CalculateMinerTxHash(uint8_t* hash)
 
 
 
-void CBlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count, uint8_t* root_hash)
+void BlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count, uint8_t* root_hash)
 {
     if (count == 1) {
         memcpy(root_hash, hashes, HASH_SIZE);
@@ -180,7 +186,7 @@ void CBlockTemplate::CalculateMerkleTreeHash(const uint8_t* hashes, size_t count
 }
 
 
-void CBlockTemplate::CalculateHashingBlob()
+void BlockTemplate::CalculateHashingBlob()
 {
     hashingBlob.clear();
     hashingBlob.reserve(miner_tx_prefix_begin_index + HASH_SIZE + 3);
@@ -194,9 +200,6 @@ void CBlockTemplate::CalculateHashingBlob()
         k >>= 7;
     }
     hashingBlob.emplace_back(static_cast<uint8_t>(k));
-
-    for (int i = 0; i < hashingBlob.size(); ++i)
-        printf("%02x", hashingBlob[i]);
 }
 
 
