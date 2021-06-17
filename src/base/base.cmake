@@ -81,6 +81,7 @@ set(HEADERS_BASE
     src/base/tools/cryptonote/Signatures.h
     src/base/tools/cryptonote/WalletAddress.h
     src/base/tools/cryptonote/crypto-ops.h
+    src/base/tools/cryptonote/umul128.h
    )
 
 set(SOURCES_BASE

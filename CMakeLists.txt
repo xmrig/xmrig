@@ -82,7 +82,6 @@ set(HEADERS_CRYPTO
     src/crypto/cn/hash.h
     src/crypto/cn/skein_port.h
     src/crypto/cn/soft_aes.h
-    src/crypto/cn/umul128.h
     src/crypto/common/HugePagesInfo.h
     src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h

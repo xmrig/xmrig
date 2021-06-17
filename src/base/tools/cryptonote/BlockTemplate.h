@@ -80,7 +80,6 @@ struct BlockTemplate
 
     bool Init(const String& blockTemplate, Coin coin);
 
-private:
     void CalculateMinerTxHash(uint8_t* hash);
     void CalculateMerkleTreeHash();
     void UpdateMinerTxHash();

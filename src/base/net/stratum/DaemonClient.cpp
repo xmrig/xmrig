@@ -267,24 +267,6 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     }
 
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
-    if (m_apiVersion == API_DERO) {
-        const uint64_t offset = Json::getUint64(params, "reserved_offset");
-        Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
-    }
-
-    if (pool_coin.isValid()) {
-        job.setAlgorithm(pool_coin.algorithm(m_blocktemplate.major_version));
-    }
-
-    if (!job.setBlob(m_blockhashingblob)) {
-        *code = 3;
-        return false;
-    }
-
-    job.setSeedHash(Json::getString(params, "seed_hash"));
-    job.setHeight(Json::getUint64(params, kHeight));
-    job.setDiff(Json::getUint64(params, "difficulty"));
-    job.setId(blocktemplate.data() + blocktemplate.size() - 32);
 
     if (m_blocktemplate.has_miner_signature) {
         if (m_pool.spendSecretKey().isEmpty()) {
@@ -324,6 +306,29 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         }
 
         uint8_t derivation[32];
+
+#       ifdef XMRIG_PROXY_PROJECT
+        // Generate unique keys for miner transaction
+        // TODO: make it unique for each connection
+        {
+            uint8_t* eph_public_key = m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index;
+            uint8_t* txkey_pub = m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index;
+            uint8_t txkey_sec[32];
+
+            generate_keys(txkey_pub, txkey_sec);
+            generate_key_derivation(public_viewkey, txkey_sec, derivation);
+            derive_public_key(derivation, 0, public_spendkey, eph_public_key);
+
+            Cvt::toHex(blocktemplate.data() + m_blocktemplate.eph_public_key_index * 2, 64, eph_public_key, 32);
+            Cvt::toHex(blocktemplate.data() + m_blocktemplate.tx_pubkey_index * 2, 64, txkey_pub, 32);
+
+            m_blocktemplate.UpdateMinerTxHash();
+            m_blocktemplate.GenerateHashingBlob();
+
+            Cvt::toHex(m_blockhashingblob.data() + m_blocktemplate.miner_tx_prefix_begin_index * 2, 64, m_blocktemplate.root_hash, 32);
+        }
+#       endif
+
         if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
             LOG_ERR("Failed to generate key derivation for miner signature.");
             *code = 9;
@@ -355,6 +360,26 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
         job.setTimestamp(m_blocktemplate.timestamp);
     }
+
+    if (m_apiVersion == API_DERO) {
+        const uint64_t offset = Json::getUint64(params, "reserved_offset");
+        Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
+    }
+
+    if (pool_coin.isValid()) {
+        job.setAlgorithm(pool_coin.algorithm(m_blocktemplate.major_version));
+    }
+
+    if (!job.setBlob(m_blockhashingblob)) {
+        *code = 3;
+        return false;
+    }
+
+    job.setSeedHash(Json::getString(params, "seed_hash"));
+    job.setHeight(Json::getUint64(params, kHeight));
+    job.setDiff(Json::getUint64(params, "difficulty"));
+
+    job.setId(blocktemplate.data() + blocktemplate.size() - 32);
 
     m_job              = std::move(job);
     m_blocktemplateStr = std::move(blocktemplate);
