@@ -80,9 +80,9 @@ struct BlockTemplate
 
     bool Init(const String& blockTemplate, Coin coin);
 
-    void CalculateMinerTxHash(uint8_t* hash);
+    static void CalculateMinerTxHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, uint8_t* hash);
+    static void CalculateRootHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, const Buffer& miner_tx_merkle_tree_branch, uint8_t* root_hash);
     void CalculateMerkleTreeHash();
-    void UpdateMinerTxHash();
     void GenerateHashingBlob();
 };
 

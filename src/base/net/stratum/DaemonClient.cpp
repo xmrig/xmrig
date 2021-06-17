@@ -102,16 +102,27 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplateStr.data();
 
+    const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
+
 #   ifdef XMRIG_PROXY_PROJECT
-    memcpy(data + 78, result.nonce, 8);
+
+    memcpy(data + m_job.nonceOffset() * 2, result.nonce, 8);
+
+    if (m_blocktemplate.has_miner_signature && result.sig) {
+        memcpy(data + sig_offset * 2, result.sig, 64 * 2);
+        memcpy(data + m_blocktemplate.tx_pubkey_index * 2, result.sig_data, 32 * 2);
+        memcpy(data + m_blocktemplate.eph_public_key_index * 2, result.sig_data + 32 * 2, 32 * 2);
+    }
+
 #   else
-    Cvt::toHex(data + 78, 8, reinterpret_cast<const uint8_t *>(&result.nonce), 4);
-#   endif
+
+    Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
 
     if (m_blocktemplate.has_miner_signature) {
-        const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
         Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
     }
+
+#   endif
 
     using namespace rapidjson;
     Document doc(kObjectType);
@@ -295,6 +306,16 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
             return false;
         }
 
+#       ifdef XMRIG_PROXY_PROJECT
+        job.setSpendSecretKey(secret_spendkey);
+        job.setMinerTx(
+            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
+            m_blocktemplate.eph_public_key_index - m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.tx_pubkey_index - m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.miner_tx_merkle_tree_branch
+        );
+#       else
         uint8_t secret_viewkey[32];
         derive_view_secret_key(secret_spendkey, secret_viewkey);
 
@@ -306,29 +327,6 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         }
 
         uint8_t derivation[32];
-
-#       ifdef XMRIG_PROXY_PROJECT
-        // Generate unique keys for miner transaction
-        // TODO: make it unique for each connection
-        {
-            uint8_t* eph_public_key = m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index;
-            uint8_t* txkey_pub = m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index;
-            uint8_t txkey_sec[32];
-
-            generate_keys(txkey_pub, txkey_sec);
-            generate_key_derivation(public_viewkey, txkey_sec, derivation);
-            derive_public_key(derivation, 0, public_spendkey, eph_public_key);
-
-            Cvt::toHex(blocktemplate.data() + m_blocktemplate.eph_public_key_index * 2, 64, eph_public_key, 32);
-            Cvt::toHex(blocktemplate.data() + m_blocktemplate.tx_pubkey_index * 2, 64, txkey_pub, 32);
-
-            m_blocktemplate.UpdateMinerTxHash();
-            m_blocktemplate.GenerateHashingBlob();
-
-            Cvt::toHex(m_blockhashingblob.data() + m_blocktemplate.miner_tx_prefix_begin_index * 2, 64, m_blocktemplate.root_hash, 32);
-        }
-#       endif
-
         if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
             LOG_ERR("Failed to generate key derivation for miner signature.");
             *code = 9;
@@ -359,6 +357,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
         job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
         job.setTimestamp(m_blocktemplate.timestamp);
+#       endif
     }
 
     if (m_apiVersion == API_DERO) {

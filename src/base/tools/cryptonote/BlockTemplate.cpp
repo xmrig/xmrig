@@ -115,7 +115,7 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
 
 #   ifdef XMRIG_PROXY_PROJECT
     hashes.resize((num_hashes + 1) * HASH_SIZE);
-    CalculateMinerTxHash(hashes.data());
+    CalculateMinerTxHash(raw_blob.data() + miner_tx_prefix_begin_index, raw_blob.data() + miner_tx_prefix_end_index, hashes.data());
 
     for (uint64_t i = 1; i <= num_hashes; ++i) {
         uint8_t h[HASH_SIZE];
@@ -124,21 +124,20 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     }
 
     CalculateMerkleTreeHash();
-    GenerateHashingBlob();
 #   endif
 
     return true;
 }
 
 
-void BlockTemplate::CalculateMinerTxHash(uint8_t* hash)
+void BlockTemplate::CalculateMinerTxHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, uint8_t* hash)
 {
     uint8_t hashes[HASH_SIZE * 3];
 
     // Calculate 3 partial hashes
 
     // 1. Prefix
-    keccak(raw_blob.data() + miner_tx_prefix_begin_index, static_cast<int>(miner_tx_prefix_end_index - miner_tx_prefix_begin_index), hashes, HASH_SIZE);
+    keccak(prefix_begin, static_cast<int>(prefix_end - prefix_begin), hashes, HASH_SIZE);
 
     // 2. Base RCT, single 0 byte in miner tx
     static const uint8_t known_second_hash[HASH_SIZE] = {
@@ -203,11 +202,9 @@ void BlockTemplate::CalculateMerkleTreeHash()
 }
 
 
-void BlockTemplate::UpdateMinerTxHash()
+void BlockTemplate::CalculateRootHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, const Buffer& miner_tx_merkle_tree_branch, uint8_t* root_hash)
 {
-    CalculateMinerTxHash(hashes.data());
-
-    memcpy(root_hash, hashes.data(), HASH_SIZE);
+    CalculateMinerTxHash(prefix_begin, prefix_end, root_hash);
 
     for (size_t i = 0; i < miner_tx_merkle_tree_branch.size(); i += HASH_SIZE) {
         uint8_t h[HASH_SIZE * 2];

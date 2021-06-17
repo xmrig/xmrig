@@ -137,6 +137,7 @@ private:
     std::bitset<EXT_MAX> m_extensions;
     std::shared_ptr<DnsRequest> m_dns;
     std::vector<char> m_sendBuf;
+    std::vector<char> m_tempBuf;
     String m_rpcId;
     Tls *m_tls                  = nullptr;
     uint64_t m_expire           = 0;
