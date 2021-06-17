@@ -158,28 +158,29 @@ void BlockTemplate::CalculateMerkleTreeHash()
 {
     miner_tx_merkle_tree_branch.clear();
 
+    const uint64_t count = num_hashes + 1;
     uint8_t* h = hashes.data();
 
-    if (num_hashes == 1) {
+    if (count == 1) {
         memcpy(root_hash, h, HASH_SIZE);
     }
-    else if (num_hashes == 2) {
+    else if (count == 2) {
         miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), h + HASH_SIZE, h + HASH_SIZE * 2);
         keccak(h, HASH_SIZE * 2, root_hash, HASH_SIZE);
     }
     else {
         size_t i, j, cnt;
 
-        for (i = 0, cnt = 1; cnt <= num_hashes; ++i, cnt <<= 1) {}
+        for (i = 0, cnt = 1; cnt <= count; ++i, cnt <<= 1) {}
 
         cnt >>= 1;
 
         miner_tx_merkle_tree_branch.reserve(HASH_SIZE * (i - 1));
 
         Buffer ints(cnt * HASH_SIZE);
-        memcpy(ints.data(), h, (cnt * 2 - num_hashes) * HASH_SIZE);
+        memcpy(ints.data(), h, (cnt * 2 - count) * HASH_SIZE);
 
-        for (i = cnt * 2 - num_hashes, j = cnt * 2 - num_hashes; j < cnt; i += 2, ++j) {
+        for (i = cnt * 2 - count, j = cnt * 2 - count; j < cnt; i += 2, ++j) {
             if (i == 0) {
                 miner_tx_merkle_tree_branch.insert(miner_tx_merkle_tree_branch.end(), h + HASH_SIZE, h + HASH_SIZE * 2);
             }
