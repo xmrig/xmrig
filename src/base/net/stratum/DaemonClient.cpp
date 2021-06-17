@@ -38,6 +38,7 @@
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
 #include "base/tools/cryptonote/Signatures.h"
+#include "base/tools/cryptonote/WalletAddress.h"
 #include "net/JobResult.h"
 
 
@@ -305,13 +306,46 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
             return false;
         }
 
+        uint8_t public_spendkey[32];
+        if (!secret_key_to_public_key(secret_spendkey, public_spendkey)) {
+            LOG_ERR("Secret spend key is invalid.");
+            *code = 7;
+            return false;
+        }
+
         uint8_t secret_viewkey[32];
         derive_view_secret_key(secret_spendkey, secret_viewkey);
+
+        uint8_t public_viewkey[32];
+        if (!secret_key_to_public_key(secret_viewkey, public_viewkey)) {
+            LOG_ERR("Secret view key is invalid.");
+            *code = 8;
+            return false;
+        }
 
         uint8_t derivation[32];
         if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
             LOG_ERR("Failed to generate key derivation for miner signature.");
-            *code = 7;
+            *code = 9;
+            return false;
+        }
+
+        WalletAddress user_address;
+        if (!user_address.Decode(m_pool.user())) {
+            LOG_ERR("Invalid wallet address.");
+            *code = 10;
+            return false;
+        }
+
+        if (memcmp(user_address.public_spend_key, public_spendkey, sizeof(public_spendkey)) != 0) {
+            LOG_ERR("Wallet address and spend key don't match.");
+            *code = 11;
+            return false;
+        }
+
+        if (memcmp(user_address.public_view_key, public_viewkey, sizeof(public_viewkey)) != 0) {
+            LOG_ERR("Wallet address and view key don't match.");
+            *code = 12;
             return false;
         }
 

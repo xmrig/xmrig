@@ -36,6 +36,9 @@ void derive_secret_key(const uint8_t* derivation, size_t output_index, const uin
 
 void derive_view_secret_key(const uint8_t* spend_secret_key, uint8_t* view_secret_key);
 
+void generate_keys(uint8_t* pub, uint8_t* sec);
+bool secret_key_to_public_key(const uint8_t* sec, uint8_t* pub);
+
 } /* namespace xmrig */
 
 

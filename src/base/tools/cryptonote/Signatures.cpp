@@ -38,42 +38,12 @@ struct signature { ec_scalar c, r; };
 struct s_comm { hash h; ec_point key; ec_point comm; };
 
 
-static bool less32(const uint8_t* k0, const uint8_t* k1)
+static inline void random_scalar(ec_scalar& res)
 {
-    for (int n = 31; n >= 0; --n)
-    {
-        if (k0[n] < k1[n])
-            return true;
-        if (k0[n] > k1[n])
-            return false;
-    }
-    return false;
-}
-
-
-static void random32_unbiased(uint8_t* bytes)
-{
-    // l = 2^252 + 27742317777372353535851937790883648493.
-    // l fits 15 times in 32 bytes (iow, 15 l is the highest multiple of l that fits in 32 bytes)
-    static const uint8_t limit[32] = { 0xe3, 0x6a, 0x67, 0x72, 0x8b, 0xce, 0x13, 0x29, 0x8f, 0x30, 0x82, 0x8c, 0x0b, 0xa4, 0x10, 0x39, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xf0 };
-
-    for (;;) {
-        xmrig::Cvt::randomBytes(bytes, 32);
-        if (!less32(bytes, limit)) {
-            continue;
-        }
-        sc_reduce32(bytes);
-        if (sc_isnonzero(bytes)) {
-            break;
-        }
-    }
-}
-
-
-/* generate a random 32-byte (256-bit) integer and copy it to res */
-static void random_scalar(ec_scalar& res)
-{
-    random32_unbiased((uint8_t*) res.data);
+    // Don't care about bias or possible 0 after reduce: probability ~10^-76, not happening in this universe.
+    // Performance matters more. It's a miner after all.
+    xmrig::Cvt::randomBytes(res.data, sizeof(res.data));
+    sc_reduce32((uint8_t*) res.data);
 }
 
 
@@ -201,6 +171,30 @@ void derive_view_secret_key(const uint8_t* spend_secret_key, uint8_t* view_secre
 {
     keccak(spend_secret_key, 32, view_secret_key, 32);
     sc_reduce32(view_secret_key);
+}
+
+
+void generate_keys(uint8_t* pub, uint8_t* sec)
+{
+    random_scalar(*((ec_scalar*)sec));
+
+    ge_p3 point;
+    ge_scalarmult_base(&point, sec);
+    ge_p3_tobytes(pub, &point);
+}
+
+
+bool secret_key_to_public_key(const uint8_t* sec, uint8_t* pub)
+{
+    if (sc_check(sec) != 0) {
+        return false;
+    }
+
+    ge_p3 point;
+    ge_scalarmult_base(&point, sec);
+    ge_p3_tobytes(pub, &point);
+
+    return true;
 }
 
 
