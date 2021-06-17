@@ -19,6 +19,7 @@ Option `coin` useful for pools without [algorithm negotiation](https://xmrig.com
 | `rx/sfx` | 2 MB | 5.4.0+ | RandomSFX (RandomX variant for Safex). |  |
 | `rx/arq` | 256 KB | 4.3.0+ | RandomARQ (RandomX variant for ArQmA). |  |
 | `rx/0` | 2 MB | 3.2.0+ | RandomX (Monero). |  |
+| `rx/yada` | 2 MB | 2.9.3+ | RandomYADA. |
 | `argon2/chukwa` | 512 KB | 3.1.0+ | Argon2id (Chukwa). | CPU only |
 | `argon2/wrkz` | 256 KB | 3.1.0+ | Argon2id (WRKZ) | CPU only |
 | `rx/wow` | 1 MB | 3.0.0+ | RandomWOW (RandomX variant for Wownero). |  |
