@@ -247,20 +247,36 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
 
+    if (blocktemplate.isNull()) {
+        LOG_ERR("Empty block template received from daemon");
+        *code = 1;
+        return false;
+    }
+
+    Coin pool_coin = m_pool.coin();
+
+    if (!pool_coin.isValid() && (m_pool.algorithm() == Algorithm::RX_WOW)) {
+        pool_coin = Coin::WOWNERO;
+    }
+
+    if (!m_blocktemplate.Init(blocktemplate, pool_coin)) {
+        LOG_ERR("Invalid block template received from daemon");
+        *code = 2;
+        return false;
+    }
+
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
     if (m_apiVersion == API_DERO) {
         const uint64_t offset = Json::getUint64(params, "reserved_offset");
         Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
     }
 
-    if (m_pool.coin().isValid()) {
-        uint8_t blobVersion = 0;
-        Cvt::fromHex(&blobVersion, 1, m_blockhashingblob.data(), 2);
-        job.setAlgorithm(m_pool.coin().algorithm(blobVersion));
+    if (pool_coin.isValid()) {
+        job.setAlgorithm(pool_coin.algorithm(m_blocktemplate.major_version));
     }
 
-    if (blocktemplate.isNull() || !job.setBlob(m_blockhashingblob)) {
-        *code = 4;
+    if (!job.setBlob(m_blockhashingblob)) {
+        *code = 3;
         return false;
     }
 
@@ -269,31 +285,23 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     job.setDiff(Json::getUint64(params, "difficulty"));
     job.setId(blocktemplate.data() + blocktemplate.size() - 32);
 
-    Coin pool_coin = m_pool.coin();
-
-    if ((pool_coin == Coin::INVALID) && (m_pool.algorithm() == Algorithm::RX_WOW)) {
-        pool_coin = Coin::WOWNERO;
-    }
-
-    if (!m_blocktemplate.Init(blocktemplate, pool_coin)) {
-        LOG_ERR("Invalid block template received from daemon");
-        return false;
-    }
-
     if (m_blocktemplate.has_miner_signature) {
         if (m_pool.spendSecretKey().isEmpty()) {
             LOG_ERR("Secret spend key is not set");
+            *code = 4;
             return false;
         }
 
         if (m_pool.spendSecretKey().size() != 64) {
             LOG_ERR("Secret spend key has invalid length. It must be 64 hex characters.");
+            *code = 5;
             return false;
         }
 
         uint8_t secret_spendkey[32];
         if (!Cvt::fromHex(secret_spendkey, 32, m_pool.spendSecretKey(), 64)) {
             LOG_ERR("Secret spend key is not a valid hex data.");
+            *code = 6;
             return false;
         }
 
@@ -303,6 +311,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         uint8_t derivation[32];
         if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
             LOG_ERR("Failed to generate key derivation for miner signature.");
+            *code = 7;
             return false;
         }
 
