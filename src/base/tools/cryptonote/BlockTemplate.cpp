@@ -41,8 +41,8 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     ar(prev_id);
     ar(nonce);
 
-    // Wownero block template has miner signature starting from version 19
-    has_miner_signature = (coin == Coin::WOWNERO) && (major_version >= 19);
+    // Wownero block template has miner signature starting from version 18
+    has_miner_signature = (coin == Coin::WOWNERO) && (major_version >= 18);
     if (has_miner_signature) {
         ar(miner_signature);
     }
