@@ -39,8 +39,8 @@ bool WalletAddress::Decode(const String& address)
     int8_t reverse_alphabet[256];
     memset(reverse_alphabet, -1, sizeof(reverse_alphabet));
 
-    for (int i = 0; i < alphabet_size; ++i) {
-        reverse_alphabet[alphabet[i]] = i;
+    for (size_t i = 0; i < alphabet_size; ++i) {
+        reverse_alphabet[static_cast<int>(alphabet[i])] = i;
     }
 
     const int len = static_cast<int>(address.size());
@@ -49,7 +49,7 @@ bool WalletAddress::Decode(const String& address)
 
     int last_block_size_index = -1;
 
-    for (int i = 0; i < block_sizes.size(); ++i) {
+    for (size_t i = 0; i < block_sizes.size(); ++i) {
         if (block_sizes[i] == last_block_size) {
             last_block_size_index = i;
             break;
@@ -70,7 +70,7 @@ bool WalletAddress::Decode(const String& address)
         uint64_t order = 1;
 
         for (int j = ((i < num_full_blocks) ? block_sizes.back() : last_block_size) - 1; j >= 0; --j) {
-            const int digit = reverse_alphabet[address_data[j]];
+            const int digit = reverse_alphabet[static_cast<int>(address_data[j])];
             if (digit < 0) {
                 return false;
             }
