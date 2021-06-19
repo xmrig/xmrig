@@ -29,6 +29,7 @@ extern "C" {
 }
 
 #include "base/tools/Cvt.h"
+#include "crypto/rx/Profiler.h"
 
 
 struct ec_scalar { char data[32]; };
@@ -80,6 +81,8 @@ namespace xmrig {
 
 void generate_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8_t* sec, uint8_t* sig_bytes)
 {
+    PROFILE_SCOPE(GenerateSignature);
+
     ge_p3 tmp3;
     ec_scalar k;
     s_comm buf;
