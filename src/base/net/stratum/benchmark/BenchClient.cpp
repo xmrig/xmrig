@@ -61,7 +61,8 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
 #   ifdef XMRIG_FEATURE_HTTP
     if (m_benchmark->isSubmit()) {
-        m_mode = ONLINE_BENCH;
+        m_mode  = ONLINE_BENCH;
+        m_token = m_benchmark->token();
 
         return;
     }
@@ -350,6 +351,11 @@ void xmrig::BenchClient::send(Request request)
 #           endif
 
             FetchRequest req(HTTP_POST, m_ip, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
+
+            if (!m_token.isEmpty()) {
+                req.headers.insert({ "Authorization", fmt::format("Bearer {}", m_token)});
+            }
+
             fetch(tag(), std::move(req), m_httpListener);
         }
         break;
