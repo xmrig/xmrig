@@ -54,6 +54,7 @@ struct BlockTemplate
 
     bool has_miner_signature;
     uint8_t miner_signature[SIGNATURE_SIZE];
+    uint8_t vote[2];
 
     // Miner tx
     uint64_t tx_version;

@@ -185,8 +185,6 @@ void xmrig::Job::copy(const Job &other)
 #   else
     memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
     memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
-
-    m_timestamp = other.m_timestamp;
 #   endif
 
     m_hasMinerSignature = other.m_hasMinerSignature;
@@ -238,8 +236,6 @@ void xmrig::Job::move(Job &&other)
 #   else
     memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
     memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
-
-    m_timestamp = other.m_timestamp;
 #   endif
 
     m_hasMinerSignature = other.m_hasMinerSignature;
@@ -296,26 +292,25 @@ void xmrig::Job::generateHashingBlob(String& blob, String& signatureData) const
     xmrig::BlockTemplate::CalculateRootHash(p, p + m_minerTxPrefix.size(), m_minerTxMerkleTreeBranch, root_hash);
 
     blob = rawBlob();
-    xmrig::Cvt::toHex(blob.data() + (nonceOffset() + nonceSize() + 64) * 2, 64, root_hash, 32);
+    const uint64_t offset = nonceOffset() + nonceSize() + BlockTemplate::SIGNATURE_SIZE + 2 /* vote */;
+    xmrig::Cvt::toHex(blob.data() + offset * 2, 64, root_hash, 32);
 }
 
 
 #else
 
 
-void xmrig::Job::generateMinerSignature(uint64_t data, uint8_t* sig) const
+void xmrig::Job::generateMinerSignature(const uint8_t* blob, size_t size, uint8_t* out_sig) const
 {
-    uint8_t sig_data[32];
-    int k = sizeof(sig_data);
-    do {
-        sig_data[--k] = "0123456789"[data % 10];
-        data /= 10;
-    } while (data);
+    uint8_t tmp[kMaxBlobSize];
+    memcpy(tmp, blob, size);
+
+    // Fill signature with zeros
+    memset(tmp + nonceOffset() + nonceSize(), 0, BlockTemplate::SIGNATURE_SIZE);
 
     uint8_t prefix_hash[32];
-    xmrig::keccak(sig_data + k, sizeof(sig_data) - k, prefix_hash, sizeof(prefix_hash));
-
-    xmrig::generate_signature(prefix_hash, m_ephPublicKey, m_ephSecretKey, sig);
+    xmrig::keccak(tmp, static_cast<int>(size), prefix_hash, sizeof(prefix_hash));
+    xmrig::generate_signature(prefix_hash, m_ephPublicKey, m_ephSecretKey, out_sig);
 }
 
 

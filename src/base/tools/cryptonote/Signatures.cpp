@@ -29,7 +29,12 @@ extern "C" {
 }
 
 #include "base/tools/Cvt.h"
+
+#ifdef XMRIG_PROXY_PROJECT
+#define PROFILE_SCOPE(x)
+#else
 #include "crypto/rx/Profiler.h"
+#endif
 
 
 struct ec_scalar { char data[32]; };

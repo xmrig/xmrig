@@ -356,7 +356,6 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         derive_secret_key(derivation, 0, secret_spendkey, eph_secret_key);
 
         job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
-        job.setTimestamp(m_blocktemplate.timestamp);
 #       endif
     }
 

@@ -444,17 +444,6 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
     uint8_t signatureKeyBuf[32 * 2];
     if (Cvt::fromHex(signatureKeyBuf, sizeof(signatureKeyBuf), Json::getValue(params, "sig_key"))) {
         job.setEphemeralKeys(signatureKeyBuf, signatureKeyBuf + 32);
-
-        uint8_t major_version = 0;
-        uint8_t minor_version = 0;
-        uint64_t timestamp = 0;
-
-        CBlobReader ar(job.blob(), job.size());
-        ar(major_version);
-        ar(minor_version);
-        ar(timestamp);
-
-        job.setTimestamp(timestamp);
     }
 #   endif
 

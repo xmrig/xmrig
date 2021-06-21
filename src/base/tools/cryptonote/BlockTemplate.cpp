@@ -45,6 +45,7 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     has_miner_signature = (coin == Coin::WOWNERO) && (major_version >= 18);
     if (has_miner_signature) {
         ar(miner_signature);
+        ar(vote);
     }
 
     // Miner transaction begin
