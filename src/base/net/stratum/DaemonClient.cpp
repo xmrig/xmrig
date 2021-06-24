@@ -431,7 +431,16 @@ bool xmrig::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &resu
         return true;
     }
 
-    if (handleSubmitResponse(id)) {
+    const char* error_msg = nullptr;
+
+    if ((m_apiVersion == API_DERO) && result.HasMember("status")) {
+        error_msg = result["status"].GetString();
+        if (!error_msg || (strlen(error_msg) == 0) || (strcmp(error_msg, "OK") == 0)) {
+            error_msg = nullptr;
+        }
+    }
+
+    if (handleSubmitResponse(id, error_msg)) {
         getBlockTemplate();
         return true;
     }
