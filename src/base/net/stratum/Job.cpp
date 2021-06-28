@@ -32,6 +32,9 @@
 #include "base/net/stratum/Job.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Cvt.h"
+#include "base/tools/cryptonote/BlockTemplate.h"
+#include "base/tools/cryptonote/Signatures.h"
+#include "base/crypto/keccak.h"
 
 
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
@@ -169,6 +172,22 @@ void xmrig::Job::copy(const Job &other)
 #   ifdef XMRIG_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
+
+#   ifdef XMRIG_PROXY_PROJECT
+    memcpy(m_spendSecretKey, other.m_spendSecretKey, sizeof(m_spendSecretKey));
+    memcpy(m_viewSecretKey, other.m_viewSecretKey, sizeof(m_viewSecretKey));
+    memcpy(m_spendPublicKey, other.m_spendPublicKey, sizeof(m_spendPublicKey));
+    memcpy(m_viewPublicKey, other.m_viewPublicKey, sizeof(m_viewPublicKey));
+    m_minerTxPrefix = other.m_minerTxPrefix;
+    m_minerTxEphPubKeyOffset = other.m_minerTxEphPubKeyOffset;
+    m_minerTxPubKeyOffset = other.m_minerTxPubKeyOffset;
+    m_minerTxMerkleTreeBranch = other.m_minerTxMerkleTreeBranch;
+#   else
+    memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
+    memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
+#   endif
+
+    m_hasMinerSignature = other.m_hasMinerSignature;
 }
 
 
@@ -204,4 +223,95 @@ void xmrig::Job::move(Job &&other)
 #   ifdef XMRIG_FEATURE_BENCHMARK
     m_benchSize = other.m_benchSize;
 #   endif
+
+#   ifdef XMRIG_PROXY_PROJECT
+    memcpy(m_spendSecretKey, other.m_spendSecretKey, sizeof(m_spendSecretKey));
+    memcpy(m_viewSecretKey, other.m_viewSecretKey, sizeof(m_viewSecretKey));
+    memcpy(m_spendPublicKey, other.m_spendPublicKey, sizeof(m_spendPublicKey));
+    memcpy(m_viewPublicKey, other.m_viewPublicKey, sizeof(m_viewPublicKey));
+    m_minerTxPrefix = std::move(other.m_minerTxPrefix);
+    m_minerTxEphPubKeyOffset = other.m_minerTxEphPubKeyOffset;
+    m_minerTxPubKeyOffset = other.m_minerTxPubKeyOffset;
+    m_minerTxMerkleTreeBranch = std::move(other.m_minerTxMerkleTreeBranch);
+#   else
+    memcpy(m_ephPublicKey, other.m_ephPublicKey, sizeof(m_ephPublicKey));
+    memcpy(m_ephSecretKey, other.m_ephSecretKey, sizeof(m_ephSecretKey));
+#   endif
+
+    m_hasMinerSignature = other.m_hasMinerSignature;
 }
+
+
+#ifdef XMRIG_PROXY_PROJECT
+
+
+void xmrig::Job::setSpendSecretKey(uint8_t* key)
+{
+    m_hasMinerSignature = true;
+    memcpy(m_spendSecretKey, key, sizeof(m_spendSecretKey));
+    xmrig::derive_view_secret_key(m_spendSecretKey, m_viewSecretKey);
+    xmrig::secret_key_to_public_key(m_spendSecretKey, m_spendPublicKey);
+    xmrig::secret_key_to_public_key(m_viewSecretKey, m_viewPublicKey);
+}
+
+
+void xmrig::Job::setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, const Buffer& minerTxMerkleTreeBranch)
+{
+    m_minerTxPrefix.assign(begin, end);
+    m_minerTxEphPubKeyOffset = minerTxEphPubKeyOffset;
+    m_minerTxPubKeyOffset = minerTxPubKeyOffset;
+    m_minerTxMerkleTreeBranch = minerTxMerkleTreeBranch;
+}
+
+
+void xmrig::Job::generateHashingBlob(String& blob, String& signatureData) const
+{
+    uint8_t* eph_public_key = m_minerTxPrefix.data() + m_minerTxEphPubKeyOffset;
+    uint8_t* txkey_pub = m_minerTxPrefix.data() + m_minerTxPubKeyOffset;
+
+    uint8_t txkey_sec[32];
+
+    generate_keys(txkey_pub, txkey_sec);
+
+    uint8_t derivation[32];
+
+    generate_key_derivation(m_viewPublicKey, txkey_sec, derivation);
+    derive_public_key(derivation, 0, m_spendPublicKey, eph_public_key);
+
+    uint8_t buf[32 * 3] = {};
+    memcpy(buf, txkey_pub, 32);
+    memcpy(buf + 32, eph_public_key, 32);
+
+    generate_key_derivation(txkey_pub, m_viewSecretKey, derivation);
+    derive_secret_key(derivation, 0, m_spendSecretKey, buf + 64);
+
+    signatureData = xmrig::Cvt::toHex(buf, sizeof(buf));
+
+    uint8_t root_hash[32];
+    const uint8_t* p = m_minerTxPrefix.data();
+    xmrig::BlockTemplate::CalculateRootHash(p, p + m_minerTxPrefix.size(), m_minerTxMerkleTreeBranch, root_hash);
+
+    blob = rawBlob();
+    const uint64_t offset = nonceOffset() + nonceSize() + BlockTemplate::SIGNATURE_SIZE + 2 /* vote */;
+    xmrig::Cvt::toHex(blob.data() + offset * 2, 64, root_hash, 32);
+}
+
+
+#else
+
+
+void xmrig::Job::generateMinerSignature(const uint8_t* blob, size_t size, uint8_t* out_sig) const
+{
+    uint8_t tmp[kMaxBlobSize];
+    memcpy(tmp, blob, size);
+
+    // Fill signature with zeros
+    memset(tmp + nonceOffset() + nonceSize(), 0, BlockTemplate::SIGNATURE_SIZE);
+
+    uint8_t prefix_hash[32];
+    xmrig::keccak(tmp, static_cast<int>(size), prefix_hash, sizeof(prefix_hash));
+    xmrig::generate_signature(prefix_hash, m_ephPublicKey, m_ephSecretKey, out_sig);
+}
+
+
+#endif

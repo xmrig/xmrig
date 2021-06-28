@@ -44,7 +44,8 @@ public:
         DERO,
         KEVA,
         RAVEN,
-        CONCEAL
+        CONCEAL,
+        WOWNERO
     };
 
 

@@ -53,6 +53,7 @@
 #include "base/net/tools/NetBuffer.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Cvt.h"
+#include "base/tools/cryptonote/BlobReader.h"
 #include "net/JobResult.h"
 
 
@@ -83,7 +84,8 @@ static const char *states[] = {
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     BaseClient(id, listener),
     m_agent(agent),
-    m_sendBuf(1024)
+    m_sendBuf(1024),
+    m_tempBuf(256)
 {
     m_reader.setListener(this);
     m_key = m_storage.add(this);
@@ -198,11 +200,16 @@ int64_t xmrig::Client::submit(const JobResult &result)
     const char *nonce = result.nonce;
     const char *data  = result.result;
 #   else
-    char *nonce = m_sendBuf.data();
-    char *data  = m_sendBuf.data() + 16;
+    char *nonce = m_tempBuf.data();
+    char *data  = m_tempBuf.data() + 16;
+    char *signature = m_tempBuf.data() + 88;
 
     Cvt::toHex(nonce, sizeof(uint32_t) * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), sizeof(uint32_t));
     Cvt::toHex(data, 65, result.result(), 32);
+
+    if (result.minerSignature()) {
+        Cvt::toHex(signature, 129, result.minerSignature(), 64);
+    }
 #   endif
 
     Document doc(kObjectType);
@@ -213,6 +220,12 @@ int64_t xmrig::Client::submit(const JobResult &result)
     params.AddMember("job_id", StringRef(result.jobId.data()), allocator);
     params.AddMember("nonce",  StringRef(nonce), allocator);
     params.AddMember("result", StringRef(data), allocator);
+
+#   ifndef XMRIG_PROXY_PROJECT
+    if (result.minerSignature()) {
+        params.AddMember("sig", StringRef(signature), allocator);
+    }
+#   endif
 
     if (has<EXT_ALGO>() && result.algorithm.isValid()) {
         params.AddMember("algo", StringRef(result.algorithm.shortName()), allocator);
@@ -426,6 +439,13 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         *code = 7;
         return false;
     }
+
+#   ifndef XMRIG_PROXY_PROJECT
+    uint8_t signatureKeyBuf[32 * 2];
+    if (Cvt::fromHex(signatureKeyBuf, sizeof(signatureKeyBuf), Json::getValue(params, "sig_key"))) {
+        job.setEphemeralKeys(signatureKeyBuf, signatureKeyBuf + 32);
+    }
+#   endif
 
     m_job.setClientId(m_rpcId);
 

@@ -181,6 +181,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::PasswordKey: /* --pass */
         return add(doc, Pools::kPools, Pool::kPass, arg);
 
+    case IConfig::SpendSecretKey: /* --spend-secret-key */
+        return add(doc, Pools::kPools, Pool::kSpendSecretKey, arg);
+
     case IConfig::RigIdKey: /* --rig-id */
         return add(doc, Pools::kPools, Pool::kRigId, arg);
 

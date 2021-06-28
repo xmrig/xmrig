@@ -37,6 +37,8 @@
 #include "base/net/stratum/SubmitResult.h"
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
+#include "base/tools/cryptonote/Signatures.h"
+#include "base/tools/cryptonote/WalletAddress.h"
 #include "net/JobResult.h"
 
 
@@ -94,16 +96,32 @@ bool xmrig::DaemonClient::isTLS() const
 
 int64_t xmrig::DaemonClient::submit(const JobResult &result)
 {
-    if (result.jobId != (m_blocktemplate.data() + m_blocktemplate.size() - 32)) {
+    if (result.jobId != (m_blocktemplateStr.data() + m_blocktemplateStr.size() - 32)) {
         return -1;
     }
 
-    char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplate.data();
+    char *data = (m_apiVersion == API_DERO) ? m_blockhashingblob.data() : m_blocktemplateStr.data();
+
+    const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
 
 #   ifdef XMRIG_PROXY_PROJECT
-    memcpy(data + 78, result.nonce, 8);
+
+    memcpy(data + m_job.nonceOffset() * 2, result.nonce, 8);
+
+    if (m_blocktemplate.has_miner_signature && result.sig) {
+        memcpy(data + sig_offset * 2, result.sig, 64 * 2);
+        memcpy(data + m_blocktemplate.tx_pubkey_index * 2, result.sig_data, 32 * 2);
+        memcpy(data + m_blocktemplate.eph_public_key_index * 2, result.sig_data + 32 * 2, 32 * 2);
+    }
+
 #   else
-    Cvt::toHex(data + 78, 8, reinterpret_cast<const uint8_t *>(&result.nonce), 4);
+
+    Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
+
+    if (m_blocktemplate.has_miner_signature) {
+        Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
+    }
+
 #   endif
 
     using namespace rapidjson;
@@ -111,11 +129,11 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     Value params(kArrayType);
     if (m_apiVersion == API_DERO) {
-        params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
+        params.PushBack(m_blocktemplateStr.toJSON(), doc.GetAllocator());
         params.PushBack(m_blockhashingblob.toJSON(), doc.GetAllocator());
     }
     else {
-        params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
+        params.PushBack(m_blocktemplateStr.toJSON(), doc.GetAllocator());
     }
 
     JsonRequest::create(doc, m_sequence, "submitblock", params);
@@ -241,31 +259,129 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
 
+    if (blocktemplate.isNull()) {
+        LOG_ERR("Empty block template received from daemon");
+        *code = 1;
+        return false;
+    }
+
+    Coin pool_coin = m_pool.coin();
+
+    if (!pool_coin.isValid() && (m_pool.algorithm() == Algorithm::RX_WOW)) {
+        pool_coin = Coin::WOWNERO;
+    }
+
+    if (!m_blocktemplate.Init(blocktemplate, pool_coin)) {
+        LOG_ERR("Invalid block template received from daemon");
+        *code = 2;
+        return false;
+    }
+
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
+
+    if (m_blocktemplate.has_miner_signature) {
+        if (m_pool.spendSecretKey().isEmpty()) {
+            LOG_ERR("Secret spend key is not set");
+            *code = 4;
+            return false;
+        }
+
+        if (m_pool.spendSecretKey().size() != 64) {
+            LOG_ERR("Secret spend key has invalid length. It must be 64 hex characters.");
+            *code = 5;
+            return false;
+        }
+
+        uint8_t secret_spendkey[32];
+        if (!Cvt::fromHex(secret_spendkey, 32, m_pool.spendSecretKey(), 64)) {
+            LOG_ERR("Secret spend key is not a valid hex data.");
+            *code = 6;
+            return false;
+        }
+
+        uint8_t public_spendkey[32];
+        if (!secret_key_to_public_key(secret_spendkey, public_spendkey)) {
+            LOG_ERR("Secret spend key is invalid.");
+            *code = 7;
+            return false;
+        }
+
+#       ifdef XMRIG_PROXY_PROJECT
+        job.setSpendSecretKey(secret_spendkey);
+        job.setMinerTx(
+            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
+            m_blocktemplate.eph_public_key_index - m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.tx_pubkey_index - m_blocktemplate.miner_tx_prefix_begin_index,
+            m_blocktemplate.miner_tx_merkle_tree_branch
+        );
+#       else
+        uint8_t secret_viewkey[32];
+        derive_view_secret_key(secret_spendkey, secret_viewkey);
+
+        uint8_t public_viewkey[32];
+        if (!secret_key_to_public_key(secret_viewkey, public_viewkey)) {
+            LOG_ERR("Secret view key is invalid.");
+            *code = 8;
+            return false;
+        }
+
+        uint8_t derivation[32];
+        if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
+            LOG_ERR("Failed to generate key derivation for miner signature.");
+            *code = 9;
+            return false;
+        }
+
+        WalletAddress user_address;
+        if (!user_address.Decode(m_pool.user())) {
+            LOG_ERR("Invalid wallet address.");
+            *code = 10;
+            return false;
+        }
+
+        if (memcmp(user_address.public_spend_key, public_spendkey, sizeof(public_spendkey)) != 0) {
+            LOG_ERR("Wallet address and spend key don't match.");
+            *code = 11;
+            return false;
+        }
+
+        if (memcmp(user_address.public_view_key, public_viewkey, sizeof(public_viewkey)) != 0) {
+            LOG_ERR("Wallet address and view key don't match.");
+            *code = 12;
+            return false;
+        }
+
+        uint8_t eph_secret_key[32];
+        derive_secret_key(derivation, 0, secret_spendkey, eph_secret_key);
+
+        job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
+#       endif
+    }
+
     if (m_apiVersion == API_DERO) {
         const uint64_t offset = Json::getUint64(params, "reserved_offset");
         Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
     }
 
-    if (m_pool.coin().isValid()) {
-        uint8_t blobVersion = 0;
-        Cvt::fromHex(&blobVersion, 1, m_blockhashingblob.data(), 2);
-        job.setAlgorithm(m_pool.coin().algorithm(blobVersion));
+    if (pool_coin.isValid()) {
+        job.setAlgorithm(pool_coin.algorithm(m_blocktemplate.major_version));
     }
 
-    if (blocktemplate.isNull() || !job.setBlob(m_blockhashingblob)) {
-        *code = 4;
+    if (!job.setBlob(m_blockhashingblob)) {
+        *code = 3;
         return false;
     }
 
     job.setSeedHash(Json::getString(params, "seed_hash"));
     job.setHeight(Json::getUint64(params, kHeight));
     job.setDiff(Json::getUint64(params, "difficulty"));
+
     job.setId(blocktemplate.data() + blocktemplate.size() - 32);
 
-    m_job           = std::move(job);
-    m_blocktemplate = std::move(blocktemplate);
-    m_prevHash      = Json::getString(params, "prev_hash");
+    m_job              = std::move(job);
+    m_blocktemplateStr = std::move(blocktemplate);
+    m_prevHash         = Json::getString(params, "prev_hash");
 
     if (m_apiVersion == API_DERO) {
         // Truncate to 32 bytes to have the same data as in get_info RPC
@@ -315,7 +431,16 @@ bool xmrig::DaemonClient::parseResponse(int64_t id, const rapidjson::Value &resu
         return true;
     }
 
-    if (handleSubmitResponse(id)) {
+    const char* error_msg = nullptr;
+
+    if ((m_apiVersion == API_DERO) && result.HasMember("status")) {
+        error_msg = result["status"].GetString();
+        if (!error_msg || (strlen(error_msg) == 0) || (strcmp(error_msg, "OK") == 0)) {
+            error_msg = nullptr;
+        }
+    }
+
+    if (handleSubmitResponse(id, error_msg)) {
         getBlockTemplate();
         return true;
     }
