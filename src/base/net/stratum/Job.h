@@ -82,7 +82,7 @@ public:
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
-    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (-1ULL  >> (extraNonce().size() * 4)): 0xFFFFFFFFULL); }
+    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4)) : 0xFFFFFFFFULL); }
     inline uint64_t target() const                      { return m_target; }
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
@@ -116,6 +116,25 @@ public:
     inline void setBenchSize(uint32_t size)             { m_benchSize = size; }
 #   endif
 
+#   ifdef XMRIG_PROXY_PROJECT
+    void setSpendSecretKey(uint8_t* key);
+    void setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, const Buffer& minerTxMerkleTreeBranch);
+    void generateHashingBlob(String& blob, String& signatureData) const;
+#   else
+    inline const uint8_t* ephSecretKey() const { return m_hasMinerSignature ? m_ephSecretKey : nullptr; }
+
+    inline void setEphemeralKeys(uint8_t* pub_key, uint8_t* sec_key)
+    {
+        m_hasMinerSignature = true;
+        memcpy(m_ephPublicKey, pub_key, sizeof(m_ephSecretKey));
+        memcpy(m_ephSecretKey, sec_key, sizeof(m_ephSecretKey));
+    }
+
+    void generateMinerSignature(const uint8_t* blob, size_t size, uint8_t* out_sig) const;
+#   endif
+
+    inline bool hasMinerSignature() const { return m_hasMinerSignature; }
+
 private:
     void copy(const Job &other);
     void move(Job &&other);
@@ -139,7 +158,23 @@ private:
     char m_rawBlob[kMaxBlobSize * 2 + 8]{};
     char m_rawTarget[24]{};
     String m_rawSeedHash;
+
+    // Miner signatures
+    uint8_t m_spendSecretKey[32];
+    uint8_t m_viewSecretKey[32];
+    uint8_t m_spendPublicKey[32];
+    uint8_t m_viewPublicKey[32];
+    mutable Buffer m_minerTxPrefix;
+    size_t m_minerTxEphPubKeyOffset = 0;
+    size_t m_minerTxPubKeyOffset = 0;
+    Buffer m_minerTxMerkleTreeBranch;
+#   else
+    // Miner signatures
+    uint8_t m_ephPublicKey[32]{};
+    uint8_t m_ephSecretKey[32]{};
 #   endif
+
+    bool m_hasMinerSignature = false;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     uint32_t m_benchSize = 0;

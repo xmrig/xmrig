@@ -96,6 +96,7 @@ static const option options[] = {
     { "pause-on-active",       1, nullptr, IConfig::PauseOnActiveKey      },
     { "dns-ipv6",              0, nullptr, IConfig::DnsIPv6Key            },
     { "dns-ttl",               1, nullptr, IConfig::DnsTtlKey             },
+    { "spend-secret-key",      1, nullptr, IConfig::SpendSecretKey        },
 #   ifdef XMRIG_FEATURE_BENCHMARK
     { "stress",                0, nullptr, IConfig::StressKey             },
     { "bench",                 1, nullptr, IConfig::BenchKey              },

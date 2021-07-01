@@ -60,7 +60,7 @@ public:
 #   ifdef XMRIG_FEATURE_BENCHMARK
     inline bool isBenchmark() const                     { return !!m_benchmark; }
 #   else
-    inline constexpr bool isBenchmark() const           { return false; }
+    inline constexpr static bool isBenchmark()          { return false; }
 #   endif
 
     inline const std::vector<Pool> &data() const        { return m_data; }
