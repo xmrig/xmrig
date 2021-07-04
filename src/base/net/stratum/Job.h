@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -63,6 +63,7 @@ public:
     bool setSeedHash(const char *hash);
     bool setTarget(const char *target);
     void setDiff(uint64_t diff);
+    void setSigKey(const char *sig_key);
 
     inline bool isNicehash() const                      { return m_nicehash; }
     inline bool isValid() const                         { return (m_size > 0 && m_diff > 0) || !m_poolWallet.isEmpty(); }
@@ -102,6 +103,7 @@ public:
     inline const char *rawBlob() const                  { return m_rawBlob; }
     inline const char *rawTarget() const                { return m_rawTarget; }
     inline const String &rawSeedHash() const            { return m_rawSeedHash; }
+    inline const String &rawSigKey() const              { return m_rawSigKey; }
 #   endif
 
     static inline uint64_t toDiff(uint64_t target)      { return target ? (0xFFFFFFFFFFFFFFFFULL / target) : 0; }
@@ -117,13 +119,13 @@ public:
 #   endif
 
 #   ifdef XMRIG_PROXY_PROJECT
-    void setSpendSecretKey(uint8_t* key);
-    void setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, const Buffer& minerTxMerkleTreeBranch);
-    void generateHashingBlob(String& blob, String& signatureData) const;
+    void setSpendSecretKey(const uint8_t *key);
+    void setMinerTx(const uint8_t *begin, const uint8_t *end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, const Buffer &minerTxMerkleTreeBranch);
+    void generateHashingBlob(String &signatureData);
 #   else
     inline const uint8_t* ephSecretKey() const { return m_hasMinerSignature ? m_ephSecretKey : nullptr; }
 
-    inline void setEphemeralKeys(uint8_t* pub_key, uint8_t* sec_key)
+    inline void setEphemeralKeys(const uint8_t *pub_key, const uint8_t *sec_key)
     {
         m_hasMinerSignature = true;
         memcpy(m_ephPublicKey, pub_key, sizeof(m_ephSecretKey));
@@ -158,12 +160,13 @@ private:
     char m_rawBlob[kMaxBlobSize * 2 + 8]{};
     char m_rawTarget[24]{};
     String m_rawSeedHash;
+    String m_rawSigKey;
 
     // Miner signatures
-    uint8_t m_spendSecretKey[32];
-    uint8_t m_viewSecretKey[32];
-    uint8_t m_spendPublicKey[32];
-    uint8_t m_viewPublicKey[32];
+    uint8_t m_spendSecretKey[32]{};
+    uint8_t m_viewSecretKey[32]{};
+    uint8_t m_spendPublicKey[32]{};
+    uint8_t m_viewPublicKey[32]{};
     mutable Buffer m_minerTxPrefix;
     size_t m_minerTxEphPubKeyOffset = 0;
     size_t m_minerTxPubKeyOffset = 0;
