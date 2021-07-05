@@ -329,7 +329,7 @@ void xmrig::CpuWorker<N>::start()
                     else
 #                   endif
                     if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), miner_signature_saved);
+                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
                     }
                 }
                 m_count += N;
