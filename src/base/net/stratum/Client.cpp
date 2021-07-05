@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -225,6 +225,10 @@ int64_t xmrig::Client::submit(const JobResult &result)
     if (result.minerSignature()) {
         params.AddMember("sig", StringRef(signature), allocator);
     }
+#   else
+    if (result.sig) {
+        params.AddMember("sig", StringRef(result.sig), allocator);
+    }
 #   endif
 
     if (has<EXT_ALGO>() && result.algorithm.isValid()) {
@@ -440,12 +444,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-#   ifndef XMRIG_PROXY_PROJECT
-    uint8_t signatureKeyBuf[32 * 2];
-    if (Cvt::fromHex(signatureKeyBuf, sizeof(signatureKeyBuf), Json::getValue(params, "sig_key"))) {
-        job.setEphemeralKeys(signatureKeyBuf, signatureKeyBuf + 32);
-    }
-#   endif
+    job.setSigKey(Json::getString(params, "sig_key"));
 
     m_job.setClientId(m_rpcId);
 

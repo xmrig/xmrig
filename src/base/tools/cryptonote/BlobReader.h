@@ -61,6 +61,8 @@ public:
 
     inline size_t index() const { return m_index; }
 
+    inline void skip(size_t N) { m_index += N; }
+
 private:
     inline bool getByte(uint8_t& data)
     {

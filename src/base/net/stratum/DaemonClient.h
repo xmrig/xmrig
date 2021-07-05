@@ -84,6 +84,7 @@ private:
     } m_apiVersion = API_MONERO;
 
     std::shared_ptr<IHttpListener> m_httpListener;
+    String m_currentJobId;
     String m_blocktemplateStr;
     String m_blockhashingblob;
     String m_prevHash;
