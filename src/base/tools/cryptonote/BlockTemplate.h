@@ -42,6 +42,8 @@ struct BlockTemplate
     Buffer raw_blob;
     size_t eph_public_key_index;
     size_t tx_pubkey_index;
+    uint64_t tx_extra_nonce_size;
+    size_t tx_extra_nonce_index;
     size_t miner_tx_prefix_begin_index;
     size_t miner_tx_prefix_end_index;
 

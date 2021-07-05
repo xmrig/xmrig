@@ -96,7 +96,7 @@ bool xmrig::DaemonClient::isTLS() const
 
 int64_t xmrig::DaemonClient::submit(const JobResult &result)
 {
-    if (result.jobId != (m_blocktemplateStr.data() + m_blocktemplateStr.size() - 32)) {
+    if (result.jobId != m_currentJobId) {
         return -1;
     }
 
@@ -112,6 +112,10 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
         memcpy(data + sig_offset * 2, result.sig, 64 * 2);
         memcpy(data + m_blocktemplate.tx_pubkey_index * 2, result.sig_data, 32 * 2);
         memcpy(data + m_blocktemplate.eph_public_key_index * 2, result.sig_data + 32 * 2, 32 * 2);
+    }
+
+    if (result.extra_nonce >= 0) {
+        Cvt::toHex(data + m_blocktemplate.tx_extra_nonce_index * 2, 8, reinterpret_cast<const uint8_t*>(&result.extra_nonce), 4);
     }
 
 #   else
@@ -277,6 +281,19 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
+#   ifdef XMRIG_PROXY_PROJECT
+    const size_t k = m_blocktemplate.miner_tx_prefix_begin_index;
+    job.setMinerTx(
+        m_blocktemplate.raw_blob.data() + k,
+        m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
+        m_blocktemplate.eph_public_key_index - k,
+        m_blocktemplate.tx_pubkey_index - k,
+        m_blocktemplate.tx_extra_nonce_index - k,
+        m_blocktemplate.tx_extra_nonce_size,
+        m_blocktemplate.miner_tx_merkle_tree_branch
+    );
+#   endif
+
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
 
     if (m_blocktemplate.has_miner_signature) {
@@ -308,13 +325,6 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
 #       ifdef XMRIG_PROXY_PROJECT
         job.setSpendSecretKey(secret_spendkey);
-        job.setMinerTx(
-            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_begin_index,
-            m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
-            m_blocktemplate.eph_public_key_index - m_blocktemplate.miner_tx_prefix_begin_index,
-            m_blocktemplate.tx_pubkey_index - m_blocktemplate.miner_tx_prefix_begin_index,
-            m_blocktemplate.miner_tx_merkle_tree_branch
-        );
 #       else
         uint8_t secret_viewkey[32];
         derive_view_secret_key(secret_spendkey, secret_viewkey);
@@ -377,7 +387,8 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     job.setHeight(Json::getUint64(params, kHeight));
     job.setDiff(Json::getUint64(params, "difficulty"));
 
-    job.setId(blocktemplate.data() + blocktemplate.size() - 32);
+    m_currentJobId = Cvt::toHex(Cvt::randomBytes(4));
+    job.setId(m_currentJobId);
 
     m_job              = std::move(job);
     m_blocktemplateStr = std::move(blocktemplate);

@@ -119,9 +119,11 @@ public:
 #   endif
 
 #   ifdef XMRIG_PROXY_PROJECT
-    void setSpendSecretKey(const uint8_t *key);
-    void setMinerTx(const uint8_t *begin, const uint8_t *end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, const Buffer &minerTxMerkleTreeBranch);
-    void generateHashingBlob(String &signatureData);
+    void setSpendSecretKey(const uint8_t* key);
+    void setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, size_t minerTxExtraNonceOffset, size_t minerTxExtraNonceSize, const Buffer& minerTxMerkleTreeBranch);
+    void setExtraNonceInMinerTx(uint32_t extra_nonce);
+    void generateSignatureData(String& signatureData) const;
+    void generateHashingBlob(String& blob) const;
 #   else
     inline const uint8_t* ephSecretKey() const { return m_hasMinerSignature ? m_ephSecretKey : nullptr; }
 
@@ -170,6 +172,8 @@ private:
     mutable Buffer m_minerTxPrefix;
     size_t m_minerTxEphPubKeyOffset = 0;
     size_t m_minerTxPubKeyOffset = 0;
+    size_t m_minerTxExtraNonceOffset = 0;
+    size_t m_minerTxExtraNonceSize = 0;
     Buffer m_minerTxMerkleTreeBranch;
 #   else
     // Miner signatures

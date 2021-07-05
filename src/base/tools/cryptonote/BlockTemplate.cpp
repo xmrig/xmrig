@@ -86,13 +86,35 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     ar(eph_public_key);
     ar(extra_size);
 
-    tx_pubkey_index = ar.index() + 1;
+    const uint64_t tx_extra_index = ar.index();
 
     ar.readItems(extra, extra_size);
 
-    // First thing in tx_extra must be TX_EXTRA_TAG_PUBKEY
-    if (extra[0] != 0x01)
-        return false;
+    CBlobReader ar_extra(extra.data(), extra_size);
+
+    tx_extra_nonce_size = 0;
+    tx_extra_nonce_index = 0;
+
+    while (ar_extra.index() < extra_size) {
+        uint64_t extra_tag;
+        ar_extra(extra_tag);
+
+        switch (extra_tag) {
+        case 0x01: // TX_EXTRA_TAG_PUBKEY
+            tx_pubkey_index = tx_extra_index + ar_extra.index();
+            ar_extra.skip(KEY_SIZE);
+            break;
+
+        case 0x02: // TX_EXTRA_NONCE
+            ar_extra(tx_extra_nonce_size);
+            tx_extra_nonce_index = tx_extra_index + ar_extra.index();
+            ar_extra.skip(tx_extra_nonce_size);
+            break;
+
+        default:
+            return false; // TODO: handle other tags
+        }
+    }
 
     miner_tx_prefix_end_index = ar.index();
     // Prefix end
