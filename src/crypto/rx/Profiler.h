@@ -50,9 +50,15 @@ static FORCE_INLINE uint64_t ReadTSC()
 #ifdef _MSC_VER
     return __rdtsc();
 #else
+#if defined(__x86_64__) || defined(__amd64__) || defined(__i386__)
     uint32_t hi, lo;
     __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));
     return (((uint64_t)hi) << 32) | lo;
+#elif defined(__aarch64__)
+    uint64_t cur;
+    __asm__ __volatile__("mrs %0, cntvct_el0" : "=r"(cur) :: "memory");
+    return cur;
+#endif
 #endif
 }
 
