@@ -99,6 +99,7 @@ private:
     void getBlockTemplate();
     void retry();
     void setState(State state);
+    bool isSubmitBlockResponse(int64_t id);
     void submitBlockTemplate(rapidjson::Value &result);
     void submitOriginDaemon(const JobResult &result);
 
@@ -112,8 +113,8 @@ private:
     int64_t m_sequence              = 1;
     Job m_job;
     State m_state                   = IdleState;
-    std::map<int64_t, SubmitResult> m_results;
-    std::shared_ptr<IHttpListener> m_httpListener;
+    int64_t                         m_last_submit_req_id;
+    std::shared_ptr<IHttpListener>  m_httpListener;
     String m_blocktemplate;
     uint64_t m_blockDiff            = 0;
     uint64_t m_originNotSubmitted   = 0;
