@@ -52,6 +52,7 @@ static const option options[] = {
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
     { "self-select",           1, nullptr, IConfig::SelfSelectKey         },
     { "submit-to-origin",      0, nullptr, IConfig::SubmitToOriginKey     },
+    { "daemon-zmq-port",       1, nullptr, IConfig::DaemonZMQPortKey      },
 #   endif
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
