@@ -96,7 +96,7 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
     tx_extra_nonce_index = 0;
 
     while (ar_extra.index() < extra_size) {
-        uint64_t extra_tag;
+        uint64_t extra_tag = 0;
         ar_extra(extra_tag);
 
         switch (extra_tag) {
