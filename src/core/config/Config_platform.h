@@ -69,6 +69,8 @@ static const option options[] = {
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
     { "no-hugepages",          0, nullptr, IConfig::HugePagesKey          },
     { "hugepage-size",         1, nullptr, IConfig::HugePageSizeKey       },
+    { "huge-pages-jit",        0, nullptr, IConfig::HugePagesJitKey       },
+    { "hugepages-jit",         0, nullptr, IConfig::HugePagesJitKey       },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
     { "print-time",            1, nullptr, IConfig::PrintTimeKey          },
     { "retries",               1, nullptr, IConfig::RetriesKey            },

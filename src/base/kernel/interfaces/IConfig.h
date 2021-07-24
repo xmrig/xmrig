@@ -86,6 +86,7 @@ public:
         DnsTtlKey            = 1054,
         SpendSecretKey       = 1055,
         DaemonZMQPortKey     = 1056,
+        HugePagesJitKey      = 1057,
 
         // xmrig common
         CPUPriorityKey       = 1021,

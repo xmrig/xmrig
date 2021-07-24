@@ -89,6 +89,9 @@ static inline const std::string &usage()
 #   ifdef XMRIG_OS_LINUX
     u += "      --hugepage-size=N         custom hugepage size in kB\n";
 #   endif
+#   ifdef XMRIG_ALGO_RANDOMX
+    u += "      --huge-pages-jit          enable huge pages support for RandomX JIT code\n";
+#   endif
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
