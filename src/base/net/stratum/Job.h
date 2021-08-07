@@ -139,6 +139,8 @@ public:
 
     inline bool hasMinerSignature() const { return m_hasMinerSignature; }
 
+    uint32_t getNumTransactions() const;
+
 private:
     void copy(const Job &other);
     void move(Job &&other);
