@@ -195,6 +195,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXCacheQoSKey: /* --cache-qos */
         return set(doc, RxConfig::kField, RxConfig::kCacheQoS, true);
+
+    case IConfig::HugePagesJitKey: /* --huge-pages-jit */
+        return set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL

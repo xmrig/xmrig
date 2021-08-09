@@ -242,13 +242,14 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, BaseConfig::kTls, TlsConfig::kGen, arg);
 #   endif
 
-    case IConfig::RetriesKey:     /* --retries */
-    case IConfig::RetryPauseKey:  /* --retry-pause */
-    case IConfig::PrintTimeKey:   /* --print-time */
-    case IConfig::HttpPort:       /* --http-port */
-    case IConfig::DonateLevelKey: /* --donate-level */
-    case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
-    case IConfig::DnsTtlKey:      /* --dns-ttl */
+    case IConfig::RetriesKey:       /* --retries */
+    case IConfig::RetryPauseKey:    /* --retry-pause */
+    case IConfig::PrintTimeKey:     /* --print-time */
+    case IConfig::HttpPort:         /* --http-port */
+    case IConfig::DonateLevelKey:   /* --donate-level */
+    case IConfig::DaemonPollKey:    /* --daemon-poll-interval */
+    case IConfig::DnsTtlKey:        /* --dns-ttl */
+    case IConfig::DaemonZMQPortKey: /* --daemon-zmq-port */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -359,6 +360,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
+
+    case IConfig::DaemonZMQPortKey:  /* --daemon-zmq-port */
+        return add(doc, Pools::kPools, Pool::kDaemonZMQPort, arg);
 #   endif
 
     default:

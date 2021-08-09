@@ -66,6 +66,7 @@ const char *Pool::kAlgo                   = "algo";
 const char *Pool::kCoin                   = "coin";
 const char *Pool::kDaemon                 = "daemon";
 const char *Pool::kDaemonPollInterval     = "daemon-poll-interval";
+const char *Pool::kDaemonZMQPort          = "daemon-zmq-port";
 const char *Pool::kEnabled                = "enabled";
 const char *Pool::kFingerprint            = "tls-fingerprint";
 const char *Pool::kKeepalive              = "keepalive";
@@ -127,6 +128,7 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_coin           = Json::getString(object, kCoin);
     m_daemon         = Json::getString(object, kSelfSelect);
     m_proxy          = Json::getValue(object, kSOCKS5);
+    m_zmqPort        = Json::getInt(object, kDaemonZMQPort, m_zmqPort);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
@@ -301,6 +303,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+        obj.AddMember(StringRef(kDaemonZMQPort), m_zmqPort, allocator);
     }
     else {
         obj.AddMember(StringRef(kSelfSelect),     m_daemon.url().toJSON(), allocator);
@@ -336,6 +339,9 @@ void xmrig::Pool::print() const
     LOG_NOTICE("url:       %s", url().data());
     LOG_DEBUG ("host:      %s", host().data());
     LOG_DEBUG ("port:      %d", static_cast<int>(port()));
+    if (m_zmqPort >= 0) {
+        LOG_DEBUG("zmq-port:  %d", m_zmqPort);
+    }
     LOG_DEBUG ("user:      %s", m_user.data());
     LOG_DEBUG ("pass:      %s", m_password.data());
     LOG_DEBUG ("rig-id     %s", m_rigId.data());

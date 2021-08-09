@@ -1,3 +1,9 @@
+# v6.14.0
+- [#2484](https://github.com/xmrig/xmrig/pull/2484) Added ZeroMQ support for solo mining.
+- [#2476](https://github.com/xmrig/xmrig/issues/2476) Fixed crash in DMI memory reader.
+- [#2492](https://github.com/xmrig/xmrig/issues/2492) Added missing `--huge-pages-jit` command line option.
+- [#2512](https://github.com/xmrig/xmrig/pull/2512) Added show the number of transactions in pool job.
+
 # v6.13.1
 - [#2468](https://github.com/xmrig/xmrig/pull/2468) Fixed regression in previous version: don't send miner signature during regular mining.
 
