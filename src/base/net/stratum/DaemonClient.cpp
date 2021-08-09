@@ -65,7 +65,7 @@ static const char *kJsonRPC                 = "/json_rpc";
 
 static constexpr size_t kBlobReserveSize    = 8;
 
-static const char kZMQGreeting[64] = { -1, 0, 0, 0, 0, 0, 0, 0, 0, 127, 3, 0, 'N', 'U', 'L', 'L' };
+static const char kZMQGreeting[64] = { static_cast<char>(-1), 0, 0, 0, 0, 0, 0, 0, 0, 127, 3, 0, 'N', 'U', 'L', 'L' };
 static constexpr size_t kZMQGreetingSize1 = 11;
 
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
