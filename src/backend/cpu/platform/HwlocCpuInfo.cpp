@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifdef XMRIG_HWLOC_DEBUG
 #   include <uv.h>
 #endif
@@ -336,7 +335,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
-    Algorithm::Family family = algorithm.family();
+    const auto family = algorithm.family();
     if (intensity && ((family == Algorithm::CN_PICO) || (family == Algorithm::CN_FEMTO)) && (cacheHashes / PUs) >= 2) {
         intensity = 2;
     }
