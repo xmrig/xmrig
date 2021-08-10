@@ -70,12 +70,19 @@ set(HEADERS_BASE
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
     src/base/tools/Baton.h
+    src/base/tools/bswap_64.h
     src/base/tools/Buffer.h
     src/base/tools/Chrono.h
     src/base/tools/Cvt.h
     src/base/tools/Handle.h
     src/base/tools/String.h
     src/base/tools/Timer.h
+    src/base/tools/cryptonote/BlobReader.h
+    src/base/tools/cryptonote/BlockTemplate.h
+    src/base/tools/cryptonote/Signatures.h
+    src/base/tools/cryptonote/WalletAddress.h
+    src/base/tools/cryptonote/crypto-ops.h
+    src/base/tools/cryptonote/umul128.h
    )
 
 set(SOURCES_BASE
@@ -126,6 +133,11 @@ set(SOURCES_BASE
     src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
+    src/base/tools/cryptonote/BlockTemplate.cpp
+    src/base/tools/cryptonote/Signatures.cpp
+    src/base/tools/cryptonote/WalletAddress.cpp
+    src/base/tools/cryptonote/crypto-ops.c
+    src/base/tools/cryptonote/crypto-ops-data.c
    )
 
 

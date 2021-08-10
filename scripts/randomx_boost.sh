@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh -e
 
 MSR_FILE=/sys/module/msr/parameters/allow_writes
 
@@ -8,9 +8,9 @@ else
 	modprobe msr allow_writes=on
 fi
 
-if cat /proc/cpuinfo | grep -E 'AMD Ryzen|AMD EPYC' > /dev/null;
+if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
 	then
-	if cat /proc/cpuinfo | grep "cpu family[[:space:]]:[[:space:]]25" > /dev/null;
+	if grep "cpu family[[:space:]]:[[:space:]]25" /proc/cpuinfo > /dev/null;
 		then
 			echo "Detected Zen3 CPU"
 			wrmsr -a 0xc0011020 0x4480000000000
@@ -26,7 +26,7 @@ if cat /proc/cpuinfo | grep -E 'AMD Ryzen|AMD EPYC' > /dev/null;
 			wrmsr -a 0xc001102b 0x2000cc16
 			echo "MSR register values for Zen1/Zen2 applied"
 		fi
-elif cat /proc/cpuinfo | grep "Intel" > /dev/null;
+elif grep "Intel" /proc/cpuinfo > /dev/null;
 	then
 		echo "Detected Intel CPU"
 		wrmsr -a 0x1a4 0xf

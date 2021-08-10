@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -137,6 +137,7 @@ private:
     std::bitset<EXT_MAX> m_extensions;
     std::shared_ptr<DnsRequest> m_dns;
     std::vector<char> m_sendBuf;
+    std::vector<char> m_tempBuf;
     String m_rpcId;
     Tls *m_tls                  = nullptr;
     uint64_t m_expire           = 0;

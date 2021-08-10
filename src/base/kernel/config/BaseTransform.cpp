@@ -181,6 +181,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::PasswordKey: /* --pass */
         return add(doc, Pools::kPools, Pool::kPass, arg);
 
+    case IConfig::SpendSecretKey: /* --spend-secret-key */
+        return add(doc, Pools::kPools, Pool::kSpendSecretKey, arg);
+
     case IConfig::RigIdKey: /* --rig-id */
         return add(doc, Pools::kPools, Pool::kRigId, arg);
 
@@ -239,18 +242,17 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, BaseConfig::kTls, TlsConfig::kGen, arg);
 #   endif
 
-    case IConfig::RetriesKey:     /* --retries */
-    case IConfig::RetryPauseKey:  /* --retry-pause */
-    case IConfig::PrintTimeKey:   /* --print-time */
-    case IConfig::HttpPort:       /* --http-port */
-    case IConfig::DonateLevelKey: /* --donate-level */
-#   ifdef XMRIG_FEATURE_HTTP
-    case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
-#   endif
+    case IConfig::RetriesKey:       /* --retries */
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
     case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
 #   endif
-    case IConfig::DnsTtlKey:      /* --dns-ttl */
+    case IConfig::RetryPauseKey:    /* --retry-pause */
+    case IConfig::PrintTimeKey:     /* --print-time */
+    case IConfig::HttpPort:         /* --http-port */
+    case IConfig::DonateLevelKey:   /* --donate-level */
+    case IConfig::DaemonPollKey:    /* --daemon-poll-interval */
+    case IConfig::DnsTtlKey:        /* --dns-ttl */
+    case IConfig::DaemonZMQPortKey: /* --daemon-zmq-port */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -374,6 +376,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
+
+    case IConfig::DaemonZMQPortKey:  /* --daemon-zmq-port */
+        return add(doc, Pools::kPools, Pool::kDaemonZMQPort, arg);
 #   endif
 
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK

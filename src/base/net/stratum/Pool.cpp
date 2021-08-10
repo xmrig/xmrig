@@ -66,6 +66,7 @@ const char *Pool::kAlgo                   = "algo";
 const char *Pool::kCoin                   = "coin";
 const char *Pool::kDaemon                 = "daemon";
 const char *Pool::kDaemonPollInterval     = "daemon-poll-interval";
+const char *Pool::kDaemonZMQPort          = "daemon-zmq-port";
 const char *Pool::kEnabled                = "enabled";
 const char *Pool::kFingerprint            = "tls-fingerprint";
 const char *Pool::kKeepalive              = "keepalive";
@@ -78,6 +79,7 @@ const char *Pool::kSubmitToOrigin         = "submit-to-origin";
 const char *Pool::kTls                    = "tls";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
+const char *Pool::kSpendSecretKey         = "spend-secret-key";
 const char *Pool::kNicehashHost           = "nicehash.com";
 
 
@@ -92,12 +94,13 @@ xmrig::Pool::Pool(const char *url) :
 }
 
 
-xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode) :
+xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, const char* spendSecretKey, int keepAlive, bool nicehash, bool tls, Mode mode) :
     m_keepAlive(keepAlive),
     m_mode(mode),
     m_flags(1 << FLAG_ENABLED),
     m_password(password),
     m_user(user),
+    m_spendSecretKey(spendSecretKey),
     m_pollInterval(kDefaultPollInterval),
     m_url(host, port, tls)
 {
@@ -115,15 +118,17 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
         return;
     }
 
-    m_user         = Json::getString(object, kUser);
-    m_password     = Json::getString(object, kPass);
-    m_rigId        = Json::getString(object, kRigId);
-    m_fingerprint  = Json::getString(object, kFingerprint);
-    m_pollInterval = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
-    m_algorithm    = Json::getString(object, kAlgo);
-    m_coin         = Json::getString(object, kCoin);
-    m_daemon       = Json::getString(object, kSelfSelect);
-    m_proxy        = Json::getValue(object, kSOCKS5);
+    m_user           = Json::getString(object, kUser);
+    m_spendSecretKey = Json::getString(object, kSpendSecretKey);
+    m_password       = Json::getString(object, kPass);
+    m_rigId          = Json::getString(object, kRigId);
+    m_fingerprint    = Json::getString(object, kFingerprint);
+    m_pollInterval   = Json::getUint64(object, kDaemonPollInterval, kDefaultPollInterval);
+    m_algorithm      = Json::getString(object, kAlgo);
+    m_coin           = Json::getString(object, kCoin);
+    m_daemon         = Json::getString(object, kSelfSelect);
+    m_proxy          = Json::getValue(object, kSOCKS5);
+    m_zmqPort        = Json::getInt(object, kDaemonZMQPort, m_zmqPort);
 
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
@@ -270,6 +275,10 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kUrl),   url().toJSON(), allocator);
     obj.AddMember(StringRef(kUser),  m_user.toJSON(), allocator);
 
+    if (!m_spendSecretKey.isEmpty()) {
+        obj.AddMember(StringRef(kSpendSecretKey), m_spendSecretKey.toJSON(), allocator);
+    }
+
     if (m_mode != MODE_DAEMON) {
         obj.AddMember(StringRef(kPass),  m_password.toJSON(), allocator);
         obj.AddMember(StringRef(kRigId), m_rigId.toJSON(), allocator);
@@ -294,6 +303,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     if (m_mode == MODE_DAEMON) {
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
+        obj.AddMember(StringRef(kDaemonZMQPort), m_zmqPort, allocator);
     }
     else {
         obj.AddMember(StringRef(kSelfSelect),     m_daemon.url().toJSON(), allocator);
@@ -329,6 +339,9 @@ void xmrig::Pool::print() const
     LOG_NOTICE("url:       %s", url().data());
     LOG_DEBUG ("host:      %s", host().data());
     LOG_DEBUG ("port:      %d", static_cast<int>(port()));
+    if (m_zmqPort >= 0) {
+        LOG_DEBUG("zmq-port:  %d", m_zmqPort);
+    }
     LOG_DEBUG ("user:      %s", m_user.data());
     LOG_DEBUG ("pass:      %s", m_password.data());
     LOG_DEBUG ("rig-id     %s", m_rigId.data());

@@ -30,6 +30,7 @@
 #include "crypto/astrobwt/AstroBWT.h"
 #include "backend/cpu/Cpu.h"
 #include "base/crypto/sha3.h"
+#include "base/tools/bswap_64.h"
 #include "crypto/cn/CryptoNight.h"
 
 
@@ -52,21 +53,6 @@ extern "C"
 __attribute__((ms_abi))
 #endif
 void SHA3_256_AVX2_ASM(const void* in, size_t inBytes, void* out);
-#endif
-
-#ifdef _MSC_VER
-
-#include <stdlib.h>
-#define bswap_64(x) _byteswap_uint64(x)
-
-#elif defined __GNUC__
-
-#define bswap_64(x) __builtin_bswap64(x)
-
-#else
-
-#include <byteswap.h>
-
 #endif
 
 #ifdef XMRIG_ARM

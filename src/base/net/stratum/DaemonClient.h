@@ -27,10 +27,16 @@
 #define XMRIG_DAEMONCLIENT_H
 
 
+#include <uv.h>
+
+
+#include "base/kernel/interfaces/IDnsListener.h"
 #include "base/kernel/interfaces/IHttpListener.h"
 #include "base/kernel/interfaces/ITimerListener.h"
 #include "base/net/stratum/BaseClient.h"
 #include "base/tools/Object.h"
+#include "base/tools/cryptonote/BlockTemplate.h"
+#include "base/net/tools/Storage.h"
 
 
 #include <memory>
@@ -39,7 +45,10 @@
 namespace xmrig {
 
 
-class DaemonClient : public BaseClient, public ITimerListener, public IHttpListener
+class DnsRequest;
+
+
+class DaemonClient : public BaseClient, public IDnsListener, public ITimerListener, public IHttpListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(DaemonClient)
@@ -56,6 +65,7 @@ protected:
 
     void onHttpData(const HttpData &data) override;
     void onTimer(const Timer *timer) override;
+    void onResolved(const DnsRecords& records, int status, const char* error) override;
 
     inline bool hasExtension(Extension) const noexcept override         { return false; }
     inline const char *mode() const override                            { return "daemon"; }
@@ -63,7 +73,7 @@ protected:
     inline const char *tlsVersion() const override                      { return m_tlsVersion; }
     inline int64_t send(const rapidjson::Value &, Callback) override    { return -1; }
     inline int64_t send(const rapidjson::Value &) override              { return -1; }
-    inline void deleteLater() override                                  { delete this; }
+    void deleteLater() override;
     inline void tick(uint64_t) override                                 {}
 
 private:
@@ -83,7 +93,8 @@ private:
     } m_apiVersion = API_MONERO;
 
     std::shared_ptr<IHttpListener> m_httpListener;
-    String m_blocktemplate;
+    String m_currentJobId;
+    String m_blocktemplateStr;
     String m_blockhashingblob;
     String m_prevHash;
     String m_tlsFingerprint;
@@ -91,6 +102,40 @@ private:
     Timer *m_timer;
     uint64_t m_blocktemplateRequestHeight = 0;
     String m_blocktemplateRequestHash;
+
+    BlockTemplate m_blocktemplate;
+
+private:
+    static inline DaemonClient* getClient(void* data) { return m_storage.get(data); }
+
+    uintptr_t m_key = 0;
+    static Storage<DaemonClient> m_storage;
+
+    static void onZMQConnect(uv_connect_t* req, int status);
+    static void onZMQRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
+    static void onZMQClose(uv_handle_t* handle);
+    static void onZMQShutdown(uv_handle_t* handle);
+
+    void ZMQConnected();
+    bool ZMQWrite(const char* data, size_t size);
+    void ZMQRead(ssize_t nread, const uv_buf_t* buf);
+    void ZMQParse();
+    bool ZMQClose(bool shutdown = false);
+
+    std::shared_ptr<DnsRequest> m_dns;
+    uv_tcp_t* m_ZMQSocket = nullptr;
+
+    enum {
+        ZMQ_NOT_CONNECTED,
+        ZMQ_GREETING_1,
+        ZMQ_GREETING_2,
+        ZMQ_HANDSHAKE,
+        ZMQ_CONNECTED,
+        ZMQ_DISCONNECTING,
+    } m_ZMQConnectionState = ZMQ_NOT_CONNECTED;
+
+    std::vector<char> m_ZMQSendBuf;
+    std::vector<char> m_ZMQRecvBuf;
 };
 
 
