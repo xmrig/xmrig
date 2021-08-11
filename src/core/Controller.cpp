@@ -62,12 +62,19 @@ int xmrig::Controller::init()
     return 0;
 }
 
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
+void xmrig::Controller::pre_start()
+{
+    m_miner = std::make_shared<Miner>(this);
+}
+#endif
+
 
 void xmrig::Controller::start()
 {
     Base::start();
 
-    m_miner = std::make_shared<Miner>(this);
+    if (m_miner == nullptr) m_miner = std::make_shared<Miner>(this);
 
     network()->connect();
 }

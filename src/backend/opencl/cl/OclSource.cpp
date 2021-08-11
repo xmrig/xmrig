@@ -41,6 +41,10 @@
 #   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
 #endif
 
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/cl/cn/cryptonight_gpu_cl.h"
+#endif
+
 
 const char *xmrig::OclSource::get(const Algorithm &algorithm)
 {
@@ -59,6 +63,12 @@ const char *xmrig::OclSource::get(const Algorithm &algorithm)
 #   ifdef XMRIG_ALGO_KAWPOW
     if (algorithm.family() == Algorithm::KAWPOW) {
         return kawpow_dag_cl;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        return cryptonight_gpu_cl;
     }
 #   endif
 

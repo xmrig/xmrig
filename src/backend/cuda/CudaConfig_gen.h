@@ -64,6 +64,10 @@ size_t inline generate<Algorithm::CN>(Threads<CudaThreads> &threads, const std::
         count++;
     }
 
+#   ifdef XMRIG_ALGO_CN_GPU
+    count += generate("cn/gpu", threads, Algorithm::CN_GPU, devices);
+#   endif
+
     return count;
 }
 

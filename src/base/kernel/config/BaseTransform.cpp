@@ -243,6 +243,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
 #   endif
 
     case IConfig::RetriesKey:       /* --retries */
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
+#   endif
     case IConfig::RetryPauseKey:    /* --retry-pause */
     case IConfig::PrintTimeKey:     /* --print-time */
     case IConfig::HttpPort:         /* --http-port */
@@ -256,10 +259,18 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::SyslogKey:      /* --syslog */
     case IConfig::KeepAliveKey:   /* --keepalive */
     case IConfig::NicehashKey:    /* --nicehash */
+#   ifdef XMRIG_FEATURE_TLS
     case IConfig::TlsKey:         /* --tls */
+#   endif
     case IConfig::DryRunKey:      /* --dry-run */
+#   ifdef XMRIG_FEATURE_HTTP
     case IConfig::HttpEnabledKey: /* --http-enabled */
     case IConfig::DaemonKey:      /* --daemon */
+#   endif
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    case IConfig::RebenchAlgoKey: /* --rebench-algo */
+#   endif
+    case IConfig::PauseOnBatteryKey: /* --pause-on-battery */
     case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
     case IConfig::DnsIPv6Key:     /* --dns-ipv6 */
@@ -323,6 +334,11 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
 
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    case IConfig::RebenchAlgoKey: /* --rebench-algo */
+        return set(doc, BaseConfig::kRebenchAlgo, enable);
+#   endif
+
     case IConfig::DnsIPv6Key: /* --dns-ipv6 */
         return set(doc, DnsConfig::kField, DnsConfig::kIPv6, enable);
 
@@ -363,6 +379,11 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 
     case IConfig::DaemonZMQPortKey:  /* --daemon-zmq-port */
         return add(doc, Pools::kPools, Pool::kDaemonZMQPort, arg);
+#   endif
+
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    case IConfig::BenchAlgoTimeKey: /* --bench-algo-time */
+        return set(doc, BaseConfig::kBenchAlgoTime, arg);
 #   endif
 
     default:

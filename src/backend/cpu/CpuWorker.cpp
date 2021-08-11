@@ -166,9 +166,20 @@ bool xmrig::CpuWorker<N>::selfTest()
                         verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
                         verify(Algorithm::CN_ZLS,    test_output_zls)  &&
                         verify(Algorithm::CN_CCX,    test_output_ccx)  &&
+#                       ifdef XMRIG_ALGO_CN_GPU
+                        verify(Algorithm::CN_GPU,    test_output_gpu)  &&
+#                       endif
                         verify(Algorithm::CN_DOUBLE, test_output_double);
 
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (!rc || N > 1) {
+            return rc;
+        }
+
+        return verify(Algorithm::CN_GPU, test_output_gpu);
+#       else
         return rc;
+#       endif
     }
 
 #   ifdef XMRIG_ALGO_CN_LITE
@@ -279,12 +290,13 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
+
                 if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
                         job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                     }
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size(), job.algorithm());
                 }
 
                 if (!nextRound()) {
@@ -295,7 +307,7 @@ void xmrig::CpuWorker<N>::start()
                     memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
                     job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                 }
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash, job.algorithm());
             }
             else
 #           endif

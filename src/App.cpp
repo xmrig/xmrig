@@ -85,7 +85,21 @@ int xmrig::App::exec()
         return 0;
     }
 
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    m_controller->pre_start();
+    m_controller->config()->benchmark().set_controller(m_controller);
+
+    if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
+        if (m_controller->config()->isShouldSave()) {
+            m_controller->config()->save();
+        }
+        m_controller->config()->benchmark().start();
+    } else {
+        m_controller->start();
+    }
+#   else
     m_controller->start();
+#   endif
 
     rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());

@@ -16,7 +16,7 @@
     "title": true,
     "randomx": {
         "init": -1,
-        "init-avx2": -1,
+        "init-avx2": 0,
         "mode": "auto",
         "1gb-pages": false,
         "rdmsr": true,
@@ -31,7 +31,7 @@
         "huge-pages-jit": false,
         "hw-aes": null,
         "priority": null,
-        "memory-pool": false,
+        "memory-pool": true,
         "yield": true,
         "max-threads-hint": 100,
         "asm": true,
@@ -48,14 +48,17 @@
         "platform": "AMD",
         "adl": true,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "panthera": false
     },
     "cuda": {
         "enabled": false,
         "loader": null,
         "nvml": true,
         "cn/0": false,
-        "cn-lite/0": false
+        "cn-lite/0": false,
+        "panthera": false,
+        "astrobwt": false
     },
     "donate-level": 1,
     "donate-over-proxy": 1,
@@ -64,12 +67,12 @@
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
+            "url": "gulf.moneroocean.stream:10128",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
@@ -97,6 +100,8 @@
     "user-agent": null,
     "verbose": 0,
     "watch": true,
+    "rebench-algo": false,
+    "bench-algo-time": 20,
     "pause-on-battery": false,
     "pause-on-active": false
 }

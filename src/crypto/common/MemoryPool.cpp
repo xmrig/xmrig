@@ -47,11 +47,11 @@ xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node)
         return;
     }
 
-    constexpr size_t alignment = 1 << 24;
+    constexpr size_t alignment = 0; //1 << 24;
 
     m_memory = new VirtualMemory(size * pageSize + alignment, hugePages, false, false, node);
 
-    m_alignOffset = (alignment - (((size_t)m_memory->scratchpad()) % alignment)) % alignment;
+    //m_alignOffset = (alignment - (((size_t)m_memory->scratchpad()) % alignment)) % alignment;
 }
 
 

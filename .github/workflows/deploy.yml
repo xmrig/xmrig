@@ -1,0 +1,208 @@
+on:
+  push:
+    tags:
+    - 'v*'
+
+name: Create release and build artifacts
+
+jobs:
+  build_win:
+    name: Build Windows artifacts
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Checkout deps
+        run:  git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build project on Windows
+        run: |
+          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
+          make -j2
+          copy src\config.json .
+          copy bin\WinRing0\WinRing0x64.sys .
+          7z a -tzip -mx windows_build.zip xmrig.exe config.json WinRing0x64.sys
+      - name: Upload Windows build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: windows_build
+          path: windows_build.zip
+
+  build_lin:
+    name: Build Ubuntu artifacts
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Prepare Ubuntu tools
+        run: |
+          sudo apt update
+          sudo apt install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build project on Ubuntu
+        run: |
+          cmake .
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz ubuntu_build.tar.gz xmrig config.json
+      - name: Upload Ubuntu build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: ubuntu_build
+          path: ubuntu_build.tar.gz
+
+  build_macos:
+    name: Build MacOS artifacts
+    runs-on: macos-latest
+    steps:
+      - name: Prepare MacOS tools
+        run: |
+          brew install cmake libuv openssl hwloc
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build hwloc on MacOS
+        run: |
+          curl -O https://download.open-mpi.org/release/hwloc/v2.1/hwloc-2.1.0.tar.bz2
+          tar xjf hwloc-2.1.0.tar.bz2
+          cd hwloc-2.1.0
+          ./configure --disable-shared --enable-static --disable-io --disable-libxml2
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+      - name: Build project on MacOS
+        run: |
+          cmake . -DOPENSSL_ROOT_DIR=/usr/local/opt/openssl -DHWLOC_INCLUDE_DIR=hwloc-2.1.0/include -DHWLOC_LIBRARY=hwloc-2.1.0/hwloc/.libs/libhwloc.a
+          make -j$(sysctl -n hw.logicalcpu)
+          cp src/config.json .
+          tar cfz macos_build.tar.gz xmrig config.json
+      - name: Upload MacOS build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: macos_build
+          path: macos_build.tar.gz
+
+  build_lin_rh7:
+    name: Build CentOS 7 artifacts
+    runs-on: ubuntu-latest
+    container: centos:7
+    steps:
+      - name: Prepare CentOS 7 tools
+        run: |
+          yum install -y centos-release-scl epel-release
+          yum install -y devtoolset-9
+          yum install -y wget git cmake3 automake libtool autoconf libstdc++-static glibc-static
+      - name: Checkout code
+        run: |
+          git clone https://github.com/MoneroOcean/xmrig.git .
+          git checkout ${GITHUB_REF:10}
+      - name: Build project on CentOS 7
+        run: |
+          source /opt/rh/devtoolset-9/enable
+          cd scripts
+          ./build_deps.sh
+          cd ..
+          cmake3 . -DXMRIG_DEPS=scripts/deps
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz centos7_build.tar.gz xmrig config.json
+      - name: Upload CentOS 7 build artifacts
+        uses: actions/upload-artifact@v1
+        with:
+          name: centos7_build
+          path: centos7_build.tar.gz
+
+  deploy:
+    needs: [build_win, build_lin, build_macos, build_lin_rh7]
+    name: Create release and upload artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1.0.0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+      - name: Set version
+        id: version
+        run: echo ::set-output name=VERSION::${GITHUB_REF:10}
+      - name: Download Windows build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: windows_build
+      - name: Download Ubuntu build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: ubuntu_build
+      - name: Download MacOS build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: macos_build
+      - name: Download CentOS 7 build artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: centos7_build
+      - name: Upload Windows build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: windows_build/windows_build.zip
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-win64.zip
+          asset_content_type: application/zip
+      - name: Upload Ubuntu build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ubuntu_build/ubuntu_build.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
+          asset_content_type: application/zip
+      - name: Upload MacOS build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: macos_build/macos_build.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac64.tar.gz
+          asset_content_type: application/zip
+      - name: Upload CentOS 7 build release asset
+        uses: actions/upload-release-asset@v1.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: centos7_build/centos7_build.tar.gz
+          asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64-compat.tar.gz
+          asset_content_type: application/zip
+      - name: Update xmrig_setup repo
+        run: |
+          git clone https://$GITHUB_ACTOR:${{secrets.xmrig_setup_key}}@github.com/MoneroOcean/xmrig_setup.git
+          cd xmrig_setup
+          git config user.name  MoneroOcean
+          git config user.email support@moneroocean.stream
+          cp ../centos7_build/centos7_build.tar.gz xmrig.tar.gz
+          cp ../windows_build/windows_build.zip xmrig.zip
+          unzip xmrig.zip
+          zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys
+          git commit -m "xmrig "${GITHUB_REF:10}" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
+          git push
+          cd ..
+      - name: Update hiveos repo
+        run: |
+          git clone https://$GITHUB_ACTOR:${{secrets.xmrig_setup_key}}@github.com/MoneroOcean/hiveos.git
+          cd hiveos
+          git config user.name  MoneroOcean
+          git config user.email support@moneroocean.stream
+          tar xf ../centos7_build/centos7_build.tar.gz
+          mv xmrig mo_xmrig/xmrig
+          mv config.json mo_xmrig/config_global.json
+          export VER=${GITHUB_REF:10}
+          export VER=${VER//-/_}
+          tar -zcvf mo_xmrig-$VER.tar.gz mo_xmrig
+          git add mo_xmrig-$VER.tar.gz mo_xmrig/xmrig mo_xmrig/config_global.json
+          git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-$VER.tar.gz
+          git push

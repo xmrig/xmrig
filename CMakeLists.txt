@@ -5,6 +5,7 @@ option(WITH_HWLOC           "Enable hwloc support" ON)
 option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
 option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
 option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
+option(WITH_CN_GPU          "Enable CryptoNight-GPU algorithm" ON)
 option(WITH_CN_FEMTO        "Enable CryptoNight-UPX2 algorithm" ON)
 option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
 option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
@@ -23,6 +24,7 @@ option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (on
 option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (only if OpenCL backend enabled)" ON)
 option(WITH_STRICT_CACHE    "Enable strict checks for OpenCL cache" ON)
 option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
+option(WITH_MO_BENCHMARK    "Enable Benchmark module and algo-perf feature (for MoneroOcean)" ON)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
 option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
@@ -124,6 +126,13 @@ set(SOURCES_CRYPTO
     src/crypto/common/VirtualMemory.cpp
    )
 
+if (WITH_MO_BENCHMARK)
+    list(APPEND SOURCES
+        src/core/MoBenchmark.cpp
+        )
+    add_definitions(/DXMRIG_FEATURE_MO_BENCHMARK)
+endif()
+
 if (WITH_HWLOC)
     list(APPEND HEADERS_CRYPTO
         src/crypto/common/NUMAMemoryPool.h
@@ -184,6 +193,7 @@ include(cmake/astrobwt.cmake)
 include(cmake/kawpow.cmake)
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
+include(cmake/cn-gpu.cmake)
 
 if (WITH_CN_LITE)
     add_definitions(/DXMRIG_ALGO_CN_LITE)
