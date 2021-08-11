@@ -156,7 +156,7 @@ public:
         Value algo(kArrayType);
 
         for (const Algorithm &a : algorithms) {
-            algo.PushBack(StringRef(a.shortName()), allocator);
+            algo.PushBack(StringRef(a.name()), allocator);
         }
 
         reply.AddMember("algorithms", algo, allocator);

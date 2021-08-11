@@ -104,7 +104,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
-    const String name = algorithm.shortName();
+    const String name = algorithm.name();
     if (has(name)) {
         return name;
     }
@@ -147,11 +147,11 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
     }
 
     for (const Algorithm &algo : m_disabled) {
-        out.AddMember(StringRef(algo.shortName()), false, allocator);
+        out.AddMember(StringRef(algo.name()), false, allocator);
     }
 
     for (const auto &kv : m_aliases) {
-        out.AddMember(StringRef(kv.first.shortName()), kv.second.toJSON(), allocator);
+        out.AddMember(StringRef(kv.first.name()), kv.second.toJSON(), allocator);
     }
 }
 

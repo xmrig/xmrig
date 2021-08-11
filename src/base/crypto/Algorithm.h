@@ -169,7 +169,6 @@ public:
     inline bool isCN() const                                { return isCN(m_id); }
     inline bool isEqual(const Algorithm &other) const       { return m_id == other.m_id; }
     inline bool isValid() const                             { return m_id != INVALID && family() > UNKNOWN; }
-    inline const char *shortName() const                    { return name(); }
     inline Id base() const                                  { return base(m_id); }
     inline Id id() const                                    { return m_id; }
     inline size_t l2() const                                { return l2(m_id); }

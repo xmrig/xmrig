@@ -258,7 +258,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 
     if (threads.isEmpty()) {
-        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
+        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.name());
 
         return BasicCpuInfo::threads(algorithm, limit);
     }

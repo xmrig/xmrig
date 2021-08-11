@@ -40,7 +40,7 @@ public:
     inline bool has(const char *profile) const                                         { return m_profiles.count(profile) > 0; }
     inline bool isDisabled(const Algorithm &algo) const                                { return m_disabled.count(algo) > 0; }
     inline bool isEmpty() const                                                        { return m_profiles.empty(); }
-    inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.shortName()); }
+    inline bool isExist(const Algorithm &algo) const                                   { return isDisabled(algo) || m_aliases.count(algo) > 0 || has(algo.name()); }
     inline const T &get(const Algorithm &algo, bool strict = false) const              { return get(profileName(algo, strict)); }
     inline void disable(const Algorithm &algo)                                         { m_disabled.insert(algo); }
     inline void setAlias(const Algorithm &algo, const char *profile)                   { m_aliases[algo] = profile; }
