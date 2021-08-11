@@ -92,6 +92,7 @@ public:
     };
 
     static const char *kINVALID;
+    static const char *kCN;
     static const char *kCN_0;
     static const char *kCN_1;
     static const char *kCN_2;
@@ -106,17 +107,20 @@ public:
     static const char *kCN_CCX;
 
 #   ifdef XMRIG_ALGO_CN_LITE
+    static const char *kCN_LITE;
     static const char *kCN_LITE_0;
     static const char *kCN_LITE_1;
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
+    static const char *kCN_HEAVY;
     static const char *kCN_HEAVY_0;
     static const char *kCN_HEAVY_TUBE;
     static const char *kCN_HEAVY_XHV;
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
+    static const char *kCN_PICO;
     static const char *kCN_PICO_0;
     static const char *kCN_PICO_TLO;
 #   endif
@@ -126,6 +130,7 @@ public:
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
+    static const char *kRX;
     static const char *kRX_0;
     static const char *kRX_WOW;
     static const char *kRX_ARQ;
@@ -134,16 +139,19 @@ public:
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
+    static const char *kAR2;
     static const char *kAR2_CHUKWA;
     static const char *kAR2_CHUKWA_V2;
     static const char *kAR2_WRKZ;
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
+    static const char *kASTROBWT;
     static const char *kASTROBWT_DERO;
 #   endif
 
 #   ifdef XMRIG_ALGO_KAWPOW
+    static const char *kKAWPOW;
     static const char *kKAWPOW_RVN;
 #   endif
 

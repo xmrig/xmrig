@@ -36,7 +36,6 @@ namespace xmrig {
 
 
 static const char *kAsterisk = "*";
-static const char *kCn2      = "cn/2";
 
 
 } // namespace xmrig
@@ -118,8 +117,8 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
-    if (algorithm.family() == Algorithm::CN && algorithm.base() == Algorithm::CN_2 && has(kCn2)) {
-        return kCn2;
+    if (algorithm.family() == Algorithm::CN && algorithm.base() == Algorithm::CN_2 && has(Algorithm::kCN_2)) {
+        return Algorithm::kCN_2;
     }
 
     if (name.contains("/")) {

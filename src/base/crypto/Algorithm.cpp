@@ -37,6 +37,7 @@ namespace xmrig {
 
 
 const char *Algorithm::kINVALID         = "invalid";
+const char *Algorithm::kCN              = "cn";
 const char *Algorithm::kCN_0            = "cn/0";
 const char *Algorithm::kCN_1            = "cn/1";
 const char *Algorithm::kCN_2            = "cn/2";
@@ -51,17 +52,20 @@ const char *Algorithm::kCN_DOUBLE       = "cn/double";
 const char *Algorithm::kCN_CCX          = "cn/ccx";
 
 #ifdef XMRIG_ALGO_CN_LITE
+const char *Algorithm::kCN_LITE         = "cn-lite";
 const char *Algorithm::kCN_LITE_0       = "cn-lite/0";
 const char *Algorithm::kCN_LITE_1       = "cn-lite/1";
 #endif
 
 #ifdef XMRIG_ALGO_CN_HEAVY
+const char *Algorithm::kCN_HEAVY        = "cn-heavy";
 const char *Algorithm::kCN_HEAVY_0      = "cn-heavy/0";
 const char *Algorithm::kCN_HEAVY_TUBE   = "cn-heavy/tube";
 const char *Algorithm::kCN_HEAVY_XHV    = "cn-heavy/xhv";
 #endif
 
 #ifdef XMRIG_ALGO_CN_PICO
+const char *Algorithm::kCN_PICO         = "cn-pico";
 const char *Algorithm::kCN_PICO_0       = "cn-pico/0";
 const char *Algorithm::kCN_PICO_TLO     = "cn-pico/tlo";
 #endif
@@ -71,6 +75,7 @@ const char *Algorithm::kCN_UPX2         = "cn/upx2";
 #endif
 
 #ifdef XMRIG_ALGO_RANDOMX
+const char *Algorithm::kRX              = "rx";
 const char *Algorithm::kRX_0            = "rx/0";
 const char *Algorithm::kRX_WOW          = "rx/wow";
 const char *Algorithm::kRX_ARQ          = "rx/arq";
@@ -79,16 +84,19 @@ const char *Algorithm::kRX_KEVA         = "rx/keva";
 #endif
 
 #ifdef XMRIG_ALGO_ARGON2
+const char *Algorithm::kAR2             = "argon2";
 const char *Algorithm::kAR2_CHUKWA      = "argon2/chukwa";
 const char *Algorithm::kAR2_CHUKWA_V2   = "argon2/chukwav2";
 const char *Algorithm::kAR2_WRKZ        = "argon2/ninja";
 #endif
 
 #ifdef XMRIG_ALGO_ASTROBWT
+const char *Algorithm::kASTROBWT        = "astrobwt";
 const char *Algorithm::kASTROBWT_DERO   = "astrobwt";
 #endif
 
 #ifdef XMRIG_ALGO_KAWPOW
+const char *Algorithm::kKAWPOW          = "kawpow";
 const char *Algorithm::kKAWPOW_RVN      = "kawpow";
 #endif
 
