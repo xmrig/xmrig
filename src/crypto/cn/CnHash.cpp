@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,15 +17,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-
-
-#include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
+#include "backend/cpu/Cpu.h"
+#include "base/tools/cryptonote/umul128.h"
 #include "crypto/common/VirtualMemory.h"
 
-
-#include "base/tools/cryptonote/umul128.h"
 
 #if defined(XMRIG_ARM)
 #   include "crypto/cn/CryptoNight_arm.h"
@@ -319,7 +309,14 @@ xmrig::CnHash::CnHash()
 
 xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly)
 {
+    assert(cnHash.m_map.count(algorithm));
+
     if (!algorithm.isValid()) {
+        return nullptr;
+    }
+
+    const auto it = cnHash.m_map.find(algorithm);
+    if (it == cnHash.m_map.end()) {
         return nullptr;
     }
 
@@ -343,11 +340,11 @@ xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av,
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = cnHash.m_map[algorithm][av][Cpu::assembly(assembly)];
+    cn_hash_fun fun = it->second[av][Cpu::assembly(assembly)];
     if (fun) {
         return fun;
     }
 #   endif
 
-    return cnHash.m_map[algorithm][av][Assembly::NONE];
+    return it->second[av][Assembly::NONE];
 }
