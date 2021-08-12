@@ -66,7 +66,7 @@ const char *Algorithm::kCN_HEAVY_XHV    = "cn-heavy/xhv";
 
 #ifdef XMRIG_ALGO_CN_PICO
 const char *Algorithm::kCN_PICO         = "cn-pico";
-const char *Algorithm::kCN_PICO_0       = "cn-pico/0";
+const char *Algorithm::kCN_PICO_0       = "cn-pico";
 const char *Algorithm::kCN_PICO_TLO     = "cn-pico/tlo";
 #endif
 
@@ -221,7 +221,7 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
 
 #   ifdef XMRIG_ALGO_CN_PICO
     ALGO_ALIAS_AUTO(CN_PICO_0),     ALGO_ALIAS(CN_PICO_0,       "cryptonight-pico"),
-                                    ALGO_ALIAS(CN_PICO_0,       "cn-pico"),
+                                    ALGO_ALIAS(CN_PICO_0,       "cn-pico/0"),
                                     ALGO_ALIAS(CN_PICO_0,       "cryptonight-pico/trtl"),
                                     ALGO_ALIAS(CN_PICO_0,       "cn-pico/trtl"),
                                     ALGO_ALIAS(CN_PICO_0,       "cryptonight-turtle"),
