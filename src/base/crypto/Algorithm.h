@@ -159,6 +159,7 @@ public:
     inline Algorithm(const char *algo) : m_id(parse(algo))  {}
     inline Algorithm(Id id) : m_id(id)                      {}
     Algorithm(const rapidjson::Value &value);
+    Algorithm(uint32_t id);
 
     static inline constexpr bool isCN(Id id)                { return (id & 0xff000000) == CN_ANY; }
     static inline constexpr Id base(Id id)                  { return isCN(id) ? static_cast<Id>(CN_0 | (id & 0xff00)) : INVALID; }
@@ -196,8 +197,7 @@ public:
 
     static Id parse(const char *name);
     static size_t count();
-    static std::vector<Algorithm> all();
-    static std::vector<Algorithm> all(const std::function<bool(const Algorithm &algo)> &filter);
+    static std::vector<Algorithm> all(const std::function<bool(const Algorithm &algo)> &filter = nullptr);
 
 private:
     Id m_id = INVALID;

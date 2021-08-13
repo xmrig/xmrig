@@ -106,7 +106,12 @@ const char *Algorithm::kKAWPOW_RVN      = "kawpow";
 #define ALGO_ALIAS_AUTO(ALGO)   { Algorithm::k##ALGO, Algorithm::ALGO }
 
 
-static const std::map<Algorithm::Id, const char *> kAlgorithmNames = {
+#ifdef _MSC_VER
+#   define strcasecmp _stricmp
+#endif
+
+
+static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(CN_0),
     ALGO_NAME(CN_1),
     ALGO_NAME(CN_2),
@@ -166,7 +171,7 @@ static const std::map<Algorithm::Id, const char *> kAlgorithmNames = {
 
 struct aliasCompare
 {
-   inline bool operator()(const char *a, const char *b) const   { return std::strcmp(a, b) < 0; }
+   inline bool operator()(const char *a, const char *b) const   { return strcasecmp(a, b) < 0; }
 };
 
 
@@ -286,6 +291,12 @@ xmrig::Algorithm::Algorithm(const rapidjson::Value &value) :
 }
 
 
+xmrig::Algorithm::Algorithm(uint32_t id) :
+    m_id(kAlgorithmNames.count(id) ? static_cast<Id>(id) : INVALID)
+{
+}
+
+
 const char *xmrig::Algorithm::name() const
 {
     if (!isValid()) {
@@ -319,7 +330,7 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
         return INVALID;
     }
 
-    const auto it = kAlgorithmAliases.find(String(name).toLower());
+    const auto it = kAlgorithmAliases.find(name);
 
     return it != kAlgorithmAliases.end() ? it->second : INVALID;
 }
@@ -331,27 +342,26 @@ size_t xmrig::Algorithm::count()
 }
 
 
-std::vector<xmrig::Algorithm> xmrig::Algorithm::all()
-{
-    Algorithms out;
-    out.reserve(count());
-
-    for (const auto &kv : kAlgorithmNames) {
-        out.emplace_back(kv.first);
-    }
-
-    return out;
-}
-
-
 std::vector<xmrig::Algorithm> xmrig::Algorithm::all(const std::function<bool(const Algorithm &algo)> &filter)
 {
+    static const std::vector<Id> order = {
+        CN_0, CN_1, CN_2, CN_R, CN_FAST, CN_HALF, CN_XAO, CN_RTO, CN_RWZ, CN_ZLS, CN_DOUBLE, CN_CCX,
+        CN_LITE_0, CN_LITE_1,
+        CN_HEAVY_0, CN_HEAVY_TUBE, CN_HEAVY_XHV,
+        CN_PICO_0, CN_PICO_TLO,
+        CN_UPX2,
+        RX_0, RX_WOW, RX_ARQ, RX_SFX, RX_KEVA,
+        AR2_CHUKWA, AR2_CHUKWA_V2, AR2_WRKZ,
+        ASTROBWT_DERO,
+        KAWPOW_RVN
+    };
+
     Algorithms out;
     out.reserve(count());
 
-    for (const auto &kv : kAlgorithmNames) {
-        if (filter(kv.first)) {
-            out.emplace_back(kv.first);
+    for (const Id algo : order) {
+        if (kAlgorithmNames.count(algo) && (!filter || filter(algo))) {
+            out.emplace_back(algo);
         }
     }
 
