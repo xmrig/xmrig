@@ -40,27 +40,35 @@
 #endif
 
 
-#define ADD_FN(algo) \
-    m_map[algo][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
-    m_map[algo][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
-    m_map[algo][AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
-    m_map[algo][AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
-    m_map[algo][AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
-    m_map[algo][AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
-    m_map[algo][AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
-    m_map[algo][AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
-    m_map[algo][AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
-    m_map[algo][AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;
+#define ADD_FN(algo) do {                                                               \
+        cn_hash_fun_array* arr = new cn_hash_fun_array{};                               \
+        auto& data = arr->data;                                                         \
+        data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
+        data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
+        data[AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
+        data[AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
+        data[AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
+        data[AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
+        data[AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
+        data[AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
+        data[AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
+        data[AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;     \
+        m_map.insert(std::make_pair(algo, arr));                                        \
+    } while (0)
 
 
 #ifdef XMRIG_FEATURE_ASM
-#   define ADD_FN_ASM(algo) \
-    m_map[algo][AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
-    m_map[algo][AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
-    m_map[algo][AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
-    m_map[algo][AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
-    m_map[algo][AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
-    m_map[algo][AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>;
+#   define ADD_FN_ASM(algo) do {                                                                       \
+        cn_hash_fun_array* arr = new cn_hash_fun_array{};                                              \
+        auto& data = arr->data;                                                                        \
+        data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
+        data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
+        data[AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
+        data[AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
+        data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
+        data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
+        m_map.insert(std::make_pair(algo, arr));                                                       \
+    } while (0)
 
 
 namespace xmrig {
@@ -288,17 +296,23 @@ xmrig::CnHash::CnHash()
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE]    = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_CHUKWA_V2][AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
-    m_map[Algorithm::AR2_CHUKWA_V2][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]           = argon2::single_hash<Algorithm::AR2_WRKZ>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_CHUKWA] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_CHUKWA]->data[AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_CHUKWA]->data[AV_SINGLE_SOFT][Assembly::NONE]    = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+
+    m_map[Algorithm::AR2_CHUKWA_V2] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_CHUKWA_V2]->data[AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+    m_map[Algorithm::AR2_CHUKWA_V2]->data[AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+
+    m_map[Algorithm::AR2_WRKZ] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE][Assembly::NONE]           = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE_SOFT][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_WRKZ>;
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
-    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
-    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+    m_map[Algorithm::ASTROBWT_DERO] = new cn_hash_fun_array{};
+    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM
@@ -340,11 +354,11 @@ xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av,
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = it->second[av][Cpu::assembly(assembly)];
+    cn_hash_fun fun = it->second->data[av][Cpu::assembly(assembly)];
     if (fun) {
         return fun;
     }
 #   endif
 
-    return it->second[av][Assembly::NONE];
+    return it->second->data[av][Assembly::NONE];
 }

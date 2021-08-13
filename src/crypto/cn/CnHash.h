@@ -62,8 +62,12 @@ public:
 
     static cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly);
 
+    struct cn_hash_fun_array {
+        cn_hash_fun data[AV_MAX][Assembly::MAX];
+    };
+
 private:
-    std::map<Algorithm, cn_hash_fun[AV_MAX][Assembly::MAX]> m_map;
+    std::map<Algorithm, cn_hash_fun_array*> m_map;
 };
 
 
