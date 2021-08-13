@@ -40,34 +40,30 @@
 #endif
 
 
-#define ADD_FN(algo) do {                                                               \
-        cn_hash_fun_array* arr = new cn_hash_fun_array{};                               \
-        auto& data = arr->data;                                                         \
-        data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
-        data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
-        data[AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
-        data[AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
-        data[AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
-        data[AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
-        data[AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
-        data[AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
-        data[AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
-        data[AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;     \
-        m_map.insert(std::make_pair(algo, arr));                                        \
+#define ADD_FN(algo) do {                                                                            \
+        if (!m_map[algo]) m_map[algo] = new cn_hash_fun_array{};                                     \
+        m_map[algo]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
+        m_map[algo]->data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
+        m_map[algo]->data[AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
+        m_map[algo]->data[AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
+        m_map[algo]->data[AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
+        m_map[algo]->data[AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
+        m_map[algo]->data[AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
+        m_map[algo]->data[AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
+        m_map[algo]->data[AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
+        m_map[algo]->data[AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;     \
     } while (0)
 
 
 #ifdef XMRIG_FEATURE_ASM
-#   define ADD_FN_ASM(algo) do {                                                                       \
-        cn_hash_fun_array* arr = new cn_hash_fun_array{};                                              \
-        auto& data = arr->data;                                                                        \
-        data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
-        data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
-        data[AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
-        data[AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
-        data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
-        data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
-        m_map.insert(std::make_pair(algo, arr));                                                       \
+#   define ADD_FN_ASM(algo) do {                                                                                    \
+        if (!m_map[algo]) m_map[algo] = new cn_hash_fun_array{};                                                    \
+        m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
+        m_map[algo]->data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
+        m_map[algo]->data[AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
+        m_map[algo]->data[AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
+        m_map[algo]->data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
+        m_map[algo]->data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
     } while (0)
 
 
