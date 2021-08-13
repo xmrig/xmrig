@@ -41,7 +41,7 @@
 
 
 #define ADD_FN(algo) do {                                                                            \
-        if (!m_map[algo]) m_map[algo] = new cn_hash_fun_array{};                                     \
+        m_map[algo] = new cn_hash_fun_array{};                                                       \
         m_map[algo]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
         m_map[algo]->data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
         m_map[algo]->data[AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
@@ -57,7 +57,6 @@
 
 #ifdef XMRIG_FEATURE_ASM
 #   define ADD_FN_ASM(algo) do {                                                                                    \
-        if (!m_map[algo]) m_map[algo] = new cn_hash_fun_array{};                                                    \
         m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
         m_map[algo]->data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
         m_map[algo]->data[AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
