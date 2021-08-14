@@ -18,6 +18,7 @@
 #pragma once
 
 #include <set>
+#include <map>
 #include "net/interfaces/IJobResultListener.h"
 #include "base/crypto/Algorithm.h"
 #include "rapidjson/fwd.h"
@@ -95,7 +96,7 @@ class MoBenchmark : public IJobResultListener {
         void start(); // start benchmarks
 
         bool isNewBenchRun() const { return m_isNewBenchRun; }
-        double algo_perf[Algorithm::MAX];
+        std::map<Algorithm::Id, double> algo_perf;
 
         rapidjson::Value toJSON(rapidjson::Document &doc) const;
         void read(const rapidjson::Value &value);

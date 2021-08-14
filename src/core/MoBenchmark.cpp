@@ -58,7 +58,7 @@ void MoBenchmark::start() {
 
 // end of benchmarks, switch to jobs from the pool (network), fill algo_perf
 void MoBenchmark::finish() {
-    for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
+    for (const Id algo : Algorithm::all([this](const Algorithm &algo) { return true; })) {
         algo_perf[algo] = get_algo_perf(algo);
     }
     m_bench_algo = BenchAlgo::INVALID;
@@ -86,7 +86,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
 
 void MoBenchmark::read(const rapidjson::Value &value)
 {
-    for (Algorithm::Id algo = Algorithm::MIN; algo != Algorithm::MAX; algo = static_cast<Algorithm::Id>(algo + 1)) {
+    for (const Id algo : Algorithm::all([this](const Algorithm &algo) { return true; })) {
         algo_perf[algo] = 0.0f;
     }
     if (value.IsObject()) {
