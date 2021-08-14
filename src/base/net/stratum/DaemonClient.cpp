@@ -65,7 +65,7 @@ static const char *kJsonRPC                 = "/json_rpc";
 
 static constexpr size_t kBlobReserveSize    = 8;
 
-static const char kZMQGreeting[64] = { -1, 0, 0, 0, 0, 0, 0, 0, 0, 127, 3, 0, 'N', 'U', 'L', 'L' };
+static const char kZMQGreeting[64] = { static_cast<char>(-1), 0, 0, 0, 0, 0, 0, 0, 0, 127, 3, 0, 'N', 'U', 'L', 'L' };
 static constexpr size_t kZMQGreetingSize1 = 11;
 
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
@@ -730,7 +730,7 @@ void xmrig::DaemonClient::ZMQRead(ssize_t nread, const uv_buf_t* buf)
         switch (m_ZMQConnectionState) {
         case ZMQ_GREETING_1:
             if (m_ZMQRecvBuf.size() >= kZMQGreetingSize1) {
-                if ((m_ZMQRecvBuf[0] == -1) && (m_ZMQRecvBuf[9] == 127) && (m_ZMQRecvBuf[10] == 3)) {
+                if ((m_ZMQRecvBuf[0] == static_cast<char>(-1)) && (m_ZMQRecvBuf[9] == 127) && (m_ZMQRecvBuf[10] == 3)) {
                     ZMQWrite(kZMQGreeting + kZMQGreetingSize1, sizeof(kZMQGreeting) - kZMQGreetingSize1);
                     m_ZMQConnectionState = ZMQ_GREETING_2;
                     break;

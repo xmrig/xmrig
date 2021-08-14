@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -53,7 +47,7 @@ size_t inline generate<Algorithm::CN>(Threads<CpuThreads> &threads, uint32_t lim
 {
     size_t count = 0;
 
-    count += generate("cn", threads, Algorithm::CN_1, limit);
+    count += generate(Algorithm::kCN, threads, Algorithm::CN_1, limit);
 
     if (!threads.isExist(Algorithm::CN_0)) {
         threads.disable(Algorithm::CN_0);
@@ -61,7 +55,7 @@ size_t inline generate<Algorithm::CN>(Threads<CpuThreads> &threads, uint32_t lim
     }
 
 #   ifdef XMRIG_ALGO_CN_GPU
-    count += generate("cn/gpu", threads, Algorithm::CN_GPU, limit);
+    count += generate(kCN_GPU, threads, Algorithm::CN_GPU, limit);
 #   endif
 
     return count;
@@ -74,7 +68,7 @@ size_t inline generate<Algorithm::CN_LITE>(Threads<CpuThreads> &threads, uint32_
 {
     size_t count = 0;
 
-    count += generate("cn-lite", threads, Algorithm::CN_LITE_1, limit);
+    count += generate(Algorithm::kCN_LITE, threads, Algorithm::CN_LITE_1, limit);
 
     if (!threads.isExist(Algorithm::CN_LITE_0)) {
         threads.disable(Algorithm::CN_LITE_0);
@@ -90,7 +84,7 @@ size_t inline generate<Algorithm::CN_LITE>(Threads<CpuThreads> &threads, uint32_
 template<>
 size_t inline generate<Algorithm::CN_HEAVY>(Threads<CpuThreads> &threads, uint32_t limit)
 {
-    return generate("cn-heavy", threads, Algorithm::CN_HEAVY_0, limit);
+    return generate(Algorithm::kCN_HEAVY, threads, Algorithm::CN_HEAVY_0, limit);
 }
 #endif
 
@@ -99,7 +93,7 @@ size_t inline generate<Algorithm::CN_HEAVY>(Threads<CpuThreads> &threads, uint32
 template<>
 size_t inline generate<Algorithm::CN_PICO>(Threads<CpuThreads> &threads, uint32_t limit)
 {
-    return generate("cn-pico", threads, Algorithm::CN_PICO_0, limit);
+    return generate(Algorithm::kCN_PICO, threads, Algorithm::CN_PICO_0, limit);
 }
 #endif
 
@@ -108,7 +102,7 @@ size_t inline generate<Algorithm::CN_PICO>(Threads<CpuThreads> &threads, uint32_
 template<>
 size_t inline generate<Algorithm::CN_FEMTO>(Threads<CpuThreads>& threads, uint32_t limit)
 {
-    return generate("cn/upx2", threads, Algorithm::CN_UPX2, limit);
+    return generate(Algorithm::kCN_UPX2, threads, Algorithm::CN_UPX2, limit);
 }
 #endif
 
@@ -124,34 +118,34 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
     if (!threads.isExist(Algorithm::RX_ARQ)) {
         auto arq = cpuInfo->threads(Algorithm::RX_ARQ, limit);
         if (arq == wow) {
-            threads.setAlias(Algorithm::RX_ARQ, "rx/wow");
+            threads.setAlias(Algorithm::RX_ARQ, Algorithm::kRX_WOW);
             ++count;
         }
         else {
-            count += threads.move("rx/arq", std::move(arq));
+            count += threads.move(Algorithm::kRX_ARQ, std::move(arq));
         }
     }
 
     if (!threads.isExist(Algorithm::RX_KEVA)) {
         auto keva = cpuInfo->threads(Algorithm::RX_KEVA, limit);
         if (keva == wow) {
-            threads.setAlias(Algorithm::RX_KEVA, "rx/wow");
+            threads.setAlias(Algorithm::RX_KEVA, Algorithm::kRX_WOW);
             ++count;
         }
         else {
-            count += threads.move("rx/keva", std::move(keva));
+            count += threads.move(Algorithm::kRX_KEVA, std::move(keva));
         }
     }
 
     if (!threads.isExist(Algorithm::RX_WOW)) {
-        count += threads.move("rx/wow", std::move(wow));
+        count += threads.move(Algorithm::kRX_WOW, std::move(wow));
     }
 
     if (!threads.isExist(Algorithm::RX_XLA)) {
-        count += generate("panthera", threads, Algorithm::RX_XLA, limit);
+        count += generate(Algorithm::kRX_XLA, threads, Algorithm::RX_XLA, limit);
     }
 
-    count += generate("rx", threads, Algorithm::RX_0, limit);
+    count += generate(Algorithm::kRX, threads, Algorithm::RX_0, limit);
 
     return count;
 }
@@ -162,7 +156,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
 template<>
 size_t inline generate<Algorithm::ARGON2>(Threads<CpuThreads> &threads, uint32_t limit)
 {
-    return generate("argon2", threads, Algorithm::AR2_CHUKWA_V2, limit);
+    return generate(Algorithm::kAR2, threads, Algorithm::AR2_CHUKWA_V2, limit);
 }
 #endif
 
@@ -171,7 +165,7 @@ size_t inline generate<Algorithm::ARGON2>(Threads<CpuThreads> &threads, uint32_t
 template<>
 size_t inline generate<Algorithm::ASTROBWT>(Threads<CpuThreads>& threads, uint32_t limit)
 {
-    return generate("astrobwt", threads, Algorithm::ASTROBWT_DERO, limit);
+    return generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, limit);
 }
 #endif
 

@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -44,19 +37,12 @@ class CnAlgo
 public:
     constexpr CnAlgo() {};
 
-    constexpr inline Algorithm::Id base() const  { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return Algorithm::CN_2; }
-    constexpr inline bool isHeavy() const        { return memory() == CN_MEMORY * 2; }
+    constexpr inline Algorithm::Id base() const  { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return Algorithm::base(ALGO); }
+    constexpr inline bool isHeavy() const        { return Algorithm::family(ALGO) == Algorithm::CN_HEAVY; }
     constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
-    constexpr inline size_t memory() const       { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_MEMORY; }
-    constexpr inline uint32_t iterations() const { static_assert(ALGO > Algorithm::INVALID && ALGO < Algorithm::RX_0, "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
+    constexpr inline size_t memory() const       { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return Algorithm::l3(ALGO); }
+    constexpr inline uint32_t iterations() const { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
     constexpr inline uint32_t mask() const       { return static_cast<uint32_t>(((memory() - 1) / 16) * 16); }
-
-    inline static size_t memory(Algorithm::Id algo)
-    {
-        Algorithm algorithm(algo);
-
-        return algorithm.isCN() ? algorithm.l3() : 0;
-    }
 
     inline static uint32_t iterations(Algorithm::Id algo)
     {
@@ -133,80 +119,12 @@ public:
         }
 #       endif
 
-        return ((memory(algo) - 1) / 16) * 16;
-    }
-
-    inline static Algorithm::Id base(Algorithm::Id algo)
-    {
-        switch (algo) {
-        case Algorithm::CN_0:
-        case Algorithm::CN_XAO:
-#       ifdef XMRIG_ALGO_CN_LITE
-        case Algorithm::CN_LITE_0:
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        case Algorithm::CN_HEAVY_0:
-        case Algorithm::CN_HEAVY_XHV:
-#       endif
-        case Algorithm::CN_CCX:
-            return Algorithm::CN_0;
-
-        case Algorithm::CN_1:
-        case Algorithm::CN_FAST:
-        case Algorithm::CN_RTO:
-#       ifdef XMRIG_ALGO_CN_LITE
-        case Algorithm::CN_LITE_1:
-#       endif
-#       ifdef XMRIG_ALGO_CN_HEAVY
-        case Algorithm::CN_HEAVY_TUBE:
-            return Algorithm::CN_1;
-#       endif
-
-        case Algorithm::CN_2:
-        case Algorithm::CN_R:
-        case Algorithm::CN_HALF:
-        case Algorithm::CN_RWZ:
-        case Algorithm::CN_ZLS:
-        case Algorithm::CN_DOUBLE:
-#       ifdef XMRIG_ALGO_CN_PICO
-        case Algorithm::CN_PICO_0:
-        case Algorithm::CN_PICO_TLO:
-#       endif
-#       ifdef XMRIG_ALGO_CN_FEMTO
-        case Algorithm::CN_UPX2:
-#       endif
-            return Algorithm::CN_2;
-
-#       ifdef XMRIG_ALGO_CN_GPU
-        case Algorithm::CN_GPU:
-            return Algorithm::CN_GPU;
-#       endif
-
-        default:
-            break;
-        }
-
-        return Algorithm::INVALID;
+        return ((Algorithm::l3(algo) - 1) / 16) * 16;
     }
 
 private:
-    constexpr const static size_t   CN_MEMORY = 0x200000;
-    constexpr const static uint32_t CN_ITER   = 0x80000;
+    constexpr const static uint32_t CN_ITER = 0x80000;
 };
-
-
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_0>::base() const             { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_XAO>::base() const           { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_0>::base() const        { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_0>::base() const       { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_XHV>::base() const     { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_CCX>::base() const           { return Algorithm::CN_0; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_1>::base() const             { return Algorithm::CN_1; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_FAST>::base() const          { return Algorithm::CN_1; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_RTO>::base() const           { return Algorithm::CN_1; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_LITE_1>::base() const        { return Algorithm::CN_1; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_HEAVY_TUBE>::base() const    { return Algorithm::CN_1; }
-template<> constexpr inline Algorithm::Id CnAlgo<Algorithm::CN_UPX2>::base() const          { return Algorithm::CN_2; }
 
 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_FAST>::iterations() const         { return CN_ITER / 2; }
@@ -225,16 +143,6 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_TLO>::iterations(
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_CCX>::iterations() const          { return CN_ITER / 2; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::iterations() const          { return 0xC000; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::iterations() const         { return CN_ITER / 32; }
-
-
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_0>::memory() const             { return CN_MEMORY / 2; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_LITE_1>::memory() const             { return CN_MEMORY / 2; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_0>::memory() const            { return CN_MEMORY * 2; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_TUBE>::memory() const         { return CN_MEMORY * 2; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_HEAVY_XHV>::memory() const          { return CN_MEMORY * 2; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_0>::memory() const             { return CN_MEMORY / 8; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_PICO_TLO>::memory() const           { return CN_MEMORY / 8; }
-template<> constexpr inline size_t CnAlgo<Algorithm::CN_UPX2>::memory() const               { return CN_MEMORY / 16; }
 
 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }

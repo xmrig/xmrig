@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,9 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
-
-#include <type_traits>
 
 #include "backend/common/Threads.h"
 #include "3rdparty/rapidjson/document.h"
@@ -45,7 +36,6 @@ namespace xmrig {
 
 
 static const char *kAsterisk = "*";
-static const char *kCn2      = "cn/2";
 
 
 } // namespace xmrig
@@ -114,7 +104,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
-    const String name = algorithm.shortName();
+    const String name = algorithm.name();
     if (has(name)) {
         return name;
     }
@@ -127,8 +117,8 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
-    if (algorithm.family() == Algorithm::CN && CnAlgo<>::base(algorithm) == Algorithm::CN_2 && has(kCn2)) {
-        return kCn2;
+    if (algorithm.family() == Algorithm::CN && algorithm.base() == Algorithm::CN_2 && has(Algorithm::kCN_2)) {
+        return Algorithm::kCN_2;
     }
 
     if (name.contains("/")) {
@@ -159,11 +149,11 @@ void xmrig::Threads<T>::toJSON(rapidjson::Value &out, rapidjson::Document &doc) 
     }
 
     for (const Algorithm &algo : m_disabled) {
-        out.AddMember(StringRef(algo.shortName()), false, allocator);
+        out.AddMember(StringRef(algo.name()), false, allocator);
     }
 
     for (const auto &kv : m_aliases) {
-        out.AddMember(StringRef(kv.first.shortName()), kv.second.toJSON(), allocator);
+        out.AddMember(StringRef(kv.first.name()), kv.second.toJSON(), allocator);
     }
 }
 

@@ -312,7 +312,7 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
         return 1;
     }
 
-    Algorithm::Family f = algorithm.family();
+    const auto f = algorithm.family();
 
 #   ifdef XMRIG_ALGO_CN_LITE
     if (f == Algorithm::CN_LITE) {

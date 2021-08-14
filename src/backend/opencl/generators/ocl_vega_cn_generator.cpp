@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "backend/opencl/OclThreads.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 #include "base/crypto/Algorithm.h"
@@ -36,7 +28,7 @@
 namespace xmrig {
 
 
-constexpr const size_t oneMiB = 1024u * 1024u;
+constexpr const size_t oneMiB = 1024U * 1024U;
 
 
 static inline bool isMatch(const OclDevice &device, const Algorithm &algorithm)
@@ -49,23 +41,23 @@ static inline bool isMatch(const OclDevice &device, const Algorithm &algorithm)
 
 static inline uint32_t getMaxThreads(const OclDevice &device, const Algorithm &algorithm)
 {
-    const uint32_t ratio = (algorithm.l3() <= oneMiB) ? 2u : 1u;
+    const uint32_t ratio = (algorithm.l3() <= oneMiB) ? 2U : 1U;
 
     if (device.type() == OclDevice::Vega_10) {
-        if (device.computeUnits() == 56 && algorithm.family() == Algorithm::CN && CnAlgo<>::base(algorithm) == Algorithm::CN_2) {
-            return 1792u;
+        if (device.computeUnits() == 56 && algorithm.family() == Algorithm::CN && algorithm.base() == Algorithm::CN_2) {
+            return 1792U;
         }
     }
 
-    return ratio * 2024u;
+    return ratio * 2024U;
 }
 
 
 static inline uint32_t getPossibleIntensity(const OclDevice &device, const Algorithm &algorithm)
 {
     const uint32_t maxThreads   = getMaxThreads(device, algorithm);
-    const size_t availableMem   = device.freeMemSize() - (128u * oneMiB);
-    const size_t perThread      = algorithm.l3() + 224u;
+    const size_t availableMem   = device.freeMemSize() - (128U * oneMiB);
+    const size_t perThread      = algorithm.l3() + 224U;
     const auto maxIntensity     = static_cast<uint32_t>(availableMem / perThread);
 
     return std::min<uint32_t>(maxThreads, maxIntensity);
@@ -88,28 +80,24 @@ static inline uint32_t getIntensity(const OclDevice &device, const Algorithm &al
 
 static inline uint32_t getWorksize(const Algorithm &algorithm)
 {
-    Algorithm::Family f = algorithm.family();
+    const auto f = algorithm.family();
     if (f == Algorithm::CN_PICO || f == Algorithm::CN_FEMTO) {
         return 64;
     }
 
-    if (CnAlgo<>::base(algorithm) == Algorithm::CN_2) {
-        return 16;
-    }
-
-    return 8;
+    return algorithm.base() == Algorithm::CN_2 ? 16 : 8;
 }
 
 
 static uint32_t getStridedIndex(const Algorithm &algorithm)
 {
-    return CnAlgo<>::base(algorithm) == Algorithm::CN_2 ? 2 : 1;
+    return algorithm.base() == Algorithm::CN_2 ? 2 : 1;
 }
 
 
 static inline uint32_t getMemChunk(const Algorithm &algorithm)
 {
-    return CnAlgo<>::base(algorithm) == Algorithm::CN_2 ? 1 : 2;
+    return algorithm.base() == Algorithm::CN_2 ? 1 : 2;
 }
 
 

@@ -263,7 +263,7 @@ void xmrig::BenchClient::start()
                tag(),
                size < 1000000 ? size / 1000 : size / 1000000,
                size < 1000000 ? "K" : "M",
-               m_job.algorithm().shortName());
+               m_job.algorithm().name());
 
     m_listener->onLoginSuccess(this);
     m_listener->onJobReceived(this, m_job, rapidjson::Value());
