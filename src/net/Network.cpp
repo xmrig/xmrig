@@ -210,7 +210,7 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
     Value algo_perf(kObjectType);
 
     for (const auto &a : algorithms) {
-        algo_perf.AddMember(StringRef(a.shortName()), m_controller->config()->benchmark().algo_perf[a.id()], allocator);
+        algo_perf.AddMember(StringRef(a.name()), m_controller->config()->benchmark().algo_perf[a.id()], allocator);
     }
 
     params.AddMember("algo-perf", algo_perf, allocator);

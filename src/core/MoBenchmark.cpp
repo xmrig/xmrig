@@ -78,7 +78,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
 
     for (const auto &a : m_controller->miner()->algorithms()) {
         if (algo_perf[a.id()] == 0.0f) continue;
-        obj.AddMember(StringRef(a.shortName()), algo_perf[a.id()], allocator);
+        obj.AddMember(StringRef(a.name()), algo_perf[a.id()], allocator);
     }
 
     return obj;
@@ -153,10 +153,10 @@ void MoBenchmark::start(const BenchAlgo bench_algo) {
         run_next_bench_algo(bench_algo);
         return;
     }
-    LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Preparation "), Tags::benchmark(), algo.shortName());
+    LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Preparation "), Tags::benchmark(), algo.name());
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
-    job.setId(algo.shortName()); // need to set different id so that workers will see job change
+    job.setId(algo.name()); // need to set different id so that workers will see job change
     if (bench_algo == BenchAlgo::KAWPOW_RVN) {
       job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139988aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
       job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
@@ -193,7 +193,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
         return;
     }
     // ignore benchmark results for other perf bench_algo
-    if (m_bench_algo == BenchAlgo::INVALID || result.jobId != String(Algorithm(ba2a[m_bench_algo]).shortName())) return;
+    if (m_bench_algo == BenchAlgo::INVALID || result.jobId != String(Algorithm(ba2a[m_bench_algo]).name())) return;
     const uint64_t now = get_now();
     if (!m_time_start) m_time_start = now; // time of the first result (in ms)
     m_backends_started.insert(result.backend);
@@ -201,7 +201,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
     if (m_backends_started.size() < m_enabled_backend_count && (now - m_time_start < static_cast<unsigned>(3*60*1000))) return;
     ++ m_hash_count;
     if (!m_bench_start) {
-       LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Starting test "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName());
+       LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " Starting test "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).name());
        m_bench_start = now; // time of measurements start (in ms)
     } else if (now - m_bench_start > static_cast<unsigned>(m_controller->config()->benchAlgoTime()*1000)) { // end of benchmark round for m_bench_algo
         double t[3] = { 0.0 };
@@ -219,7 +219,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
                     hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
         if (m_bench_algo == KAWPOW_RVN) hashrate /= ((double)0xFFFFFFFFFFFFFFFF) / 0xFF000000;
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
-        LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).shortName(), hashrate);
+        LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).name(), hashrate);
         run_next_bench_algo(m_bench_algo);
     }
 }
