@@ -55,7 +55,7 @@ size_t inline generate<Algorithm::CN>(Threads<CpuThreads> &threads, uint32_t lim
     }
 
 #   ifdef XMRIG_ALGO_CN_GPU
-    count += generate(kCN_GPU, threads, Algorithm::CN_GPU, limit);
+    count += generate(Algorithm::kCN_GPU, threads, Algorithm::CN_GPU, limit);
 #   endif
 
     return count;
