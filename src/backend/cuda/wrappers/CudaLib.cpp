@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <stdexcept>
 #include <uv.h>
@@ -199,7 +192,7 @@ bool xmrig::CudaLib::deviceInfo(nvid_ctx *ctx, int32_t blocks, int32_t threads, 
 {
     const Algorithm algo = RxAlgo::id(algorithm);
 
-    return pDeviceInfo_v2(ctx, blocks, threads, algo.isValid() ? algo.shortName() : nullptr, dataset_host);
+    return pDeviceInfo_v2(ctx, blocks, threads, algo.isValid() ? algo.name() : nullptr, dataset_host);
 }
 
 
@@ -243,7 +236,7 @@ bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const 
 {
     const Algorithm algo = RxAlgo::id(algorithm);
 
-    return pSetJob_v2(ctx, data, size, algo.shortName());
+    return pSetJob_v2(ctx, data, size, algo.name());
 }
 
 

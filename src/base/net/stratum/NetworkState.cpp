@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/net/stratum/NetworkState.h"
 #include "3rdparty/rapidjson/document.h"
@@ -196,7 +189,7 @@ void xmrig::NetworkState::printConnection() const
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-17s") CYAN_BOLD("%s ") BLACK_BOLD("(%s) ") GREEN_BOLD("%s"),
                "pool address", m_pool, m_ip.data(), m_tls.isNull() ? "" : m_tls.data());
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-17s") WHITE_BOLD("%s"), "algorithm", m_algorithm.shortName());
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-17s") WHITE_BOLD("%s"), "algorithm", m_algorithm.name());
     printDiff(m_diff);
     printLatency(latency());
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-17s") CYAN_BOLD("%" PRIu64 "s"), "connection time", connectionTime() / 1000);

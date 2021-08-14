@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "backend/opencl/runners/OclCnRunner.h"
 #include "backend/opencl/kernels/Cn0Kernel.h"
@@ -39,12 +32,12 @@
 xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
 {
     uint32_t stridedIndex = data.thread.stridedIndex();
-    Algorithm::Family f = m_algorithm.family();
+    const auto f = m_algorithm.family();
 
     if (data.device.vendorId() == OCL_VENDOR_NVIDIA) {
         stridedIndex = 0;
     }
-    else if (stridedIndex == 1 && (f == Algorithm::CN_PICO || f == Algorithm::CN_FEMTO || (f == Algorithm::CN && CnAlgo<>::base(m_algorithm) == Algorithm::CN_2))) {
+    else if (stridedIndex == 1 && (f == Algorithm::CN_PICO || f == Algorithm::CN_FEMTO || (f == Algorithm::CN && m_algorithm.base() == Algorithm::CN_2))) {
         stridedIndex = 2;
     }
 
@@ -52,10 +45,10 @@ xmrig::OclCnRunner::OclCnRunner(size_t index, const OclLaunchData &data) : OclBa
     m_options += " -DMASK="                 + std::to_string(CnAlgo<>::mask(m_algorithm)) + "U";
     m_options += " -DWORKSIZE="             + std::to_string(data.thread.worksize()) + "U";
     m_options += " -DSTRIDED_INDEX="        + std::to_string(stridedIndex) + "U";
-    m_options += " -DMEM_CHUNK_EXPONENT="   + std::to_string(1u << data.thread.memChunk()) + "U";
+    m_options += " -DMEM_CHUNK_EXPONENT="   + std::to_string(1U << data.thread.memChunk()) + "U";
     m_options += " -DMEMORY="               + std::to_string(m_algorithm.l3()) + "LU";
     m_options += " -DALGO="                 + std::to_string(m_algorithm.id());
-    m_options += " -DALGO_BASE="            + std::to_string(CnAlgo<>::base(m_algorithm));
+    m_options += " -DALGO_BASE="            + std::to_string(m_algorithm.base());
     m_options += " -DALGO_FAMILY="          + std::to_string(m_algorithm.family());
     m_options += " -DCN_UNROLL="            + std::to_string(data.thread.unrollFactor());
 }
@@ -96,7 +89,7 @@ void xmrig::OclCnRunner::run(uint32_t nonce, uint32_t *hashOutput)
     static const cl_uint zero = 0;
 
     const size_t w_size = data().thread.worksize();
-    const size_t g_thd  = ((m_intensity + w_size - 1u) / w_size) * w_size;
+    const size_t g_thd  = ((m_intensity + w_size - 1U) / w_size) * w_size;
 
     assert(g_thd % w_size == 0);
 

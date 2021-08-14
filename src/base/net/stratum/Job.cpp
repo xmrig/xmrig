@@ -165,7 +165,7 @@ void xmrig::Job::setSigKey(const char *sig_key)
 
 uint32_t xmrig::Job::getNumTransactions() const
 {
-    if (m_algorithm.family() > Algorithm::RANDOM_X) {
+    if (!(m_algorithm.isCN() || m_algorithm.family() == Algorithm::RANDOM_X)) {
         return 0;
     }
 
