@@ -1,3 +1,7 @@
+# v6.14.1
+- [#2532](https://github.com/xmrig/xmrig/pull/2532) Refactoring: stable (persistent) algorithms IDs.
+- [#2537](https://github.com/xmrig/xmrig/pull/2537) Fixed Termux build.
+
 # v6.14.0
 - [#2484](https://github.com/xmrig/xmrig/pull/2484) Added ZeroMQ support for solo mining.
 - [#2476](https://github.com/xmrig/xmrig/issues/2476) Fixed crash in DMI memory reader.
