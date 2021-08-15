@@ -96,7 +96,7 @@ class MoBenchmark : public IJobResultListener {
         void start(); // start benchmarks
 
         bool isNewBenchRun() const { return m_isNewBenchRun; }
-        std::map<Algorithm::Id, double> algo_perf;
+        mutable std::map<Algorithm::Id, double> algo_perf;
 
         rapidjson::Value toJSON(rapidjson::Document &doc) const;
         void read(const rapidjson::Value &value);
