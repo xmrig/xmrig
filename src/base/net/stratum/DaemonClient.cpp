@@ -414,19 +414,19 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         }
 
         WalletAddress user_address;
-        if (!user_address.Decode(m_pool.user())) {
+        if (!user_address.decode(m_pool.user())) {
             LOG_ERR("Invalid wallet address.");
             *code = 10;
             return false;
         }
 
-        if (memcmp(user_address.public_spend_key, public_spendkey, sizeof(public_spendkey)) != 0) {
+        if (memcmp(user_address.spendKey(), public_spendkey, sizeof(public_spendkey)) != 0) {
             LOG_ERR("Wallet address and spend key don't match.");
             *code = 11;
             return false;
         }
 
-        if (memcmp(user_address.public_view_key, public_viewkey, sizeof(public_viewkey)) != 0) {
+        if (memcmp(user_address.viewKey(), public_viewkey, sizeof(public_viewkey)) != 0) {
             LOG_ERR("Wallet address and view key don't match.");
             *code = 12;
             return false;

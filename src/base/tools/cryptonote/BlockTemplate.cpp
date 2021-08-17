@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2012-2013 The Cryptonote developers
- * Copyright 2014-2021 The Monero Project
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2012-2013 The Cryptonote developers
+ * Copyright (c) 2014-2021 The Monero Project
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
 {
     raw_blob = Cvt::fromHex(blockTemplate);
 
-    CBlobReader ar(raw_blob.data(), raw_blob.size());
+    BlobReader ar(raw_blob.data(), raw_blob.size());
 
     // Block header
     ar(major_version);
@@ -90,7 +90,7 @@ bool BlockTemplate::Init(const String& blockTemplate, Coin coin)
 
     ar.readItems(extra, extra_size);
 
-    CBlobReader ar_extra(extra.data(), extra_size);
+    BlobReader ar_extra(extra.data(), extra_size);
 
     tx_extra_nonce_size = 0;
     tx_extra_nonce_index = 0;
