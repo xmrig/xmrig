@@ -190,10 +190,6 @@ bool xmrig::Pool::isEnabled() const
     }
 #   endif
 
-    if (m_mode == MODE_DAEMON && (!algorithm().isValid() && !coin().isValid())) {
-        return false;
-    }
-
     return m_flags.test(FLAG_ENABLED) && isValid();
 }
 
