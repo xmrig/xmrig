@@ -29,6 +29,10 @@
 #include "net/JobResults.h"
 
 
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/runners/OclRyoRunner.h"
+#endif
+
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/opencl/runners/OclRxJitRunner.h"
 #   include "backend/opencl/runners/OclRxVmRunner.h"
@@ -40,10 +44,6 @@
 
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "backend/opencl/runners/OclKawPowRunner.h"
-#endif
-
-#ifdef XMRIG_ALGO_CN_GPU
-#   include "backend/opencl/runners/OclRyoRunner.h"
 #endif
 
 #include <cassert>

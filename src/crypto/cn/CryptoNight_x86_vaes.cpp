@@ -518,13 +518,13 @@ void (*vaes_instances[])() = {
     VAES_Instance<Algorithm::CN_PICO_0>,
     VAES_Instance<Algorithm::CN_PICO_TLO>,
     VAES_Instance<Algorithm::CN_UPX2>,
+    VAES_Instance<Algorithm::CN_GPU>,
     VAES_Instance<Algorithm::CN_GR_0>,
     VAES_Instance<Algorithm::CN_GR_1>,
     VAES_Instance<Algorithm::CN_GR_2>,
     VAES_Instance<Algorithm::CN_GR_3>,
     VAES_Instance<Algorithm::CN_GR_4>,
     VAES_Instance<Algorithm::CN_GR_5>,
-    VAES_Instance<Algorithm::CN_GPU>,
 };
 
 

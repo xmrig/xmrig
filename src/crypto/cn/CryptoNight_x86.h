@@ -420,7 +420,6 @@ static NOINLINE void cn_implode_scratchpad(cryptonight_ctx *ctx)
 #   else
     constexpr bool IS_HEAVY = props.isHeavy();
 #   endif
-
     constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
 
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
@@ -841,8 +840,11 @@ namespace xmrig {
 
 
 template<size_t MEM>
-void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
+static NOINLINE void cn_explode_scratchpad_gpu(cryptonight_ctx *ctx)
 {
+    const uint8_t* input = reinterpret_cast<const uint8_t*>(ctx->state);
+    uint8_t* output = reinterpret_cast<uint8_t*>(ctx->memory);
+
     constexpr size_t hash_size = 200; // 25x8 bytes
     alignas(16) uint64_t hash[25];
 
@@ -866,12 +868,12 @@ void cn_explode_scratchpad_gpu(const uint8_t *input, uint8_t *output)
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES>
-inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t)
+inline void cryptonight_single_hash_gpu(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr CnAlgo<ALGO> props;
 
     keccak(input, size, ctx[0]->state);
-    cn_explode_scratchpad_gpu<props.memory()>(ctx[0]->state, ctx[0]->memory);
+    cn_explode_scratchpad_gpu<props.memory()>(ctx[0]);
 
 #   ifdef _MSC_VER
     _control87(RC_NEAR, MCW_RC);
