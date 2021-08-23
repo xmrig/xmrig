@@ -1,5 +1,5 @@
 set(HEADERS_BASE
-    src/3rdparty/fmt/format.cc
+    src/3rdparty/epee/span.h
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
@@ -81,11 +81,13 @@ set(HEADERS_BASE
     src/base/tools/cryptonote/WalletAddress.h
     src/base/tools/Cvt.h
     src/base/tools/Handle.h
+    src/base/tools/Span.h
     src/base/tools/String.h
     src/base/tools/Timer.h
    )
 
 set(SOURCES_BASE
+    src/3rdparty/fmt/format.cc
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
@@ -130,14 +132,14 @@ set(SOURCES_BASE
     src/base/net/tools/LineReader.cpp
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
+    src/base/tools/cryptonote/BlockTemplate.cpp
+    src/base/tools/cryptonote/crypto-ops-data.c
+    src/base/tools/cryptonote/crypto-ops.c
+    src/base/tools/cryptonote/Signatures.cpp
+    src/base/tools/cryptonote/WalletAddress.cpp
     src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
-    src/base/tools/cryptonote/BlockTemplate.cpp
-    src/base/tools/cryptonote/Signatures.cpp
-    src/base/tools/cryptonote/WalletAddress.cpp
-    src/base/tools/cryptonote/crypto-ops.c
-    src/base/tools/cryptonote/crypto-ops-data.c
    )
 
 

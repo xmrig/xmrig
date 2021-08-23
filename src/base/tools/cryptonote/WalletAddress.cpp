@@ -105,7 +105,7 @@ bool xmrig::WalletAddress::decode(const char *address, size_t size)
 
     assert(data.size() == data_size);
 
-    BlobReader ar(data.data(), data_size);
+    BlobReader<false> ar(data.data(), data_size);
 
     if (ar(m_tag) && ar(m_publicSpendKey) && ar(m_publicViewKey) && ar.skip(ar.remaining() - sizeof(m_checksum)) && ar(m_checksum)) {
         uint8_t md[200];

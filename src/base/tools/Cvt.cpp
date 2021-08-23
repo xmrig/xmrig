@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/tools/Cvt.h"
 #include "3rdparty/rapidjson/document.h"
 
@@ -240,6 +239,12 @@ xmrig::Buffer xmrig::Cvt::randomBytes(const size_t size)
 
 
 rapidjson::Value xmrig::Cvt::toHex(const Buffer &data, rapidjson::Document &doc)
+{
+    return toHex(data.data(), data.size(), doc);
+}
+
+
+rapidjson::Value xmrig::Cvt::toHex(const Span &data, rapidjson::Document &doc)
 {
     return toHex(data.data(), data.size(), doc);
 }

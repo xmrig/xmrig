@@ -137,21 +137,21 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     memcpy(data + m_job.nonceOffset() * 2, result.nonce, 8);
 
-    if (m_blocktemplate.has_miner_signature && result.sig) {
+    if (m_blocktemplate.hasMinerSignature() && result.sig) {
         memcpy(data + sig_offset * 2, result.sig, 64 * 2);
-        memcpy(data + m_blocktemplate.tx_pubkey_index * 2, result.sig_data, 32 * 2);
-        memcpy(data + m_blocktemplate.eph_public_key_index * 2, result.sig_data + 32 * 2, 32 * 2);
+        memcpy(data + m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) * 2, result.sig_data, 32 * 2);
+        memcpy(data + m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) * 2, result.sig_data + 32 * 2, 32 * 2);
     }
 
     if (result.extra_nonce >= 0) {
-        Cvt::toHex(data + m_blocktemplate.tx_extra_nonce_index * 2, 8, reinterpret_cast<const uint8_t*>(&result.extra_nonce), 4);
+        Cvt::toHex(data + m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) * 2, 8, reinterpret_cast<const uint8_t*>(&result.extra_nonce), 4);
     }
 
 #   else
 
     Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
 
-    if (m_blocktemplate.has_miner_signature) {
+    if (m_blocktemplate.hasMinerSignature()) {
         Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
     }
 
@@ -376,29 +376,29 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
 
     if (blocktemplate.isNull()) {
-        return jobError("Empty block template received from daemon.");
+        return jobError("Empty block template received from daemon."); // FIXME
     }
 
-    if (!m_blocktemplate.Init(blocktemplate, m_coin)) {
+    if (!m_blocktemplate.parse(blocktemplate, m_coin)) {
         return jobError("Invalid block template received from daemon.");
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
-    const size_t k = m_blocktemplate.miner_tx_prefix_begin_index;
+    const size_t k = m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_OFFSET);
     job.setMinerTx(
-        m_blocktemplate.raw_blob.data() + k,
-        m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
-        m_blocktemplate.eph_public_key_index - k,
-        m_blocktemplate.tx_pubkey_index - k,
-        m_blocktemplate.tx_extra_nonce_index - k,
-        m_blocktemplate.tx_extra_nonce_size,
-        m_blocktemplate.miner_tx_merkle_tree_branch
+        m_blocktemplate.blob() + k,
+        m_blocktemplate.blob() + m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_END_OFFSET),
+        m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) - k,
+        m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) - k,
+        m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) - k,
+        m_blocktemplate.txExtraNonce().size(),
+        m_blocktemplate.minerTxMerkleTreeBranch()
     );
 #   endif
 
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
 
-    if (m_blocktemplate.has_miner_signature) {
+    if (m_blocktemplate.hasMinerSignature()) {
         if (m_pool.spendSecretKey().isEmpty()) {
             return jobError("Secret spend key is not set.");
         }
@@ -429,7 +429,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         }
 
         uint8_t derivation[32];
-        if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
+        if (!generate_key_derivation(m_blocktemplate.blob(BlockTemplate::TX_PUBKEY_OFFSET), secret_viewkey, derivation)) {
             return jobError("Failed to generate key derivation for miner signature.");
         }
 
@@ -448,7 +448,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         uint8_t eph_secret_key[32];
         derive_secret_key(derivation, 0, secret_spendkey, eph_secret_key);
 
-        job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
+        job.setEphemeralKeys(m_blocktemplate.blob(BlockTemplate::EPH_PUBLIC_KEY_OFFSET), eph_secret_key);
 #       endif
     }
 
@@ -458,7 +458,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     }
 
     if (m_coin.isValid()) {
-        job.setAlgorithm(m_coin.algorithm(m_blocktemplate.major_version));
+        job.setAlgorithm(m_coin.algorithm(m_blocktemplate.majorVersion()));
     }
 
     if (!job.setBlob(m_blockhashingblob)) {

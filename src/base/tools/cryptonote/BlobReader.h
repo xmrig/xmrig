@@ -24,11 +24,13 @@
 
 #include <cstdint>
 #include <cstring>
+#include <stdexcept>
 
 
 namespace xmrig {
 
 
+template<bool EXCEPTIONS>
 class BlobReader
 {
 public:
@@ -45,7 +47,7 @@ public:
     inline bool skip(size_t n)
     {
         if (m_index + n > m_size) {
-            return false;
+            return outOfRange();
         }
 
         m_index += n;
@@ -57,7 +59,7 @@ public:
     inline bool operator()(uint8_t(&data)[N])
     {
         if (m_index + N > m_size) {
-            return false;
+            return outOfRange();
         }
 
         memcpy(data, m_data + m_index, N);
@@ -67,19 +69,23 @@ public:
     }
 
     template<typename T>
-    inline void readItems(T &data, size_t count)
+    inline bool operator()(T &data, size_t n)
     {
-        data.resize(count);
-        for (size_t i = 0; i < count; ++i) {
-            operator()(data[i]);
+        if (m_index + n > m_size) {
+            return outOfRange();
         }
+
+        data = { m_data + m_index, n };
+        m_index += n;
+
+        return true;
     }
 
 private:
     inline bool getByte(uint8_t &data)
     {
         if (m_index >= m_size) {
-            return false;
+            return outOfRange();
         }
 
         data = m_data[m_index++];
@@ -95,8 +101,9 @@ private:
 
         do {
             if (!getByte(t)) {
-                return false;
+                return outOfRange();
             }
+
             result |= static_cast<uint64_t>(t & 0x7F) << shift;
             shift += 7;
         } while (t & 0x80);
@@ -104,6 +111,15 @@ private:
         data = result;
 
         return true;
+    }
+
+    inline bool outOfRange()
+    {
+        if (EXCEPTIONS) {
+            throw std::out_of_range("Blob read out of range");
+        }
+
+        return false;
     }
 
     const size_t m_size;
