@@ -231,7 +231,7 @@ void xmrig::Log::print(const char *fmt, ...)
         return;
     }
 
-    va_list args = nullptr;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(NONE, fmt, args);
@@ -246,7 +246,7 @@ void xmrig::Log::print(Level level, const char *fmt, ...)
         return;
     }
 
-    va_list args = nullptr;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(level, fmt, args);
