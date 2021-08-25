@@ -196,7 +196,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     }
 
 #   ifdef XMRIG_FEATURE_ASM
-    if (hasAES()) {
+    if (m_flags.test(FLAG_AES)) {
         char vendor[13] = { 0 };
         int32_t data[4] = { 0 };
 

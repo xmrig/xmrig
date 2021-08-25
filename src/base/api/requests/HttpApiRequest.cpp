@@ -45,6 +45,9 @@ static inline const char *rpcError(int code) {
 
     case IApiRequest::RPC_INVALID_PARAMS:
         return "Invalid params";
+
+    default:
+        break;
     }
 
     if (code >= 400 && code < 600) {

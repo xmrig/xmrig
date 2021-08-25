@@ -183,7 +183,7 @@ rapidjson::Value xmrig::WalletAddress::toAPI(rapidjson::Document &doc) const
 
 const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
 {
-    static TagInfo dummy = { Coin::INVALID, MAINNET, PUBLIC, 0 };
+    static TagInfo dummy = { Coin::INVALID, MAINNET, PUBLIC, 0, 0 };
     static const std::map<uint64_t, TagInfo> tags = {
         { 18,       { Coin::MONERO,     MAINNET,    PUBLIC,         18081,  18082 } },
         { 19,       { Coin::MONERO,     MAINNET,    INTEGRATED,     18081,  18082 } },

@@ -1,16 +1,10 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik              <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler                   <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones              <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466                 <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee                <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak                 <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett              <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador                  <tevador@gmail.com>
- * Copyright 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
- * Copyright 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
- * Copyright 2018-2020 SChernykh                <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018      Lee Clagett              <https://github.com/vtnerd>
+ * Copyright (c) 2018-2019 tevador                  <tevador@gmail.com>
+ * Copyright (c) 2000      Transmeta Corporation    <https://github.com/intel/msr-tools>
+ * Copyright (c) 2004-2008 H. Peter Anvin           <https://github.com/intel/msr-tools>
+ * Copyright (c) 2018-2021 SChernykh                <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig                    <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +19,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "crypto/astrobwt/AstroBWT.h"
 #include "backend/cpu/Cpu.h"
@@ -123,11 +116,13 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 		const uint64_t value_a = a >> 21;
 		const uint64_t value_b = b >> 21;
 
-		if (value_a < value_b)
+		if (value_a < value_b) {
 			return true;
+		}
 
-		if (value_a > value_b)
+		if (value_a > value_b) {
 			return false;
+		}
 
 		const uint64_t data_a = bswap_64(*reinterpret_cast<const uint64_t*>(v + (a % (1 << 21)) + 5));
 		const uint64_t data_b = bswap_64(*reinterpret_cast<const uint64_t*>(v + (b % (1 << 21)) + 5));
@@ -146,8 +141,11 @@ void sort_indices(int N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indi
 			{
 				indices[j + 1] = prev_t;
 				--j;
-				if (j < 0)
+
+				if (j < 0) {
 					break;
+				}
+
 				prev_t = indices[j];
 			} while (smaller(t, prev_t));
 			indices[j + 1] = t;
@@ -181,8 +179,9 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 
 	{
 		const uint8_t* tmp = stage1_output - 1;
-		for (int i = 0; i <= STAGE1_SIZE; ++i)
+		for (int i = 0; i <= STAGE1_SIZE; ++i) {
 			stage1_result[i] = tmp[indices[i] & ((1 << 21) - 1)];
+		}
 	}
 
 #ifdef ASTROBWT_AVX2
@@ -193,8 +192,9 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 		sha3_HashBuffer(256, SHA3_FLAGS_NONE, stage1_result, STAGE1_SIZE + 1, key, sizeof(key));
 
 	const int stage2_size = STAGE1_SIZE + (*(uint32_t*)(key) & 0xfffff);
-	if (stage2_size > stage2_max_size)
+	if (stage2_size > stage2_max_size) {
 		return false;
+	}
 
 	Salsa20_XORKeyStream(key, stage2_output, stage2_size);
 
@@ -204,6 +204,7 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 		const uint8_t* tmp = stage2_output - 1;
 		int i = 0;
 		const int n = ((stage2_size + 1) / 4) * 4;
+
 		for (; i < n; i += 4)
 		{
 			stage2_result[i + 0] = tmp[indices[i + 0] & ((1 << 21) - 1)];
@@ -211,8 +212,10 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 			stage2_result[i + 2] = tmp[indices[i + 2] & ((1 << 21) - 1)];
 			stage2_result[i + 3] = tmp[indices[i + 3] & ((1 << 21) - 1)];
 		}
-		for (; i <= stage2_size; ++i)
+
+		for (; i <= stage2_size; ++i) {
 			stage2_result[i] = tmp[indices[i] & ((1 << 21) - 1)];
+		}
 	}
 
 #ifdef ASTROBWT_AVX2

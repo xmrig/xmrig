@@ -45,7 +45,7 @@ static RxPrivate *d_ptr     = nullptr;
 class RxPrivate
 {
 public:
-    inline RxPrivate(IRxListener *listener) : queue(listener) {}
+    inline explicit RxPrivate(IRxListener *listener) : queue(listener) {}
 
     RxQueue queue;
 };

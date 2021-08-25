@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/io/Env.h"
 #include "base/kernel/Process.h"
 #include "version.h"
@@ -61,7 +60,7 @@ static void createVariables()
     variables.insert({ "XMRIG_DATA_DIR", Process::location(Process::DataLocation) });
 
     String hostname = "HOSTNAME";
-    if (!getenv(hostname)) {
+    if (!getenv(hostname)) { // NOLINT(concurrency-mt-unsafe)
         variables.insert({ std::move(hostname), Env::hostname() });
     }
 }
@@ -137,7 +136,7 @@ xmrig::String xmrig::Env::get(const String &name, const std::map<String, String>
     }
 #   endif
 
-    return static_cast<const char *>(getenv(name));
+    return static_cast<const char *>(getenv(name)); // NOLINT(concurrency-mt-unsafe)
 }
 
 

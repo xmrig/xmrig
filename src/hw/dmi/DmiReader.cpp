@@ -18,7 +18,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "hw/dmi/DmiReader.h"
 #include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
@@ -111,7 +110,6 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
         next += 2;
 
         if (static_cast<uint32_t>(next - buf) > m_size) {
-            data = next;
             break;
         }
 

@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "backend/opencl/runners/OclKawPowRunner.h"
 #include "backend/common/Tags.h"
@@ -172,12 +165,12 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
     const uint64_t target = job.target();
     const uint32_t hack_false = 0;
 
-    OclLib::setKernelArg(m_searchKernel, 0, sizeof(m_dag), &m_dag);
-    OclLib::setKernelArg(m_searchKernel, 1, sizeof(m_input), &m_input);
+    OclLib::setKernelArg(m_searchKernel, 0, sizeof(cl_mem), &m_dag);
+    OclLib::setKernelArg(m_searchKernel, 1, sizeof(cl_mem), &m_input);
     OclLib::setKernelArg(m_searchKernel, 2, sizeof(target), &target);
     OclLib::setKernelArg(m_searchKernel, 3, sizeof(hack_false), &hack_false);
-    OclLib::setKernelArg(m_searchKernel, 4, sizeof(m_output), &m_output);
-    OclLib::setKernelArg(m_searchKernel, 5, sizeof(m_stop), &m_stop);
+    OclLib::setKernelArg(m_searchKernel, 4, sizeof(cl_mem), &m_output);
+    OclLib::setKernelArg(m_searchKernel, 5, sizeof(cl_mem), &m_stop);
 
     m_blob = blob;
     enqueueWriteBuffer(m_input, CL_TRUE, 0, BLOB_SIZE, m_blob);

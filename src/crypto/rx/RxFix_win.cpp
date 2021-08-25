@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "crypto/rx/RxFix.h"
 #include "base/io/log/Log.h"
 
@@ -34,7 +33,7 @@ static thread_local std::pair<const void*, const void*> mainLoopBounds = { nullp
 static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
 {
     if (ExceptionInfo->ExceptionRecord->ExceptionCode == 0xC0000005) {
-        const char* accessType;
+        const char* accessType = nullptr;
         switch (ExceptionInfo->ExceptionRecord->ExceptionInformation[0]) {
         case 0: accessType = "read"; break;
         case 1: accessType = "write"; break;
@@ -47,7 +46,7 @@ static LONG WINAPI MainLoopHandler(_EXCEPTION_POINTERS *ExceptionInfo)
         LOG_VERBOSE(YELLOW_BOLD("[THREAD %u] Exception 0x%08X at 0x%p"), GetCurrentThreadId(), ExceptionInfo->ExceptionRecord->ExceptionCode, ExceptionInfo->ExceptionRecord->ExceptionAddress);
     }
 
-    void* p = reinterpret_cast<void*>(ExceptionInfo->ContextRecord->Rip);
+    void* p = reinterpret_cast<void*>(ExceptionInfo->ContextRecord->Rip); // NOLINT(performance-no-int-to-ptr)
     const std::pair<const void*, const void*>& loopBounds = mainLoopBounds;
 
     if ((loopBounds.first <= p) && (p < loopBounds.second)) {

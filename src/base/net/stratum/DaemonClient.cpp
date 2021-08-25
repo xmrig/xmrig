@@ -73,7 +73,7 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
 
-}
+} // namespace xmrig
 
 
 xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
@@ -823,9 +823,9 @@ void xmrig::DaemonClient::ZMQParse()
 
     size_t msg_size = 0;
 
-    char* data = m_ZMQRecvBuf.data();
+    char *data   = m_ZMQRecvBuf.data();
     size_t avail = m_ZMQRecvBuf.size();
-    bool more;
+    bool more    = false;
 
     do {
         if (avail < 1) {

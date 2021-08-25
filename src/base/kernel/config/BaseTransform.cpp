@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <cstdio>
 
 
@@ -48,14 +47,14 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 {
     using namespace rapidjson;
 
-    int key;
+    int key     = 0;
     int argc    = process->arguments().argc();
     char **argv = process->arguments().argv();
 
     Document doc(kObjectType);
 
     while (true) {
-        key = getopt_long(argc, argv, short_options, options, nullptr);
+        key = getopt_long(argc, argv, short_options, options, nullptr); // NOLINT(concurrency-mt-unsafe)
         if (key < 0) {
             break;
         }

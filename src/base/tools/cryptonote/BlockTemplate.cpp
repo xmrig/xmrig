@@ -78,7 +78,9 @@ void xmrig::BlockTemplate::calculateMerkleTreeHash()
         keccak(h, kHashSize * 2, m_rootHash, kHashSize);
     }
     else {
-        size_t i, j, cnt;
+        size_t i    = 0;
+        size_t j    = 0;
+        size_t cnt  = 0;
 
         for (i = 0, cnt = 1; cnt <= count; ++i, cnt <<= 1) {}
 
@@ -261,7 +263,7 @@ bool xmrig::BlockTemplate::parse(bool hashes)
             break;
 
         default:
-            return false; // TODO: handle other tags
+            return false; // TODO(SChernykh): handle other tags
         }
     }
 

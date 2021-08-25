@@ -82,7 +82,7 @@ const char *Pool::kSpendSecretKey         = "spend-secret-key";
 const char *Pool::kNicehashHost           = "nicehash.com";
 
 
-}
+} // namespace xmrig
 
 
 xmrig::Pool::Pool(const char *url) :
