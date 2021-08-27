@@ -174,7 +174,6 @@ const rapidjson::Value &xmrig::JsonChain::getValue(const char *key) const
 }
 
 
-
 const rapidjson::Value &xmrig::JsonChain::object() const
 {
     assert(false);
