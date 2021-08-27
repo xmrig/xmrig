@@ -42,6 +42,7 @@ public:
         MONERO,
         ARQMA,
         DERO,
+        GRAFT,
         KEVA,
         RAVEN,
         CONCEAL,
