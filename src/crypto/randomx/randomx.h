@@ -132,13 +132,13 @@ struct RandomX_ConfigurationBase
 	uint32_t ScratchpadL3Mask_Calculated;
 	uint32_t ScratchpadL3Mask64_Calculated;
 
-#if defined(XMRIG_ARMv8)
+#	if (XMRIG_ARM == 8)
 	uint32_t Log2_ScratchpadL1;
 	uint32_t Log2_ScratchpadL2;
 	uint32_t Log2_ScratchpadL3;
 	uint32_t Log2_DatasetBaseSize;
 	uint32_t Log2_CacheSize;
-#endif
+#	endif
 };
 
 struct RandomX_ConfigurationMonero : public RandomX_ConfigurationBase {};

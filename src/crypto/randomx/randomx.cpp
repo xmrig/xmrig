@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
-#elif defined(XMRIG_ARMv8)
+#elif (XMRIG_ARM == 8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #endif
 
@@ -180,7 +180,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 #	endif
 }
 
-#ifdef XMRIG_ARMv8
+#if (XMRIG_ARM == 8)
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
@@ -254,7 +254,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
 	} while (0)
 
-#elif defined(XMRIG_ARMv8)
+#elif (XMRIG_ARM == 8)
 
 	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
