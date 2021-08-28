@@ -185,17 +185,17 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
 {
     static TagInfo dummy = { Coin::INVALID, MAINNET, PUBLIC, 0, 0 };
     static const std::map<uint64_t, TagInfo> tags = {
-        { 18,       { Coin::MONERO,     MAINNET,    PUBLIC,         18081,  18082 } },
-        { 19,       { Coin::MONERO,     MAINNET,    INTEGRATED,     18081,  18082 } },
-        { 42,       { Coin::MONERO,     MAINNET,    SUBADDRESS,     18081,  18082 } },
+        { 0x12,     { Coin::MONERO,     MAINNET,    PUBLIC,         18081,  18082 } },
+        { 0x13,     { Coin::MONERO,     MAINNET,    INTEGRATED,     18081,  18082 } },
+        { 0x2a,     { Coin::MONERO,     MAINNET,    SUBADDRESS,     18081,  18082 } },
 
-        { 53,       { Coin::MONERO,     TESTNET,    PUBLIC,         28081,  28082 } },
-        { 54,       { Coin::MONERO,     TESTNET,    INTEGRATED,     28081,  28082 } },
-        { 63,       { Coin::MONERO,     TESTNET,    SUBADDRESS,     28081,  28082 } },
+        { 0x35,     { Coin::MONERO,     TESTNET,    PUBLIC,         28081,  28082 } },
+        { 0x36,     { Coin::MONERO,     TESTNET,    INTEGRATED,     28081,  28082 } },
+        { 0x3f,     { Coin::MONERO,     TESTNET,    SUBADDRESS,     28081,  28082 } },
 
-        { 24,       { Coin::MONERO,     STAGENET,   PUBLIC,         38081,  38082 } },
-        { 25,       { Coin::MONERO,     STAGENET,   INTEGRATED,     38081,  38082 } },
-        { 36,       { Coin::MONERO,     STAGENET,   SUBADDRESS,     38081,  38082 } },
+        { 0x18,     { Coin::MONERO,     STAGENET,   PUBLIC,         38081,  38082 } },
+        { 0x19,     { Coin::MONERO,     STAGENET,   INTEGRATED,     38081,  38082 } },
+        { 0x24,     { Coin::MONERO,     STAGENET,   SUBADDRESS,     38081,  38082 } },
 
         { 0x2bb39a, { Coin::SUMO,       MAINNET,    PUBLIC,         19734,  19735 } },
         { 0x29339a, { Coin::SUMO,       MAINNET,    INTEGRATED,     19734,  19735 } },
@@ -217,15 +217,23 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x1742ca, { Coin::ARQMA,      STAGENET,   INTEGRATED,     39994,  39995 } },
         { 0x1d84ca, { Coin::ARQMA,      STAGENET,   SUBADDRESS,     39994,  39995 } },
 
-        { 0xc8ed8,  { Coin::DERO,       MAINNET,    PUBLIC,         20206,  0 } },
-        { 0xa0ed8,  { Coin::DERO,       MAINNET,    INTEGRATED,     20206,  0 } },
+        { 0xc8ed8,  { Coin::DERO,       MAINNET,    PUBLIC,         20206,  0     } },
+        { 0xa0ed8,  { Coin::DERO,       MAINNET,    INTEGRATED,     20206,  0     } },
 
-        { 0x6cf58,  { Coin::DERO,       TESTNET,    PUBLIC,         30306,  0 } },
-        { 0x44f58,  { Coin::DERO,       TESTNET,    INTEGRATED,     30306,  0 } },
+        { 0x6cf58,  { Coin::DERO,       TESTNET,    PUBLIC,         30306,  0     } },
+        { 0x44f58,  { Coin::DERO,       TESTNET,    INTEGRATED,     30306,  0     } },
 
-        { 4146,     { Coin::WOWNERO,    MAINNET,    PUBLIC,         34568,  34569 } },
-        { 6810,     { Coin::WOWNERO,    MAINNET,    INTEGRATED,     34568,  34569 } },
-        { 12208,    { Coin::WOWNERO,    MAINNET,    SUBADDRESS,     34568,  34569 } },
+        { 0x1032,   { Coin::WOWNERO,    MAINNET,    PUBLIC,         34568,  34569 } },
+        { 0x1a9a,   { Coin::WOWNERO,    MAINNET,    INTEGRATED,     34568,  34569 } },
+        { 0x2fb0,   { Coin::WOWNERO,    MAINNET,    SUBADDRESS,     34568,  34569 } },
+
+        { 0x5a,     { Coin::GRAFT,      MAINNET,    PUBLIC,         18981,  18982 } },
+        { 0x5b,     { Coin::GRAFT,      MAINNET,    INTEGRATED,     18981,  18982 } },
+        { 0x66,     { Coin::GRAFT,      MAINNET,    SUBADDRESS,     18981,  18982 } },
+
+        { 0x54,     { Coin::GRAFT,      TESTNET,    PUBLIC,         28881,  28882 } },
+        { 0x55,     { Coin::GRAFT,      TESTNET,    INTEGRATED,     28881,  28882 } },
+        { 0x70,     { Coin::GRAFT,      TESTNET,    SUBADDRESS,     28881,  28882 } },
     };
 
     const auto it = tags.find(tag);
