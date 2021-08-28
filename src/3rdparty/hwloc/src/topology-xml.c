@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -192,8 +192,9 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 	  || lvalue == HWLOC_OBJ_CACHE_INSTRUCTION)
 	obj->attr->cache.type = (hwloc_obj_cache_type_t) lvalue;
       else
-	fprintf(stderr, "%s: ignoring invalid cache_type attribute %lu\n",
-		state->global->msgprefix, lvalue);
+        if (hwloc__xml_verbose())
+          fprintf(stderr, "%s: ignoring invalid cache_type attribute %lu\n",
+                  state->global->msgprefix, lvalue);
     } else if (hwloc__xml_verbose())
       fprintf(stderr, "%s: ignoring cache_type attribute for non-cache object type\n",
 	      state->global->msgprefix);
@@ -262,8 +263,8 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 #ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
       } else if (domain > 0xffff) {
 	static int warned = 0;
-	if (!warned && !hwloc_hide_errors())
-	  fprintf(stderr, "Ignoring PCI device with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	if (!warned && hwloc_hide_errors() < 2)
+	  fprintf(stderr, "hwloc/xml: Ignoring PCI device with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
 	warned = 1;
 	*ignore = 1;
 #endif
@@ -337,6 +338,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
       } else {
 	obj->attr->bridge.upstream_type = (hwloc_obj_bridge_type_t) upstream_type;
 	obj->attr->bridge.downstream_type = (hwloc_obj_bridge_type_t) downstream_type;
+        /* FIXME verify that upstream/downstream type is valid */
       };
       break;
     }
@@ -361,12 +363,13 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 #ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
       } else if (domain > 0xffff) {
 	static int warned = 0;
-	if (!warned && !hwloc_hide_errors())
-	  fprintf(stderr, "Ignoring bridge to PCI with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	if (!warned && hwloc_hide_errors() < 2)
+	  fprintf(stderr, "hwloc/xml: Ignoring bridge to PCI with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
 	warned = 1;
 	*ignore = 1;
 #endif
       } else {
+        /* FIXME verify that downstream type vs pci info are valid */
 	obj->attr->bridge.downstream.pci.domain = domain;
 	obj->attr->bridge.downstream.pci.secondary_bus = secbus;
 	obj->attr->bridge.downstream.pci.subordinate_bus = subbus;
@@ -1232,7 +1235,7 @@ hwloc__xml_import_object(hwloc_topology_t topology,
 	/* next should be before cur */
 	if (!childrengotignored) {
 	  static int reported = 0;
-	  if (!reported && !hwloc_hide_errors()) {
+	  if (!reported && hwloc_hide_errors() < 2) {
 	    hwloc__xml_import_report_outoforder(topology, next, cur);
 	    reported = 1;
 	  }
@@ -1565,7 +1568,7 @@ hwloc__xml_v2import_distances(hwloc_topology_t topology,
     }
   }
 
-  hwloc_internal_distances_add_by_index(topology, name, unique_type, different_types, nbobjs, indexes, u64values, kind, 0);
+  hwloc_internal_distances_add_by_index(topology, name, unique_type, different_types, nbobjs, indexes, u64values, kind, 0 /* assume grouping was applied when this matrix was discovered before exporting to XML */);
 
   /* prevent freeing below */
   indexes = NULL;
@@ -2647,7 +2650,8 @@ hwloc__xml_export_object_contents (hwloc__xml_export_state_t state, hwloc_topolo
 
       logical_to_v2array = malloc(nbobjs * sizeof(*logical_to_v2array));
       if (!logical_to_v2array) {
-	fprintf(stderr, "xml/export/v1: failed to allocated logical_to_v2array\n");
+        if (!hwloc_hide_errors())
+          fprintf(stderr, "hwloc/xml/export/v1: failed to allocated logical_to_v2array\n");
 	continue;
       }
 

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
- * Copyright © 2010-2020 Inria.  All rights reserved.
+ * Copyright © 2010-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -120,6 +120,9 @@ extern "C" {
 #define HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM HWLOC_NAME_CAPS(TOPOLOGY_FLAG_IS_THISSYSTEM)
 #define HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES HWLOC_NAME_CAPS(TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES)
 #define HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT HWLOC_NAME_CAPS(TOPOLOGY_FLAG_IMPORT_SUPPORT)
+#define HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING)
+#define HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING)
+#define HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_DONT_CHANGE_BINDING)
 
 #define hwloc_topology_set_pid HWLOC_NAME(topology_set_pid)
 #define hwloc_topology_set_synthetic HWLOC_NAME(topology_set_synthetic)
@@ -356,6 +359,7 @@ extern "C" {
 #define hwloc_get_closest_objs HWLOC_NAME(get_closest_objs)
 #define hwloc_get_obj_below_by_type HWLOC_NAME(get_obj_below_by_type)
 #define hwloc_get_obj_below_array_by_type HWLOC_NAME(get_obj_below_array_by_type)
+#define hwloc_get_obj_with_same_locality HWLOC_NAME(get_obj_with_same_locality)
 #define hwloc_distrib_flags_e HWLOC_NAME(distrib_flags_e)
 #define HWLOC_DISTRIB_FLAG_REVERSE HWLOC_NAME_CAPS(DISTRIB_FLAG_REVERSE)
 #define hwloc_distrib HWLOC_NAME(distrib)
@@ -454,11 +458,22 @@ extern "C" {
 #define hwloc_distances_obj_index HWLOC_NAME(distances_obj_index)
 #define hwloc_distances_obj_pair_values HWLOC_NAME(distances_pair_values)
 
+#define hwloc_distances_transform_e HWLOC_NAME(distances_transform_e)
+#define HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL HWLOC_NAME_CAPS(DISTANCES_TRANSFORM_REMOVE_NULL)
+#define HWLOC_DISTANCES_TRANSFORM_LINKS HWLOC_NAME_CAPS(DISTANCES_TRANSFORM_LINKS)
+#define HWLOC_DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS HWLOC_NAME_CAPS(DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS)
+#define HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE HWLOC_NAME_CAPS(DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE)
+#define hwloc_distances_transform HWLOC_NAME(distances_transform)
+
 #define hwloc_distances_add_flag_e HWLOC_NAME(distances_add_flag_e)
 #define HWLOC_DISTANCES_ADD_FLAG_GROUP HWLOC_NAME_CAPS(DISTANCES_ADD_FLAG_GROUP)
 #define HWLOC_DISTANCES_ADD_FLAG_GROUP_INACCURATE HWLOC_NAME_CAPS(DISTANCES_ADD_FLAG_GROUP_INACCURATE)
 
-#define hwloc_distances_add HWLOC_NAME(distances_add)
+#define hwloc_distances_add_handle_t HWLOC_NAME(distances_add_handle_t)
+#define hwloc_distances_add_create HWLOC_NAME(distances_add_create)
+#define hwloc_distances_add_values HWLOC_NAME(distances_add_values)
+#define hwloc_distances_add_commit HWLOC_NAME(distances_add_commit)
+
 #define hwloc_distances_remove HWLOC_NAME(distances_remove)
 #define hwloc_distances_remove_by_depth HWLOC_NAME(distances_remove_by_depth)
 #define hwloc_distances_remove_by_type HWLOC_NAME(distances_remove_by_type)
@@ -523,6 +538,11 @@ extern "C" {
 #define hwloc_linux_get_tid_last_cpu_location HWLOC_NAME(linux_get_tid_last_cpu_location)
 #define hwloc_linux_read_path_as_cpumask HWLOC_NAME(linux_read_file_cpumask)
 
+/* windows.h */
+
+#define hwloc_windows_get_nr_processor_groups HWLOC_NAME(windows_get_nr_processor_groups)
+#define hwloc_windows_get_processor_group_cpuset HWLOC_NAME(windows_get_processor_group_cpuset)
+
 /* openfabrics-verbs.h */
 
 #define hwloc_ibv_get_device_cpuset HWLOC_NAME(ibv_get_device_cpuset)
@@ -563,6 +583,11 @@ extern "C" {
 #define hwloc_rsmi_get_device_cpuset HWLOC_NAME(rsmi_get_device_cpuset)
 #define hwloc_rsmi_get_device_osdev HWLOC_NAME(rsmi_get_device_osdev)
 #define hwloc_rsmi_get_device_osdev_by_index HWLOC_NAME(rsmi_get_device_osdev_by_index)
+
+/* levelzero.h */
+
+#define hwloc_levelzero_get_device_cpuset HWLOC_NAME(levelzero_get_device_cpuset)
+#define hwloc_levelzero_get_device_osdev HWLOC_NAME(levelzero_get_device_osdev)
 
 /* gl.h */
 
@@ -620,9 +645,17 @@ extern "C" {
 #define hwloc_pcidisc_tree_insert_by_busid HWLOC_NAME(pcidisc_tree_insert_by_busid)
 #define hwloc_pcidisc_tree_attach HWLOC_NAME(pcidisc_tree_attach)
 
+#define hwloc_pci_find_by_busid HWLOC_NAME(pcidisc_find_by_busid)
 #define hwloc_pci_find_parent_by_busid HWLOC_NAME(pcidisc_find_busid_parent)
 
+#define hwloc_backend_distances_add_handle_t HWLOC_NAME(backend_distances_add_handle_t)
+#define hwloc_backend_distances_add_create HWLOC_NAME(backend_distances_add_create)
+#define hwloc_backend_distances_add_values HWLOC_NAME(backend_distances_add_values)
+#define hwloc_backend_distances_add_commit HWLOC_NAME(backend_distances_add_commit)
+
 /* hwloc/deprecated.h */
+
+#define hwloc_distances_add HWLOC_NAME(distances_add)
 
 #define hwloc_topology_insert_misc_object_by_parent HWLOC_NAME(topology_insert_misc_object_by_parent)
 #define hwloc_obj_cpuset_snprintf HWLOC_NAME(obj_cpuset_snprintf)
@@ -733,6 +766,7 @@ extern "C" {
 
 #define hwloc_cuda_component HWLOC_NAME(cuda_component)
 #define hwloc_gl_component HWLOC_NAME(gl_component)
+#define hwloc_levelzero_component HWLOC_NAME(levelzero_component)
 #define hwloc_nvml_component HWLOC_NAME(nvml_component)
 #define hwloc_rsmi_component HWLOC_NAME(rsmi_component)
 #define hwloc_opencl_component HWLOC_NAME(opencl_component)
@@ -772,7 +806,6 @@ extern "C" {
 #define hwloc_pci_discovery_init HWLOC_NAME(pci_discovery_init)
 #define hwloc_pci_discovery_prepare HWLOC_NAME(pci_discovery_prepare)
 #define hwloc_pci_discovery_exit HWLOC_NAME(pci_discovery_exit)
-#define hwloc_pci_find_by_busid HWLOC_NAME(pcidisc_find_by_busid)
 #define hwloc_find_insert_io_parent_by_complete_cpuset HWLOC_NAME(hwloc_find_insert_io_parent_by_complete_cpuset)
 
 #define hwloc__add_info HWLOC_NAME(_add_info)
@@ -816,7 +849,6 @@ extern "C" {
 #define hwloc_internal_distances_dup HWLOC_NAME(internal_distances_dup)
 #define hwloc_internal_distances_refresh HWLOC_NAME(internal_distances_refresh)
 #define hwloc_internal_distances_destroy HWLOC_NAME(internal_distances_destroy)
-
 #define hwloc_internal_distances_add HWLOC_NAME(internal_distances_add)
 #define hwloc_internal_distances_add_by_index HWLOC_NAME(internal_distances_add_by_index)
 #define hwloc_internal_distances_invalidate_cached_objs HWLOC_NAME(hwloc_internal_distances_invalidate_cached_objs)

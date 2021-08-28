@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Inria.  All rights reserved.
+ * Copyright © 2010-2021 Inria.  All rights reserved.
  * Copyright © 2010-2011 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -72,7 +72,7 @@ hwloc_cudart_get_device_pci_ids(hwloc_topology_t topology __hwloc_attribute_unus
 /** \brief Get the CPU set of processors that are physically
  * close to device \p idx.
  *
- * Return the CPU set describing the locality of the CUDA device
+ * Store in \p set the CPU-set describing the locality of the CUDA device
  * whose index is \p idx.
  *
  * Topology \p topology and device \p idx must match the local machine.
@@ -117,8 +117,8 @@ hwloc_cudart_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unuse
 /** \brief Get the hwloc PCI device object corresponding to the
  * CUDA device whose index is \p idx.
  *
- * Return the PCI device object describing the CUDA device whose
- * index is \p idx. Return NULL if there is none.
+ * \return The hwloc PCI device object describing the CUDA device whose index is \p idx.
+ * \return \c NULL if none could be found.
  *
  * Topology \p topology and device \p idx must match the local machine.
  * I/O devices detection must be enabled in topology \p topology.
@@ -138,8 +138,8 @@ hwloc_cudart_get_device_pcidev(hwloc_topology_t topology, int idx)
 /** \brief Get the hwloc OS device object corresponding to the
  * CUDA device whose index is \p idx.
  *
- * Return the OS device object describing the CUDA device whose
- * index is \p idx. Return NULL if there is none.
+ * \return The hwloc OS device object describing the CUDA device whose index is \p idx.
+ * \return \c NULL if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.
