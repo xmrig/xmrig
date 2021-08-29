@@ -90,6 +90,7 @@ if (err == HPE_OK) {
           parser.reason);
 }
 ```
+For more information on API usage, please refer to [src/native/api.h](https://github.com/nodejs/llhttp/blob/master/src/native/api.h).
 
 ---
 
@@ -97,6 +98,20 @@ if (err == HPE_OK) {
 
 * Python: [pallas/pyllhttp][8]
 * Ruby: [metabahn/llhttp][9]
+
+
+### Using with CMake
+
+If you want to use this library in a CMake project you can use the snippet below.
+
+```
+FetchContent_Declare(llhttp
+  URL "https://github.com/nodejs/llhttp/releases/download/v6.0.5/llhttp-release-v6.0.5.tar.gz")  # Using version 6.0.5
+
+FetchContent_MakeAvailable(llhttp)
+
+target_link_libraries(${EXAMPLE_PROJECT_NAME} ${PROJECT_LIBRARIES} llhttp ${PROJECT_NAME})
+```
 
 #### LICENSE
 

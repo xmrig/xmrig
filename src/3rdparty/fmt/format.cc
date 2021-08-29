@@ -23,9 +23,12 @@ int format_float(char* buf, std::size_t size, const char* format, int precision,
   return precision < 0 ? snprintf_ptr(buf, size, format, value)
                        : snprintf_ptr(buf, size, format, precision, value);
 }
-}  // namespace detail
 
-template struct FMT_INSTANTIATION_DEF_API detail::basic_data<void>;
+template FMT_API dragonbox::decimal_fp<float> dragonbox::to_decimal(float x)
+    FMT_NOEXCEPT;
+template FMT_API dragonbox::decimal_fp<double> dragonbox::to_decimal(double x)
+    FMT_NOEXCEPT;
+}  // namespace detail
 
 // Workaround a bug in MSVC2013 that prevents instantiation of format_float.
 int (*instantiate_format_float)(double, int, detail::float_specs,
@@ -38,15 +41,18 @@ template FMT_API std::locale detail::locale_ref::get<std::locale>() const;
 
 // Explicit instantiations for char.
 
-template FMT_API std::string detail::grouping_impl<char>(locale_ref);
-template FMT_API char detail::thousands_sep_impl(locale_ref);
+template FMT_API auto detail::thousands_sep_impl(locale_ref)
+    -> thousands_sep_result<char>;
 template FMT_API char detail::decimal_point_impl(locale_ref);
 
 template FMT_API void detail::buffer<char>::append(const char*, const char*);
 
-template FMT_API FMT_BUFFER_CONTEXT(char)::iterator detail::vformat_to(
+// DEPRECATED!
+// There is no correspondent extern template in format.h because of
+// incompatibility between clang and gcc (#2377).
+template FMT_API void detail::vformat_to(
     detail::buffer<char>&, string_view,
-    basic_format_args<FMT_BUFFER_CONTEXT(char)>);
+    basic_format_args<FMT_BUFFER_CONTEXT(char)>, detail::locale_ref);
 
 template FMT_API int detail::snprintf_float(double, int, detail::float_specs,
                                             detail::buffer<char>&);
@@ -60,10 +66,13 @@ template FMT_API int detail::format_float(long double, int, detail::float_specs,
 
 // Explicit instantiations for wchar_t.
 
-template FMT_API std::string detail::grouping_impl<wchar_t>(locale_ref);
-template FMT_API wchar_t detail::thousands_sep_impl(locale_ref);
+template FMT_API auto detail::thousands_sep_impl(locale_ref)
+    -> thousands_sep_result<wchar_t>;
 template FMT_API wchar_t detail::decimal_point_impl(locale_ref);
 
 template FMT_API void detail::buffer<wchar_t>::append(const wchar_t*,
                                                       const wchar_t*);
+
+template struct detail::basic_data<void>;
+
 FMT_END_NAMESPACE

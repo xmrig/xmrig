@@ -21,6 +21,7 @@ struct llhttp_settings_s {
   /* Possible return values 0, -1, `HPE_PAUSED` */
   llhttp_cb      on_message_begin;
 
+  /* Possible return values 0, -1, HPE_USER */
   llhttp_data_cb on_url;
   llhttp_data_cb on_status;
   llhttp_data_cb on_header_field;
@@ -37,6 +38,7 @@ struct llhttp_settings_s {
    */
   llhttp_cb      on_headers_complete;
 
+  /* Possible return values 0, -1, HPE_USER */
   llhttp_data_cb on_body;
 
   /* Possible return values 0, -1, `HPE_PAUSED` */
@@ -49,6 +51,7 @@ struct llhttp_settings_s {
   llhttp_cb      on_chunk_header;
   llhttp_cb      on_chunk_complete;
 
+  /* Information-only callbacks, return value is ignored */
   llhttp_cb      on_url_complete;
   llhttp_cb      on_status_complete;
   llhttp_cb      on_header_field_complete;
