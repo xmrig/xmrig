@@ -107,11 +107,6 @@ const char *Algorithm::kKAWPOW_RVN      = "kawpow";
 #define ALGO_ALIAS_AUTO(ALGO)   { Algorithm::k##ALGO, Algorithm::ALGO }
 
 
-#ifdef _MSC_VER
-#   define strcasecmp _stricmp
-#endif
-
-
 static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(CN_0),
     ALGO_NAME(CN_1),

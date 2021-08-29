@@ -166,7 +166,7 @@ public:
     static inline constexpr bool isCN(Id id)                { return (id & 0xff000000) == CN_ANY; }
     static inline constexpr Id base(Id id)                  { return isCN(id) ? static_cast<Id>(CN_0 | (id & 0xff00)) : INVALID; }
     static inline constexpr size_t l2(Id id)                { return family(id) == RANDOM_X ? (1U << ((id >> 8) & 0xff)) : 0U; }
-    static inline constexpr size_t l3(Id id)                { return 1U << ((id >> 16) & 0xff); }
+    static inline constexpr size_t l3(Id id)                { return 1ULL << ((id >> 16) & 0xff); }
     static inline constexpr uint32_t family(Id id)          { return id & (isCN(id) ? 0xffff0000 : 0xff000000); }
 
     inline bool isCN() const                                { return isCN(m_id); }
