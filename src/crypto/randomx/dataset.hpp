@@ -43,13 +43,12 @@ struct randomx_dataset {
 /* Global scope for C binding */
 struct randomx_cache {
 	uint8_t* memory = nullptr;
-	randomx::JitCompiler* jit;
+	randomx::JitCompiler* jit = nullptr;
 	randomx::CacheInitializeFunc* initialize;
 	randomx::DatasetInitFunc* datasetInit;
 	randomx::SuperscalarProgram programs[RANDOMX_CACHE_MAX_ACCESSES];
-	std::vector<uint64_t> reciprocalCache;
 
-	bool isInitialized() {
+	bool isInitialized() const {
 		return programs[0].getSize() != 0;
 	}
 };

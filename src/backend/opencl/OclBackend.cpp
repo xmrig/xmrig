@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <mutex>
 #include <string>
@@ -134,7 +127,7 @@ private:
 class OclBackendPrivate
 {
 public:
-    inline OclBackendPrivate(Controller *controller) :
+    inline explicit OclBackendPrivate(Controller *controller) :
         controller(controller)
     {
         init(controller->config()->cl());
@@ -397,9 +390,9 @@ void xmrig::OclBackend::printHashrate(bool details)
     }
 
     Log::print(WHITE_BOLD_S "|        - |        - | %8s | %8s | %8s |",
-               Hashrate::format(hashrate()->calc(Hashrate::ShortInterval)  * scale, num,          sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::MediumInterval) * scale, num + 16,     sizeof num / 3),
-               Hashrate::format(hashrate()->calc(Hashrate::LargeInterval)  * scale, num + 16 * 2, sizeof num / 3)
+               Hashrate::format(hashrate_short  * scale, num,          sizeof num / 3),
+               Hashrate::format(hashrate_medium * scale, num + 16,     sizeof num / 3),
+               Hashrate::format(hashrate_large  * scale, num + 16 * 2, sizeof num / 3)
                );
 }
 
@@ -485,9 +478,9 @@ void xmrig::OclBackend::stop()
 }
 
 
-void xmrig::OclBackend::tick(uint64_t ticks)
+bool xmrig::OclBackend::tick(uint64_t ticks)
 {
-    d_ptr->workers.tick(ticks);
+    return d_ptr->workers.tick(ticks);
 }
 
 

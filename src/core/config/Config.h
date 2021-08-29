@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -50,10 +44,33 @@ class Config : public BaseConfig
 public:
     XMRIG_DISABLE_COPY_MOVE(Config);
 
+    static const char *kPauseOnBattery;
+    static const char *kPauseOnActive;
+
+#   ifdef XMRIG_FEATURE_OPENCL
+    static const char *kOcl;
+#   endif
+
+#   ifdef XMRIG_FEATURE_CUDA
+    static const char *kCuda;
+#   endif
+
+#   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
+    static const char *kHealthPrintTime;
+#   endif
+
+#   ifdef XMRIG_FEATURE_DMI
+    static const char *kDMI;
+#   endif
+
     Config();
     ~Config() override;
 
+    inline bool isPauseOnActive() const { return idleTime() > 0; }
+
+    bool isPauseOnBattery() const;
     const CpuConfig &cpu() const;
+    uint32_t idleTime() const;
 
 #   ifdef XMRIG_FEATURE_OPENCL
     const OclConfig &cl() const;
@@ -70,7 +87,13 @@ public:
 #   if defined(XMRIG_FEATURE_NVML) || defined (XMRIG_FEATURE_ADL)
     uint32_t healthPrintTime() const;
 #   else
-    uint32_t healthPrintTime() const { return 0; }
+    uint32_t healthPrintTime() const        { return 0; }
+#   endif
+
+#   ifdef XMRIG_FEATURE_DMI
+    bool isDMI() const;
+#   else
+    static constexpr inline bool isDMI()    { return false; }
 #   endif
 
     bool isShouldSave() const;

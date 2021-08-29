@@ -19,3 +19,30 @@ set(SOURCES_BACKEND_COMMON
     src/backend/common/Worker.cpp
     src/backend/common/Workers.cpp
    )
+
+if (WITH_RANDOMX AND WITH_BENCHMARK)
+    list(APPEND HEADERS_BACKEND_COMMON
+        src/backend/common/benchmark/Benchmark.h
+        src/backend/common/benchmark/BenchState_test.h
+        src/backend/common/benchmark/BenchState.h
+        src/backend/common/interfaces/IBenchListener.h
+        )
+
+    list(APPEND SOURCES_BACKEND_COMMON
+        src/backend/common/benchmark/Benchmark.cpp
+        src/backend/common/benchmark/BenchState.cpp
+        )
+endif()
+
+
+if (WITH_OPENCL OR WITH_CUDA)
+    list(APPEND HEADERS_BACKEND_COMMON
+        src/backend/common/HashrateInterpolator.h
+        src/backend/common/GpuWorker.h
+        )
+
+    list(APPEND SOURCES_BACKEND_COMMON
+        src/backend/common/HashrateInterpolator.cpp
+        src/backend/common/GpuWorker.cpp
+        )
+endif()

@@ -23,6 +23,12 @@ if (WITH_ASTROBWT)
     else()
         if (CMAKE_SIZEOF_VOID_P EQUAL 8)
             add_definitions(/DASTROBWT_AVX2)
+            list(APPEND SOURCES_CRYPTO src/crypto/astrobwt/xmm6int/salsa20_xmm6int-avx2.c)
+
+            if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+                set_source_files_properties(src/crypto/astrobwt/xmm6int/salsa20_xmm6int-avx2.c PROPERTIES COMPILE_FLAGS -mavx2)
+            endif()
+
             if (CMAKE_C_COMPILER_ID MATCHES MSVC)
                 enable_language(ASM_MASM)
                 list(APPEND SOURCES_CRYPTO src/crypto/astrobwt/sha3_256_avx2.asm)

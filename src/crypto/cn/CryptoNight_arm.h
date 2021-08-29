@@ -33,7 +33,6 @@
 #include "crypto/cn/CryptoNight_monero.h"
 #include "crypto/cn/CryptoNight.h"
 #include "crypto/cn/soft_aes.h"
-#include "crypto/common/portable/mm_malloc.h"
 
 
 extern "C"
@@ -66,69 +65,6 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 
 
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
-
-
-static inline __attribute__((always_inline)) __m128i _mm_set_epi64x(const uint64_t a, const uint64_t b)
-{
-    return vcombine_u64(vcreate_u64(b), vcreate_u64(a));
-}
-
-
-#if __ARM_FEATURE_CRYPTO
-static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
-{
-    alignas(16) const __m128i zero = { 0 };
-    return veorq_u8(vaesmcq_u8(vaeseq_u8(v, zero)), rkey );
-}
-#else
-static inline __attribute__((always_inline)) __m128i _mm_aesenc_si128(__m128i v, __m128i rkey)
-{
-    alignas(16) const __m128i zero = { 0 };
-    return zero;
-}
-#endif
-
-
-/* this one was not implemented yet so here it is */
-static inline __attribute__((always_inline)) uint64_t _mm_cvtsi128_si64(__m128i a)
-{
-    return vgetq_lane_u64(a, 0);
-}
-
-
-#if defined (__arm64__) || defined (__aarch64__)
-static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
-    *hi = r >> 64;
-    return (uint64_t) r;
-}
-#else
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
-    // multiplier   = ab = a * 2^32 + b
-    // multiplicand = cd = c * 2^32 + d
-    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
-    uint64_t a = multiplier >> 32;
-    uint64_t b = multiplier & 0xFFFFFFFF;
-    uint64_t c = multiplicand >> 32;
-    uint64_t d = multiplicand & 0xFFFFFFFF;
-
-    //uint64_t ac = a * c;
-    uint64_t ad = a * d;
-    //uint64_t bc = b * c;
-    uint64_t bd = b * d;
-
-    uint64_t adbc = ad + (b * c);
-    uint64_t adbc_carry = adbc < ad ? 1 : 0;
-
-    // multiplier * multiplicand = product_hi * 2^64 + product_lo
-    uint64_t product_lo = bd + (adbc << 32);
-    uint64_t product_lo_carry = product_lo < bd ? 1 : 0;
-    *product_hi = (a * c) + (adbc >> 32) + (adbc_carry << 32) + product_lo_carry;
-
-    return product_lo;
-}
-#endif
 
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
@@ -424,7 +360,7 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
     uint64_t* mem_out = (uint64_t*)&l[idx];
 
     if (props.base() == Algorithm::CN_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -460,7 +396,7 @@ static inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
 }
 
 
-template<Algorithm::Id ALGO, bool SOFT_AES>
+template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
     constexpr CnAlgo<ALGO> props;
@@ -557,7 +493,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -733,7 +669,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -793,7 +729,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 

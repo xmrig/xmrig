@@ -26,8 +26,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "crypto/randomx/soft_aes.h"
+#include <thread>
+#include <vector>
+#include <array>
+
+#include "crypto/randomx/aes_hash.hpp"
+#include "base/tools/Chrono.h"
 #include "crypto/randomx/randomx.h"
+#include "crypto/randomx/soft_aes.h"
+#include "crypto/rx/Profiler.h"
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
 #define AES_HASH_1R_STATE1 0xace78057, 0xf59e125a, 0x15c7b798, 0x338d996e
@@ -49,7 +56,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 	Hashing throughput: >20 GiB/s per CPU core with hardware AES
 */
-template<bool softAes>
+template<int softAes>
 void hashAes1Rx4(const void *input, size_t inputSize, void *hash) {
 	const uint8_t* inptr = (uint8_t*)input;
 	const uint8_t* inputEnd = inptr + inputSize;
@@ -117,7 +124,7 @@ template void hashAes1Rx4<true>(const void *input, size_t inputSize, void *hash)
 	The modified state is written back to 'state' to allow multiple
 	calls to this function.
 */
-template<bool softAes>
+template<int softAes>
 void fillAes1Rx4(void *state, size_t outputSize, void *buffer) {
 	const uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
@@ -158,7 +165,7 @@ void fillAes1Rx4(void *state, size_t outputSize, void *buffer) {
 template void fillAes1Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes1Rx4<false>(void *state, size_t outputSize, void *buffer);
 
-template<bool softAes>
+template<int softAes>
 void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 	const uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
@@ -213,8 +220,10 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 template void fillAes4Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes4Rx4<false>(void *state, size_t outputSize, void *buffer);
 
-template<bool softAes>
+template<int softAes, int unroll>
 void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state) {
+	PROFILE_SCOPE(RandomX_AES);
+
 	uint8_t* scratchpadPtr = (uint8_t*)scratchpad;
 	const uint8_t* scratchpadEnd = scratchpadPtr + scratchpadSize;
 
@@ -241,42 +250,86 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	for (int i = 0; i < 2; ++i) {
 		//process 64 bytes at a time in 4 lanes
 		while (scratchpadPtr < scratchpadEnd) {
-			hash_state0 = aesenc<softAes>(hash_state0, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 0));
-			hash_state1 = aesdec<softAes>(hash_state1, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 1));
-			hash_state2 = aesenc<softAes>(hash_state2, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 2));
-			hash_state3 = aesdec<softAes>(hash_state3, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 3));
+#define HASH_STATE(k) \
+			hash_state0 = aesenc<softAes>(hash_state0, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 0)); \
+			hash_state1 = aesdec<softAes>(hash_state1, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 1)); \
+			hash_state2 = aesenc<softAes>(hash_state2, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 2)); \
+			hash_state3 = aesdec<softAes>(hash_state3, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 3));
 
-			fill_state0 = aesdec<softAes>(fill_state0, key0);
-			fill_state1 = aesenc<softAes>(fill_state1, key1);
-			fill_state2 = aesdec<softAes>(fill_state2, key2);
-			fill_state3 = aesenc<softAes>(fill_state3, key3);
+#define FILL_STATE(k) \
+			fill_state0 = aesdec<softAes>(fill_state0, key0); \
+			fill_state1 = aesenc<softAes>(fill_state1, key1); \
+			fill_state2 = aesdec<softAes>(fill_state2, key2); \
+			fill_state3 = aesenc<softAes>(fill_state3, key3); \
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 0, fill_state0); \
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 1, fill_state1); \
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 2, fill_state2); \
+			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + k * 4 + 3, fill_state3);
 
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 0, fill_state0);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 1, fill_state1);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 2, fill_state2);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 3, fill_state3);
+			switch (softAes) {
+				case 0:
+					HASH_STATE(0);
+					HASH_STATE(1);
 
-			rx_prefetch_t0(prefetchPtr);
+					FILL_STATE(0);
+					FILL_STATE(1);
 
-			hash_state0 = aesenc<softAes>(hash_state0, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 4));
-			hash_state1 = aesdec<softAes>(hash_state1, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 5));
-			hash_state2 = aesenc<softAes>(hash_state2, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 6));
-			hash_state3 = aesdec<softAes>(hash_state3, rx_load_vec_i128((rx_vec_i128*)scratchpadPtr + 7));
+					rx_prefetch_t0(prefetchPtr);
+					rx_prefetch_t0(prefetchPtr + 64);
 
-			fill_state0 = aesdec<softAes>(fill_state0, key0);
-			fill_state1 = aesenc<softAes>(fill_state1, key1);
-			fill_state2 = aesdec<softAes>(fill_state2, key2);
-			fill_state3 = aesenc<softAes>(fill_state3, key3);
+					scratchpadPtr += 128;
+					prefetchPtr += 128;
 
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 4, fill_state0);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 5, fill_state1);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 6, fill_state2);
-			rx_store_vec_i128((rx_vec_i128*)scratchpadPtr + 7, fill_state3);
+					break;
 
-			rx_prefetch_t0(prefetchPtr + 64);
+				default:
+					switch (unroll) {
+						case 4:
+							HASH_STATE(0);
+							FILL_STATE(0);
+							rx_prefetch_t0(prefetchPtr);
 
-			scratchpadPtr += 128;
-			prefetchPtr += 128;
+							HASH_STATE(1);
+							FILL_STATE(1);
+							rx_prefetch_t0(prefetchPtr + 64);
+
+							HASH_STATE(2);
+							FILL_STATE(2);
+							rx_prefetch_t0(prefetchPtr + 64 * 2);
+
+							HASH_STATE(3);
+							FILL_STATE(3);
+							rx_prefetch_t0(prefetchPtr + 64 * 3);
+
+							scratchpadPtr += 64 * 4;
+							prefetchPtr += 64 * 4;
+							break;
+
+						case 2:
+							HASH_STATE(0);
+							FILL_STATE(0);
+							rx_prefetch_t0(prefetchPtr);
+
+							HASH_STATE(1);
+							FILL_STATE(1);
+							rx_prefetch_t0(prefetchPtr + 64);
+
+							scratchpadPtr += 64 * 2;
+							prefetchPtr += 64 * 2;
+							break;
+
+						default:
+							HASH_STATE(0);
+							FILL_STATE(0);
+							rx_prefetch_t0(prefetchPtr);
+
+							scratchpadPtr += 64;
+							prefetchPtr += 64;
+
+							break;
+					}
+					break;
+			}
 		}
 		prefetchPtr = (const char*) scratchpad;
 		scratchpadEnd += PREFETCH_DISTANCE;
@@ -308,5 +361,53 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	rx_store_vec_i128((rx_vec_i128*)hash + 3, hash_state3);
 }
 
-template void hashAndFillAes1Rx4<false>(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
-template void hashAndFillAes1Rx4<true>(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
+template void hashAndFillAes1Rx4<0,2>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
+template void hashAndFillAes1Rx4<1,1>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
+template void hashAndFillAes1Rx4<2,1>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
+template void hashAndFillAes1Rx4<2,2>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
+template void hashAndFillAes1Rx4<2,4>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
+
+hashAndFillAes1Rx4_impl* softAESImpl = &hashAndFillAes1Rx4<1,1>;
+
+void SelectSoftAESImpl(size_t threadsCount)
+{
+  constexpr uint64_t test_length_ms = 100;
+  const std::array<hashAndFillAes1Rx4_impl *, 4> impl = {
+    &hashAndFillAes1Rx4<1,1>,
+    &hashAndFillAes1Rx4<2,1>,
+    &hashAndFillAes1Rx4<2,2>,
+    &hashAndFillAes1Rx4<2,4>,
+  };
+  size_t fast_idx = 0;
+  double fast_speed = 0.0;
+  for (size_t run = 0; run < 3; ++run) {
+    for (size_t i = 0; i < impl.size(); ++i) {
+      const uint64_t t1 = xmrig::Chrono::highResolutionMSecs();
+      std::vector<uint32_t> count(threadsCount, 0);
+      std::vector<std::thread> threads;
+      for (size_t t = 0; t < threadsCount; ++t) {
+        threads.emplace_back([&, t]() {
+          std::vector<uint8_t> scratchpad(10 * 1024);
+          alignas(16) uint8_t hash[64] = {};
+          alignas(16) uint8_t state[64] = {};
+          do {
+          (*impl[i])(scratchpad.data(), scratchpad.size(), hash, state);
+          ++count[t];
+          } while (xmrig::Chrono::highResolutionMSecs() - t1 < test_length_ms);
+        });
+      }
+      uint32_t total = 0;
+      for (size_t t = 0; t < threadsCount; ++t) {
+        threads[t].join();
+        total += count[t];
+      }
+      const uint64_t t2 = xmrig::Chrono::highResolutionMSecs();
+      const double speed = total * 1e3 / (t2 - t1);
+      if (speed > fast_speed) {
+        fast_idx = i;
+        fast_speed = speed;
+      }
+    }
+  }
+  softAESImpl = impl[fast_idx];
+}

@@ -32,7 +32,7 @@
 #include <algorithm>
 
 
-xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread) :
+xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorithm, const CpuConfig &config, const CpuThread &thread, size_t threads) :
     algorithm(algorithm),
     assembly(config.assembly()),
     astrobwtAVX2(config.astrobwtAVX2()),
@@ -43,6 +43,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     priority(config.priority()),
     affinity(thread.affinity()),
     miner(miner),
+    threads(threads),
     intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity()))
 {
 }

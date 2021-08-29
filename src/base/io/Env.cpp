@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/io/Env.h"
 #include "base/kernel/Process.h"
@@ -65,6 +58,11 @@ static void createVariables()
     variables.insert({ "XMRIG_HOME_DIR", Process::location(Process::HomeLocation) });
     variables.insert({ "XMRIG_TEMP_DIR", Process::location(Process::TempLocation) });
     variables.insert({ "XMRIG_DATA_DIR", Process::location(Process::DataLocation) });
+
+    String hostname = "HOSTNAME";
+    if (!getenv(hostname)) { // NOLINT(concurrency-mt-unsafe)
+        variables.insert({ std::move(hostname), Env::hostname() });
+    }
 }
 #endif
 
@@ -72,7 +70,7 @@ static void createVariables()
 } // namespace xmrig
 
 
-xmrig::String xmrig::Env::expand(const char *in)
+xmrig::String xmrig::Env::expand(const char *in, const std::map<String, String> &extra)
 {
 #   ifdef XMRIG_FEATURE_ENV
     if (in == nullptr) {
@@ -96,7 +94,7 @@ xmrig::String xmrig::Env::expand(const char *in)
             continue;
         }
 
-        vars.insert({ var, get(m[1].str().c_str()) });
+        vars.insert({ var, get(m[1].str().c_str(), extra) });
     }
 
     for (const auto &kv : vars) {
@@ -118,19 +116,27 @@ xmrig::String xmrig::Env::expand(const char *in)
 }
 
 
-xmrig::String xmrig::Env::get(const String &name)
+xmrig::String xmrig::Env::get(const String &name, const std::map<String, String> &extra)
 {
 #   ifdef XMRIG_FEATURE_ENV
     if (variables.empty()) {
         createVariables();
     }
 
-    if (variables.count(name)) {
-        return variables.at(name);
+    const auto it = variables.find(name);
+    if (it != variables.end()) {
+        return it->second;
+    }
+
+    if (!extra.empty()) {
+        const auto it = extra.find(name);
+        if (it != extra.end()) {
+            return it->second;
+        }
     }
 #   endif
 
-    return static_cast<const char *>(getenv(name));
+    return static_cast<const char *>(getenv(name)); // NOLINT(concurrency-mt-unsafe)
 }
 
 

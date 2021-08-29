@@ -1,14 +1,8 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,6 +22,7 @@
 #define XMRIG_RX_QUEUE_H
 
 
+#include "base/kernel/interfaces/IAsyncListener.h"
 #include "base/tools/Object.h"
 #include "crypto/common/HugePagesInfo.h"
 #include "crypto/rx/RxConfig.h"
@@ -37,9 +32,6 @@
 #include <condition_variable>
 #include <mutex>
 #include <thread>
-
-
-using uv_async_t = struct uv_async_s;
 
 
 namespace xmrig
@@ -74,18 +66,21 @@ public:
 };
 
 
-class RxQueue
+class RxQueue : public IAsyncListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE(RxQueue);
 
     RxQueue(IRxListener *listener);
-    ~RxQueue();
+    ~RxQueue() override;
 
-    bool isReady(const Job &job);
-    RxDataset *dataset(const Job &job, uint32_t nodeId);
     HugePagesInfo hugePages();
+    RxDataset *dataset(const Job &job, uint32_t nodeId);
+    template<typename T> bool isReady(const T &seed);
     void enqueue(const RxSeed &seed, const std::vector<uint32_t> &nodeset, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority);
+
+protected:
+    inline void onAsync() override  { onReady(); }
 
 private:
     enum State {
@@ -94,7 +89,7 @@ private:
         STATE_SHUTDOWN
     };
 
-    bool isReadyUnsafe(const Job &job) const;
+    template<typename T> bool isReadyUnsafe(const T &seed) const;
     void backgroundInit();
     void onReady();
 
@@ -104,9 +99,9 @@ private:
     State m_state = STATE_IDLE;
     std::condition_variable m_cv;
     std::mutex m_mutex;
+    std::shared_ptr<Async> m_async;
     std::thread m_thread;
     std::vector<RxQueueItem> m_queue;
-    uv_async_t *m_async     = nullptr;
 };
 
 

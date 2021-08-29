@@ -1,11 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,6 +33,8 @@
 #include <unistd.h>
 #include <uv.h>
 #include <thread>
+#include <fstream>
+#include <limits>
 
 
 #include "base/kernel/Platform.h"
@@ -145,4 +142,26 @@ void xmrig::Platform::setThreadPriority(int priority)
         }
     }
 #   endif
+}
+
+
+bool xmrig::Platform::isOnBatteryPower()
+{
+    for (int i = 0; i <= 1; ++i) {
+        char buf[64];
+        snprintf(buf, 64, "/sys/class/power_supply/BAT%d/status", i);
+        std::ifstream f(buf);
+        if (f.is_open()) {
+            std::string status;
+            f >> status;
+            return (status == "Discharging");
+        }
+    }
+    return false;
+}
+
+
+uint64_t xmrig::Platform::idleTime()
+{
+    return std::numeric_limits<uint64_t>::max();
 }

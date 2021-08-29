@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,7 +28,7 @@
  * Example of how it works for the setting of 1%:
  * You miner will mine into your usual pool for random time (in range from 49.5 to 148.5 minutes),
  * then switch to the developer's pool for 1 minute, then switch again to your pool for 99 minutes
- * and then switch agaiin to developer's pool for 1 minute, these rounds will continue until miner working.
+ * and then switch again to developer's pool for 1 minute, these rounds will continue until miner working.
  *
  * Randomised only first round, to prevent waves on the donation pool.
  *
@@ -42,7 +36,6 @@
  *
  * If you plan on changing this setting to 0 please consider making a one off donation to my wallet:
  * XMR: 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD
- * BTC: 1P7ujsXeX7GxQwHNnJsRMgAdNkFZmNVqJT
  */
 constexpr const int kDefaultDonateLevel = 1;
 constexpr const int kMinimumDonateLevel = 1;

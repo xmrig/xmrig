@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "backend/opencl/OclThread.h"
 #include "3rdparty/rapidjson/document.h"
@@ -56,15 +49,15 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     }
 
     m_index         = Json::getUint(value, kIndex);
-    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 512u), 1u);
-    m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128u), 1u);
+    m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 512U), 1U);
+    m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128U), 1U);
 
     setIntensity(Json::getUint(value, kIntensity));
 
     const auto &si = Json::getArray(value, kStridedIndex);
     if (si.IsArray() && si.Size() >= 2) {
-        m_stridedIndex = std::min(si[0].GetUint(), 2u);
-        m_memChunk     = std::min(si[1].GetUint(), 18u);
+        m_stridedIndex = std::min(si[0].GetUint(), 2U);
+        m_memChunk     = std::min(si[1].GetUint(), 18U);
     }
     else {
         m_stridedIndex = 0;

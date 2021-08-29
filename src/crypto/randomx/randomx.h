@@ -64,15 +64,24 @@ struct RandomX_ConfigurationBase
 
 	void Apply();
 
-	uint32_t ArgonMemory;
+	// Common parameters for all RandomX variants
+	enum Params : uint64_t
+	{
+		ArgonMemory = 262144,
+		CacheAccesses = 8,
+		SuperscalarLatency = 170,
+		DatasetBaseSize = 2147483648,
+		DatasetExtraSize = 33554368,
+		JumpBits = 8,
+		JumpOffset = 8,
+		CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1),
+		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
+		ConditionMask_Calculated = ((1 << JumpBits) - 1) << JumpOffset,
+	};
+
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
-	uint32_t CacheAccesses;
-	uint32_t SuperscalarLatency;
-
-	uint32_t DatasetBaseSize;
-	uint32_t DatasetExtraSize;
 
 	uint32_t ScratchpadL1_Size;
 	uint32_t ScratchpadL2_Size;
@@ -81,9 +90,6 @@ struct RandomX_ConfigurationBase
 	uint32_t ProgramSize;
 	uint32_t ProgramIterations;
 	uint32_t ProgramCount;
-
-	uint32_t JumpBits;
-	uint32_t JumpOffset;
 
 	uint32_t RANDOMX_FREQ_IADD_RS;
 	uint32_t RANDOMX_FREQ_IADD_M;
@@ -119,76 +125,33 @@ struct RandomX_ConfigurationBase
 	rx_vec_i128 fillAes4Rx4_Key[8];
 
 	uint8_t codeShhPrefetchTweaked[20];
-	uint8_t codeReadDatasetTweaked[64];
-	uint32_t codeReadDatasetTweakedSize;
-	uint8_t codeReadDatasetRyzenTweaked[76];
-	uint32_t codeReadDatasetRyzenTweakedSize;
-	uint8_t codeReadDatasetLightSshInitTweaked[68];
-	uint8_t codePrefetchScratchpadTweaked[32];
+	uint8_t codePrefetchScratchpadTweaked[28];
+	uint32_t codePrefetchScratchpadTweakedSize;
 
-	uint32_t CacheLineAlignMask_Calculated;
-	uint32_t DatasetExtraItems_Calculated;
-
-	uint32_t ScratchpadL1Mask_Calculated;
-	uint32_t ScratchpadL1Mask16_Calculated;
-	uint32_t ScratchpadL2Mask_Calculated;
-	uint32_t ScratchpadL2Mask16_Calculated;
+	uint32_t AddressMask_Calculated[4];
 	uint32_t ScratchpadL3Mask_Calculated;
 	uint32_t ScratchpadL3Mask64_Calculated;
 
-	uint32_t ConditionMask_Calculated;
-
-#if defined(XMRIG_ARMv8)
+#	if (XMRIG_ARM == 8)
 	uint32_t Log2_ScratchpadL1;
 	uint32_t Log2_ScratchpadL2;
 	uint32_t Log2_ScratchpadL3;
 	uint32_t Log2_DatasetBaseSize;
 	uint32_t Log2_CacheSize;
-#endif
-
-	int CEIL_IADD_RS;
-	int CEIL_IADD_M;
-	int CEIL_ISUB_R;
-	int CEIL_ISUB_M;
-	int CEIL_IMUL_R;
-	int CEIL_IMUL_M;
-	int CEIL_IMULH_R;
-	int CEIL_IMULH_M;
-	int CEIL_ISMULH_R;
-	int CEIL_ISMULH_M;
-	int CEIL_IMUL_RCP;
-	int CEIL_INEG_R;
-	int CEIL_IXOR_R;
-	int CEIL_IXOR_M;
-	int CEIL_IROR_R;
-	int CEIL_IROL_R;
-	int CEIL_ISWAP_R;
-	int CEIL_FSWAP_R;
-	int CEIL_FADD_R;
-	int CEIL_FADD_M;
-	int CEIL_FSUB_R;
-	int CEIL_FSUB_M;
-	int CEIL_FSCAL_R;
-	int CEIL_FMUL_R;
-	int CEIL_FDIV_M;
-	int CEIL_FSQRT_R;
-	int CEIL_CBRANCH;
-	int CEIL_CFROUND;
-	int CEIL_ISTORE;
-	int CEIL_NOP;
+#	endif
 };
 
 struct RandomX_ConfigurationMonero : public RandomX_ConfigurationBase {};
 struct RandomX_ConfigurationWownero : public RandomX_ConfigurationBase { RandomX_ConfigurationWownero(); };
-struct RandomX_ConfigurationLoki : public RandomX_ConfigurationBase { RandomX_ConfigurationLoki(); };
 struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_ConfigurationArqma(); };
+struct RandomX_ConfigurationGraft : public RandomX_ConfigurationBase { RandomX_ConfigurationGraft(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
 struct RandomX_ConfigurationKeva : public RandomX_ConfigurationBase { RandomX_ConfigurationKeva(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationWownero RandomX_WowneroConfig;
-extern RandomX_ConfigurationLoki RandomX_LokiConfig;
 extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
+extern RandomX_ConfigurationGraft RandomX_GraftConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationKeva RandomX_KevaConfig;
 
@@ -202,6 +165,10 @@ void randomx_apply_config(const T& config)
 	RandomX_CurrentConfig = config;
 	RandomX_CurrentConfig.Apply();
 }
+
+void randomx_set_scratchpad_prefetch_mode(int mode);
+void randomx_set_huge_pages_jit(bool hugePages);
+void randomx_set_optimized_dataset_init(int value);
 
 #if defined(__cplusplus)
 extern "C" {

@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,11 +17,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-
-
-#include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
+#include "backend/cpu/Cpu.h"
+#include "base/tools/cryptonote/umul128.h"
 #include "crypto/common/VirtualMemory.h"
 
 
@@ -48,27 +40,30 @@
 #endif
 
 
-#define ADD_FN(algo) \
-    m_map[algo][AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false>; \
-    m_map[algo][AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true>;  \
-    m_map[algo][AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>; \
-    m_map[algo][AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;  \
-    m_map[algo][AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>; \
-    m_map[algo][AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;  \
-    m_map[algo][AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>; \
-    m_map[algo][AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;  \
-    m_map[algo][AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>; \
-    m_map[algo][AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;
+#define ADD_FN(algo) do {                                                                            \
+        m_map[algo] = new cn_hash_fun_array{};                                                       \
+        m_map[algo]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
+        m_map[algo]->data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash<algo, true,  0>; \
+        m_map[algo]->data[AV_DOUBLE][Assembly::NONE]      = cryptonight_double_hash<algo, false>;    \
+        m_map[algo]->data[AV_DOUBLE_SOFT][Assembly::NONE] = cryptonight_double_hash<algo, true>;     \
+        m_map[algo]->data[AV_TRIPLE][Assembly::NONE]      = cryptonight_triple_hash<algo, false>;    \
+        m_map[algo]->data[AV_TRIPLE_SOFT][Assembly::NONE] = cryptonight_triple_hash<algo, true>;     \
+        m_map[algo]->data[AV_QUAD][Assembly::NONE]        = cryptonight_quad_hash<algo,   false>;    \
+        m_map[algo]->data[AV_QUAD_SOFT][Assembly::NONE]   = cryptonight_quad_hash<algo,   true>;     \
+        m_map[algo]->data[AV_PENTA][Assembly::NONE]       = cryptonight_penta_hash<algo,  false>;    \
+        m_map[algo]->data[AV_PENTA_SOFT][Assembly::NONE]  = cryptonight_penta_hash<algo,  true>;     \
+    } while (0)
 
 
 #ifdef XMRIG_FEATURE_ASM
-#   define ADD_FN_ASM(algo) \
-    m_map[algo][AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
-    m_map[algo][AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
-    m_map[algo][AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
-    m_map[algo][AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
-    m_map[algo][AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
-    m_map[algo][AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>;
+#   define ADD_FN_ASM(algo) do {                                                                                    \
+        m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
+        m_map[algo]->data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
+        m_map[algo]->data[AV_SINGLE][Assembly::BULLDOZER] = cryptonight_single_hash_asm<algo, Assembly::BULLDOZER>; \
+        m_map[algo]->data[AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
+        m_map[algo]->data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
+        m_map[algo]->data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
+    } while (0)
 
 
 namespace xmrig {
@@ -99,8 +94,11 @@ cn_mainloop_fun        cn_double_mainloop_ryzen_asm               = nullptr;
 cn_mainloop_fun        cn_double_mainloop_bulldozer_asm           = nullptr;
 cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 
+cn_mainloop_fun        cn_upx2_mainloop_asm                       = nullptr;
+cn_mainloop_fun        cn_upx2_double_mainloop_asm                = nullptr;
 
-template<typename T, typename U>
+
+template<Algorithm::Id SOURCE_ALGO = Algorithm::CN_2, typename T, typename U>
 static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t mask = CnAlgo<Algorithm::CN_HALF>().mask())
 {
     auto p = reinterpret_cast<const uint8_t*>(src);
@@ -124,11 +122,11 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
     auto patched_data = reinterpret_cast<uint8_t*>(dst);
     for (size_t i = 0; i + sizeof(uint32_t) <= size; ++i) {
         switch (*(uint32_t*)(patched_data + i)) {
-        case CnAlgo<Algorithm::CN_2>().iterations():
+        case CnAlgo<SOURCE_ALGO>().iterations():
             *(uint32_t*)(patched_data + i) = iterations;
             break;
 
-        case CnAlgo<Algorithm::CN_2>().mask():
+        case CnAlgo<SOURCE_ALGO>().mask():
             *(uint32_t*)(patched_data + i) = mask;
             break;
         }
@@ -138,8 +136,8 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 
 static void patchAsmVariants()
 {
-    const int allocation_size = 81920;
-    auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size));
+    const int allocation_size = 131072;
+    auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size, false));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
@@ -168,6 +166,11 @@ static void patchAsmVariants()
     cn_tlo_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x11000);
     cn_tlo_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x12000);
     cn_tlo_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0x13000);
+#   endif
+
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    cn_upx2_mainloop_asm                        = reinterpret_cast<cn_mainloop_fun>         (base + 0x14000);
+    cn_upx2_double_mainloop_asm                 = reinterpret_cast<cn_mainloop_fun>         (base + 0x15000);
 #   endif
 
     {
@@ -219,7 +222,17 @@ static void patchAsmVariants()
         patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
-    VirtualMemory::protectExecutableMemory(base, allocation_size);
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    {
+        constexpr uint32_t ITER = CnAlgo<Algorithm::CN_UPX2>().iterations();
+        constexpr uint32_t MASK = CnAlgo<Algorithm::CN_UPX2>().mask();
+
+        patchCode<Algorithm::CN_RWZ>(cn_upx2_mainloop_asm,        cnv2_rwz_mainloop_asm,            ITER,   MASK);
+        patchCode<Algorithm::CN_RWZ>(cn_upx2_double_mainloop_asm, cnv2_rwz_double_mainloop_asm,     ITER,   MASK);
+    }
+#endif
+
+    VirtualMemory::protectRX(base, allocation_size);
     VirtualMemory::flushInstructionCache(base, allocation_size);
 }
 } // namespace xmrig
@@ -272,16 +285,29 @@ xmrig::CnHash::CnHash()
 
     ADD_FN(Algorithm::CN_CCX);
 
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    ADD_FN(Algorithm::CN_UPX2);
+    ADD_FN_ASM(Algorithm::CN_UPX2);
+#   endif
+
 #   ifdef XMRIG_ALGO_ARGON2
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_CHUKWA][AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE][Assembly::NONE]        = argon2::single_hash<Algorithm::AR2_WRKZ>;
-    m_map[Algorithm::AR2_WRKZ][AV_SINGLE_SOFT][Assembly::NONE]   = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_CHUKWA] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_CHUKWA]->data[AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+    m_map[Algorithm::AR2_CHUKWA]->data[AV_SINGLE_SOFT][Assembly::NONE]    = argon2::single_hash<Algorithm::AR2_CHUKWA>;
+
+    m_map[Algorithm::AR2_CHUKWA_V2] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_CHUKWA_V2]->data[AV_SINGLE][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+    m_map[Algorithm::AR2_CHUKWA_V2]->data[AV_SINGLE_SOFT][Assembly::NONE] = argon2::single_hash<Algorithm::AR2_CHUKWA_V2>;
+
+    m_map[Algorithm::AR2_WRKZ] = new cn_hash_fun_array{};
+    m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE][Assembly::NONE]           = argon2::single_hash<Algorithm::AR2_WRKZ>;
+    m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE_SOFT][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_WRKZ>;
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
-    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
-    m_map[Algorithm::ASTROBWT_DERO][AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+    m_map[Algorithm::ASTROBWT_DERO] = new cn_hash_fun_array{};
+    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
 #   endif
 
 #   ifdef XMRIG_FEATURE_ASM
@@ -292,16 +318,42 @@ xmrig::CnHash::CnHash()
 
 xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly)
 {
+    assert(cnHash.m_map.count(algorithm));
+
     if (!algorithm.isValid()) {
         return nullptr;
     }
 
+    const auto it = cnHash.m_map.find(algorithm);
+    if (it == cnHash.m_map.end()) {
+        return nullptr;
+    }
+
+#   ifdef XMRIG_ALGO_CN_HEAVY
+    // cn-heavy optimization for Zen3 CPUs
+    if ((av == AV_SINGLE) && (assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+        switch (algorithm.id()) {
+        case Algorithm::CN_HEAVY_0:
+            return cryptonight_single_hash<Algorithm::CN_HEAVY_0, false, 3>;
+
+        case Algorithm::CN_HEAVY_TUBE:
+            return cryptonight_single_hash<Algorithm::CN_HEAVY_TUBE, false, 3>;
+
+        case Algorithm::CN_HEAVY_XHV:
+            return cryptonight_single_hash<Algorithm::CN_HEAVY_XHV, false, 3>;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
 #   ifdef XMRIG_FEATURE_ASM
-    cn_hash_fun fun = cnHash.m_map[algorithm][av][Cpu::assembly(assembly)];
+    cn_hash_fun fun = it->second->data[av][Cpu::assembly(assembly)];
     if (fun) {
         return fun;
     }
 #   endif
 
-    return cnHash.m_map[algorithm][av][Assembly::NONE];
+    return it->second->data[av][Assembly::NONE];
 }

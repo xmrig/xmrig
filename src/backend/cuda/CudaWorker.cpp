@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -57,12 +50,10 @@
 namespace xmrig {
 
 
-static constexpr uint32_t kReserveCount = 32768;
 std::atomic<bool> CudaWorker::ready;
 
 
-static inline bool isReady()                         { return !Nonce::isPaused() && CudaWorker::ready; }
-static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / intensity + 1; }
+static inline bool isReady()    { return !Nonce::isPaused() && CudaWorker::ready; }
 
 
 } // namespace xmrig
@@ -70,10 +61,9 @@ static inline uint32_t roundSize(uint32_t intensity) { return kReserveCount / in
 
 
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
-    Worker(id, data.thread.affinity(), -1),
+    GpuWorker(id, data.thread.affinity(), -1, data.device.index()),
     m_algorithm(data.algorithm),
-    m_miner(data.miner),
-    m_deviceIndex(data.device.index())
+    m_miner(data.miner)
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -120,7 +110,7 @@ xmrig::CudaWorker::~CudaWorker()
 }
 
 
-void xmrig::CudaWorker::jobEarlyNotification(const Job& job)
+void xmrig::CudaWorker::jobEarlyNotification(const Job &job)
 {
     if (m_runner) {
         m_runner->jobEarlyNotification(job);
@@ -170,8 +160,7 @@ void xmrig::CudaWorker::start()
                 JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }
 
-            const size_t batch_size = intensity();
-            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(roundSize(batch_size), batch_size)) {
+            if (!Nonce::isOutdated(Nonce::CUDA, m_job.sequence()) && !m_job.nextRound(1, intensity())) {
                 JobResults::done(m_job.currentJob());
             }
 
@@ -192,8 +181,7 @@ bool xmrig::CudaWorker::consumeJob()
         return false;
     }
 
-    const size_t batch_size = intensity();
-    m_job.add(m_miner->job(), roundSize(batch_size) * batch_size, Nonce::CUDA);
+    m_job.add(m_miner->job(), intensity(), Nonce::CUDA);
 
     return m_runner->set(m_job.currentJob(), m_job.blob());
 }
@@ -207,5 +195,8 @@ void xmrig::CudaWorker::storeStats()
 
     m_count += m_runner ? m_runner->processedHashes() : 0;
 
-    Worker::storeStats();
+    const uint64_t timeStamp = Chrono::steadyMSecs();
+    m_hashrateData.addDataPoint(m_count, timeStamp);
+
+    GpuWorker::storeStats();
 }

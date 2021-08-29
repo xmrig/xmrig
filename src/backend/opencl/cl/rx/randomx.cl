@@ -4,12 +4,12 @@
 #include "randomx_constants_monero.h"
 #elif (ALGO == ALGO_RX_WOW)
 #include "randomx_constants_wow.h"
-#elif (ALGO == ALGO_RX_LOKI)
-#include "randomx_constants_loki.h"
 #elif (ALGO == ALGO_RX_ARQMA)
 #include "randomx_constants_arqma.h"
 #elif (ALGO == ALGO_RX_KEVA)
 #include "randomx_constants_keva.h"
+#elif (ALGO == ALGO_RX_GRAFT)
+#include "randomx_constants_graft.h"
 #endif
 
 #include "aes.cl"

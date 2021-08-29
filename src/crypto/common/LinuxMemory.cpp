@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,19 +16,15 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-//#include <iostream>
-
 #include "crypto/common/LinuxMemory.h"
-#include "base/io/log/Log.h"
+#include "3rdparty/fmt/core.h"
 #include "crypto/common/VirtualMemory.h"
-#include "backend/cpu/Cpu.h"
 
 
 #include <algorithm>
 #include <fstream>
-#include <string>
 #include <mutex>
+#include <string>
 
 
 namespace xmrig {
@@ -45,33 +35,32 @@ constexpr size_t twoMiB = 2U * 1024U * 1024U;
 constexpr size_t oneGiB = 1024U * 1024U * 1024U;
 
 
-static inline std::string sysfs_path(uint32_t node, bool oneGbPages, bool nr)
+static inline std::string sysfs_path(uint32_t node, size_t hugePageSize, bool nr)
 {
-    return "/sys/devices/system/node/node" + std::to_string(node) + "/hugepages/hugepages-" + (oneGbPages ? "1048576" : "2048") + "kB/" + (nr ? "nr" : "free") + "_hugepages";
+    return fmt::format("/sys/devices/system/node/node{}/hugepages/hugepages-{}kB/{}_hugepages", node, hugePageSize / 1024, nr ? "nr" : "free");
 }
 
 
-static inline bool write_nr_hugepages(uint32_t node, bool oneGbPages, uint64_t count)    { return LinuxMemory::write(sysfs_path(node, oneGbPages, true).c_str(), count); }
-static inline int64_t free_hugepages(uint32_t node, bool oneGbPages)                     { return LinuxMemory::read(sysfs_path(node, oneGbPages, false).c_str()); }
-static inline int64_t nr_hugepages(uint32_t node, bool oneGbPages)                       { return LinuxMemory::read(sysfs_path(node, oneGbPages, true).c_str()); }
+static inline bool write_nr_hugepages(uint32_t node, size_t hugePageSize, uint64_t count)   { return LinuxMemory::write(sysfs_path(node, hugePageSize, true).c_str(), count); }
+static inline int64_t free_hugepages(uint32_t node, size_t hugePageSize)                    { return LinuxMemory::read(sysfs_path(node, hugePageSize, false).c_str()); }
+static inline int64_t nr_hugepages(uint32_t node, size_t hugePageSize)                      { return LinuxMemory::read(sysfs_path(node, hugePageSize, true).c_str()); }
 
 
 } // namespace xmrig
 
 
-bool xmrig::LinuxMemory::reserve(size_t size, uint32_t node, bool oneGbPages)
+bool xmrig::LinuxMemory::reserve(size_t size, uint32_t node, size_t hugePageSize)
 {
     std::lock_guard<std::mutex> lock(mutex);
 
-    const size_t pageSize = oneGbPages ? oneGiB : twoMiB;
-    const size_t required = VirtualMemory::align(size, pageSize) / pageSize;
+    const size_t required = VirtualMemory::align(size, hugePageSize) / hugePageSize;
 
-    const auto available = free_hugepages(node, oneGbPages);
+    const auto available = free_hugepages(node, hugePageSize);
     if (available < 0 || static_cast<size_t>(available) >= required) {
         return false;
     }
 
-    return write_nr_hugepages(node, oneGbPages, std::max<size_t>(nr_hugepages(node, oneGbPages), 0) + (required - available));
+    return write_nr_hugepages(node, hugePageSize, std::max<size_t>(nr_hugepages(node, hugePageSize), 0) + (required - available));
 }
 
 

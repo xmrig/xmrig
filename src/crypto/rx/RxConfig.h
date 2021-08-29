@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +24,7 @@
 
 
 #ifdef XMRIG_FEATURE_MSR
-#   include "crypto/rx/msr/MsrItem.h"
+#   include "hw/msr/MsrItem.h"
 #endif
 
 
@@ -50,6 +44,28 @@ public:
         ModeMax
     };
 
+    enum ScratchpadPrefetchMode : uint32_t {
+        ScratchpadPrefetchOff,
+        ScratchpadPrefetchT0,
+        ScratchpadPrefetchNTA,
+        ScratchpadPrefetchMov,
+        ScratchpadPrefetchMax,
+    };
+
+    static const char *kCacheQoS;
+    static const char *kField;
+    static const char *kInit;
+    static const char *kInitAVX2;
+    static const char *kMode;
+    static const char *kOneGbPages;
+    static const char *kRdmsr;
+    static const char *kScratchpadPrefetchMode;
+    static const char *kWrmsr;
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    static const char *kNUMA;
+#   endif
+
     bool read(const rapidjson::Value &value);
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
@@ -62,10 +78,14 @@ public:
     const char *modeName() const;
     uint32_t threads(uint32_t limit = 100) const;
 
+    inline int initDatasetAVX2() const  { return m_initDatasetAVX2; }
     inline bool isOneGbPages() const    { return m_oneGbPages; }
     inline bool rdmsr() const           { return m_rdmsr; }
     inline bool wrmsr() const           { return m_wrmsr; }
+    inline bool cacheQoS() const        { return m_cacheQoS; }
     inline Mode mode() const            { return m_mode; }
+
+    inline ScratchpadPrefetchMode scratchpadPrefetchMode() const { return m_scratchpadPrefetchMode; }
 
 #   ifdef XMRIG_FEATURE_MSR
     const char *msrPresetName() const;
@@ -83,15 +103,20 @@ private:
     bool m_wrmsr = false;
 #   endif
 
-    Mode readMode(const rapidjson::Value &value) const;
+    bool m_cacheQoS = false;
 
-    bool m_numa         = true;
-    bool m_oneGbPages   = false;
-    bool m_rdmsr        = true;
-    int m_threads       = -1;
-    Mode m_mode         = AutoMode;
+    static Mode readMode(const rapidjson::Value &value);
+
+    bool m_oneGbPages     = false;
+    bool m_rdmsr          = true;
+    int m_threads         = -1;
+    int m_initDatasetAVX2 = -1;
+    Mode m_mode           = AutoMode;
+
+    ScratchpadPrefetchMode m_scratchpadPrefetchMode = ScratchpadPrefetchT0;
 
 #   ifdef XMRIG_FEATURE_HWLOC
+    bool m_numa           = true;
     std::vector<uint32_t> m_nodeset;
 #   endif
 

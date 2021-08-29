@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +23,7 @@
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IJsonReader.h"
+#include "base/net/dns/Dns.h"
 #include "version.h"
 
 
@@ -85,15 +80,15 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
         return false;
     }
 
-    m_autoSave     = reader.getBool(kAutosave, m_autoSave);
-    m_background   = reader.getBool(kBackground, m_background);
-    m_dryRun       = reader.getBool(kDryRun, m_dryRun);
-    m_syslog       = reader.getBool(kSyslog, m_syslog);
-    m_watch        = reader.getBool(kWatch, m_watch);
-    m_logFile      = reader.getString(kLogFile);
-    m_userAgent    = reader.getString(kUserAgent);
-    m_printTime    = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
-    m_title        = reader.getValue(kTitle);
+    m_autoSave          = reader.getBool(kAutosave, m_autoSave);
+    m_background        = reader.getBool(kBackground, m_background);
+    m_dryRun            = reader.getBool(kDryRun, m_dryRun);
+    m_syslog            = reader.getBool(kSyslog, m_syslog);
+    m_watch             = reader.getBool(kWatch, m_watch);
+    m_logFile           = reader.getString(kLogFile);
+    m_userAgent         = reader.getString(kUserAgent);
+    m_printTime         = std::min(reader.getUint(kPrintTime, m_printTime), 3600U);
+    m_title             = reader.getValue(kTitle);
 
 #   ifdef XMRIG_FEATURE_TLS
     m_tls = reader.getValue(kTls);
@@ -110,6 +105,8 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 
     m_http.load(reader.getObject(kHttp));
     m_pools.load(reader);
+
+    Dns::set(reader.getObject(DnsConfig::kField));
 
     return m_pools.active() > 0;
 }
@@ -155,7 +152,7 @@ void xmrig::BaseConfig::printVersions()
         snprintf(buf, sizeof buf, "LibreSSL/%s ", LIBRESSL_VERSION_TEXT + 9);
         libs += buf;
 #       elif defined(OPENSSL_VERSION_TEXT)
-        constexpr const char *v = OPENSSL_VERSION_TEXT + 8;
+        constexpr const char *v = &OPENSSL_VERSION_TEXT[8];
         snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
         libs += buf;
 #       endif

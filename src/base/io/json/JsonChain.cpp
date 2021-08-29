@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/io/json/JsonChain.h"
 #include "3rdparty/rapidjson/error/en.h"
 #include "base/io/json/Json.h"
@@ -33,12 +26,10 @@ namespace xmrig {
 
 static const rapidjson::Value kNullValue;
 
-}
+} // namespace xmrig
 
 
-xmrig::JsonChain::JsonChain()
-{
-}
+xmrig::JsonChain::JsonChain() = default;
 
 
 bool xmrig::JsonChain::add(rapidjson::Document &&doc)
@@ -66,8 +57,10 @@ bool xmrig::JsonChain::addFile(const char *fileName)
     if (doc.HasParseError()) {
         const size_t offset = doc.GetErrorOffset();
 
-        size_t line, pos;
+        size_t line = 0;
+        size_t pos  = 0;
         std::vector<std::string> s;
+
         if (Json::convertOffset(fileName, offset, line, pos, s)) {
             for (const auto& t : s) {
                 LOG_ERR("%s", t.c_str());
@@ -181,6 +174,27 @@ const rapidjson::Value &xmrig::JsonChain::getValue(const char *key) const
 }
 
 
+const rapidjson::Value &xmrig::JsonChain::object() const
+{
+    assert(false);
+
+    return m_chain.back();
+}
+
+
+double xmrig::JsonChain::getDouble(const char *key, double defaultValue) const
+{
+    for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
+        auto i = it->FindMember(key);
+        if (i != it->MemberEnd() && (i->value.IsDouble() || i->value.IsLosslessDouble())) {
+            return i->value.GetDouble();
+        }
+    }
+
+    return defaultValue;
+}
+
+
 int xmrig::JsonChain::getInt(const char *key, int defaultValue) const
 {
     for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
@@ -204,6 +218,24 @@ int64_t xmrig::JsonChain::getInt64(const char *key, int64_t defaultValue) const
     }
 
     return defaultValue;
+}
+
+
+
+xmrig::String xmrig::JsonChain::getString(const char *key, size_t maxSize) const
+{
+    for (auto it = m_chain.rbegin(); it != m_chain.rend(); ++it) {
+        auto i = it->FindMember(key);
+        if (i != it->MemberEnd() && i->value.IsString()) {
+            if (maxSize == 0 || i->value.GetStringLength() <= maxSize) {
+                return i->value.GetString();
+            }
+
+            return { i->value.GetString(), maxSize };
+        }
+    }
+
+    return {};
 }
 
 

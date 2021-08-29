@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/net/http/Fetch.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/stringbuffer.h"
@@ -30,7 +29,7 @@
 #endif
 
 
-xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16_t port, const String &path, bool tls, bool quiet, const char *data, size_t size, const char *contentType) :
+xmrig::FetchRequest::FetchRequest(llhttp_method method, const String &host, uint16_t port, const String &path, bool tls, bool quiet, const char *data, size_t size, const char *contentType) :
     quiet(quiet),
     tls(tls),
     method(method),
@@ -44,7 +43,7 @@ xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16
 }
 
 
-xmrig::FetchRequest::FetchRequest(http_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls, bool quiet) :
+xmrig::FetchRequest::FetchRequest(llhttp_method method, const String &host, uint16_t port, const String &path, const rapidjson::Value &value, bool tls, bool quiet) :
     quiet(quiet),
     tls(tls),
     method(method),
@@ -95,28 +94,29 @@ void xmrig::FetchRequest::setBody(const rapidjson::Value &value)
 }
 
 
-void xmrig::fetch(FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type)
+void xmrig::fetch(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttpListener> &listener, int type, uint64_t rpcId)
 {
 #   ifdef APP_DEBUG
     LOG_DEBUG(CYAN("http%s://%s:%u ") MAGENTA_BOLD("\"%s %s\"") BLACK_BOLD(" body: ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes"),
-              req.tls ? "s" : "", req.host.data(), req.port, http_method_str(req.method), req.path.data(), req.body.size());
+              req.tls ? "s" : "", req.host.data(), req.port, llhttp_method_name(req.method), req.path.data(), req.body.size());
 
     if (req.hasBody() && req.body.size() < (Log::kMaxBufferSize - 1024) && req.headers.count(HttpData::kContentType) && req.headers.at(HttpData::kContentType) == HttpData::kApplicationJson) {
         Log::print(BLUE_BG_BOLD("%s:") BLACK_BOLD_S " %.*s", req.headers.at(HttpData::kContentType).c_str(), static_cast<int>(req.body.size()), req.body.c_str());
     }
 #   endif
 
-    HttpClient *client;
+    HttpClient *client = nullptr;
 #   ifdef XMRIG_FEATURE_TLS
     if (req.tls) {
-        client = new HttpsClient(std::move(req), listener);
+        client = new HttpsClient(tag, std::move(req), listener);
     }
     else
 #   endif
     {
-        client = new HttpClient(std::move(req), listener);
+        client = new HttpClient(tag, std::move(req), listener);
     }
 
     client->userType = type;
+    client->rpcId    = rpcId;
     client->connect();
 }

@@ -37,10 +37,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class CompiledVm : public VmBase<softAes>
 	{
 	public:
+		inline CompiledVm() {}
 		void* operator new(size_t, void* ptr) { return ptr; }
 		void operator delete(void*) {}
 
@@ -58,9 +59,9 @@ namespace randomx {
 	protected:
 		void execute();
 
-		JitCompiler compiler;
+		JitCompiler compiler{ true, false };
 	};
 
-	using CompiledVmDefault = CompiledVm<true>;
-	using CompiledVmHardAes = CompiledVm<false>;
+	using CompiledVmDefault = CompiledVm<1>;
+	using CompiledVmHardAes = CompiledVm<0>;
 }

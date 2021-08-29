@@ -1,6 +1,7 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2020      cohcho      <https://github.com/cohcho>
+ * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,8 +19,9 @@
 
 
 #include "base/net/tools/LineReader.h"
-#include "base/net/tools/NetBuffer.h"
+#include "base/kernel/constants.h"
 #include "base/kernel/interfaces/ILineListener.h"
+#include "base/net/tools/NetBuffer.h"
 
 #include <cassert>
 #include <cstring>
@@ -38,12 +40,7 @@ void xmrig::LineReader::parse(char *data, size_t size)
         return;
     }
 
-    if (!m_buf) {
-        return getline(data, size);
-    }
-
-    add(data, size);
-    getline(m_buf, m_pos);
+    getline(data, size);
 }
 
 
@@ -59,7 +56,8 @@ void xmrig::LineReader::reset()
 
 void xmrig::LineReader::add(const char *data, size_t size)
 {
-    if (size > NetBuffer::kChunkSize - m_pos) {
+    if (size + m_pos > XMRIG_NET_BUFFER_CHUNK_SIZE) {
+        // it breaks correctness silently for long lines
         return;
     }
 
@@ -85,7 +83,12 @@ void xmrig::LineReader::getline(char *data, size_t size)
         end++;
 
         const auto len = static_cast<size_t>(end - start);
-        if (len > 1) {
+        if (m_pos) {
+            add(start, len);
+            m_listener->onLine(m_buf, m_pos - 1);
+            m_pos = 0;
+        }
+        else if (len > 1) {
             m_listener->onLine(start, len - 1);
         }
 
@@ -97,7 +100,5 @@ void xmrig::LineReader::getline(char *data, size_t size)
         return reset();
     }
 
-    if (!m_buf || m_buf != data) {
-        add(start, remaining);
-    }
+    add(start, remaining);
 }

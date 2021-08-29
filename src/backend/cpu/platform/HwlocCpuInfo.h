@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -52,7 +46,7 @@ public:
     HwlocCpuInfo();
     ~HwlocCpuInfo() override;
 
-    static inline bool has(Feature feature)                     { return m_features & feature; }
+    static inline bool hasFeature(Feature feature)              { return m_features & feature; }
 
     inline const std::vector<uint32_t> &nodeset() const         { return m_nodeset; }
     inline hwloc_topology_t topology() const                    { return m_topology; }
@@ -70,8 +64,9 @@ protected:
     inline size_t packages() const override         { return m_packages; }
 
 private:
-    void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
-
+    CpuThreads allThreads(const Algorithm &algorithm, uint32_t limit) const;
+    void processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
+    void setThreads(size_t threads);
 
     static uint32_t m_features;
 

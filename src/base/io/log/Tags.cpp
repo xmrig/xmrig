@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,6 +32,14 @@ const char *xmrig::Tags::config()
 const char *xmrig::Tags::network()
 {
     static const char *tag = BLUE_BG_BOLD(WHITE_BOLD_S " net     ");
+
+    return tag;
+}
+
+
+const char* xmrig::Tags::origin()
+{
+    static const char* tag = YELLOW_BG_BOLD(WHITE_BOLD_S " origin  ");
 
     return tag;
 }
@@ -70,6 +78,26 @@ const char *xmrig::Tags::randomx()
     return tag;
 }
 #endif
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+const char *xmrig::Tags::bench()
+{
+    static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " bench   ");
+
+    return tag;
+}
+#endif
+#endif
+
+
+#ifdef XMRIG_PROXY_PROJECT
+const char *xmrig::Tags::proxy()
+{
+    static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " proxy   ");
+
+    return tag;
+}
 #endif
 
 
@@ -87,6 +115,16 @@ const char *xmrig::Tags::nvidia()
 const char *xmrig::Tags::opencl()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " opencl  ");
+
+    return tag;
+}
+#endif
+
+
+#ifdef XMRIG_FEATURE_PROFILING
+const char* xmrig::Tags::profiler()
+{
+    static const char* tag = CYAN_BG_BOLD(WHITE_BOLD_S " profile ");
 
     return tag;
 }

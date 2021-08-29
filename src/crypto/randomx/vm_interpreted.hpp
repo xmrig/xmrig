@@ -38,7 +38,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace randomx {
 
-	template<bool softAes>
+	template<int softAes>
 	class InterpretedVm : public VmBase<softAes>, public BytecodeMachine {
 	public:
 		using VmBase<softAes>::mem;
@@ -65,6 +65,6 @@ namespace randomx {
 		InstructionByteCode bytecode[RANDOMX_PROGRAM_MAX_SIZE];
 	};
 
-	using InterpretedVmDefault = InterpretedVm<true>;
-	using InterpretedVmHardAes = InterpretedVm<false>;
+	using InterpretedVmDefault = InterpretedVm<1>;
+	using InterpretedVmHardAes = InterpretedVm<0>;
 }

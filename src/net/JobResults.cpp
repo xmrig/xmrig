@@ -24,12 +24,13 @@
 
 
 #include "net/JobResults.h"
+#include "backend/common/Tags.h"
+#include "base/io/Async.h"
 #include "base/io/log/Log.h"
-#include "base/tools/Handle.h"
+#include "base/kernel/interfaces/IAsyncListener.h"
 #include "base/tools/Object.h"
 #include "net/interfaces/IJobResultListener.h"
 #include "net/JobResult.h"
-#include "backend/common/Tags.h"
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -56,6 +57,7 @@
 
 #include <cassert>
 #include <list>
+#include <memory>
 #include <mutex>
 #include <uv.h>
 
@@ -114,13 +116,14 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 {
     const auto &algorithm = bundle.job.algorithm();
     auto memory           = new VirtualMemory(algorithm.l3(), false, false, false);
-    uint8_t hash[32]{ 0 };
+    alignas(16) uint8_t hash[32]{ 0 };
 
     if (algorithm.family() == Algorithm::RANDOM_X) {
 #       ifdef XMRIG_ALGO_RANDOMX
         RxDataset *dataset = Rx::dataset(bundle.job, 0);
         if (dataset == nullptr) {
             errors += bundle.nonces.size();
+            delete memory;
 
             return;
         }
@@ -192,7 +195,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 #endif
 
 
-class JobResultsPrivate
+class JobResultsPrivate : public IAsyncListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(JobResultsPrivate)
@@ -201,17 +204,11 @@ public:
         m_hwAES(hwAES),
         m_listener(listener)
     {
-        m_async = new uv_async_t;
-        m_async->data = this;
-
-        uv_async_init(uv_default_loop(), m_async, JobResultsPrivate::onResult);
+        m_async = std::make_shared<Async>(this);
     }
 
 
-    inline ~JobResultsPrivate()
-    {
-        Handle::close(m_async);
-    }
+    ~JobResultsPrivate() override = default;
 
 
     inline void submit(const JobResult &result)
@@ -219,7 +216,7 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         m_results.push_back(result);
 
-        uv_async_send(m_async);
+        m_async->send();
     }
 
 
@@ -229,15 +226,16 @@ public:
         std::lock_guard<std::mutex> lock(m_mutex);
         m_bundles.emplace_back(job, results, count, device_index);
 
-        uv_async_send(m_async);
+        m_async->send();
     }
 #   endif
 
 
+protected:
+    inline void onAsync() override  { submit(); }
+
+
 private:
-    static void onResult(uv_async_t *handle) { static_cast<JobResultsPrivate*>(handle->data)->submit(); }
-
-
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
     inline void submit()
     {
@@ -293,13 +291,11 @@ private:
     }
 #   endif
 
-
-private:
     const bool m_hwAES;
     IJobResultListener *m_listener;
     std::list<JobResult> m_results;
     std::mutex m_mutex;
-    uv_async_t *m_async;
+    std::shared_ptr<Async> m_async;
 
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
     std::list<JobBundle> m_bundles;
@@ -340,6 +336,12 @@ void xmrig::JobResults::stop()
 void xmrig::JobResults::submit(const Job &job, uint32_t nonce, const uint8_t *result)
 {
     submit(JobResult(job, nonce, result));
+}
+
+
+void xmrig::JobResults::submit(const Job& job, uint32_t nonce, const uint8_t* result, const uint8_t* miner_signature)
+{
+    submit(JobResult(job, nonce, result, nullptr, nullptr, miner_signature));
 }
 
 

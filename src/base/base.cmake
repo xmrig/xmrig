@@ -1,9 +1,11 @@
 set(HEADERS_BASE
+    src/3rdparty/epee/span.h
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
     src/base/crypto/keccak.h
     src/base/crypto/sha3.h
+    src/base/io/Async.h
     src/base/io/Console.h
     src/base/io/Env.h
     src/base/io/json/Json.h
@@ -20,7 +22,9 @@ set(HEADERS_BASE
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
     src/base/kernel/config/Title.h
+    src/base/kernel/constants.h
     src/base/kernel/Entry.h
+    src/base/kernel/interfaces/IAsyncListener.h
     src/base/kernel/interfaces/IBaseListener.h
     src/base/kernel/interfaces/IClient.h
     src/base/kernel/interfaces/IClientListener.h
@@ -28,6 +32,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConfigTransform.h
     src/base/kernel/interfaces/IConsoleListener.h
+    src/base/kernel/interfaces/IDnsBackend.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -39,7 +44,11 @@ set(HEADERS_BASE
     src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/net/dns/Dns.h
+    src/base/net/dns/DnsConfig.h
     src/base/net/dns/DnsRecord.h
+    src/base/net/dns/DnsRecords.h
+    src/base/net/dns/DnsRequest.h
+    src/base/net/dns/DnsUvBackend.h
     src/base/net/http/Http.h
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
@@ -61,18 +70,29 @@ set(HEADERS_BASE
     src/base/net/tools/Storage.h
     src/base/tools/Arguments.h
     src/base/tools/Baton.h
+    src/base/tools/bswap_64.h
     src/base/tools/Buffer.h
     src/base/tools/Chrono.h
+    src/base/tools/cryptonote/BlobReader.h
+    src/base/tools/cryptonote/BlockTemplate.h
+    src/base/tools/cryptonote/crypto-ops.h
+    src/base/tools/cryptonote/Signatures.h
+    src/base/tools/cryptonote/umul128.h
+    src/base/tools/cryptonote/WalletAddress.h
+    src/base/tools/Cvt.h
     src/base/tools/Handle.h
+    src/base/tools/Span.h
     src/base/tools/String.h
     src/base/tools/Timer.h
    )
 
 set(SOURCES_BASE
+    src/3rdparty/fmt/format.cc
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
     src/base/crypto/sha3.cpp
+    src/base/io/Async.cpp
     src/base/io/Console.cpp
     src/base/io/Env.cpp
     src/base/io/json/Json.cpp
@@ -93,7 +113,10 @@ set(SOURCES_BASE
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/net/dns/Dns.cpp
+    src/base/net/dns/DnsConfig.cpp
     src/base/net/dns/DnsRecord.cpp
+    src/base/net/dns/DnsRecords.cpp
+    src/base/net/dns/DnsUvBackend.cpp
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
@@ -109,7 +132,12 @@ set(SOURCES_BASE
     src/base/net/tools/LineReader.cpp
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
-    src/base/tools/Buffer.cpp
+    src/base/tools/cryptonote/BlockTemplate.cpp
+    src/base/tools/cryptonote/crypto-ops-data.c
+    src/base/tools/cryptonote/crypto-ops.c
+    src/base/tools/cryptonote/Signatures.cpp
+    src/base/tools/cryptonote/WalletAddress.cpp
+    src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
    )
@@ -119,16 +147,19 @@ if (WIN32)
     set(SOURCES_OS
         src/base/io/json/Json_win.cpp
         src/base/kernel/Platform_win.cpp
+        src/base/kernel/Process_win.cpp
         )
 elseif (APPLE)
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_mac.cpp
+        src/base/kernel/Process_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
         src/base/kernel/Platform_unix.cpp
+        src/base/kernel/Process_unix.cpp
         )
 endif()
 
@@ -151,7 +182,7 @@ endif()
 
 if (WITH_HTTP)
     set(HEADERS_BASE_HTTP
-        src/3rdparty/http-parser/http_parser.h
+        src/3rdparty/llhttp/llhttp.h
         src/base/api/Api.h
         src/base/api/Httpd.h
         src/base/api/interfaces/IApiRequest.h
@@ -172,7 +203,9 @@ if (WITH_HTTP)
         )
 
     set(SOURCES_BASE_HTTP
-        src/3rdparty/http-parser/http_parser.c
+        src/3rdparty/llhttp/llhttp.c
+        src/3rdparty/llhttp/api.c
+        src/3rdparty/llhttp/http.c
         src/base/api/Api.cpp
         src/base/api/Httpd.cpp
         src/base/api/requests/ApiRequest.cpp
@@ -221,4 +254,21 @@ if (WITH_KAWPOW)
         src/base/net/stratum/AutoClient.cpp
         src/base/net/stratum/EthStratumClient.cpp
         )
+endif()
+
+
+if (WITH_RANDOMX AND WITH_BENCHMARK)
+    add_definitions(/DXMRIG_FEATURE_BENCHMARK)
+
+    list(APPEND HEADERS_BASE
+        src/base/net/stratum/benchmark/BenchClient.h
+        src/base/net/stratum/benchmark/BenchConfig.h
+        )
+
+    list(APPEND SOURCES_BASE
+        src/base/net/stratum/benchmark/BenchClient.cpp
+        src/base/net/stratum/benchmark/BenchConfig.cpp
+        )
+else()
+    remove_definitions(/DXMRIG_FEATURE_BENCHMARK)
 endif()

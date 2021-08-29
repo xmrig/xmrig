@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-UV_VERSION="1.38.0"
+UV_VERSION="1.42.0"
 
 mkdir -p deps
 mkdir -p deps/include
@@ -14,7 +14,7 @@ tar -xzf v${UV_VERSION}.tar.gz
 cd libuv-${UV_VERSION}
 sh autogen.sh
 ./configure --disable-shared
-make -j$(nproc)
-cp -fr include/ ../../deps
+make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+cp -fr include ../../deps
 cp .libs/libuv.a ../../deps/lib
 cd ..

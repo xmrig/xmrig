@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "backend/opencl/runners/OclKawPowRunner.h"
 #include "backend/common/Tags.h"
@@ -41,6 +34,9 @@
 
 
 namespace xmrig {
+
+
+constexpr size_t BLOB_SIZE = 40;
 
 
 OclKawPowRunner::OclKawPowRunner(size_t index, const OclLaunchData &data) : OclBaseRunner(index, data)
@@ -69,8 +65,6 @@ OclKawPowRunner::~OclKawPowRunner()
 
     delete m_calculateDagKernel;
 
-    OclLib::release(m_searchKernel);
-
     OclLib::release(m_controlQueue);
     OclLib::release(m_stop);
 
@@ -84,7 +78,7 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
     const size_t global_work_offset = nonce;
     const size_t global_work_size = m_intensity - (m_intensity % m_workGroupSize);
 
-    enqueueWriteBuffer(m_input, CL_FALSE, 0, 40, m_blob);
+    enqueueWriteBuffer(m_input, CL_FALSE, 0, BLOB_SIZE, m_blob);
 
     const uint32_t zero[2] = {};
     enqueueWriteBuffer(m_output, CL_FALSE, 0, sizeof(uint32_t), zero);
@@ -120,8 +114,7 @@ void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
 void OclKawPowRunner::set(const Job &job, uint8_t *blob)
 {
     m_blockHeight = static_cast<uint32_t>(job.height());
-    m_searchProgram = OclKawPow::get(*this, m_blockHeight, m_workGroupSize);
-    m_searchKernel = OclLib::createKernel(m_searchProgram, "progpow_search");
+    m_searchKernel = OclKawPow::get(*this, m_blockHeight, m_workGroupSize);
 
     const uint32_t epoch = m_blockHeight / KPHash::EPOCH_LENGTH;
 
@@ -157,7 +150,7 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
         const uint32_t dag_words = dag_size / sizeof(node);
         m_calculateDagKernel->setArgs(0, m_lightCache, m_dag, dag_words, m_lightCacheSize / sizeof(node));
 
-        constexpr uint32_t N = 1 << 20;
+        constexpr uint32_t N = 1 << 18;
 
         for (uint32_t start = 0; start < dag_words; start += N) {
             m_calculateDagKernel->setArg(0, sizeof(start), &start);
@@ -172,15 +165,15 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
     const uint64_t target = job.target();
     const uint32_t hack_false = 0;
 
-    OclLib::setKernelArg(m_searchKernel, 0, sizeof(m_dag), &m_dag);
-    OclLib::setKernelArg(m_searchKernel, 1, sizeof(m_input), &m_input);
+    OclLib::setKernelArg(m_searchKernel, 0, sizeof(cl_mem), &m_dag);
+    OclLib::setKernelArg(m_searchKernel, 1, sizeof(cl_mem), &m_input);
     OclLib::setKernelArg(m_searchKernel, 2, sizeof(target), &target);
     OclLib::setKernelArg(m_searchKernel, 3, sizeof(hack_false), &hack_false);
-    OclLib::setKernelArg(m_searchKernel, 4, sizeof(m_output), &m_output);
-    OclLib::setKernelArg(m_searchKernel, 5, sizeof(m_stop), &m_stop);
+    OclLib::setKernelArg(m_searchKernel, 4, sizeof(cl_mem), &m_output);
+    OclLib::setKernelArg(m_searchKernel, 5, sizeof(cl_mem), &m_stop);
 
     m_blob = blob;
-    enqueueWriteBuffer(m_input, CL_TRUE, 0, sizeof(m_blob), m_blob);
+    enqueueWriteBuffer(m_input, CL_TRUE, 0, BLOB_SIZE, m_blob);
 }
 
 

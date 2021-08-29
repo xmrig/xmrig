@@ -1,7 +1,7 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
- * Copyright © 2009-2010 Université Bordeaux
+ * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2010, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -136,6 +136,37 @@ int
 hwloc_obj_type_is_icache(hwloc_obj_type_t type)
 {
   return hwloc__obj_type_is_icache(type);
+}
+
+static hwloc_obj_t hwloc_get_obj_by_depth_and_gp_index(hwloc_topology_t topology, unsigned depth, uint64_t gp_index)
+{
+  hwloc_obj_t obj = hwloc_get_obj_by_depth(topology, depth, 0);
+  while (obj) {
+    if (obj->gp_index == gp_index)
+      return obj;
+    obj = obj->next_cousin;
+  }
+  return NULL;
+}
+
+hwloc_obj_t hwloc_get_obj_by_type_and_gp_index(hwloc_topology_t topology, hwloc_obj_type_t type, uint64_t gp_index)
+{
+  int depth = hwloc_get_type_depth(topology, type);
+  if (depth == HWLOC_TYPE_DEPTH_UNKNOWN)
+    return NULL;
+  if (depth == HWLOC_TYPE_DEPTH_MULTIPLE) {
+    for(depth=1 /* no multiple machine levels */;
+	(unsigned) depth < topology->nb_levels-1 /* no multiple PU levels */;
+	depth++) {
+      if (hwloc_get_depth_type(topology, depth) == type) {
+	hwloc_obj_t obj = hwloc_get_obj_by_depth_and_gp_index(topology, depth, gp_index);
+	if (obj)
+	  return obj;
+      }
+    }
+    return NULL;
+  }
+  return hwloc_get_obj_by_depth_and_gp_index(topology, depth, gp_index);
 }
 
 unsigned hwloc_get_closest_objs (struct hwloc_topology *topology, struct hwloc_obj *src, struct hwloc_obj **objs, unsigned max)
@@ -364,6 +395,8 @@ hwloc_type_sscanf(const char *string, hwloc_obj_type_t *typep,
   } else if (hwloc__type_match(string, "pcibridge", 5)) {
     type = HWLOC_OBJ_BRIDGE;
     ubtype = HWLOC_OBJ_BRIDGE_PCI;
+    /* if downstream_type can ever be non-PCI, we'll have to make strings more precise,
+     * or relax the hwloc_type_sscanf test */
 
   } else if (hwloc__type_match(string, "pcidev", 3)) {
     type = HWLOC_OBJ_PCI_DEVICE;
@@ -417,7 +450,9 @@ hwloc_type_sscanf(const char *string, hwloc_obj_type_t *typep,
       attrp->group.depth = depthattr;
     } else if (type == HWLOC_OBJ_BRIDGE && attrsize >= sizeof(attrp->bridge)) {
       attrp->bridge.upstream_type = ubtype;
-      attrp->bridge.downstream_type = HWLOC_OBJ_BRIDGE_PCI; /* nothing else so far */
+      attrp->bridge.downstream_type = HWLOC_OBJ_BRIDGE_PCI;
+      /* if downstream_type can ever be non-PCI, we'll have to make strings more precise,
+       * or relax the hwloc_type_sscanf test */
     } else if (type == HWLOC_OBJ_OS_DEVICE && attrsize >= sizeof(attrp->osdev)) {
       attrp->osdev.type = ostype;
     }
@@ -500,6 +535,9 @@ hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
     else
       return hwloc_snprintf(string, size, "%s", hwloc_obj_type_string(type));
   case HWLOC_OBJ_BRIDGE:
+    /* if downstream_type can ever be non-PCI, we'll have to make strings more precise,
+     * or relax the hwloc_type_sscanf test */
+    assert(obj->attr->bridge.downstream_type == HWLOC_OBJ_BRIDGE_PCI);
     return hwloc_snprintf(string, size, obj->attr->bridge.upstream_type == HWLOC_OBJ_BRIDGE_PCI ? "PCIBridge" : "HostBridge");
   case HWLOC_OBJ_PCI_DEVICE:
     return hwloc_snprintf(string, size, "PCI");
@@ -617,8 +655,11 @@ hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
       } else
         *up = '\0';
       /* downstream is_PCI */
-      snprintf(down, sizeof(down), "buses=%04x:[%02x-%02x]",
-	       obj->attr->bridge.downstream.pci.domain, obj->attr->bridge.downstream.pci.secondary_bus, obj->attr->bridge.downstream.pci.subordinate_bus);
+      if (obj->attr->bridge.downstream_type == HWLOC_OBJ_BRIDGE_PCI) {
+        snprintf(down, sizeof(down), "buses=%04x:[%02x-%02x]",
+                 obj->attr->bridge.downstream.pci.domain, obj->attr->bridge.downstream.pci.secondary_bus, obj->attr->bridge.downstream.pci.subordinate_bus);
+      } else
+        assert(0);
       if (*up)
 	res = hwloc_snprintf(string, size, "%s%s%s", up, separator, down);
       else
@@ -654,7 +695,11 @@ hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
     unsigned i;
     for(i=0; i<obj->infos_count; i++) {
       struct hwloc_info_s *info = &obj->infos[i];
-      const char *quote = strchr(info->value, ' ') ? "\"" : "";
+      const char *quote;
+      if (strchr(info->value, ' '))
+        quote = "\"";
+      else
+        quote = "";
       res = hwloc_snprintf(tmp, tmplen, "%s%s=%s%s%s",
 			     prefix,
 			     info->name,
@@ -672,4 +717,121 @@ hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size, hwloc_obj_t
   }
 
   return ret;
+}
+
+int hwloc_bitmap_singlify_per_core(hwloc_topology_t topology, hwloc_bitmap_t cpuset, unsigned which)
+{
+  hwloc_obj_t core = NULL;
+  while ((core = hwloc_get_next_obj_covering_cpuset_by_type(topology, cpuset, HWLOC_OBJ_CORE, core)) != NULL) {
+    /* this core has some PUs in the cpuset, find the index-th one */
+    unsigned i = 0;
+    int pu = -1;
+    do {
+      pu = hwloc_bitmap_next(core->cpuset, pu);
+      if (pu == -1) {
+	/* no which-th PU in cpuset and core, remove the entire core */
+	hwloc_bitmap_andnot(cpuset, cpuset, core->cpuset);
+	break;
+      }
+      if (hwloc_bitmap_isset(cpuset, pu)) {
+	if (i == which) {
+	  /* remove the entire core except that exact pu */
+	  hwloc_bitmap_andnot(cpuset, cpuset, core->cpuset);
+	  hwloc_bitmap_set(cpuset, pu);
+	  break;
+	}
+	i++;
+      }
+    } while (1);
+  }
+  return 0;
+}
+
+hwloc_obj_t
+hwloc_get_obj_with_same_locality(hwloc_topology_t topology, hwloc_obj_t src,
+                                 hwloc_obj_type_t type, const char *subtype, const char *nameprefix,
+                                 unsigned long flags)
+{
+  if (flags) {
+    errno = EINVAL;
+    return NULL;
+  }
+
+  if (hwloc_obj_type_is_normal(src->type) || hwloc_obj_type_is_memory(src->type)) {
+    /* normal/memory type, look for normal/memory type with same sets */
+    hwloc_obj_t obj;
+
+    if (!hwloc_obj_type_is_normal(type) && !hwloc_obj_type_is_memory(type)) {
+      errno = EINVAL;
+      return NULL;
+    }
+
+    obj = NULL;
+    while ((obj = hwloc_get_next_obj_by_type(topology, type, obj)) != NULL) {
+      if (!hwloc_bitmap_isequal(src->cpuset, obj->cpuset)
+          || !hwloc_bitmap_isequal(src->nodeset, obj->nodeset))
+        continue;
+      if (subtype && (!obj->subtype || strcasecmp(subtype, obj->subtype)))
+        continue;
+      if (nameprefix && (!obj->name || hwloc_strncasecmp(nameprefix, obj->name, strlen(nameprefix))))
+        continue;
+      return obj;
+    }
+    errno = ENOENT;
+    return NULL;
+
+  } else if (hwloc_obj_type_is_io(src->type)) {
+    /* I/O device, look for PCI/OS in same PCI */
+    hwloc_obj_t pci;
+
+    if ((src->type != HWLOC_OBJ_OS_DEVICE && src->type != HWLOC_OBJ_PCI_DEVICE)
+        || (type != HWLOC_OBJ_OS_DEVICE && type != HWLOC_OBJ_PCI_DEVICE)) {
+      errno = EINVAL;
+      return NULL;
+    }
+
+    /* walk up to find the container */
+    pci = src;
+    while (pci->type == HWLOC_OBJ_OS_DEVICE)
+      pci = pci->parent;
+
+    if (type == HWLOC_OBJ_PCI_DEVICE) {
+      if (pci->type != HWLOC_OBJ_PCI_DEVICE) {
+        errno = ENOENT;
+        return NULL;
+      }
+      if (subtype && (!pci->subtype || strcasecmp(subtype, pci->subtype))) {
+        errno = ENOENT;
+        return NULL;
+      }
+      if (nameprefix && (!pci->name || hwloc_strncasecmp(nameprefix, pci->name, strlen(nameprefix)))) {
+        errno = ENOENT;
+        return NULL;
+      }
+      return pci;
+
+    } else {
+      /* find a matching osdev child */
+      assert(type == HWLOC_OBJ_OS_DEVICE);
+      /* FIXME: won't work if we ever store osdevs in osdevs */
+      hwloc_obj_t child;
+      for(child = pci->io_first_child; child; child = child->next_sibling) {
+        if (child->type != HWLOC_OBJ_OS_DEVICE)
+          /* FIXME: should never occur currently */
+          continue;
+        if (subtype && (!child->subtype || strcasecmp(subtype, child->subtype)))
+          continue;
+        if (nameprefix && (!child->name || hwloc_strncasecmp(nameprefix, child->name, strlen(nameprefix))))
+          continue;
+        return child;
+      }
+    }
+    errno = ENOENT;
+    return NULL;
+
+  } else {
+    /* nothing for Misc */
+    errno = EINVAL;
+    return NULL;
+  }
 }

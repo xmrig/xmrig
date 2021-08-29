@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,15 +17,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <cstdio>
-
-
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/config/Title.h"
 #include "base/tools/Handle.h"
-#include "version.h"
+
+
+#include <cstdio>
 
 
 xmrig::ConsoleLog::ConsoleLog(const Title &title)
@@ -54,7 +46,7 @@ xmrig::ConsoleLog::ConsoleLog(const Title &title)
     m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    if (handle != INVALID_HANDLE_VALUE) {
+    if (handle != INVALID_HANDLE_VALUE) { // NOLINT(cppcoreguidelines-pro-type-cstyle-cast, performance-no-int-to-ptr)
         DWORD mode = 0;
         if (GetConsoleMode(handle, &mode)) {
            mode &= ~ENABLE_QUICK_EDIT_MODE;
@@ -75,7 +67,7 @@ xmrig::ConsoleLog::~ConsoleLog()
 }
 
 
-void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool colors)
+void xmrig::ConsoleLog::print(uint64_t, int, const char *line, size_t, size_t size, bool colors)
 {
     if (!m_tty || Log::isColors() != colors) {
         return;
@@ -98,7 +90,7 @@ void xmrig::ConsoleLog::print(int, const char *line, size_t, size_t size, bool c
 }
 
 
-bool xmrig::ConsoleLog::isSupported() const
+bool xmrig::ConsoleLog::isSupported()
 {
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;

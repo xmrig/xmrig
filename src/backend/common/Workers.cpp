@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,13 +16,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include "backend/common/Workers.h"
 #include "backend/common/Hashrate.h"
 #include "backend/common/interfaces/IBackend.h"
-#include "backend/common/Workers.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/io/log/Log.h"
-#include "base/tools/Object.h"
+#include "base/io/log/Tags.h"
+#include "base/tools/Chrono.h"
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -42,6 +35,11 @@
 #endif
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
+#   include "backend/common/benchmark/Benchmark.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -50,18 +48,12 @@ class WorkersPrivate
 public:
     XMRIG_DISABLE_COPY_MOVE(WorkersPrivate)
 
+    WorkersPrivate()    = default;
+    ~WorkersPrivate()   = default;
 
-    WorkersPrivate() = default;
-
-
-    inline ~WorkersPrivate()
-    {
-        delete hashrate;
-    }
-
-
-    Hashrate *hashrate = nullptr;
-    IBackend *backend  = nullptr;
+    IBackend *backend   = nullptr;
+    std::shared_ptr<Benchmark> benchmark;
+    std::shared_ptr<Hashrate> hashrate;
 };
 
 
@@ -84,9 +76,48 @@ xmrig::Workers<T>::~Workers()
 
 
 template<class T>
+bool xmrig::Workers<T>::tick(uint64_t)
+{
+    if (!d_ptr->hashrate) {
+        return true;
+    }
+
+    uint64_t ts             = Chrono::steadyMSecs();
+    bool totalAvailable     = true;
+    uint64_t totalHashCount = 0;
+    uint64_t hashCount      = 0;
+    uint64_t rawHashes      = 0;
+
+    for (Thread<T> *handle : m_workers) {
+        IWorker *worker = handle->worker();
+        if (worker) {
+            worker->hashrateData(hashCount, ts, rawHashes);
+            d_ptr->hashrate->add(handle->id(), hashCount, ts);
+
+            if (rawHashes == 0) {
+                totalAvailable = false;
+            }
+
+            totalHashCount += rawHashes;
+        }
+    }
+
+    if (totalAvailable) {
+        d_ptr->hashrate->add(totalHashCount, Chrono::steadyMSecs());
+    }
+
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    return !d_ptr->benchmark || !d_ptr->benchmark->finish(totalHashCount);
+#   else
+    return true;
+#   endif
+}
+
+
+template<class T>
 const xmrig::Hashrate *xmrig::Workers<T>::hashrate() const
 {
-    return d_ptr->hashrate;
+    return d_ptr->hashrate.get();
 }
 
 
@@ -98,58 +129,40 @@ void xmrig::Workers<T>::setBackend(IBackend *backend)
 
 
 template<class T>
-void xmrig::Workers<T>::start(const std::vector<T> &data)
-{
-    for (const T &item : data) {
-        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
-    }
-
-    d_ptr->hashrate = new Hashrate(m_workers.size());
-    Nonce::touch(T::backend());
-
-    for (Thread<T> *worker : m_workers) {
-        worker->start(Workers<T>::onReady);
-
-        // This sleep is important for optimal caching!
-        // Threads must allocate scratchpads in order so that adjacent cores will use adjacent scratchpads
-        // Sub-optimal caching can result in up to 0.5% hashrate penalty
-        std::this_thread::sleep_for(std::chrono::milliseconds(20));
-    }
-}
-
-
-template<class T>
 void xmrig::Workers<T>::stop()
 {
+#   ifdef XMRIG_MINER_PROJECT
     Nonce::stop(T::backend());
+#   endif
 
     for (Thread<T> *worker : m_workers) {
         delete worker;
     }
 
     m_workers.clear();
+
+#   ifdef XMRIG_MINER_PROJECT
     Nonce::touch(T::backend());
+#   endif
 
-    delete d_ptr->hashrate;
-    d_ptr->hashrate = nullptr;
+    d_ptr->hashrate.reset();
 }
 
 
+#ifdef XMRIG_FEATURE_BENCHMARK
 template<class T>
-void xmrig::Workers<T>::tick(uint64_t)
+void xmrig::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<Benchmark> &benchmark)
 {
-    if (!d_ptr->hashrate) {
-        return;
+    if (!benchmark) {
+        return start(data, true);
     }
 
-    for (Thread<T> *handle : m_workers) {
-        if (!handle->worker()) {
-            continue;
-        }
+    start(data, false);
 
-        d_ptr->hashrate->add(handle->id(), handle->worker()->hashCount(), handle->worker()->timestamp());
-    }
+    d_ptr->benchmark = benchmark;
+    d_ptr->benchmark->start();
 }
+#endif
 
 
 template<class T>
@@ -160,7 +173,7 @@ xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
 
 
 template<class T>
-void xmrig::Workers<T>::onReady(void *arg)
+void *xmrig::Workers<T>::onReady(void *arg)
 {
     auto handle = static_cast<Thread<T>* >(arg);
 
@@ -173,13 +186,34 @@ void xmrig::Workers<T>::onReady(void *arg)
         handle->backend()->start(worker, false);
         delete worker;
 
-        return;
+        return nullptr;
     }
 
     assert(handle->backend() != nullptr);
 
     handle->setWorker(worker);
     handle->backend()->start(worker, true);
+
+    return nullptr;
+}
+
+
+template<class T>
+void xmrig::Workers<T>::start(const std::vector<T> &data, bool /*sleep*/)
+{
+    for (const auto &item : data) {
+        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
+    }
+
+    d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
+
+#   ifdef XMRIG_MINER_PROJECT
+    Nonce::touch(T::backend());
+#   endif
+
+    for (auto worker : m_workers) {
+        worker->start(Workers<T>::onReady);
+    }
 }
 
 
@@ -189,6 +223,7 @@ namespace xmrig {
 template<>
 xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
+#   ifdef XMRIG_MINER_PROJECT
     switch (handle->config().intensity) {
     case 1:
         return new CpuWorker<1>(handle->id(), handle->config());
@@ -207,6 +242,11 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
     }
 
     return nullptr;
+#   else
+    assert(handle->config().intensity == 1);
+
+    return new CpuWorker<1>(handle->id(), handle->config());
+#   endif
 }
 
 

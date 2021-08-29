@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifdef WIN32
 #   include <winsock2.h>
 #   include <windows.h>
@@ -31,6 +24,7 @@
 
 
 #include <algorithm>
+#include <cassert>
 #include <cstring>
 #include <ctime>
 #include <mutex>
@@ -76,7 +70,7 @@ public:
 
     inline ~LogPrivate()
     {
-        for (ILogBackend *backend : m_backends) {
+        for (auto backend : m_backends) {
             delete backend;
         }
     }
@@ -96,7 +90,7 @@ public:
             return;
         }
 
-        timestamp(level, size, offset);
+        const uint64_t ts = timestamp(level, size, offset);
         color(level, size);
 
         const int rc = vsnprintf(m_buf + size, sizeof (m_buf) - offset - 32, fmt, args);
@@ -108,15 +102,15 @@ public:
         endl(size);
 
         std::string txt(m_buf);
-        size_t i;
+        size_t i = 0;
         while ((i = txt.find(CSI)) != std::string::npos) {
             txt.erase(i, txt.find('m', i) - i + 1);
         }
 
         if (!m_backends.empty()) {
-            for (ILogBackend *backend : m_backends) {
-                backend->print(level, m_buf, offset, size, true);
-                backend->print(level, txt.c_str(), offset ? (offset - 11) : 0, txt.size(), false);
+            for (auto backend : m_backends) {
+                backend->print(ts, level, m_buf, offset, size, true);
+                backend->print(ts, level, txt.c_str(), offset ? (offset - 11) : 0, txt.size(), false);
             }
         }
         else {
@@ -127,14 +121,15 @@ public:
 
 
 private:
-    inline void timestamp(Log::Level level, size_t &size, size_t &offset)
+    inline uint64_t timestamp(Log::Level level, size_t &size, size_t &offset)
     {
+        const uint64_t ms = Chrono::currentMSecsSinceEpoch();
+
         if (level == Log::NONE) {
-            return;
+            return ms;
         }
 
-        const uint64_t ms = Chrono::currentMSecsSinceEpoch();
-        time_t now        = ms / 1000;
+        time_t now = ms / 1000;
         tm stime{};
 
 #       ifdef _WIN32
@@ -156,6 +151,8 @@ private:
         if (rc > 0) {
             size = offset = static_cast<size_t>(rc);
         }
+
+        return ms;
     }
 
 
@@ -195,10 +192,10 @@ private:
 };
 
 
-bool Log::m_background    = false;
-bool Log::m_colors        = true;
-LogPrivate *Log::d      = new LogPrivate();
-uint32_t Log::m_verbose   = 0;
+bool Log::m_background      = false;
+bool Log::m_colors          = true;
+LogPrivate *Log::d          = nullptr;
+uint32_t Log::m_verbose     = 0;
 
 
 } /* namespace xmrig */
@@ -207,6 +204,8 @@ uint32_t Log::m_verbose   = 0;
 
 void xmrig::Log::add(ILogBackend *backend)
 {
+    assert(d != nullptr);
+
     if (d) {
         d->add(backend);
     }
@@ -220,13 +219,19 @@ void xmrig::Log::destroy()
 }
 
 
+void xmrig::Log::init()
+{
+    d = new LogPrivate();
+}
+
+
 void xmrig::Log::print(const char *fmt, ...)
 {
     if (!d) {
         return;
     }
 
-    va_list args;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(NONE, fmt, args);
@@ -241,7 +246,7 @@ void xmrig::Log::print(Level level, const char *fmt, ...)
         return;
     }
 
-    va_list args;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(level, fmt, args);

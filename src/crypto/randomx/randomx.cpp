@@ -37,7 +37,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #if defined(_M_X64) || defined(__x86_64__)
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
-#elif defined(XMRIG_ARMv8)
+#elif (XMRIG_ARM == 8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #endif
 
@@ -46,6 +46,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <mutex>
 
 #include <cassert>
+
+#include "crypto/rx/Profiler.h"
 
 RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 {
@@ -74,18 +76,6 @@ RandomX_ConfigurationWownero::RandomX_ConfigurationWownero()
 	fillAes4Rx4_Key[7] = fillAes4Rx4_Key[3];
 }
 
-RandomX_ConfigurationLoki::RandomX_ConfigurationLoki()
-{
-	ArgonIterations = 4;
-	ArgonLanes = 2;
-	ArgonSalt = "RandomXL\x12";
-	ProgramSize = 320;
-	ProgramCount = 7;
-
-	RANDOMX_FREQ_IADD_RS = 25;
-	RANDOMX_FREQ_CBRANCH = 16;
-}
-
 RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 {
 	ArgonIterations = 1;
@@ -94,6 +84,15 @@ RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 	ProgramCount = 4;
 	ScratchpadL2_Size = 131072;
 	ScratchpadL3_Size = 262144;
+}
+
+RandomX_ConfigurationGraft::RandomX_ConfigurationGraft()
+{
+	ArgonLanes = 2;
+	ArgonSalt = "RandomX-Graft\x01";
+	ProgramSize = 280;
+	RANDOMX_FREQ_IROR_R = 7;
+	RANDOMX_FREQ_IROL_R = 3;
 }
 
 RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
@@ -109,22 +108,15 @@ RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
-	: ArgonMemory(262144)
-	, ArgonIterations(3)
+	: ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
-	, CacheAccesses(8)
-	, SuperscalarLatency(170)
-	, DatasetBaseSize(2147483648)
-	, DatasetExtraSize(33554368)
 	, ScratchpadL1_Size(16384)
 	, ScratchpadL2_Size(262144)
 	, ScratchpadL3_Size(2097152)
 	, ProgramSize(256)
 	, ProgramIterations(2048)
 	, ProgramCount(8)
-	, JumpBits(8)
-	, JumpOffset(8)
 	, RANDOMX_FREQ_IADD_RS(16)
 	, RANDOMX_FREQ_IADD_M(7)
 	, RANDOMX_FREQ_ISUB_R(16)
@@ -165,54 +157,63 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	fillAes4Rx4_Key[6] = rx_set_int_vec_i128(0xf63befa7, 0x2ba9660a, 0xf765a38b, 0xf273c9e7);
 	fillAes4Rx4_Key[7] = rx_set_int_vec_i128(0xc0b0762d, 0x0c06d1fd, 0x915839de, 0x7a7cd609);
 
-#if defined(_M_X64) || defined(__x86_64__)
+#	if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
+	// Workaround for Visual Studio placing trampoline in debug builds.
+	auto addr = [](void (*func)()) {
+		const uint8_t* p = reinterpret_cast<const uint8_t*>(func);
+#		if defined(_MSC_VER)
+		if (p[0] == 0xE9) {
+			p += *(const int32_t*)(p + 1) + 5;
+		}
+#		endif
+		return p;
+	};
+
 	{
-		const uint8_t* a = (const uint8_t*)&randomx_sshash_prefetch;
-		const uint8_t* b = (const uint8_t*)&randomx_sshash_end;
+		const uint8_t* a = addr(randomx_sshash_prefetch);
+		const uint8_t* b = addr(randomx_sshash_end);
 		memcpy(codeShhPrefetchTweaked, a, b - a);
 	}
-	{
-		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset;
-		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_ryzen;
-		memcpy(codeReadDatasetTweaked, a, b - a);
-		codeReadDatasetTweakedSize = b - a;
-	}
-	{
-		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset_ryzen;
-		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_sshash_init;
-		memcpy(codeReadDatasetRyzenTweaked, a, b - a);
-		codeReadDatasetRyzenTweakedSize = b - a;
-	}
-	{
-		const uint8_t* a = (const uint8_t*)&randomx_program_read_dataset_sshash_init;
-		const uint8_t* b = (const uint8_t*)&randomx_program_read_dataset_sshash_fin;
-		memcpy(codeReadDatasetLightSshInitTweaked, a, b - a);
-	}
-	{
-		const uint8_t* a = (const uint8_t*)&randomx_prefetch_scratchpad;
-		const uint8_t* b = (const uint8_t*)&randomx_prefetch_scratchpad_end;
+	if (xmrig::Cpu::info()->hasBMI2()) {
+		const uint8_t* a = addr(randomx_prefetch_scratchpad_bmi2);
+		const uint8_t* b = addr(randomx_prefetch_scratchpad_end);
 		memcpy(codePrefetchScratchpadTweaked, a, b - a);
+		codePrefetchScratchpadTweakedSize = b - a;
 	}
-#endif
+	else {
+		const uint8_t* a = addr(randomx_prefetch_scratchpad);
+		const uint8_t* b = addr(randomx_prefetch_scratchpad_bmi2);
+		memcpy(codePrefetchScratchpadTweaked, a, b - a);
+		codePrefetchScratchpadTweakedSize = b - a;
+	}
+#	endif
 }
 
+#if (XMRIG_ARM == 8)
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
+#endif
+
+static int scratchpadPrefetchMode = 1;
+
+void randomx_set_scratchpad_prefetch_mode(int mode)
+{
+	scratchpadPrefetchMode = mode;
+}
 
 void RandomX_ConfigurationBase::Apply()
 {
-	ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
-	ScratchpadL1Mask16_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) / 2 - 1) * 16;
-	ScratchpadL2Mask_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) - 1) * 8;
-	ScratchpadL2Mask16_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) / 2 - 1) * 16;
+	const uint32_t ScratchpadL1Mask_Calculated = (ScratchpadL1_Size / sizeof(uint64_t) - 1) * 8;
+	const uint32_t ScratchpadL2Mask_Calculated = (ScratchpadL2_Size / sizeof(uint64_t) - 1) * 8;
+
+	AddressMask_Calculated[0] = ScratchpadL2Mask_Calculated;
+	AddressMask_Calculated[1] = ScratchpadL1Mask_Calculated;
+	AddressMask_Calculated[2] = ScratchpadL1Mask_Calculated;
+	AddressMask_Calculated[3] = ScratchpadL1Mask_Calculated;
+
 	ScratchpadL3Mask_Calculated = (((ScratchpadL3_Size / sizeof(uint64_t)) - 1) * 8);
 	ScratchpadL3Mask64_Calculated = ((ScratchpadL3_Size / sizeof(uint64_t)) / 8 - 1) * 64;
 
-	CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1);
-	DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE;
-
-	ConditionMask_Calculated = (1 << JumpBits) - 1;
-
-#if defined(_M_X64) || defined(__x86_64__)
+#if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
 	*(uint32_t*)(codeShhPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
 	// Not needed right now because all variants use default dataset base size
 	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
@@ -220,12 +221,49 @@ void RandomX_ConfigurationBase::Apply()
 	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
 	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
-	*(uint32_t*)(codePrefetchScratchpadTweaked + 4) = ScratchpadL3Mask64_Calculated;
-	*(uint32_t*)(codePrefetchScratchpadTweaked + 18) = ScratchpadL3Mask64_Calculated;
+	const bool hasBMI2 = xmrig::Cpu::info()->hasBMI2();
 
-#define JIT_HANDLE(x, prev) randomx::JitCompilerX86::engine[k] = &randomx::JitCompilerX86::h_##x
+	*(uint32_t*)(codePrefetchScratchpadTweaked + (hasBMI2 ? 7 : 4)) = ScratchpadL3Mask64_Calculated;
+	*(uint32_t*)(codePrefetchScratchpadTweaked + (hasBMI2 ? 17 : 18)) = ScratchpadL3Mask64_Calculated;
 
-#elif defined(XMRIG_ARMv8)
+	// Apply scratchpad prefetch mode
+	{
+		uint32_t* a = (uint32_t*)(codePrefetchScratchpadTweaked + (hasBMI2 ? 11 : 8));
+		uint32_t* b = (uint32_t*)(codePrefetchScratchpadTweaked + (hasBMI2 ? 21 : 22));
+
+		switch (scratchpadPrefetchMode)
+		{
+		case 0:
+			*a = 0x00401F0FUL; // 4-byte nop
+			*b = 0x00401F0FUL; // 4-byte nop
+			break;
+
+		case 1:
+		default:
+			*a = 0x060C180FUL; // prefetcht0 [rsi+rax]
+			*b = 0x160C180FUL; // prefetcht0 [rsi+rdx]
+			break;
+
+		case 2:
+			*a = 0x0604180FUL; // prefetchnta [rsi+rax]
+			*b = 0x1604180FUL; // prefetchnta [rsi+rdx]
+			break;
+
+		case 3:
+			*a = 0x060C8B48UL; // mov rcx, [rsi+rax]
+			*b = 0x160C8B48UL; // mov rcx, [rsi+rdx]
+			break;
+		}
+	}
+
+typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx::Instruction&);
+
+#define JIT_HANDLE(x, prev) do { \
+		const InstructionGeneratorX86_2 p = &randomx::JitCompilerX86::h_##x; \
+		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
+	} while (0)
+
+#elif (XMRIG_ARM == 8)
 
 	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
@@ -239,16 +277,16 @@ void RandomX_ConfigurationBase::Apply()
 #define JIT_HANDLE(x, prev)
 #endif
 
-	constexpr int CEIL_NULL = 0;
-	int k = 0;
+	uint32_t k = 0;
+	uint32_t freq_sum = 0;
 
 #define INST_HANDLE(x, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(x, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(x, prev); }
 
 #define INST_HANDLE2(x, func_name, prev) \
-	CEIL_##x = CEIL_##prev + RANDOMX_FREQ_##x; \
-	for (; k < CEIL_##x; ++k) { JIT_HANDLE(func_name, prev); }
+	freq_sum += RANDOMX_FREQ_##x; \
+	for (; k < freq_sum; ++k) { JIT_HANDLE(func_name, prev); }
 
 	INST_HANDLE(IADD_RS, NULL);
 	INST_HANDLE(IADD_M, IADD_RS);
@@ -258,7 +296,7 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(IMUL_M, IMUL_R);
 
 #if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
+	if (hasBMI2) {
 		INST_HANDLE2(IMULH_R, IMULH_R_BMI2, IMUL_M);
 		INST_HANDLE2(IMULH_M, IMULH_M_BMI2, IMULH_R);
 	}
@@ -287,10 +325,20 @@ void RandomX_ConfigurationBase::Apply()
 	INST_HANDLE(FMUL_R, FSCAL_R);
 	INST_HANDLE(FDIV_M, FMUL_R);
 	INST_HANDLE(FSQRT_R, FDIV_M);
-	INST_HANDLE(CBRANCH, FSQRT_R);
 
 #if defined(_M_X64) || defined(__x86_64__)
-	if (xmrig::Cpu::info()->hasBMI2()) {
+	if (xmrig::Cpu::info()->jccErratum()) {
+		INST_HANDLE2(CBRANCH, CBRANCH<true>, FSQRT_R);
+	}
+	else {
+		INST_HANDLE2(CBRANCH, CBRANCH<false>, FSQRT_R);
+	}
+#else
+	INST_HANDLE(CBRANCH, FSQRT_R);
+#endif
+
+#if defined(_M_X64) || defined(__x86_64__)
+	if (hasBMI2) {
 		INST_HANDLE2(CFROUND, CFROUND_BMI2, CBRANCH);
 	}
 	else
@@ -306,8 +354,8 @@ void RandomX_ConfigurationBase::Apply()
 
 RandomX_ConfigurationMonero RandomX_MoneroConfig;
 RandomX_ConfigurationWownero RandomX_WowneroConfig;
-RandomX_ConfigurationLoki RandomX_LokiConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
+RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
 
@@ -335,9 +383,9 @@ extern "C" {
 					break;
 
 				case RANDOMX_FLAG_JIT:
-					cache->jit          = new randomx::JitCompiler();
+					cache->jit          = new randomx::JitCompiler(false, true);
 					cache->initialize   = &randomx::initCacheCompile;
-					cache->datasetInit  = cache->jit->getDatasetInitFunc();
+					cache->datasetInit  = nullptr;
 					cache->memory       = memory;
 					break;
 
@@ -520,33 +568,35 @@ extern "C" {
 		assert(inputSize == 0 || input != nullptr);
 		assert(output != nullptr);
 		alignas(16) uint64_t tempHash[8];
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
-		machine->getFinalResult(output, RANDOMX_HASH_SIZE);
+		machine->getFinalResult(output);
 	}
 
 	void randomx_calculate_hash_first(randomx_vm* machine, uint64_t (&tempHash)[8], const void* input, size_t inputSize) {
-		rx_blake2b(tempHash, sizeof(tempHash), input, inputSize, nullptr, 0);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), input, inputSize);
 		machine->initScratchpad(tempHash);
 	}
 
 	void randomx_calculate_hash_next(randomx_vm* machine, uint64_t (&tempHash)[8], const void* nextInput, size_t nextInputSize, void* output) {
+		PROFILE_SCOPE(RandomX_hash);
+
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
 			machine->run(&tempHash);
-			rx_blake2b(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile), nullptr, 0);
+			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
 		machine->run(&tempHash);
 
 		// Finish current hash and fill the scratchpad for the next hash at the same time
-		rx_blake2b(tempHash, sizeof(tempHash), nextInput, nextInputSize, nullptr, 0);
-		machine->hashAndFill(output, RANDOMX_HASH_SIZE, tempHash);
+		rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), nextInput, nextInputSize);
+		machine->hashAndFill(output, tempHash);
 	}
 
 }

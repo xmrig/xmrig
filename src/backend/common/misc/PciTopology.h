@@ -1,13 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,10 +35,15 @@ public:
     PciTopology() = default;
     PciTopology(uint32_t bus, uint32_t device, uint32_t function) : m_valid(true), m_bus(bus), m_device(device), m_function(function) {}
 
-    inline bool isValid() const        { return m_valid; }
-    inline uint8_t bus() const         { return m_bus; }
-    inline uint8_t device() const      { return m_device; }
-    inline uint8_t function() const    { return m_function; }
+    inline bool isEqual(const PciTopology &other) const     { return m_valid == other.m_valid && toUint32() == other.toUint32(); }
+    inline bool isValid() const                             { return m_valid; }
+    inline uint8_t bus() const                              { return m_bus; }
+    inline uint8_t device() const                           { return m_device; }
+    inline uint8_t function() const                         { return m_function; }
+
+    inline bool operator!=(const PciTopology &other) const  { return !isEqual(other); }
+    inline bool operator<(const PciTopology &other) const   { return toUint32() < other.toUint32(); }
+    inline bool operator==(const PciTopology &other) const  { return isEqual(other); }
 
     String toString() const
     {
@@ -60,6 +58,8 @@ public:
     }
 
 private:
+    inline uint32_t toUint32() const { return m_bus << 16 | m_device << 8 | m_function;  }
+
     bool m_valid         = false;
     uint8_t m_bus        = 0;
     uint8_t m_device     = 0;
