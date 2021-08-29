@@ -70,7 +70,17 @@ static void Salsa20_XORKeyStream(const void* key, void* output, size_t size)
 {
 	const uint64_t iv = 0;
 	ZeroTier::Salsa20 s(key, &iv);
-	s.XORKeyStream(output, size);
+	s.XORKeyStream(output, static_cast<uint32_t>(size));
+	memset(static_cast<uint8_t*>(output) - 16, 0, 16);
+	memset(static_cast<uint8_t*>(output) + size, 0, 16);
+}
+
+extern "C" int salsa20_stream_avx2(void* c, uint64_t clen, const void* iv, const void* key);
+
+static void Salsa20_XORKeyStream_AVX256(const void* key, void* output, size_t size)
+{
+	const uint64_t iv = 0;
+	salsa20_stream_avx2(output, size, &iv, key);
 	memset(static_cast<uint8_t*>(output) - 16, 0, 16);
 	memset(static_cast<uint8_t*>(output) + size, 0, 16);
 }
@@ -167,13 +177,16 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 	uint8_t* stage2_result = (uint8_t*)(tmp_indices);
 
 #ifdef ASTROBWT_AVX2
-	if (hasAVX2 && avx2)
+	if (hasAVX2 && avx2) {
 		SHA3_256_AVX2_ASM(input_data, input_size, key);
+		Salsa20_XORKeyStream_AVX256(key, stage1_output, STAGE1_SIZE);
+	}
 	else
 #endif
+	{
 		sha3_HashBuffer(256, SHA3_FLAGS_NONE, input_data, input_size, key, sizeof(key));
-
-	Salsa20_XORKeyStream(key, stage1_output, STAGE1_SIZE);
+		Salsa20_XORKeyStream(key, stage1_output, STAGE1_SIZE);
+	}
 
 	sort_indices(STAGE1_SIZE + 1, stage1_output, indices, tmp_indices);
 
@@ -196,7 +209,15 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 		return false;
 	}
 
-	Salsa20_XORKeyStream(key, stage2_output, stage2_size);
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2 && avx2) {
+		Salsa20_XORKeyStream_AVX256(key, stage2_output, stage2_size);
+	}
+	else
+#endif
+	{
+		Salsa20_XORKeyStream(key, stage2_output, stage2_size);
+	}
 
 	sort_indices(stage2_size + 1, stage2_output, indices, tmp_indices);
 
