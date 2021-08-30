@@ -30,4 +30,4 @@ if (WITH_DMI)
     endif()
 endif()
 
-message(STATUS "WITH_DMI\t= ${WITH_DMI}")
+message(STATUS "WITH_DMI        \t= ${WITH_DMI}")

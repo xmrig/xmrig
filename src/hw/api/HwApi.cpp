@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "hw/api/HwApi.h"
 #include "base/api/interfaces/IApiRequest.h"
 #include "base/tools/String.h"

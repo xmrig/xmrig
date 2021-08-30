@@ -20,7 +20,7 @@ if (WITH_TLS)
 
     add_definitions(-DXMRIG_FEATURE_TLS)
 
-    message(STATUS "WITH_TLS\t= ON (v${OPENSSL_VERSION})")
+    message(STATUS "WITH_TLS        \t= ON (v${OPENSSL_VERSION})")
 else()
-    message(STATUS "WITH_TLS\t= ${WITH_TLS}")
+    message(STATUS "WITH_TLS        \t= ${WITH_TLS}")
 endif()

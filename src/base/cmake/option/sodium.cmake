@@ -1,4 +1,4 @@
-message(STATUS "WITH_SODIUM\t= ${WITH_SODIUM}")
+message(STATUS "WITH_SODIUM     \t= ${WITH_SODIUM}")
 
 if (WITH_SODIUM)
     find_package(Sodium REQUIRED)

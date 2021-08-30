@@ -22,28 +22,8 @@ set(SOURCES_BACKEND_CPU
    )
 
 if (WITH_HWLOC)
-    if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-        add_subdirectory(src/3rdparty/hwloc)
-        include_directories(src/3rdparty/hwloc/include)
-        set(CPUID_LIB hwloc)
-    else()
-        find_package(HWLOC REQUIRED)
-        include_directories(${HWLOC_INCLUDE_DIR})
-        set(CPUID_LIB ${HWLOC_LIBRARY})
-    endif()
-
-    add_definitions(/DXMRIG_FEATURE_HWLOC)
-
-    if (HWLOC_DEBUG)
-        add_definitions(/DXMRIG_HWLOC_DEBUG)
-    endif()
-
     list(APPEND HEADERS_BACKEND_CPU src/backend/cpu/platform/HwlocCpuInfo.h)
     list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/HwlocCpuInfo.cpp)
-else()
-    remove_definitions(/DXMRIG_FEATURE_HWLOC)
-
-    set(CPUID_LIB "")
 endif()
 
 if (XMRIG_ARM)

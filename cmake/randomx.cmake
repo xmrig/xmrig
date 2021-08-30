@@ -124,5 +124,5 @@ if (WITH_RANDOMX)
 endif()
 
 
-message(STATUS "WITH_MSR\t= ${WITH_MSR}")
-message(STATUS "WITH_PROFILING\t= ${WITH_PROFILING}")
+message(STATUS "WITH_MSR        \t= ${WITH_MSR}")
+message(STATUS "WITH_PROFILING  \t= ${WITH_PROFILING}")
