@@ -25,7 +25,7 @@
 #define XMRIG_USAGE_H
 
 
-#include "version.h"
+#include "../version.h"
 
 
 #include <string>

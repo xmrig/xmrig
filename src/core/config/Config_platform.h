@@ -21,7 +21,7 @@
 
 
 #ifdef _MSC_VER
-#   include "getopt/getopt.h"
+#   include "3rdparty/getopt/getopt.h"
 #else
 #   include <getopt.h>
 #endif
