@@ -54,14 +54,6 @@ const char *xmrig::Tags::signal()
 
 
 #ifdef XMRIG_MINER_PROJECT
-const char *xmrig::Tags::cpu()
-{
-    static const char *tag = CYAN_BG_BOLD(WHITE_BOLD_S " cpu     ");
-
-    return tag;
-}
-
-
 const char *xmrig::Tags::miner()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " miner   ");
@@ -95,26 +87,6 @@ const char *xmrig::Tags::bench()
 const char *xmrig::Tags::proxy()
 {
     static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " proxy   ");
-
-    return tag;
-}
-#endif
-
-
-#ifdef XMRIG_FEATURE_CUDA
-const char *xmrig::Tags::nvidia()
-{
-    static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " nvidia  ");
-
-    return tag;
-}
-#endif
-
-
-#ifdef XMRIG_FEATURE_OPENCL
-const char *xmrig::Tags::opencl()
-{
-    static const char *tag = MAGENTA_BG_BOLD(WHITE_BOLD_S " opencl  ");
 
     return tag;
 }

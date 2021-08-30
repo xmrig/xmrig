@@ -19,6 +19,7 @@
 #include "backend/opencl/runners/tools/OclKawPow.h"
 #include "3rdparty/libethash/data_sizes.h"
 #include "3rdparty/libethash/ethash_internal.h"
+#include "backend/common/Tags.h"
 #include "backend/opencl/cl/kawpow/kawpow_cl.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
 #include "backend/opencl/OclCache.h"
@@ -27,7 +28,6 @@
 #include "backend/opencl/wrappers/OclError.h"
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
-#include "base/io/log/Tags.h"
 #include "base/tools/Baton.h"
 #include "base/tools/Chrono.h"
 #include "crypto/kawpow/KPHash.h"
@@ -202,7 +202,7 @@ public:
             return nullptr;
         }
 
-        LOG_INFO("%s " YELLOW("KawPow") " program for period " WHITE_BOLD("%" PRIu64) " compiled " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::opencl(), period, Chrono::steadyMSecs() - ts);
+        LOG_INFO("%s " YELLOW("KawPow") " program for period " WHITE_BOLD("%" PRIu64) " compiled " BLACK_BOLD("(%" PRIu64 "ms)"), ocl_tag(), period, Chrono::steadyMSecs() - ts);
 
         cache.add(runner.algorithm(), period, worksize, runner.deviceIndex(), program, kernel);
 

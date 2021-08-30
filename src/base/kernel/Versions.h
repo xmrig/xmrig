@@ -16,46 +16,32 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TAGS_H
-#define XMRIG_TAGS_H
+#ifndef XMRIG_VERSIONS_H
+#define XMRIG_VERSIONS_H
 
 
-#include <cstddef>
-#include <cstdint>
+#include "base/tools/String.h"
+
+
+#include <map>
 
 
 namespace xmrig {
 
 
-class Tags
+class Versions
 {
 public:
-    static const char *config();
-    static const char *network();
-    static const char *origin();
-    static const char *signal();
+    static const std::map<String, String> &get();
+    static rapidjson::Value toJSON(rapidjson::Document &doc);
+    static void toJSON(rapidjson::Value &out, rapidjson::Document &doc);
 
-#   ifdef XMRIG_MINER_PROJECT
-    static const char *miner();
-#   ifdef XMRIG_ALGO_RANDOMX
-    static const char *randomx();
-#   endif
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    static const char *bench();
-#   endif
-#   endif
-
-#   ifdef XMRIG_PROXY_PROJECT
-    static const char *proxy();
-#   endif
-
-#   ifdef XMRIG_FEATURE_PROFILING
-    static const char* profiler();
-#   endif
+private:
+    static std::map<String, String> m_data;
 };
 
 
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_TAGS_H */
+#endif /* XMRIG_VERSIONS_H */

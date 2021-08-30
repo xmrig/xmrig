@@ -16,46 +16,18 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_TAGS_H
-#define XMRIG_TAGS_H
+#ifndef XMRIG_BASE_VERSION_H
+#define XMRIG_BASE_VERSION_H
 
 
-#include <cstddef>
-#include <cstdint>
+#define BASE_VER_MAJOR  0
+#define BASE_VER_MINOR  1
+#define BASE_VER_PATCH  0
+
+#define XMRIG_STRINGIFY(x) #x
+#define XMRIG_TOSTRING(x) XMRIG_STRINGIFY(x)
+
+#define BASE_VERSION XMRIG_TOSTRING(BASE_VER_MAJOR.BASE_VER_MINOR.BASE_VER_PATCH)
 
 
-namespace xmrig {
-
-
-class Tags
-{
-public:
-    static const char *config();
-    static const char *network();
-    static const char *origin();
-    static const char *signal();
-
-#   ifdef XMRIG_MINER_PROJECT
-    static const char *miner();
-#   ifdef XMRIG_ALGO_RANDOMX
-    static const char *randomx();
-#   endif
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    static const char *bench();
-#   endif
-#   endif
-
-#   ifdef XMRIG_PROXY_PROJECT
-    static const char *proxy();
-#   endif
-
-#   ifdef XMRIG_FEATURE_PROFILING
-    static const char* profiler();
-#   endif
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_TAGS_H */
+#endif // XMRIG_BASE_VERSION_H

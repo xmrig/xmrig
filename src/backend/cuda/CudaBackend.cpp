@@ -32,7 +32,6 @@
 #include "backend/cuda/wrappers/CudaDevice.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
-#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/String.h"
@@ -106,13 +105,13 @@ public:
     inline void print() const
     {
         if (m_started == 0) {
-            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), Tags::nvidia());
+            LOG_ERR("%s " RED_BOLD("disabled") YELLOW(" (failed to start threads)"), cuda_tag());
 
             return;
         }
 
         LOG_INFO("%s" GREEN_BOLD(" READY") " threads " "%s%zu/%zu" BLACK_BOLD(" (%" PRIu64 " ms)"),
-                 Tags::nvidia(),
+                 cuda_tag(),
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
                  m_started,
                  m_threads,
@@ -209,7 +208,7 @@ public:
     inline void start(const Job &job)
     {
         LOG_INFO("%s use profile " BLUE_BG(WHITE_BOLD_S " %s ") WHITE_BOLD_S " (" CYAN_BOLD("%zu") WHITE_BOLD(" thread%s)") " scratchpad " CYAN_BOLD("%zu KB"),
-                 Tags::nvidia(),
+                 cuda_tag(),
                  profileName.data(),
                  threads.size(),
                  threads.size() > 1 ? "s" : "",
@@ -278,7 +277,7 @@ public:
             }
 
             LOG_INFO("%s" CYAN_BOLD(" #%u") YELLOW(" %s") MAGENTA_BOLD("%4uW") CSI "1;%um %2uC" CLEAR WHITE_BOLD("%s") "%s",
-                     Tags::nvidia(),
+                     cuda_tag(),
                      device.index(),
                      device.topology().toString().data(),
                      health.power,
@@ -309,7 +308,9 @@ public:
 
 const char *xmrig::cuda_tag()
 {
-    return Tags::nvidia();
+    static const char *tag = GREEN_BG_BOLD(WHITE_BOLD_S " nvidia  ");
+
+    return tag;
 }
 
 
@@ -449,7 +450,7 @@ void xmrig::CudaBackend::setJob(const Job &job)
     d_ptr->profileName  = cuda.threads().profileName(job.algorithm());
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
-        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), Tags::nvidia());
+        LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), cuda_tag());
 
         return stop();
     }
@@ -490,7 +491,7 @@ void xmrig::CudaBackend::stop()
     d_ptr->workers.stop();
     d_ptr->threads.clear();
 
-    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), Tags::nvidia(), Chrono::steadyMSecs() - ts);
+    LOG_INFO("%s" YELLOW(" stopped") BLACK_BOLD(" (%" PRIu64 " ms)"), cuda_tag(), Chrono::steadyMSecs() - ts);
 }
 
 

@@ -1,18 +1,13 @@
 if (WITH_ARGON2)
-    add_definitions(/DXMRIG_ALGO_ARGON2)
-
-    list(APPEND HEADERS_CRYPTO
+    list(APPEND HEADERS
         src/crypto/argon2/Hash.h
         src/crypto/argon2/Impl.h
     )
 
-    list(APPEND SOURCES_CRYPTO
+    list(APPEND SOURCES
         src/crypto/argon2/Impl.cpp
     )
 
     add_subdirectory(src/3rdparty/argon2)
-    set(ARGON2_LIBRARY argon2)
-else()
-    remove_definitions(/DXMRIG_ALGO_ARGON2)
-    set(ARGON2_LIBRARY "")
+    list(APPEND LIBS argon2)
 endif()

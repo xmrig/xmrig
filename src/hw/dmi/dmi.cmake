@@ -5,7 +5,7 @@ else()
 endif()
 
 if (WITH_DMI)
-    add_definitions(/DXMRIG_FEATURE_DMI)
+    add_definitions(-DXMRIG_FEATURE_DMI)
 
     list(APPEND HEADERS
         src/hw/dmi/DmiBoard.h
@@ -28,6 +28,6 @@ if (WITH_DMI)
     elseif(XMRIG_OS_MACOS)
         list(APPEND SOURCES src/hw/dmi/DmiReader_mac.cpp)
     endif()
-else()
-    remove_definitions(/DXMRIG_FEATURE_DMI)
 endif()
+
+message(STATUS "WITH_DMI\t= ${WITH_DMI}")

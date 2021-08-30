@@ -1,0 +1,6 @@
+if (NOT XMRIG_OS_WIN)
+    CHECK_INCLUDE_FILE(syslog.h HAVE_SYSLOG_H)
+    if (HAVE_SYSLOG_H)
+        add_definitions(-DHAVE_SYSLOG_H)
+    endif()
+endif()

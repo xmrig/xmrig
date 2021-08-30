@@ -18,10 +18,10 @@
 
 #include "backend/cuda/runners/CudaKawPowRunner.h"
 #include "3rdparty/libethash/data_sizes.h"
+#include "backend/common/Tags.h"
 #include "backend/cuda/CudaLaunchData.h"
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/log/Log.h"
-#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "crypto/kawpow/KPCache.h"
@@ -61,12 +61,12 @@ bool xmrig::CudaKawPowRunner::set(const Job &job, uint8_t *blob)
 
     const bool result = CudaLib::kawPowPrepare(m_ctx, cache.data(), cache.size(), cache.l1_cache(), KPCache::dag_size(epoch), height, dag_sizes);
     if (!result) {
-        LOG_ERR("%s " YELLOW("KawPow") RED(" failed to initialize DAG: ") RED_BOLD("%s"), Tags::nvidia(), CudaLib::lastError(m_ctx));
+        LOG_ERR("%s " YELLOW("KawPow") RED(" failed to initialize DAG: ") RED_BOLD("%s"), cuda_tag(), CudaLib::lastError(m_ctx));
     }
     else {
         const int64_t dt = Chrono::steadyMSecs() - start_ms;
         if (dt > 1000) {
-            LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::nvidia(), epoch, dt);
+            LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), cuda_tag(), epoch, dt);
         }
     }
 

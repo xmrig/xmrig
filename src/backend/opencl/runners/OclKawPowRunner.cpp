@@ -26,7 +26,6 @@
 #include "backend/opencl/wrappers/OclLib.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Log.h"
-#include "base/io/log/Tags.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Chrono.h"
 #include "crypto/common/VirtualMemory.h"
@@ -159,7 +158,7 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
 
         OclLib::finish(m_queue);
 
-        LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), Tags::opencl(), epoch, Chrono::steadyMSecs() - start_ms);
+        LOG_INFO("%s " YELLOW("KawPow") " DAG for epoch " WHITE_BOLD("%u") " calculated " BLACK_BOLD("(%" PRIu64 "ms)"), ocl_tag(), epoch, Chrono::steadyMSecs() - start_ms);
     }
 
     const uint64_t target = job.target();
