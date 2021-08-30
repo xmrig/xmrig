@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2012-2013 The Cryptonote developers
- * Copyright 2014-2021 The Monero Project
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2012-2013 The Cryptonote developers
+ * Copyright (c) 2014-2021 The Monero Project
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,49 +18,50 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/crypto/keccak.h"
 #include "base/tools/cryptonote/Signatures.h"
+#include "base/tools/Cvt.h"
 
 extern "C" {
 
-#include "base/tools/cryptonote/crypto-ops.h"
+#include "3rdparty/cryptonote/crypto-ops.h"
 
 }
 
-#include "base/tools/Cvt.h"
-
-#ifdef XMRIG_PROXY_PROJECT
-#define PROFILE_SCOPE(x)
+#if defined(XMRIG_PROXY_PROJECT) || !defined(XMRIG_PROFILER_H)
+#   define PROFILE_SCOPE(x)
 #else
-#include "crypto/rx/Profiler.h"
+#   include "crypto/rx/Profiler.h"
 #endif
 
 
-struct ec_scalar { char data[32]; };
-struct hash { char data[32]; };
-struct ec_point { char data[32]; };
-struct signature { ec_scalar c, r; };
-struct s_comm { hash h; ec_point key; ec_point comm; };
+namespace xmrig {
 
 
-static inline void random_scalar(ec_scalar& res)
+struct ec_scalar    { uint8_t data[32]; };
+struct hash         { uint8_t data[32]; };
+struct ec_point     { uint8_t data[32]; };
+struct signature    { ec_scalar c, r; };
+struct s_comm       { hash h; ec_point key; ec_point comm; };
+
+
+static inline void random_scalar(ec_scalar &res)
 {
     // Don't care about bias or possible 0 after reduce: probability ~10^-76, not happening in this universe.
     // Performance matters more. It's a miner after all.
-    xmrig::Cvt::randomBytes(res.data, sizeof(res.data));
-    sc_reduce32((uint8_t*) res.data);
+    Cvt::randomBytes(res.data, sizeof(res.data));
+    sc_reduce32(res.data);
 }
 
 
-static void hash_to_scalar(const void* data, size_t length, ec_scalar& res)
+static void hash_to_scalar(const void* data, size_t length, ec_scalar &res)
 {
-    xmrig::keccak((const uint8_t*) data, length, (uint8_t*) &res, sizeof(res));
-    sc_reduce32((uint8_t*) &res);
+    keccak(reinterpret_cast<const uint8_t*>(data), length, res.data, sizeof(res));
+    sc_reduce32(res.data);
 }
 
 
-static void derivation_to_scalar(const uint8_t* derivation, size_t output_index, ec_scalar& res)
+static void derivation_to_scalar(const uint8_t *derivation, size_t output_index, ec_scalar &res)
 {
     struct {
         uint8_t derivation[32];
@@ -81,10 +82,11 @@ static void derivation_to_scalar(const uint8_t* derivation, size_t output_index,
 }
 
 
-namespace xmrig {
+} // namespace xmrig
 
 
-void generate_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8_t* sec, uint8_t* sig_bytes)
+// NOLINTNEXTLINE(readability-non-const-parameter)
+void xmrig::generate_signature(const uint8_t *prefix_hash, const uint8_t *pub, const uint8_t *sec, uint8_t *sig_bytes)
 {
     PROFILE_SCOPE(GenerateSignature);
 
@@ -95,24 +97,24 @@ void generate_signature(const uint8_t* prefix_hash, const uint8_t* pub, const ui
     memcpy(buf.h.data, prefix_hash, sizeof(buf.h.data));
     memcpy(buf.key.data, pub, sizeof(buf.key.data));
 
-    signature& sig = *reinterpret_cast<signature*>(sig_bytes);
+    signature &sig = *reinterpret_cast<signature*>(sig_bytes);
 
     do {
         random_scalar(k);
-        ge_scalarmult_base(&tmp3, (unsigned char*)&k);
-        ge_p3_tobytes((unsigned char*)&buf.comm, &tmp3);
+        ge_scalarmult_base(&tmp3, k.data);
+        ge_p3_tobytes(buf.comm.data, &tmp3);
         hash_to_scalar(&buf, sizeof(s_comm), sig.c);
 
-        if (!sc_isnonzero((const unsigned char*)sig.c.data)) {
+        if (!sc_isnonzero(sig.c.data)) {
             continue;
         }
 
-        sc_mulsub((unsigned char*)&sig.r, (unsigned char*)&sig.c, sec, (unsigned char*)&k);
-    } while (!sc_isnonzero((const unsigned char*)sig.r.data));
+        sc_mulsub(sig.r.data, sig.c.data, sec, k.data);
+    } while (!sc_isnonzero(sig.r.data));
 }
 
 
-bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8_t* sig_bytes)
+bool xmrig::check_signature(const uint8_t *prefix_hash, const uint8_t *pub, const uint8_t *sig_bytes)
 {
     ge_p2 tmp2;
     ge_p3 tmp3;
@@ -126,14 +128,14 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
         return false;
     }
 
-    const signature& sig = *reinterpret_cast<const signature*>(sig_bytes);
+    const signature &sig = *reinterpret_cast<const signature *>(sig_bytes);
 
-    if (sc_check((const uint8_t*)&sig.c) != 0 || sc_check((const uint8_t*)&sig.r) != 0 || !sc_isnonzero((const uint8_t*)&sig.c)) {
+    if (sc_check(sig.c.data) != 0 || sc_check(sig.r.data) != 0 || !sc_isnonzero(sig.c.data)) {
         return false;
     }
 
-    ge_double_scalarmult_base_vartime(&tmp2, (const uint8_t*)&sig.c, &tmp3, (const uint8_t*)&sig.r);
-    ge_tobytes((uint8_t*)&buf.comm, &tmp2);
+    ge_double_scalarmult_base_vartime(&tmp2, sig.c.data, &tmp3, sig.r.data);
+    ge_tobytes(buf.comm.data, &tmp2);
 
     static const ec_point infinity = { { 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0} };
     if (memcmp(&buf.comm, &infinity, 32) == 0) {
@@ -141,13 +143,13 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
     }
 
     hash_to_scalar(&buf, sizeof(s_comm), c);
-    sc_sub((uint8_t*)&c, (uint8_t*)&c, (const uint8_t*)&sig.c);
+    sc_sub(c.data, c.data, sig.c.data);
 
-    return sc_isnonzero((uint8_t*)&c) == 0;
+    return sc_isnonzero(c.data) == 0;
 }
 
 
-bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* derivation)
+bool xmrig::generate_key_derivation(const uint8_t *key1, const uint8_t *key2, uint8_t *derivation)
 {
     ge_p3 point;
     ge_p2 point2;
@@ -166,16 +168,16 @@ bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* 
 }
 
 
-void derive_secret_key(const uint8_t* derivation, size_t output_index, const uint8_t* base, uint8_t* derived_key)
+void xmrig::derive_secret_key(const uint8_t *derivation, size_t output_index, const uint8_t *base, uint8_t *derived_key)
 {
     ec_scalar scalar;
 
     derivation_to_scalar(derivation, output_index, scalar);
-    sc_add(derived_key, base, (uint8_t*) &scalar);
+    sc_add(derived_key, base, scalar.data);
 }
 
 
-bool derive_public_key(const uint8_t* derivation, size_t output_index, const uint8_t* base, uint8_t* derived_key)
+bool xmrig::derive_public_key(const uint8_t *derivation, size_t output_index, const uint8_t *base, uint8_t *derived_key)
 {
     ec_scalar scalar;
     ge_p3 point1;
@@ -189,7 +191,7 @@ bool derive_public_key(const uint8_t* derivation, size_t output_index, const uin
     }
 
     derivation_to_scalar(derivation, output_index, scalar);
-    ge_scalarmult_base(&point2, (uint8_t*) &scalar);
+    ge_scalarmult_base(&point2, scalar.data);
     ge_p3_to_cached(&point3, &point2);
     ge_add(&point4, &point1, &point3);
     ge_p1p1_to_p2(&point5, &point4);
@@ -199,14 +201,14 @@ bool derive_public_key(const uint8_t* derivation, size_t output_index, const uin
 }
 
 
-void derive_view_secret_key(const uint8_t* spend_secret_key, uint8_t* view_secret_key)
+void xmrig::derive_view_secret_key(const uint8_t *spend_secret_key, uint8_t *view_secret_key)
 {
     keccak(spend_secret_key, 32, view_secret_key, 32);
     sc_reduce32(view_secret_key);
 }
 
 
-void generate_keys(uint8_t* pub, uint8_t* sec)
+void xmrig::generate_keys(uint8_t *pub, uint8_t *sec)
 {
     random_scalar(*((ec_scalar*)sec));
 
@@ -216,7 +218,7 @@ void generate_keys(uint8_t* pub, uint8_t* sec)
 }
 
 
-bool secret_key_to_public_key(const uint8_t* sec, uint8_t* pub)
+bool xmrig::secret_key_to_public_key(const uint8_t *sec, uint8_t *pub)
 {
     if (sc_check(sec) != 0) {
         return false;
@@ -228,6 +230,3 @@ bool secret_key_to_public_key(const uint8_t* sec, uint8_t* pub)
 
     return true;
 }
-
-
-} /* namespace xmrig */

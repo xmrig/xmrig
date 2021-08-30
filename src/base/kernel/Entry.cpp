@@ -36,7 +36,7 @@
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
 #include "core/config/usage.h"
-#include "version.h"
+#include "../version.h"
 
 
 namespace xmrig {

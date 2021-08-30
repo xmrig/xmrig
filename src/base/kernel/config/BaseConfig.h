@@ -37,7 +37,7 @@ namespace xmrig {
 class IJsonReader;
 
 
-class BaseConfig : public IConfig
+class [[deprecated]] BaseConfig : public IConfig
 {
 public:
     static const char *kApi;

@@ -35,7 +35,6 @@
 #include "net/JobResult.h"
 
 
-
 xmrig::EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
     Client(id, agent, listener)
 {

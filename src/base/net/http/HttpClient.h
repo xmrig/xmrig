@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifndef XMRIG_HTTPCLIENT_H
 #define XMRIG_HTTPCLIENT_H
 

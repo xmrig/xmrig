@@ -75,7 +75,7 @@ set(HEADERS_BASE
     src/base/tools/Chrono.h
     src/base/tools/cryptonote/BlobReader.h
     src/base/tools/cryptonote/BlockTemplate.h
-    src/base/tools/cryptonote/crypto-ops.h
+    src/3rdparty/cryptonote/crypto-ops.h
     src/base/tools/cryptonote/Signatures.h
     src/base/tools/cryptonote/umul128.h
     src/base/tools/cryptonote/WalletAddress.h
@@ -133,8 +133,8 @@ set(SOURCES_BASE
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
     src/base/tools/cryptonote/BlockTemplate.cpp
-    src/base/tools/cryptonote/crypto-ops-data.c
-    src/base/tools/cryptonote/crypto-ops.c
+    src/3rdparty/cryptonote/crypto-ops-data.c
+    src/3rdparty/cryptonote/crypto-ops.c
     src/base/tools/cryptonote/Signatures.cpp
     src/base/tools/cryptonote/WalletAddress.cpp
     src/base/tools/Cvt.cpp

@@ -86,7 +86,7 @@ bool xmrig::WalletAddress::decode(const char *address, size_t size)
             }
 
             uint64_t hi;
-            const uint64_t tmp = num + __umul128(order, static_cast<uint64_t>(digit), &hi);
+            const uint64_t tmp = num + xmrig_umul128(order, static_cast<uint64_t>(digit), &hi);
             if ((tmp < num) || hi) {
                 return false;
             }

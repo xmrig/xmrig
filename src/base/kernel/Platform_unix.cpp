@@ -38,7 +38,7 @@
 
 
 #include "base/kernel/Platform.h"
-#include "version.h"
+#include "../version.h"
 
 
 #ifdef __FreeBSD__

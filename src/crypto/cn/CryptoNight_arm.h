@@ -487,7 +487,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx0, cl, &hi);
+        lo = xmrig_umul128(idx0, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {
@@ -663,7 +663,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx0, cl, &hi);
+        lo = xmrig_umul128(idx0, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {
@@ -723,7 +723,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx1, cl, &hi);
+        lo = xmrig_umul128(idx1, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {

@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <algorithm>
 #include <winsock2.h>
 #include <windows.h>
@@ -25,7 +24,7 @@
 
 
 #include "base/kernel/Platform.h"
-#include "version.h"
+#include "../version.h"
 
 
 static inline OSVERSIONINFOEX winOsVersion()

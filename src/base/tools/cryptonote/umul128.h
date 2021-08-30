@@ -21,27 +21,28 @@
   *
   */
 
-#pragma once
+#ifndef XMRIG_UMUL128_H
+#define XMRIG_UMUL128_H
 
 
 #include <cstdint>
 
+
 #ifdef XMRIG_64_BIT
-#   ifdef _MSC_VER
+#   if defined(_MSC_VER)
 #       include <intrin.h>
 #       pragma intrinsic(_umul128)
-#       define __umul128 _umul128
-#   elif defined __GNUC__
-        static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
+#       define xmrig_umul128 _umul128
+#   elif defined(__GNUC__)
+        static inline uint64_t xmrig_umul128(uint64_t a, uint64_t b, uint64_t* hi)
         {
             unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
             *hi = r >> 64;
             return (uint64_t) r;
         }
-#       define __umul128 _umul128
 #   endif
 #else
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
+static inline uint64_t xmrig_umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
     // multiplier   = ab = a * 2^32 + b
     // multiplicand = cd = c * 2^32 + d
     // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
@@ -66,3 +67,6 @@ static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uin
     return product_lo;
 }
 #endif
+
+
+#endif // XMRIG_UMUL128_H

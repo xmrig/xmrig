@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <IOKit/IOKitLib.h>
 #include <IOKit/ps/IOPowerSources.h>
 #include <stdio.h>
@@ -28,7 +27,7 @@
 
 
 #include "base/kernel/Platform.h"
-#include "version.h"
+#include "../version.h"
 
 
 char *xmrig::Platform::createUserAgent()

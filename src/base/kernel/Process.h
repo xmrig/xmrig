@@ -33,7 +33,7 @@
 namespace xmrig {
 
 
-class Process
+class [[deprecated]] Process
 {
 public:
     enum Location {

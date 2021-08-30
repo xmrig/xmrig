@@ -36,7 +36,7 @@ class JsonChain;
 class Process;
 
 
-class BaseTransform : public IConfigTransform
+class [[deprecated]] BaseTransform : public IConfigTransform
 {
 public:
     static void load(JsonChain &chain, Process *process, IConfigTransform &transform);

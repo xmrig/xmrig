@@ -678,7 +678,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx0, cl, &hi);
+        lo = xmrig_umul128(idx0, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {
@@ -1115,7 +1115,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx0, cl, &hi);
+        lo = xmrig_umul128(idx0, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {
@@ -1173,7 +1173,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             }
         }
 
-        lo = __umul128(idx1, cl, &hi);
+        lo = xmrig_umul128(idx1, cl, &hi);
 
         if (BASE == Algorithm::CN_2) {
             if (ALGO == Algorithm::CN_R) {
@@ -1284,7 +1284,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             VARIANT2_INTEGER_MATH(part, cl##part, c);                                                       \
         }                                                                                                   \
     }                                                                                                       \
-    lo = __umul128(idx, cl##part, &hi);                                                                     \
+    lo = xmrig_umul128(idx, cl##part, &hi);                                                                     \
     if (BASE == Algorithm::CN_2) {                                                                          \
         if (ALGO == Algorithm::CN_R) {                                                                      \
             VARIANT2_SHUFFLE(l, idx & MASK, a, b0, b1, c, 0);                                               \

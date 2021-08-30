@@ -50,3 +50,5 @@ endif()
 if (WITH_SECURE_JIT)
     add_definitions(-DXMRIG_SECURE_JIT)
 endif()
+
+message(STATUS "WITH_SECURE_JIT\t= ${WITH_SECURE_JIT}")

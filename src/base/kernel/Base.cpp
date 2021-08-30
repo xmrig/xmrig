@@ -34,7 +34,7 @@
 #include "base/net/tools/NetBuffer.h"
 #include "core/config/Config.h"
 #include "core/config/ConfigTransform.h"
-#include "version.h"
+#include "../version.h"
 
 
 #ifdef HAVE_SYSLOG_H

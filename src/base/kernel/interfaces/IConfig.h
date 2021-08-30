@@ -21,6 +21,7 @@
 
 
 #include "3rdparty/rapidjson/fwd.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -33,6 +34,8 @@ class String;
 class IConfig
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(IConfig)
+
     enum Keys {
         // common
         AlgorithmKey         = 'a',
@@ -166,7 +169,8 @@ public:
         HealthPrintTimeKey   = 1210,
     };
 
-    virtual ~IConfig() = default;
+    IConfig()           = default;
+    virtual ~IConfig()  = default;
 
     virtual bool isWatch() const                                       = 0;
     virtual bool read(const IJsonReader &reader, const char *fileName) = 0;
