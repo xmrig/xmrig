@@ -175,7 +175,9 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
 #   ifdef XMRIG_ALGO_CN_GPU
     ALGO_NAME(CN_GPU),
 #   endif
+#   ifdef XMRIG_ALGO_RANDOMX
     ALGO_NAME(RX_XLA),
+#   endif
 };
 
 
@@ -297,7 +299,9 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
     ALGO_ALIAS_AUTO(CN_GPU),        ALGO_ALIAS(CN_GPU,          "cryptonight/gpu"),
                                     ALGO_ALIAS(CN_GPU,          "cryptonight_gpu"),
 #   endif
+#   ifdef XMRIG_ALGO_RANDOMX
     ALGO_ALIAS_AUTO(RX_XLA),        ALGO_ALIAS(RX_XLA,          "Panthera"),
+#   endif
 
 };
 
