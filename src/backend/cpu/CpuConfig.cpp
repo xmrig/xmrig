@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "backend/cpu/CpuConfig.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/CpuConfig_gen.h"
@@ -54,7 +53,7 @@ const char *CpuConfig::kAstroBWTAVX2        = "astrobwt-avx2";
 
 extern template class Threads<CpuThreads>;
 
-}
+} // namespace xmrig
 
 
 bool xmrig::CpuConfig::isHwAES() const

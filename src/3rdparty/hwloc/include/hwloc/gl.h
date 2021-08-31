@@ -1,6 +1,6 @@
 /*
  * Copyright © 2012 Blue Brain Project, EPFL. All rights reserved.
- * Copyright © 2012-2013 Inria.  All rights reserved.
+ * Copyright © 2012-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -39,9 +39,9 @@ extern "C" {
 /** \brief Get the hwloc OS device object corresponding to the
  * OpenGL display given by port and device index.
  *
- * Return the OS device object describing the OpenGL display
+ * \return The hwloc OS device object describing the OpenGL display
  * whose port (server) is \p port and device (screen) is \p device.
- * Return NULL if there is none.
+ * \return \c NULL if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.
@@ -70,9 +70,9 @@ hwloc_gl_get_display_osdev_by_port_device(hwloc_topology_t topology,
 /** \brief Get the hwloc OS device object corresponding to the
  * OpenGL display given by name.
  *
- * Return the OS device object describing the OpenGL display
+ * \return The hwloc OS device object describing the OpenGL display
  * whose name is \p name, built as ":port.device" such as ":0.0" .
- * Return NULL if there is none.
+ * \return \c NULL if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.
@@ -99,9 +99,10 @@ hwloc_gl_get_display_osdev_by_name(hwloc_topology_t topology,
 /** \brief Get the OpenGL display port and device corresponding
  * to the given hwloc OS object.
  *
- * Return the OpenGL display port (server) in \p port and device (screen)
+ * Retrieves the OpenGL display port (server) in \p port and device (screen)
  * in \p screen that correspond to the given hwloc OS device object.
- * Return \c -1 if there is none.
+ *
+ * \return \c -1 if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.

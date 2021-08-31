@@ -52,6 +52,42 @@
 #include <windows.h>
 #endif
 
+/*
+ * Define ZES_ENABLE_SYSMAN=1 early so that the LevelZero backend gets Sysman enabled.
+ * Use the constructor if supported and/or the Windows DllMain callback.
+ * Do it in the main hwloc library instead of the levelzero component because
+ * the latter could be loaded later as a plugin.
+ *
+ * L0 seems to be using getenv() to check this variable on Windows
+ * (at least in the Intel Compute-Runtime of March 2021),
+ * so use putenv() to set the variable.
+ *
+ * For the record, Get/SetEnvironmentVariable() is not exactly the same as getenv/putenv():
+ * - getenv() doesn't see what was set with SetEnvironmentVariable()
+ * - GetEnvironmentVariable() doesn't see putenv() in cygwin (while it does in MSVC and MinGW).
+ * Hence, if L0 ever switches from getenv() to GetEnvironmentVariable(),
+ * it will break in cygwin, we'll have to use both putenv() and SetEnvironmentVariable().
+ * Hopefully L0 will be provide a way to enable Sysman without env vars before it happens.
+ */
+#ifdef HWLOC_HAVE_ATTRIBUTE_CONSTRUCTOR
+static void hwloc_constructor(void) __attribute__((constructor));
+static void hwloc_constructor(void)
+{
+  if (!getenv("ZES_ENABLE_SYSMAN"))
+    putenv((char *) "ZES_ENABLE_SYSMAN=1");
+}
+#endif
+#ifdef HWLOC_WIN_SYS
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
+{
+  if (fdwReason == DLL_PROCESS_ATTACH) {
+    if (!getenv("ZES_ENABLE_SYSMAN"))
+      putenv((char *) "ZES_ENABLE_SYSMAN=1");
+  }
+  return TRUE;
+}
+#endif
+
 unsigned hwloc_get_api_version(void)
 {
   return HWLOC_API_VERSION;
@@ -64,7 +100,7 @@ int hwloc_topology_abi_check(hwloc_topology_t topology)
 
 int hwloc_hide_errors(void)
 {
-  static int hide = 0;
+  static int hide = 1; /* only show critical errors by default. lstopo will show others */
   static int checked = 0;
   if (!checked) {
     const char *envvar = getenv("HWLOC_HIDE_ERRORS");
@@ -106,7 +142,7 @@ static void report_insert_error(hwloc_obj_t new, hwloc_obj_t old, const char *ms
 {
   static int reported = 0;
 
-  if (reason && !reported && !hwloc_hide_errors()) {
+  if (reason && !reported && hwloc_hide_errors() < 2) {
     char newstr[512];
     char oldstr[512];
     report_insert_error_format_obj(newstr, sizeof(newstr), new);
@@ -2307,9 +2343,15 @@ hwloc__filter_bridges(hwloc_topology_t topology, hwloc_obj_t root, unsigned dept
 
     child->attr->bridge.depth = depth;
 
-    if (child->type == HWLOC_OBJ_BRIDGE
-	&& filter == HWLOC_TYPE_FILTER_KEEP_IMPORTANT
-	&& !child->io_first_child) {
+    /* remove bridges that have no child,
+     * and pci-to-non-pci bridges (pcidev) that no child either.
+     * keep NVSwitch since they may be used in NVLink matrices.
+     */
+    if (filter == HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+	&& !child->io_first_child
+        && (child->type == HWLOC_OBJ_BRIDGE
+            || (child->type == HWLOC_OBJ_PCI_DEVICE && (child->attr->pcidev.class_id >> 8) == 0x06
+                && (!child->subtype || strcmp(child->subtype, "NVSwitch"))))) {
       unlink_and_free_single_object(pchild);
       topology->modified = 1;
     }
@@ -3088,7 +3130,8 @@ hwloc_connect_levels(hwloc_topology_t topology)
       tmpnbobjs = realloc(topology->level_nbobjects,
 			  2 * topology->nb_levels_allocated * sizeof(*topology->level_nbobjects));
       if (!tmplevels || !tmpnbobjs) {
-	fprintf(stderr, "hwloc failed to realloc level arrays to %u\n", topology->nb_levels_allocated * 2);
+        if (hwloc_hide_errors() < 2)
+          fprintf(stderr, "hwloc: failed to realloc level arrays to %u\n", topology->nb_levels_allocated * 2);
 
 	/* if one realloc succeeded, make sure the caller will free the new buffer */
 	if (tmplevels)
@@ -3470,15 +3513,18 @@ hwloc_discover(struct hwloc_topology *topology,
   hwloc_debug("%s", "\nRemoving empty objects\n");
   remove_empty(topology, &topology->levels[0][0]);
   if (!topology->levels[0][0]) {
-    fprintf(stderr, "Topology became empty, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology became empty, aborting!\n");
     return -1;
   }
   if (hwloc_bitmap_iszero(topology->levels[0][0]->cpuset)) {
-    fprintf(stderr, "Topology does not contain any PU, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology does not contain any PU, aborting!\n");
     return -1;
   }
   if (hwloc_bitmap_iszero(topology->levels[0][0]->nodeset)) {
-    fprintf(stderr, "Topology does not contain any NUMA node, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology does not contain any NUMA node, aborting!\n");
     return -1;
   }
   hwloc_debug_print_objects(0, topology->levels[0][0]);
@@ -3716,7 +3762,18 @@ hwloc_topology_set_flags (struct hwloc_topology *topology, unsigned long flags)
     return -1;
   }
 
-  if (flags & ~(HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM|HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES|HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT)) {
+  if (flags & ~(HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM|HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES|HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT|HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING|HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING|HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING)) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ((flags & (HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM)) == HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    /* RESTRICT_TO_CPUBINDING requires THISSYSTEM for binding */
+    errno = EINVAL;
+    return -1;
+  }
+  if ((flags & (HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM)) == HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING) {
+    /* RESTRICT_TO_MEMBINDING requires THISSYSTEM for binding */
     errno = EINVAL;
     return -1;
   }
@@ -4002,6 +4059,31 @@ hwloc_topology_load (struct hwloc_topology *topology)
   hwloc_internal_memattrs_refresh(topology);
 
   topology->is_loaded = 1;
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    /* FIXME: filter directly in backends during the discovery.
+     * Only x86 does it because binding may cause issues on Windows.
+     */
+    hwloc_bitmap_t set = hwloc_bitmap_alloc();
+    if (set) {
+      err = hwloc_get_cpubind(topology, set, HWLOC_CPUBIND_STRICT);
+      if (!err)
+        hwloc_topology_restrict(topology, set, 0);
+      hwloc_bitmap_free(set);
+    }
+  }
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING) {
+    /* FIXME: filter directly in backends during the discovery.
+     */
+    hwloc_bitmap_t set = hwloc_bitmap_alloc();
+    hwloc_membind_policy_t policy;
+    if (set) {
+      err = hwloc_get_membind(topology, set, &policy, HWLOC_MEMBIND_STRICT | HWLOC_MEMBIND_BYNODESET);
+      if (!err)
+        hwloc_topology_restrict(topology, set, HWLOC_RESTRICT_FLAG_BYNODESET);
+      hwloc_bitmap_free(set);
+    }
+  }
 
   if (topology->backend_phases & HWLOC_DISC_PHASE_TWEAK) {
     dstatus.phase = HWLOC_DISC_PHASE_TWEAK;

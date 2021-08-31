@@ -351,32 +351,6 @@ bool xmrig::Client::close()
 }
 
 
-bool xmrig::Client::isCriticalError(const char *message)
-{
-    if (!message) {
-        return false;
-    }
-
-    if (strncasecmp(message, "Unauthenticated", 15) == 0) {
-        return true;
-    }
-
-    if (strncasecmp(message, "your IP is banned", 17) == 0) {
-        return true;
-    }
-
-    if (strncasecmp(message, "IP Address currently banned", 27) == 0) {
-        return true;
-    }
-
-    if (strncasecmp(message, "Invalid job id", 14) == 0) {
-        return true;
-    }
-
-    return false;
-}
-
-
 bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 {
     if (!params.IsObject()) {
@@ -467,7 +441,7 @@ bool xmrig::Client::send(BIO *bio)
 {
 #   ifdef XMRIG_FEATURE_TLS
     uv_buf_t buf;
-    buf.len = BIO_get_mem_data(bio, &buf.base);
+    buf.len = BIO_get_mem_data(bio, &buf.base); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 
     if (buf.len == 0) {
         return true;
@@ -958,6 +932,32 @@ void xmrig::Client::startTimeout()
 
         m_keepAlive = Chrono::steadyMSecs() + ms;
     }
+}
+
+
+bool xmrig::Client::isCriticalError(const char *message)
+{
+    if (!message) {
+        return false;
+    }
+
+    if (strncasecmp(message, "Unauthenticated", 15) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "your IP is banned", 17) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "IP Address currently banned", 27) == 0) {
+        return true;
+    }
+
+    if (strncasecmp(message, "Invalid job id", 14) == 0) {
+        return true;
+    }
+
+    return false;
 }
 
 

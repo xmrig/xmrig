@@ -109,7 +109,7 @@ static int exportTopology(const Process &)
 {
     const String path = Process::location(Process::ExeLocation, "topology.xml");
 
-    hwloc_topology_t topology;
+    hwloc_topology_t topology = nullptr;
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 

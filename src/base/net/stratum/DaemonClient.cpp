@@ -24,6 +24,9 @@
  */
 
 
+#include <uv.h>
+
+
 #include "base/net/stratum/DaemonClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/error/en.h"
@@ -42,7 +45,6 @@
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
 #include "base/tools/cryptonote/Signatures.h"
-#include "base/tools/cryptonote/WalletAddress.h"
 #include "net/JobResult.h"
 
 
@@ -71,7 +73,7 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
 
-}
+} // namespace xmrig
 
 
 xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
@@ -135,21 +137,21 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
     memcpy(data + m_job.nonceOffset() * 2, result.nonce, 8);
 
-    if (m_blocktemplate.has_miner_signature && result.sig) {
+    if (m_blocktemplate.hasMinerSignature() && result.sig) {
         memcpy(data + sig_offset * 2, result.sig, 64 * 2);
-        memcpy(data + m_blocktemplate.tx_pubkey_index * 2, result.sig_data, 32 * 2);
-        memcpy(data + m_blocktemplate.eph_public_key_index * 2, result.sig_data + 32 * 2, 32 * 2);
+        memcpy(data + m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) * 2, result.sig_data, 32 * 2);
+        memcpy(data + m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) * 2, result.sig_data + 32 * 2, 32 * 2);
     }
 
     if (result.extra_nonce >= 0) {
-        Cvt::toHex(data + m_blocktemplate.tx_extra_nonce_index * 2, 8, reinterpret_cast<const uint8_t*>(&result.extra_nonce), 4);
+        Cvt::toHex(data + m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) * 2, 8, reinterpret_cast<const uint8_t*>(&result.extra_nonce), 4);
     }
 
 #   else
 
     Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
 
-    if (m_blocktemplate.has_miner_signature) {
+    if (m_blocktemplate.hasMinerSignature()) {
         Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
     }
 
@@ -181,11 +183,27 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
 void xmrig::DaemonClient::connect()
 {
-    if ((m_pool.algorithm() == Algorithm::ASTROBWT_DERO) || (m_pool.coin() == Coin::DERO)) {
-        m_apiVersion = API_DERO;
-    }
+    auto connectError = [this](const char *message) {
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("connect error: ") RED_BOLD("\"%s\""), tag(), message);
+        }
+
+        retry();
+    };
 
     setState(ConnectingState);
+
+    if (!m_walletAddress.isValid()) {
+        return connectError("Invalid wallet address.");
+    }
+
+    if (!m_coin.isValid() && !m_pool.algorithm().isValid()) {
+        return connectError("Invalid algorithm.");
+    }
+
+    if ((m_pool.algorithm() == Algorithm::ASTROBWT_DERO) || (m_coin == Coin::DERO)) {
+        m_apiVersion = API_DERO;
+    }
 
     if (m_pool.zmq_port() >= 0) {
         m_dns = Dns::resolve(m_pool.host(), this);
@@ -200,6 +218,20 @@ void xmrig::DaemonClient::connect(const Pool &pool)
 {
     setPool(pool);
     connect();
+}
+
+
+void xmrig::DaemonClient::setPool(const Pool &pool)
+{
+    BaseClient::setPool(pool);
+
+    m_walletAddress.decode(m_user);
+
+    m_coin = pool.coin().isValid() ?  pool.coin() : m_walletAddress.coin();
+
+    if (!m_coin.isValid() && pool.algorithm() == Algorithm::RX_WOW) {
+        m_coin = Coin::WOWNERO;
+    }
 }
 
 
@@ -219,7 +251,7 @@ void xmrig::DaemonClient::onHttpData(const HttpData &data)
     rapidjson::Document doc;
     if (doc.Parse(data.body.c_str()).HasParseError()) {
         if (!isQuiet()) {
-            LOG_ERR("[%s:%d] JSON decode failed: \"%s\"", m_pool.host().data(), m_pool.port(), rapidjson::GetParseError_En(doc.GetParseError()));
+            LOG_ERR("%s " RED("JSON decode failed: ") RED_BOLD("\"%s\""), tag(), rapidjson::GetParseError_En(doc.GetParseError()));
         }
 
         return retry();
@@ -284,7 +316,7 @@ void xmrig::DaemonClient::onTimer(const Timer *)
 }
 
 
-void xmrig::DaemonClient::onResolved(const DnsRecords& records, int status, const char* error)
+void xmrig::DaemonClient::onResolved(const DnsRecords &records, int status, const char* error)
 {
     m_dns.reset();
 
@@ -297,14 +329,14 @@ void xmrig::DaemonClient::onResolved(const DnsRecords& records, int status, cons
         return;
     }
 
-    if (m_ZMQSocket) {
-        delete m_ZMQSocket;
-    }
 
-    const auto& record = records.get();
+    delete m_ZMQSocket;
+
+
+    const auto &record = records.get();
     m_ip = record.ip();
 
-    uv_connect_t* req = new uv_connect_t;
+    auto req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
 
     m_ZMQSocket = new uv_tcp_t;
@@ -329,68 +361,60 @@ bool xmrig::DaemonClient::isOutdated(uint64_t height, const char *hash) const
 
 bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 {
+    auto jobError = [this, code](const char *message) {
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("job error: ") RED_BOLD("\"%s\""), tag(), message);
+        }
+
+        *code = 1;
+
+        return false;
+    };
+
     Job job(false, m_pool.algorithm(), String());
 
     String blocktemplate = Json::getString(params, kBlocktemplateBlob);
 
     if (blocktemplate.isNull()) {
-        LOG_ERR("Empty block template received from daemon");
-        *code = 1;
-        return false;
+        return jobError("Empty block template received from daemon."); // FIXME
     }
 
-    Coin pool_coin = m_pool.coin();
-
-    if (!pool_coin.isValid() && (m_pool.algorithm() == Algorithm::RX_WOW)) {
-        pool_coin = Coin::WOWNERO;
-    }
-
-    if (!m_blocktemplate.Init(blocktemplate, pool_coin)) {
-        LOG_ERR("Invalid block template received from daemon");
-        *code = 2;
-        return false;
+    if (!m_blocktemplate.parse(blocktemplate, m_coin)) {
+        return jobError("Invalid block template received from daemon.");
     }
 
 #   ifdef XMRIG_PROXY_PROJECT
-    const size_t k = m_blocktemplate.miner_tx_prefix_begin_index;
+    const size_t k = m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_OFFSET);
     job.setMinerTx(
-        m_blocktemplate.raw_blob.data() + k,
-        m_blocktemplate.raw_blob.data() + m_blocktemplate.miner_tx_prefix_end_index,
-        m_blocktemplate.eph_public_key_index - k,
-        m_blocktemplate.tx_pubkey_index - k,
-        m_blocktemplate.tx_extra_nonce_index - k,
-        m_blocktemplate.tx_extra_nonce_size,
-        m_blocktemplate.miner_tx_merkle_tree_branch
+        m_blocktemplate.blob() + k,
+        m_blocktemplate.blob() + m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_END_OFFSET),
+        m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) - k,
+        m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) - k,
+        m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) - k,
+        m_blocktemplate.txExtraNonce().size(),
+        m_blocktemplate.minerTxMerkleTreeBranch()
     );
 #   endif
 
     m_blockhashingblob = Json::getString(params, "blockhashing_blob");
 
-    if (m_blocktemplate.has_miner_signature) {
+    if (m_blocktemplate.hasMinerSignature()) {
         if (m_pool.spendSecretKey().isEmpty()) {
-            LOG_ERR("Secret spend key is not set");
-            *code = 4;
-            return false;
+            return jobError("Secret spend key is not set.");
         }
 
         if (m_pool.spendSecretKey().size() != 64) {
-            LOG_ERR("Secret spend key has invalid length. It must be 64 hex characters.");
-            *code = 5;
-            return false;
+            return jobError("Secret spend key has invalid length. It must be 64 hex characters.");
         }
 
         uint8_t secret_spendkey[32];
         if (!Cvt::fromHex(secret_spendkey, 32, m_pool.spendSecretKey(), 64)) {
-            LOG_ERR("Secret spend key is not a valid hex data.");
-            *code = 6;
-            return false;
+            return jobError("Secret spend key is not a valid hex data.");
         }
 
         uint8_t public_spendkey[32];
         if (!secret_key_to_public_key(secret_spendkey, public_spendkey)) {
-            LOG_ERR("Secret spend key is invalid.");
-            *code = 7;
-            return false;
+            return jobError("Secret spend key is invalid.");
         }
 
 #       ifdef XMRIG_PROXY_PROJECT
@@ -401,41 +425,30 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
         uint8_t public_viewkey[32];
         if (!secret_key_to_public_key(secret_viewkey, public_viewkey)) {
-            LOG_ERR("Secret view key is invalid.");
-            *code = 8;
-            return false;
+            return jobError("Secret view key is invalid.");
         }
 
         uint8_t derivation[32];
-        if (!generate_key_derivation(m_blocktemplate.raw_blob.data() + m_blocktemplate.tx_pubkey_index, secret_viewkey, derivation)) {
-            LOG_ERR("Failed to generate key derivation for miner signature.");
-            *code = 9;
-            return false;
+        if (!generate_key_derivation(m_blocktemplate.blob(BlockTemplate::TX_PUBKEY_OFFSET), secret_viewkey, derivation)) {
+            return jobError("Failed to generate key derivation for miner signature.");
         }
 
-        WalletAddress user_address;
-        if (!user_address.Decode(m_pool.user())) {
-            LOG_ERR("Invalid wallet address.");
-            *code = 10;
-            return false;
+        if (!m_walletAddress.decode(m_pool.user())) {
+            return jobError("Invalid wallet address.");
         }
 
-        if (memcmp(user_address.public_spend_key, public_spendkey, sizeof(public_spendkey)) != 0) {
-            LOG_ERR("Wallet address and spend key don't match.");
-            *code = 11;
-            return false;
+        if (memcmp(m_walletAddress.spendKey(), public_spendkey, sizeof(public_spendkey)) != 0) {
+            return jobError("Wallet address and spend key don't match.");
         }
 
-        if (memcmp(user_address.public_view_key, public_viewkey, sizeof(public_viewkey)) != 0) {
-            LOG_ERR("Wallet address and view key don't match.");
-            *code = 12;
-            return false;
+        if (memcmp(m_walletAddress.viewKey(), public_viewkey, sizeof(public_viewkey)) != 0) {
+            return jobError("Wallet address and view key don't match.");
         }
 
         uint8_t eph_secret_key[32];
         derive_secret_key(derivation, 0, secret_spendkey, eph_secret_key);
 
-        job.setEphemeralKeys(m_blocktemplate.raw_blob.data() + m_blocktemplate.eph_public_key_index, eph_secret_key);
+        job.setEphemeralKeys(m_blocktemplate.blob(BlockTemplate::EPH_PUBLIC_KEY_OFFSET), eph_secret_key);
 #       endif
     }
 
@@ -444,8 +457,8 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         Cvt::toHex(m_blockhashingblob.data() + offset * 2, kBlobReserveSize * 2, Cvt::randomBytes(kBlobReserveSize).data(), kBlobReserveSize);
     }
 
-    if (pool_coin.isValid()) {
-        job.setAlgorithm(pool_coin.algorithm(m_blocktemplate.major_version));
+    if (m_coin.isValid()) {
+        job.setAlgorithm(m_coin.algorithm(m_blocktemplate.majorVersion()));
     }
 
     if (!job.setBlob(m_blockhashingblob)) {
@@ -594,7 +607,6 @@ void xmrig::DaemonClient::send(const char *path)
 
 void xmrig::DaemonClient::setState(SocketState state)
 {
-    assert(m_state != state);
     if (m_state == state) {
         return;
     }
@@ -735,10 +747,9 @@ void xmrig::DaemonClient::ZMQRead(ssize_t nread, const uv_buf_t* buf)
                     m_ZMQConnectionState = ZMQ_GREETING_2;
                     break;
                 }
-                else {
-                    LOG_ERR("%s " RED("ZMQ handshake failed: invalid greeting format"), tag());
-                    ZMQClose();
-                }
+
+                LOG_ERR("%s " RED("ZMQ handshake failed: invalid greeting format"), tag());
+                ZMQClose();
             }
             return;
 
@@ -751,10 +762,10 @@ void xmrig::DaemonClient::ZMQRead(ssize_t nread, const uv_buf_t* buf)
                     ZMQWrite(kZMQHandshake, sizeof(kZMQHandshake) - 1);
                     break;
                 }
-                else {
-                    LOG_ERR("%s " RED("ZMQ handshake failed: invalid greeting format 2"), tag());
-                    ZMQClose();
-                }
+
+                LOG_ERR("%s " RED("ZMQ handshake failed: invalid greeting format 2"), tag());
+                ZMQClose();
+
             }
             return;
 
@@ -812,9 +823,9 @@ void xmrig::DaemonClient::ZMQParse()
 
     size_t msg_size = 0;
 
-    char* data = m_ZMQRecvBuf.data();
+    char *data   = m_ZMQRecvBuf.data();
     size_t avail = m_ZMQRecvBuf.size();
-    bool more;
+    bool more    = false;
 
     do {
         if (avail < 1) {

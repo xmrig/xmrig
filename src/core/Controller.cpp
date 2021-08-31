@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "core/Controller.h"
 #include "backend/cpu/Cpu.h"
@@ -107,7 +106,7 @@ xmrig::Network *xmrig::Controller::network() const
 }
 
 
-void xmrig::Controller::execCommand(char command)
+void xmrig::Controller::execCommand(char command) const
 {
     miner()->execCommand(command);
     network()->execCommand(command);

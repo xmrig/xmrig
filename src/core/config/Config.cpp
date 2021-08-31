@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
@@ -112,7 +111,7 @@ public:
     }
 };
 
-}
+} // namespace xmrig
 
 
 xmrig::Config::Config() :

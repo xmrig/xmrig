@@ -291,8 +291,6 @@ private:
     }
 #   endif
 
-
-private:
     const bool m_hwAES;
     IJobResultListener *m_listener;
     std::list<JobResult> m_results;

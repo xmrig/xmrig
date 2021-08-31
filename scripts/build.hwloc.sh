@@ -1,6 +1,6 @@
 #!/bin/bash -e
 
-HWLOC_VERSION="2.4.1"
+HWLOC_VERSION="2.5.0"
 
 mkdir -p deps
 mkdir -p deps/include
@@ -8,7 +8,7 @@ mkdir -p deps/lib
 
 mkdir -p build && cd build
 
-wget https://download.open-mpi.org/release/hwloc/v2.4/hwloc-${HWLOC_VERSION}.tar.gz -O hwloc-${HWLOC_VERSION}.tar.gz
+wget https://download.open-mpi.org/release/hwloc/v2.5/hwloc-${HWLOC_VERSION}.tar.gz -O hwloc-${HWLOC_VERSION}.tar.gz
 tar -xzf hwloc-${HWLOC_VERSION}.tar.gz
 
 cd hwloc-${HWLOC_VERSION}

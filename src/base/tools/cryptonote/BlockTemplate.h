@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2012-2013 The Cryptonote developers
- * Copyright 2014-2021 The Monero Project
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2012-2013 The Cryptonote developers
+ * Copyright (c) 2014-2021 The Monero Project
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,71 +22,129 @@
 #define XMRIG_BLOCKTEMPLATE_H
 
 
+#include "3rdparty/rapidjson/fwd.h"
 #include "base/crypto/Coin.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/String.h"
+#include "base/tools/Span.h"
 
 
 namespace xmrig {
 
 
-struct BlockTemplate
+class BlockTemplate
 {
-    enum {
-        HASH_SIZE = 32,
-        KEY_SIZE = 32,
-        SIGNATURE_SIZE = 64,
-        NONCE_SIZE = 4,
+public:
+    static constexpr size_t kHashSize       = 32;
+    static constexpr size_t kKeySize        = 32;
+    static constexpr size_t kNonceSize      = 4;
+    static constexpr size_t kSignatureSize  = 64;
+
+#   ifdef XMRIG_PROXY_PROJECT
+    static constexpr bool kCalcHashes       = true;
+#   else
+    static constexpr bool kCalcHashes       = false;
+#   endif
+
+    enum Offset : uint32_t {
+        NONCE_OFFSET,
+        MINER_TX_PREFIX_OFFSET,
+        MINER_TX_PREFIX_END_OFFSET,
+        EPH_PUBLIC_KEY_OFFSET,
+        TX_EXTRA_OFFSET,
+        TX_PUBKEY_OFFSET,
+        TX_EXTRA_NONCE_OFFSET,
+        OFFSET_COUNT
     };
 
-    Buffer raw_blob;
-    size_t eph_public_key_index;
-    size_t tx_pubkey_index;
-    uint64_t tx_extra_nonce_size;
-    size_t tx_extra_nonce_index;
-    size_t miner_tx_prefix_begin_index;
-    size_t miner_tx_prefix_end_index;
+    inline const Coin &coin() const                         { return m_coin; }
+    inline const uint8_t *blob() const                      { return m_blob.data(); }
+    inline const uint8_t *blob(Offset offset) const         { return m_blob.data() + m_offsets[offset]; }
+    inline size_t offset(Offset offset) const               { return m_offsets[offset]; }
+    inline size_t size() const                              { return m_blob.size(); }
 
     // Block header
-    uint8_t major_version;
-    uint8_t minor_version;
-    uint64_t timestamp;
-    uint8_t prev_id[HASH_SIZE];
-    uint8_t nonce[NONCE_SIZE];
+    inline uint8_t majorVersion() const                     { return m_version.first; }
+    inline uint8_t minorVersion() const                     { return m_version.second; }
+    inline uint64_t timestamp() const                       { return m_timestamp; }
+    inline const Span &prevId() const                       { return m_prevId; }
+    inline const uint8_t *nonce() const                     { return blob(NONCE_OFFSET); }
 
-    bool has_miner_signature;
-    uint8_t miner_signature[SIGNATURE_SIZE];
-    uint8_t vote[2];
+    // Wownero miner signature
+    inline bool hasMinerSignature() const                   { return !m_minerSignature.empty(); }
+    inline const Span &minerSignature() const               { return m_minerSignature; }
+    inline const uint8_t *vote() const                      { return m_vote; }
 
     // Miner tx
-    uint64_t tx_version;
-    uint64_t unlock_time;
-    uint64_t num_inputs;
-    uint8_t input_type;
-    uint64_t height;
-    uint64_t num_outputs;
-    uint64_t amount;
-    uint8_t output_type;
-    uint8_t eph_public_key[KEY_SIZE];
-    uint64_t extra_size;
-    Buffer extra;
-    uint8_t vin_rct_type;
+    inline uint64_t txVersion() const                       { return m_txVersion; }
+    inline uint64_t unlockTime() const                      { return m_unlockTime; }
+    inline uint64_t numInputs() const                       { return m_numInputs; }
+    inline uint8_t inputType() const                        { return m_inputType; }
+    inline uint64_t height() const                          { return m_height; }
+    inline uint64_t numOutputs() const                      { return m_numOutputs; }
+    inline uint64_t amount() const                          { return m_amount; }
+    inline uint64_t outputType() const                      { return m_outputType; }
+    inline const Span &ephPublicKey() const                 { return m_ephPublicKey; }
+    inline const Span &txExtraNonce() const                 { return m_txExtraNonce; }
 
     // Transaction hashes
-    uint64_t num_hashes;
-    Buffer hashes;
+    inline uint64_t numHashes() const                       { return m_numHashes; }
+    inline const Buffer &hashes() const                     { return m_hashes; }
+    inline const Buffer &minerTxMerkleTreeBranch() const    { return m_minerTxMerkleTreeBranch; }
+    inline const uint8_t *rootHash() const                  { return m_rootHash; }
 
-    Buffer miner_tx_merkle_tree_branch;
-    uint8_t root_hash[HASH_SIZE];
+    inline Buffer generateHashingBlob() const
+    {
+        Buffer out;
+        generateHashingBlob(out);
 
-    Buffer hashingBlob;
+        return out;
+    }
 
-    bool Init(const String& blockTemplate, Coin coin);
+    static void calculateMinerTxHash(const uint8_t *prefix_begin, const uint8_t *prefix_end, uint8_t *hash);
+    static void calculateRootHash(const uint8_t *prefix_begin, const uint8_t *prefix_end, const Buffer &miner_tx_merkle_tree_branch, uint8_t *root_hash);
 
-    static void CalculateMinerTxHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, uint8_t* hash);
-    static void CalculateRootHash(const uint8_t* prefix_begin, const uint8_t* prefix_end, const Buffer& miner_tx_merkle_tree_branch, uint8_t* root_hash);
-    void CalculateMerkleTreeHash();
-    void GenerateHashingBlob();
+    bool parse(const Buffer &blocktemplate, const Coin &coin, bool hashes = kCalcHashes);
+    bool parse(const char *blocktemplate, size_t size, const Coin &coin, bool hashes);
+    bool parse(const rapidjson::Value &blocktemplate, const Coin &coin, bool hashes = kCalcHashes);
+    bool parse(const String &blocktemplate, const Coin &coin, bool hashes = kCalcHashes);
+    void calculateMerkleTreeHash();
+    void generateHashingBlob(Buffer &out) const;
+
+private:
+    static constexpr size_t kMinSize = 76;
+
+    inline void setOffset(Offset offset, size_t value)  { m_offsets[offset] = static_cast<uint32_t>(value); }
+
+    bool parse(bool hashes);
+
+    Buffer m_blob;
+    Coin m_coin;
+    uint32_t m_offsets[OFFSET_COUNT]{};
+
+    std::pair<uint8_t, uint8_t> m_version;
+    uint64_t m_timestamp    = 0;
+    Span m_prevId;
+
+    Span m_minerSignature;
+    uint8_t m_vote[2]{};
+
+    uint64_t m_txVersion    = 0;
+    uint64_t m_unlockTime   = 0;
+    uint64_t m_numInputs    = 0;
+    uint8_t m_inputType     = 0;
+    uint64_t m_height       = 0;
+    uint64_t m_numOutputs   = 0;
+    uint64_t m_amount       = 0;
+    uint8_t m_outputType    = 0;
+    Span m_ephPublicKey;
+    uint64_t m_extraSize    = 0;
+    Span m_txExtraNonce;
+
+    uint64_t m_numHashes    = 0;
+    Buffer m_hashes;
+    Buffer m_minerTxMerkleTreeBranch;
+    uint8_t m_rootHash[kHashSize]{};
 };
 
 

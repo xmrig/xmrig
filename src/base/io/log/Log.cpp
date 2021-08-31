@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #ifdef WIN32
 #   include <winsock2.h>
@@ -103,7 +102,7 @@ public:
         endl(size);
 
         std::string txt(m_buf);
-        size_t i;
+        size_t i = 0;
         while ((i = txt.find(CSI)) != std::string::npos) {
             txt.erase(i, txt.find('m', i) - i + 1);
         }
@@ -232,7 +231,7 @@ void xmrig::Log::print(const char *fmt, ...)
         return;
     }
 
-    va_list args;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(NONE, fmt, args);
@@ -247,7 +246,7 @@ void xmrig::Log::print(Level level, const char *fmt, ...)
         return;
     }
 
-    va_list args;
+    va_list args{};
     va_start(args, fmt);
 
     d->print(level, fmt, args);

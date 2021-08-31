@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/net/stratum/AutoClient.h"
 #include "3rdparty/rapidjson/document.h"
@@ -32,7 +31,7 @@ xmrig::AutoClient::AutoClient(int id, const char *agent, IClientListener *listen
 bool xmrig::AutoClient::handleResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error)
 {
     if (m_mode == DEFAULT_MODE) {
-        return Client::handleResponse(id, result, error);
+        return Client::handleResponse(id, result, error); // NOLINT(bugprone-parent-virtual-call)
     }
 
     return EthStratumClient::handleResponse(id, result, error);
@@ -74,7 +73,7 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 int64_t xmrig::AutoClient::submit(const JobResult &result)
 {
     if (result.algorithm.family() != Algorithm::KAWPOW) {
-        return Client::submit(result);
+        return Client::submit(result); // NOLINT(bugprone-parent-virtual-call)
     }
 
     return EthStratumClient::submit(result);
@@ -85,7 +84,7 @@ void xmrig::AutoClient::parseNotification(const char *method, const rapidjson::V
 {
     if (strcmp(method, "job") == 0) {
         m_mode = DEFAULT_MODE;
-        return Client::parseNotification(method, params, error);
+        return Client::parseNotification(method, params, error); // NOLINT(bugprone-parent-virtual-call)
     }
 
     m_mode = ETH_MODE;

@@ -1,3 +1,9 @@
+# v6.15.0
+- [#2548](https://github.com/xmrig/xmrig/pull/2548) Added automatic coin detection for daemon mining.
+- [#2563](https://github.com/xmrig/xmrig/pull/2563) Added new algorithm RandomX Graft (`rx/graft`).
+- [#2565](https://github.com/xmrig/xmrig/pull/2565) AstroBWT: added AVX2 Salsa20 implementation.
+- Added support for new CUDA plugin API (previous API still supported).
+
 # v6.14.1
 - [#2532](https://github.com/xmrig/xmrig/pull/2532) Refactoring: stable (persistent) algorithms IDs.
 - [#2537](https://github.com/xmrig/xmrig/pull/2537) Fixed Termux build.

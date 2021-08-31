@@ -44,7 +44,7 @@ class MoBenchmark : public IJobResultListener {
             KAWPOW_RVN,    // "kawpow/rvn"       KawPow (RVN)
             ASTROBWT_DERO, // "astrobwt"         AstroBWT (Dero).
             RX_0,          // "rx/0"             RandomX (Monero).
-            RX_WOW,        // "rx/wow"           RandomWOW (Wownero).
+            RX_GRAFT,      // "rx/graft"         RandomGraft (Graft).
             RX_ARQ,        // "rx/arq"           RandomARQ (Arqma).
             RX_XLA,        // "panthera"         Panthera (Scala2).
             MAX,
@@ -63,7 +63,7 @@ class MoBenchmark : public IJobResultListener {
             Algorithm::KAWPOW_RVN,
             Algorithm::ASTROBWT_DERO,
             Algorithm::RX_0,
-            Algorithm::RX_WOW,
+            Algorithm::RX_GRAFT,
             Algorithm::RX_ARQ,
             Algorithm::RX_XLA,
         };

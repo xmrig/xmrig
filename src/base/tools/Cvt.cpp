@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/tools/Cvt.h"
 #include "3rdparty/rapidjson/document.h"
 
@@ -37,9 +36,9 @@ namespace xmrig {
 static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigned char *const bin, const size_t bin_len)
 {
     size_t       i = 0U;
-    unsigned int x;
-    int          b;
-    int          c;
+    unsigned int x = 0U;
+    int          b = 0;
+    int          c = 0;
 
     if (bin_len >= SIZE_MAX / 2 || hex_maxlen < bin_len * 2U) {
         return nullptr; /* LCOV_EXCL_LINE */
@@ -71,17 +70,17 @@ static std::mt19937 randomEngine(randomDevice());
 
 static int cvt_hex2bin(unsigned char *const bin, const size_t bin_maxlen, const char *const hex, const size_t hex_len, const char *const ignore, size_t *const bin_len, const char **const hex_end)
 {
-    size_t        bin_pos = 0U;
-    size_t        hex_pos = 0U;
-    int           ret     = 0;
-    unsigned char c;
-    unsigned char c_acc = 0U;
-    unsigned char c_alpha0;
-    unsigned char c_alpha;
-    unsigned char c_num0;
-    unsigned char c_num;
-    unsigned char c_val;
-    unsigned char state = 0U;
+    size_t        bin_pos   = 0U;
+    size_t        hex_pos   = 0U;
+    int           ret       = 0;
+    unsigned char c         = 0U;
+    unsigned char c_acc     = 0U;
+    unsigned char c_alpha0  = 0U;
+    unsigned char c_alpha   = 0U;
+    unsigned char c_num0    = 0U;
+    unsigned char c_num     = 0U;
+    unsigned char c_val     = 0U;
+    unsigned char state     = 0U;
 
     while (hex_pos < hex_len) {
         c        = (unsigned char) hex[hex_pos];
@@ -194,13 +193,13 @@ bool xmrig::Cvt::fromHex(uint8_t *bin, size_t bin_maxlen, const char *hex, size_
 }
 
 
-bool xmrig::Cvt::fromHex(uint8_t *bin, size_t max, const rapidjson::Value &value)
+bool xmrig::Cvt::fromHex(uint8_t *bin, size_t bin_maxlen, const rapidjson::Value &value)
 {
     if (!value.IsString()) {
         return false;
     }
 
-    return fromHex(bin, max, value.GetString(), value.GetStringLength());
+    return fromHex(bin, bin_maxlen, value.GetString(), value.GetStringLength());
 }
 
 
@@ -240,6 +239,12 @@ xmrig::Buffer xmrig::Cvt::randomBytes(const size_t size)
 
 
 rapidjson::Value xmrig::Cvt::toHex(const Buffer &data, rapidjson::Document &doc)
+{
+    return toHex(data.data(), data.size(), doc);
+}
+
+
+rapidjson::Value xmrig::Cvt::toHex(const Span &data, rapidjson::Document &doc)
 {
     return toHex(data.data(), data.size(), doc);
 }

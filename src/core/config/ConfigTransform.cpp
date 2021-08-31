@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "core/config/ConfigTransform.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/stratum/Pool.h"
@@ -360,6 +359,9 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::UserKey: /* --user */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kUser, arg);
+
+    default:
+        break;
     }
 }
 #endif

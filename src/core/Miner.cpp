@@ -78,7 +78,7 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
 
 
-    inline MinerPrivate(Controller *controller) : controller(controller) {}
+    inline explicit MinerPrivate(Controller *controller) : controller(controller) {}
 
 
     inline ~MinerPrivate()
@@ -329,7 +329,7 @@ public:
 
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
+    inline bool initRX() const { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
 

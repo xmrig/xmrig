@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2020 Inria.  All rights reserved.
+ * Copyright © 2012-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -39,7 +39,7 @@ extern "C" {
 /** \brief Get the CPU set of processors that are physically
  * close to NVML device \p device.
  *
- * Return the CPU set describing the locality of the NVML device \p device.
+ * Store in \p set the CPU-set describing the locality of the NVML device \p device.
  *
  * Topology \p topology and device \p device must match the local machine.
  * I/O devices detection and the NVML component are not needed in the topology.
@@ -88,8 +88,8 @@ hwloc_nvml_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unused,
 /** \brief Get the hwloc OS device object corresponding to the
  * NVML device whose index is \p idx.
  *
- * Return the OS device object describing the NVML device whose
- * index is \p idx. Returns NULL if there is none.
+ * \return The hwloc OS device object describing the NVML device whose index is \p idx.
+ * \return \c NULL if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.
@@ -114,8 +114,8 @@ hwloc_nvml_get_device_osdev_by_index(hwloc_topology_t topology, unsigned idx)
 
 /** \brief Get the hwloc OS device object corresponding to NVML device \p device.
  *
- * Return the hwloc OS device object that describes the given
- * NVML device \p device. Return NULL if there is none.
+ * \return The hwloc OS device object that describes the given NVML device \p device.
+ * \return \c NULL if none could be found.
  *
  * Topology \p topology and device \p device must match the local machine.
  * I/O devices detection and the NVML component must be enabled in the topology.

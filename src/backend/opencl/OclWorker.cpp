@@ -89,7 +89,7 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 
     case Algorithm::ARGON2:
 #       ifdef XMRIG_ALGO_ARGON2
-        m_runner = nullptr; // TODO OclArgon2Runner
+        m_runner = nullptr;
 #       endif
         break;
 

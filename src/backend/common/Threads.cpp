@@ -104,7 +104,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
-    const String name = algorithm.name();
+    String name = algorithm.name();
     if (has(name)) {
         return name;
     }
@@ -122,7 +122,7 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
     }
 
     if (name.contains("/")) {
-        const String base = name.split('/').at(0);
+        String base = name.split('/').at(0);
         if (has(base)) {
             return base;
         }
