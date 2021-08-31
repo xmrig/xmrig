@@ -82,7 +82,7 @@ const char *Pool::kSpendSecretKey         = "spend-secret-key";
 const char *Pool::kNicehashHost           = "nicehash.com";
 
 
-}
+} // namespace xmrig
 
 
 xmrig::Pool::Pool(const char *url) :
@@ -189,10 +189,6 @@ bool xmrig::Pool::isEnabled() const
         return false;
     }
 #   endif
-
-    if (m_mode == MODE_DAEMON && (!algorithm().isValid() && !coin().isValid())) {
-        return false;
-    }
 
     return m_flags.test(FLAG_ENABLED) && isValid();
 }

@@ -230,6 +230,9 @@ void xmrig::Pools::setProxyDonate(int value)
     case PROXY_DONATE_AUTO:
     case PROXY_DONATE_ALWAYS:
         m_proxyDonate = static_cast<ProxyDonate>(value);
+
+    default:
+        break;
     }
 }
 

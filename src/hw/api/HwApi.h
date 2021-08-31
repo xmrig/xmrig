@@ -29,7 +29,7 @@
 namespace xmrig {
 
 
-struct DmiReader;
+class DmiReader;
 
 
 class HwApi : public IApiListener

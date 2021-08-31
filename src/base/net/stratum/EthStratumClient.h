@@ -48,7 +48,8 @@ protected:
     void setExtraNonce(const rapidjson::Value &nonce);
 
 private:
-    const char *errorMessage(const rapidjson::Value &error) const;
+    static const char *errorMessage(const rapidjson::Value &error);
+
     void authorize();
     void onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);
     void onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);

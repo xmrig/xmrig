@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/net/https/HttpsContext.h"
 #include "3rdparty/llhttp/llhttp.h"
 #include "base/net/tls/TlsContext.h"
@@ -61,7 +60,7 @@ bool xmrig::HttpsContext::write(BIO *bio)
     }
 
     char *data        = nullptr;
-    const size_t size = BIO_get_mem_data(bio, &data);
+    const size_t size = BIO_get_mem_data(bio, &data); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
     std::string body(data, size);
 
     (void) BIO_reset(bio);

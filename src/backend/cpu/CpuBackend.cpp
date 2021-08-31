@@ -136,7 +136,7 @@ private:
 class CpuBackendPrivate
 {
 public:
-    inline CpuBackendPrivate(Controller *controller) : controller(controller)   {}
+    inline explicit CpuBackendPrivate(Controller *controller) : controller(controller)   {}
 
 
     inline void start()
@@ -159,7 +159,7 @@ public:
     }
 
 
-    size_t ways()
+    size_t ways() const
     {
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -167,7 +167,7 @@ public:
     }
 
 
-    rapidjson::Value hugePages(int version, rapidjson::Document &doc)
+    rapidjson::Value hugePages(int version, rapidjson::Document &doc) const
     {
         HugePagesInfo pages;
 

@@ -249,7 +249,7 @@ uint64_t xmrig::BenchClient::referenceHash() const
 }
 
 
-void xmrig::BenchClient::printExit()
+void xmrig::BenchClient::printExit() const
 {
     LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), tag());
 }

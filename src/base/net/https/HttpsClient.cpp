@@ -170,7 +170,7 @@ bool xmrig::HttpsClient::verifyFingerprint(X509 *cert)
     }
 
     unsigned char md[EVP_MAX_MD_SIZE];
-    unsigned int dlen;
+    unsigned int dlen = 0;
 
     if (X509_digest(cert, digest, md, &dlen) != 1) {
         return false;
@@ -189,7 +189,7 @@ void xmrig::HttpsClient::flush(bool close)
     }
 
     char *data        = nullptr;
-    const size_t size = BIO_get_mem_data(m_write, &data);
+    const size_t size = BIO_get_mem_data(m_write, &data); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
     std::string body(data, size);
 
     (void) BIO_reset(m_write);

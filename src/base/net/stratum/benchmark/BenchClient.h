@@ -90,7 +90,7 @@ private:
 
     bool setSeed(const char *seed);
     uint64_t referenceHash() const;
-    void printExit();
+    void printExit() const;
     void start();
 
 #   ifdef XMRIG_FEATURE_HTTP

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -806,6 +806,49 @@ hwloc_get_obj_below_array_by_type (hwloc_topology_t topology, int nr, hwloc_obj_
   }
   return obj;
 }
+
+/** \brief Return an object of a different type with same locality.
+ *
+ * If the source object \p src is a normal or memory type,
+ * this function returns an object of type \p type with same
+ * CPU and node sets, either below or above in the hierarchy.
+ *
+ * If the source object \p src is a PCI or an OS device within a PCI
+ * device, the function may either return that PCI device, or another
+ * OS device in the same PCI parent.
+ * This may for instance be useful for converting between OS devices
+ * such as "nvml0" or "rsmi1" used in distance structures into the
+ * the PCI device, or the CUDA or OpenCL OS device that correspond
+ * to the same physical card.
+ *
+ * If not \c NULL, parameter \p subtype only select objects whose
+ * subtype attribute exists and is \p subtype (case-insensitively),
+ * for instance "OpenCL" or "CUDA".
+ *
+ * If not \c NULL, parameter \p nameprefix only selects objects whose
+ * name attribute exists and starts with \p nameprefix (case-insensitively),
+ * for instance "rsmi" for matching "rsmi0".
+ *
+ * If multiple objects match, the first one is returned.
+ *
+ * This function will not walk the hierarchy across bridges since
+ * the PCI locality may become different.
+ * This function cannot also convert between normal/memory objects
+ * and I/O or Misc objects.
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \return An object with identical locality,
+ * matching \p subtype and \p nameprefix if any.
+ *
+ * \return \c NULL if no matching object could be found,
+ * or if the source object and target type are incompatible,
+ * for instance if converting between CPU and I/O objects.
+ */
+HWLOC_DECLSPEC hwloc_obj_t
+hwloc_get_obj_with_same_locality(hwloc_topology_t topology, hwloc_obj_t src,
+                                 hwloc_obj_type_t type, const char *subtype, const char *nameprefix,
+                                 unsigned long flags);
 
 /** @} */
 

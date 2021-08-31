@@ -34,7 +34,7 @@ public:
     static const char *kTTL;
 
     DnsConfig() = default;
-    DnsConfig(const rapidjson::Value &object);
+    DnsConfig(const rapidjson::Value &value);
 
     inline bool isIPv6() const  { return m_ipv6; }
     inline uint32_t ttl() const { return m_ttl * 1000U; }

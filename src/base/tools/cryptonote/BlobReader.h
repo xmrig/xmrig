@@ -1,8 +1,8 @@
 /* XMRig
- * Copyright 2012-2013 The Cryptonote developers
- * Copyright 2014-2021 The Monero Project
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2012-2013 The Cryptonote developers
+ * Copyright (c) 2014-2021 The Monero Project
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,58 +23,77 @@
 
 
 #include <cstdint>
+#include <cstring>
+#include <stdexcept>
 
 
 namespace xmrig {
 
 
-class CBlobReader
+template<bool EXCEPTIONS>
+class BlobReader
 {
 public:
-    inline CBlobReader(const void* data, size_t size)
-        : m_data(reinterpret_cast<const uint8_t*>(data))
-        , m_size(size)
-        , m_index(0)
+    inline BlobReader(const uint8_t *data, size_t size) :
+        m_size(size),
+        m_data(data)
     {}
 
-    inline bool operator()(uint8_t& data) { return getByte(data); }
-    inline bool operator()(uint64_t& data) { return getVarint(data); }
+    inline bool operator()(uint64_t &data)  { return getVarint(data); }
+    inline bool operator()(uint8_t &data)   { return getByte(data); }
+    inline size_t index() const             { return m_index; }
+    inline size_t remaining() const         { return m_size - m_index;  }
+
+    inline bool skip(size_t n)
+    {
+        if (m_index + n > m_size) {
+            return outOfRange();
+        }
+
+        m_index += n;
+
+        return true;
+    }
 
     template<size_t N>
     inline bool operator()(uint8_t(&data)[N])
     {
-        for (size_t i = 0; i < N; ++i) {
-            if (!getByte(data[i])) {
-                return false;
-            }
+        if (m_index + N > m_size) {
+            return outOfRange();
         }
+
+        memcpy(data, m_data + m_index, N);
+        m_index += N;
+
         return true;
     }
 
     template<typename T>
-    inline void readItems(T& data, size_t count)
+    inline bool operator()(T &data, size_t n)
     {
-        data.resize(count);
-        for (size_t i = 0; i < count; ++i)
-            operator()(data[i]);
-    }
-
-    inline size_t index() const { return m_index; }
-
-    inline void skip(size_t N) { m_index += N; }
-
-private:
-    inline bool getByte(uint8_t& data)
-    {
-        if (m_index >= m_size) {
-            return false;
+        if (m_index + n > m_size) {
+            return outOfRange();
         }
 
-        data = m_data[m_index++];
+        data = { m_data + m_index, n };
+        m_index += n;
+
         return true;
     }
 
-    inline bool getVarint(uint64_t& data)
+private:
+    inline bool getByte(uint8_t &data)
+    {
+        if (m_index >= m_size) {
+            return outOfRange();
+        }
+
+        data = m_data[m_index++];
+
+        return true;
+    }
+
+    inline bool getVarint(uint64_t &data)
     {
         uint64_t result = 0;
         uint8_t t;
@@ -82,19 +101,30 @@ private:
 
         do {
             if (!getByte(t)) {
-                return false;
+                return outOfRange();
             }
+
             result |= static_cast<uint64_t>(t & 0x7F) << shift;
             shift += 7;
         } while (t & 0x80);
 
         data = result;
+
         return true;
     }
 
-    const uint8_t* m_data;
-    size_t m_size;
-    size_t m_index;
+    inline bool outOfRange()
+    {
+        if (EXCEPTIONS) {
+            throw std::out_of_range("Blob read out of range");
+        }
+
+        return false;
+    }
+
+    const size_t m_size;
+    const uint8_t *m_data;
+    size_t m_index  = 0;
 };
 
 

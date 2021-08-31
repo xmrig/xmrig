@@ -272,7 +272,7 @@ void xmrig::EthStratumClient::setExtraNonce(const rapidjson::Value &nonce)
 }
 
 
-const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error) const
+const char *xmrig::EthStratumClient::errorMessage(const rapidjson::Value &error)
 {
     if (error.IsArray() && error.GetArray().Size() > 1) {
         auto &value = error.GetArray()[1];

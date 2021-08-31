@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <thread>
 #include <stdexcept>
@@ -273,7 +266,7 @@ xmrig::String xmrig::OclLib::defaultLoader()
 
 cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret) noexcept
 {
-    cl_command_queue result;
+    cl_command_queue result = nullptr;
 
 #   if defined(CL_VERSION_2_0)
     if (pCreateCommandQueueWithProperties) {
@@ -300,7 +293,7 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 
 cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_command_queue queue = createCommandQueue(context, device, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -327,7 +320,7 @@ cl_context xmrig::OclLib::createContext(const cl_context_properties *properties,
 
 cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
 {
-    cl_int ret;
+    cl_int ret = 0;
     return createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
 }
 
@@ -615,7 +608,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 
 cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_kernel kernel = createKernel(program, kernel_name, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -627,7 +620,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 
 cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_mem mem = createBuffer(context, flags, size, host_ptr, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -671,7 +664,7 @@ cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t 
 
 cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_mem mem = createSubBuffer(buffer, flags, offset, size, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -737,8 +730,8 @@ cl_program xmrig::OclLib::retain(cl_program program) noexcept
 
 cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 {
-    cl_uint count = 0;
-    cl_int ret;
+    cl_uint count   = 0;
+    cl_int ret      = 0;
 
     if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", OclError::toString(ret));

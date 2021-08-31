@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -66,7 +60,7 @@ public:
     inline bool isExpired(uint64_t period) const                                                       { return m_period + 1 < period; }
     inline bool match(const Algorithm &algo, uint64_t period, uint32_t worksize, uint32_t index) const { return m_algo == algo && m_period == period && m_worksize == worksize && m_index == index; }
     inline bool match(const IOclRunner &runner, uint64_t period, uint32_t worksize) const              { return match(runner.algorithm(), period, worksize, runner.deviceIndex()); }
-    inline void release()                                                                              { OclLib::release(kernel); OclLib::release(program); }
+    inline void release() const                                                                        { OclLib::release(kernel); OclLib::release(program); }
 
     cl_program program;
     cl_kernel kernel;
@@ -173,7 +167,7 @@ public:
             return kernel;
         }
 
-        cl_int ret;
+        cl_int ret = 0;
         const std::string source = getSource(period);
         cl_device_id device      = runner.data().device.id();
         const char *s            = source.c_str();
@@ -224,7 +218,7 @@ private:
     } kiss99_t;
 
 
-    std::string getSource(uint64_t prog_seed) const
+    static std::string getSource(uint64_t prog_seed)
     {
         std::stringstream ret;
 
@@ -252,7 +246,7 @@ private:
         }
 
         for (int i = KPHash::REGS - 1; i > 0; i--) {
-            int j;
+            int j = 0;
             j = rnd() % (i + 1);
             std::swap(mix_seq_dst[i], mix_seq_dst[j]);
             j = rnd() % (i + 1);
@@ -277,7 +271,11 @@ private:
                 int src_rnd = rnd() % ((KPHash::REGS - 1) * KPHash::REGS);
                 int src1 = src_rnd % KPHash::REGS; // 0 <= src1 < KPHash::REGS
                 int src2 = src_rnd / KPHash::REGS; // 0 <= src2 < KPHash::REGS - 1
-                if (src2 >= src1) ++src2; // src2 is now any reg other than src1
+
+                if (src2 >= src1) {
+                    ++src2; // src2 is now any reg other than src1
+                }
+
                 std::string src1_str = "mix[" + std::to_string(src1) + "]";
                 std::string src2_str = "mix[" + std::to_string(src2) + "]";
                 uint32_t r1 = rnd();

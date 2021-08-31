@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "hw/msr/Msr.h"
 #include "base/io/log/Log.h"
 
@@ -58,7 +57,7 @@ std::shared_ptr<xmrig::Msr> xmrig::Msr::get()
 bool xmrig::Msr::write(uint32_t reg, uint64_t value, int32_t cpu, uint64_t mask, bool verbose)
 {
     if (mask != MsrItem::kNoMask) {
-        uint64_t old_value;
+        uint64_t old_value = 0;
         if (rdmsr(reg, cpu, old_value)) {
             value = MsrItem::maskedValue(old_value, value, mask);
         }
