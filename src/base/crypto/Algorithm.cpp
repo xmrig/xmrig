@@ -105,7 +105,9 @@ const char *Algorithm::kKAWPOW_RVN      = "kawpow";
 #ifdef XMRIG_ALGO_CN_GPU
 const char *Algorithm::kCN_GPU          = "cn/gpu";
 #endif
+#ifdef XMRIG_ALGO_RANDOMX
 const char *Algorithm::kRX_XLA          = "panthera";
+#endif
 
 
 #define ALGO_NAME(ALGO)         { Algorithm::ALGO, Algorithm::k##ALGO }
@@ -368,10 +370,7 @@ std::vector<xmrig::Algorithm> xmrig::Algorithm::all(const std::function<bool(con
         CN_HEAVY_0, CN_HEAVY_TUBE, CN_HEAVY_XHV,
         CN_PICO_0, CN_PICO_TLO,
         CN_UPX2,
-#       ifdef XMRIG_ALGO_CN_GPU
-        CN_GPU,
-#       endif
-        RX_XLA,
+        CN_GPU, RX_XLA,
         RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_KEVA,
         AR2_CHUKWA, AR2_CHUKWA_V2, AR2_WRKZ,
         ASTROBWT_DERO,
