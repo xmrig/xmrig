@@ -164,7 +164,9 @@ public:
 #   ifdef XMRIG_ALGO_CN_GPU
     static const char *kCN_GPU;
 #   endif
+#   ifdef XMRIG_ALGO_RANDOMX
     static const char *kRX_XLA;
+#   endif
 
 
     inline Algorithm() = default;
