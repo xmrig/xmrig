@@ -1,9 +1,0 @@
-if (NOT WITH_RANDOMX)
-    set(WITH_BENCHMARK OFF)
-endif()
-
-message(STATUS "WITH_BENCHMARK\t= ${WITH_BENCHMARK}")
-
-if (WITH_BENCHMARK)
-    add_definitions(-DXMRIG_FEATURE_BENCHMARK)
-endif()
