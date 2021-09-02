@@ -26,12 +26,12 @@ int main(int argc, char **argv)
     using namespace xmrig;
 
     Process process(argc, argv);
-    const Entry::Id entry = Entry::get(process);
+    const auto entry = Entry::get();
     if (entry) {
-        return Entry::exec(process, entry);
+        return Entry::exec(entry);
     }
 
-    App app(&process);
+    App app;
 
     return app.exec();
 }

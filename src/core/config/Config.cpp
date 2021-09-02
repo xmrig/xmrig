@@ -19,7 +19,6 @@
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
-#include <uv.h>
 
 
 #include "core/config/Config.h"

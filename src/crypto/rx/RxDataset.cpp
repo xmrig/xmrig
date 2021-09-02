@@ -21,6 +21,7 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/kernel/OS.h"
 #include "base/kernel/Platform.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/randomx.h"
@@ -29,7 +30,6 @@
 
 
 #include <thread>
-#include <uv.h>
 
 
 namespace xmrig {
@@ -203,7 +203,7 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
         return;
     }
 
-    if (m_mode == RxConfig::AutoMode && uv_get_total_memory() < (maxSize() + RxCache::maxSize())) {
+    if (m_mode == RxConfig::AutoMode && OS::totalmem() < (maxSize() + RxCache::maxSize())) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", Tags::randomx());
 
         return;

@@ -38,9 +38,9 @@ class Network;
 class Controller : public Base
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Controller)
+    XMRIG_DISABLE_COPY_MOVE(Controller)
 
-    Controller(Process *process);
+    Controller();
     ~Controller() override;
 
     int init() override;

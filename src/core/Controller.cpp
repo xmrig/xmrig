@@ -33,8 +33,8 @@
 #include <cassert>
 
 
-xmrig::Controller::Controller(Process *process) :
-    Base(process)
+xmrig::Controller::Controller() :
+    Base()
 {
 }
 

@@ -41,9 +41,9 @@
 #include "version.h"
 
 
-xmrig::App::App(Process *process)
+xmrig::App::App()
 {
-    m_controller = std::make_shared<Controller>(process);
+    m_controller = std::make_shared<Controller>();
 }
 
 

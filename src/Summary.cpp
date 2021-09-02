@@ -25,17 +25,17 @@
 
 #include <cinttypes>
 #include <cstdio>
-#include <uv.h>
 
 
+#include "Summary.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/OS.h"
 #include "base/net/stratum/Pool.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/Assembly.h"
 #include "crypto/common/VirtualMemory.h"
-#include "Summary.h"
 #include "version.h"
 
 
@@ -124,8 +124,8 @@ static void print_cpu(const Config *)
 static void print_memory(const Config *config)
 {
     constexpr size_t oneGiB = 1024U * 1024U * 1024U;
-    const auto freeMem      = static_cast<double>(uv_get_free_memory());
-    const auto totalMem     = static_cast<double>(uv_get_total_memory());
+    const auto freeMem      = static_cast<double>(OS::freemem());
+    const auto totalMem     = static_cast<double>(OS::totalmem());
 
     const double percent = freeMem > 0 ? ((totalMem - freeMem) / totalMem * 100.0) : 100.0;
 

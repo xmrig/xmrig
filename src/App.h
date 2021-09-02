@@ -48,9 +48,9 @@ class Signals;
 class App : public IConsoleListener, public ISignalListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(App)
+    XMRIG_DISABLE_COPY_MOVE(App)
 
-    App(Process *process);
+    App();
     ~App() override;
 
     int exec();
