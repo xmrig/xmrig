@@ -132,19 +132,10 @@ endif()
 if (XMRIG_OS_WIN)
     list(APPEND SOURCES
         res/app.rc
-        src/App_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
-elseif (XMRIG_OS_APPLE)
-    list(APPEND SOURCES
-        src/App_unix.cpp
-        src/crypto/common/VirtualMemory_unix.cpp
-        )
 else()
-    list(APPEND SOURCES
-        src/App_unix.cpp
-        src/crypto/common/VirtualMemory_unix.cpp
-        )
+    list(APPEND SOURCES src/crypto/common/VirtualMemory_unix.cpp)
 
     if (XMRIG_OS_LINUX AND NOT XMRIG_OS_ANDROID)
         list(APPEND SOURCES

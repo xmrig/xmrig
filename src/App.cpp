@@ -63,17 +63,12 @@ int xmrig::App::exec()
 
     m_signals = std::make_shared<Signals>(this);
 
-    int rc = 0;
-    if (background(rc)) {
-        return rc;
-    }
-
-    rc = m_controller->init();
+    int rc = m_controller->init();
     if (rc != 0) {
         return rc;
     }
 
-    if (!m_controller->isBackground()) {
+    if (!Log::isBackground()) {
         m_console = std::make_shared<Console>(this);
     }
 

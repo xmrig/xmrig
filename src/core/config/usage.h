@@ -170,7 +170,6 @@ static const std::string &usage()
     u += "\nMisc:\n";
 
     u += "  -c, --config=FILE             load a JSON-format configuration file\n";
-    u += "  -B, --background              run the miner in the background\n";
     u += "      --dry-run                 test configuration and exit\n";
 
 #   ifdef XMRIG_OS_WIN
