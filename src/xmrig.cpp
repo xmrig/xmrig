@@ -19,6 +19,12 @@
 #include "App.h"
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
+#include "core/config/usage.h"
+
+
+#ifdef XMRIG_FEATURE_OPENCL
+#   include "backend/opencl/wrappers/OclPlatform.h"
+#endif
 
 
 int main(int argc, char **argv)
@@ -26,9 +32,18 @@ int main(int argc, char **argv)
     using namespace xmrig;
 
     Process process(argc, argv);
-    const auto entry = Entry::get();
-    if (entry) {
-        return Entry::exec(entry);
+
+    {
+        int rc = 0;
+        auto entry = std::make_unique<Entry>(usage);
+
+#       ifdef XMRIG_FEATURE_OPENCL
+        entry->add(OclPlatform::printPlatforms);
+#       endif
+
+        if (entry->exec(rc)) {
+            return rc;
+        }
     }
 
     App app;

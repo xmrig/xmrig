@@ -25,16 +25,13 @@
 #define XMRIG_USAGE_H
 
 
-#include "../version.h"
-
-
 #include <string>
 
 
 namespace xmrig {
 
 
-static inline const std::string &usage()
+static const std::string &usage()
 {
     static std::string u;
 
@@ -42,7 +39,7 @@ static inline const std::string &usage()
         return u;
     }
 
-    u += "Usage: " APP_ID " [OPTIONS]\n\nNetwork:\n";
+    u += "\nNetwork:\n";
     u += "  -o, --url=URL                 URL of mining server\n";
     u += "  -a, --algo=ALGO               mining algorithm https://xmrig.com/docs/algorithms\n";
     u += "      --coin=COIN               specify coin instead of algorithm\n";
@@ -174,13 +171,7 @@ static inline const std::string &usage()
 
     u += "  -c, --config=FILE             load a JSON-format configuration file\n";
     u += "  -B, --background              run the miner in the background\n";
-    u += "  -V, --version                 output version information and exit\n";
-    u += "  -h, --help                    display this help and exit\n";
     u += "      --dry-run                 test configuration and exit\n";
-
-#   ifdef XMRIG_FEATURE_HWLOC
-    u += "      --export-topology         export hwloc topology to a XML file and exit\n";
-#   endif
 
 #   ifdef XMRIG_OS_WIN
     u += "      --title                   set custom console window title\n";
