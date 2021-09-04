@@ -50,7 +50,6 @@ include(src/backend/backend.cmake)
 
 set(HEADERS
     "${HEADERS_BACKEND}"
-    src/App.h
     src/backend/common/interfaces/IMemoryPool.h
     src/core/config/Config_default.h
     src/core/config/Config_platform.h
@@ -79,6 +78,7 @@ set(HEADERS
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
+    src/MinerApp.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
     src/net/JobResults.h
@@ -96,7 +96,6 @@ endif()
 
 set(SOURCES
     "${SOURCES_BACKEND}"
-    src/App.cpp
     src/core/config/Config.cpp
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
@@ -111,6 +110,7 @@ set(SOURCES
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
+    src/MinerApp.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp

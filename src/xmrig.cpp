@@ -16,7 +16,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "App.h"
+#include "MinerApp.h"
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
 #include "core/config/usage.h"
@@ -46,7 +46,7 @@ int main(int argc, char **argv)
         }
     }
 
-    App app;
+    MinerApp app;
 
     return app.exec();
 }

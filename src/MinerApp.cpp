@@ -28,7 +28,7 @@
 #include <uv.h>
 
 
-#include "App.h"
+#include "MinerApp.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/Console.h"
 #include "base/io/log/Log.h"
@@ -41,19 +41,19 @@
 #include "version.h"
 
 
-xmrig::App::App()
+xmrig::MinerApp::MinerApp()
 {
     m_controller = std::make_shared<Controller>();
 }
 
 
-xmrig::App::~App()
+xmrig::MinerApp::~MinerApp()
 {
     Cpu::release();
 }
 
 
-int xmrig::App::exec()
+int xmrig::MinerApp::exec()
 {
     if (!m_controller->isReady()) {
         LOG_EMERG("no valid configuration found, try https://xmrig.com/wizard");
@@ -89,7 +89,7 @@ int xmrig::App::exec()
 }
 
 
-void xmrig::App::onConsoleCommand(char command)
+void xmrig::MinerApp::onConsoleCommand(char command)
 {
     if (command == 3) {
         LOG_WARN("%s " YELLOW("Ctrl+C received, exiting"), Tags::signal());
@@ -101,7 +101,7 @@ void xmrig::App::onConsoleCommand(char command)
 }
 
 
-void xmrig::App::onSignal(int signum)
+void xmrig::MinerApp::onSignal(int signum)
 {
     switch (signum)
     {
@@ -116,7 +116,7 @@ void xmrig::App::onSignal(int signum)
 }
 
 
-void xmrig::App::close()
+void xmrig::MinerApp::close()
 {
     m_signals.reset();
     m_console.reset();

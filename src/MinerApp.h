@@ -23,8 +23,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_APP_H
-#define XMRIG_APP_H
+#ifndef XMRIG_MINERAPP_H
+#define XMRIG_MINERAPP_H
 
 
 #include "base/kernel/interfaces/IConsoleListener.h"
@@ -45,13 +45,13 @@ class Process;
 class Signals;
 
 
-class App : public IConsoleListener, public ISignalListener
+class MinerApp : public IConsoleListener, public ISignalListener
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(App)
+    XMRIG_DISABLE_COPY_MOVE(MinerApp)
 
-    App();
-    ~App() override;
+    MinerApp();
+    ~MinerApp() override;
 
     int exec();
 
@@ -72,4 +72,4 @@ private:
 } /* namespace xmrig */
 
 
-#endif /* XMRIG_APP_H */
+#endif /* XMRIG_MINERAPP_H */
