@@ -17,6 +17,7 @@
  */
 
 #include "core/config/ConfigTransform.h"
+#include "base/crypto/Algorithm.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
@@ -102,6 +103,7 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
         profile.AddMember(StringRef(kThreads),   m_threads, allocator);
         profile.AddMember(StringRef(kAffinity),  m_affinity, allocator);
 
+        doc[CpuConfig::kField].AddMember(StringRef(Algorithm::kKAWPOW), false, doc.GetAllocator());
         doc[CpuConfig::kField].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
 
