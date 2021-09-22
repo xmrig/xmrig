@@ -50,4 +50,17 @@
 #   endif
 #endif
 
+#if defined(_MSC_FULL_VER)
+#   define MSVC_VERSION_MAJOR ((_MSC_FULL_VER / 10000000) >> 0)
+#   define MSVC_VERSION_MINOR (((_MSC_FULL_VER - (MSVC_VERSION_MAJOR * 10000000)) / 100000) >> 0)
+#   define MSVC_VERSION_PATCH (_MSC_FULL_VER - (MSVC_VERSION_MAJOR * 10000000) - (MSVC_VERSION_MINOR * 100000))
+#   define MSVC_VERSION_BUILD _MSC_BUILD
+#endif
+
+#if defined(__INTEL_COMPILER)
+#   define __INTELC_MAJOR__ ((__INTEL_COMPILER / 100) >> 0)
+#   define __INTELC_MINOR__ (((__INTEL_COMPILER - (__INTELC_MAJOR__ * 100)) / 10) >> 0)
+#   define __INTELC_PATCH__ (__INTEL_COMPILER - (__INTELC_MAJOR__ * 100) - (__INTELC_MINOR__ * 10))
+#endif
+
 #endif /* XMRIG_VERSION_H */

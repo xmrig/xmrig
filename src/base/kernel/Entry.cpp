@@ -58,6 +58,9 @@ static int showVersion()
 #   elif defined(__GNUC__)
     " with GCC");
     printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(MSVC_VERSION_PATCH)
+    " with MSVC");
+    printf(" %d (%d.%d.%d.%d)", MSVC_VERSION, MSVC_VERSION_MAJOR, MSVC_VERSION_MINOR, MSVC_VERSION_PATCH, MSVC_VERSION_BUILD);
 #   elif defined(_MSC_VER)
     " with MSVC");
     printf(" %d", MSVC_VERSION);

@@ -65,6 +65,8 @@ char *xmrig::Platform::createUserAgent()
 
 #   ifdef __clang__
     length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
+#   elif defined(__INTELC__)
+    length += snprintf(buf, sizeof buf, "icc/%d.%d.%d.%d (gcc/%d.%d.%d)", __INTELC_MAJOR__, __INTELC_MINOR__, __INTELC_PATCH__, __INTEL_COMPILER_BUILD_DATE, __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   elif defined(__GNUC__)
     length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   endif

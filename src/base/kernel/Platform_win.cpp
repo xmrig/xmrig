@@ -62,6 +62,8 @@ char *xmrig::Platform::createUserAgent()
 
 #   ifdef __GNUC__
     snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+#   elif defined(MSVC_VERSION_PATCH)
+    snprintf(buf + length, max - length, " msvc/%dv%d.%d.%d.%d", MSVC_VERSION, MSVC_VERSION_MAJOR, MSVC_VERSION_MINOR, MSVC_VERSION_PATCH, MSVC_VERSION_BUILD);
 #   elif _MSC_VER
     snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
 #   endif
