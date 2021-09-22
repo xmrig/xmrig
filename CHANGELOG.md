@@ -1,3 +1,7 @@
+# v6.15.1
+- [#2586](https://github.com/xmrig/xmrig/pull/2586) Fixed Windows 7 compatibility.
+- [#2594](https://github.com/xmrig/xmrig/pull/2594) Added Windows taskbar icon colors.
+
 # v6.15.0
 - [#2548](https://github.com/xmrig/xmrig/pull/2548) Added automatic coin detection for daemon mining.
 - [#2563](https://github.com/xmrig/xmrig/pull/2563) Added new algorithm RandomX Graft (`rx/graft`).
