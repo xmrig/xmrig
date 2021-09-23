@@ -39,8 +39,6 @@ protected:
     inline size_t id() const override                       { return m_id; }
     inline uint32_t node() const                            { return m_node; }
 
-    std::atomic<uint64_t> m_count                = {0};
-
 private:
     const int64_t m_affinity;
     const size_t m_id;
