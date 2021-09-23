@@ -68,6 +68,7 @@ static const option options[] = {
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
     { "rebench-algo",          0, nullptr, IConfig::RebenchAlgoKey        },
     { "bench-algo-time",       1, nullptr, IConfig::BenchAlgoTimeKey      },
+    { "algo-min-time",         1, nullptr, IConfig::AlgoMinTimeKey        },
 #   endif
     { "no-color",              0, nullptr, IConfig::ColorKey              },
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },

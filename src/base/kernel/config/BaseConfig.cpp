@@ -48,6 +48,7 @@ namespace xmrig {
 
 
 #ifdef XMRIG_FEATURE_MO_BENCHMARK
+const char *BaseConfig::kAlgoMinTime    = "algo-min-time";
 const char *BaseConfig::kAlgoPerf       = "algo-perf";
 #endif
 const char *BaseConfig::kApi            = "api";
@@ -109,6 +110,7 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
     Log::setColors(reader.getBool(kColors, Log::isColors()));
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
     m_benchAlgoTime = reader.getInt(kBenchAlgoTime, m_benchAlgoTime);
+    m_algoMinTime   = reader.getInt(kAlgoMinTime, m_algoMinTime);
 #   endif
     setVerbose(reader.getValue(kVerbose));
 
