@@ -38,21 +38,6 @@ typedef union
     struct { cl_uint type; cl_uint data[5]; } raw;
     struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
 } topology_amd;
-#ifndef CL_DEVICE_TOPOLOGY_AMD
-#define CL_DEVICE_TOPOLOGY_AMD 0x4037
-#endif
-#ifndef CL_DEVICE_BOARD_NAME_AMD
-#define CL_DEVICE_BOARD_NAME_AMD 0x4038
-#endif
-#ifndef CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD
-#define CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD 1
-#endif
-#ifndef CL_DEVICE_PCI_BUS_ID_NV
-#define CL_DEVICE_PCI_BUS_ID_NV 0x4008
-#endif
-#ifndef CL_DEVICE_PCI_SLOT_ID_NV
-#define CL_DEVICE_PCI_SLOT_ID_NV 0x4009
-#endif
 
 
 namespace xmrig {

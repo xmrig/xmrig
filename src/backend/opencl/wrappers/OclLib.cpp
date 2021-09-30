@@ -403,7 +403,7 @@ cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_na
     assert(pGetDeviceInfo != nullptr);
 
     const cl_int ret = pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
-    if (ret != CL_SUCCESS && param_name != 0x4038) {
+    if (ret != CL_SUCCESS && param_name != CL_DEVICE_BOARD_NAME_AMD) {
         LOG_ERR("Error %s when calling %s, param 0x%04x", OclError::toString(ret), kGetDeviceInfo, param_name);
     }
 
