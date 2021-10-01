@@ -1,0 +1,22 @@
+    steps:
+    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+    - uses: actions/checkout@v2
+
+    # ThunderScan Action
+    - name: ThunderScan
+      uses: defensecode/thunderscan-action@v1.0
+      with:
+        api_url: 'http://localhost:8999'
+        client_path: '/opt/thunderscan/tsactioncli'
+        api_token:  ${{ secrets.THUNDERSCAN_TOKEN }}
+
+    - name: Expose report
+      uses: actions/upload-artifact@v2
+      with:
+        name: SARIF results
+        path: thunderscan-sarif.json
+    # Uploads thunderscan-sarif.json to GitHub repository using the upload-sarif action
+    - uses: github/codeql-action/upload-sarif@v1
+      with:
+        # Path to SARIF file relative to the root of the repository
+        sarif_file: thunderscan-sarif.json
