@@ -141,7 +141,7 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
          return Usage;
     }
 
-    if (args.hasArg("-V") || args.hasArg("--version")) {
+    if (args.hasArg("-V") || args.hasArg("--version") || args.hasArg("--versions")) {
          return Version;
     }
 
