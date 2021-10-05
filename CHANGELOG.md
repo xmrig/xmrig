@@ -1,3 +1,7 @@
+# v6.15.2
+- [#2606](https://github.com/xmrig/xmrig/pull/2606) Fixed: AstroBWT auto-config ignored `max-threads-hint`.
+- Fixed possible crash on Windows (regression in v6.15.1).
+
 # v6.15.1
 - [#2586](https://github.com/xmrig/xmrig/pull/2586) Fixed Windows 7 compatibility.
 - [#2594](https://github.com/xmrig/xmrig/pull/2594) Added Windows taskbar icon colors.

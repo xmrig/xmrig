@@ -142,38 +142,11 @@ xmrig::String xmrig::Env::get(const String &name, const std::map<String, String>
 
 xmrig::String xmrig::Env::hostname()
 {
-#   ifdef _WIN32
-    const HMODULE hLib = LoadLibraryA("Ws2_32.dll");
-    if (hLib) {
-        typedef int (WSAAPI* GetHostNameW_proc)(PWSTR, int);
-        GetHostNameW_proc GetHostNameW_ptr = reinterpret_cast<GetHostNameW_proc>(GetProcAddress(hLib, "GetHostNameW"));
-        if (GetHostNameW_ptr) {
-            WCHAR buf[UV_MAXHOSTNAMESIZE];
-            if (GetHostNameW_ptr(buf, UV_MAXHOSTNAMESIZE) != 0) {
-                return {};
-            }
-            char utf8_str[UV_MAXHOSTNAMESIZE * 4 + 1];
-            const int len = WideCharToMultiByte(CP_UTF8, 0, buf, -1, utf8_str, sizeof(utf8_str), nullptr, nullptr);
-            if (len <= 0) {
-                return {};
-            }
-            return utf8_str;
-        }
-    }
-#   endif
-
     char buf[UV_MAXHOSTNAMESIZE]{};
-    size_t size = sizeof(buf);
 
-#   if (UV_VERSION_HEX >= 0x010c00) && !defined(_WIN32)
-    if (uv_os_gethostname(buf, &size) == 0) {
+    if (gethostname(buf, sizeof(buf)) == 0) {
         return static_cast<const char *>(buf);
     }
-#   else
-    if (gethostname(buf, size) == 0) {
-        return static_cast<const char *>(buf);
-    }
-#   endif
 
     return {};
 }
