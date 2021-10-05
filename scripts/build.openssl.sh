@@ -8,7 +8,7 @@ mkdir -p deps/lib
 
 mkdir -p build && cd build
 
-wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz -O openssl-${OPENSSL_VERSION}.tar.gz
+wget --no-check-certificate https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz -O openssl-${OPENSSL_VERSION}.tar.gz
 tar -xzf openssl-${OPENSSL_VERSION}.tar.gz
 
 cd openssl-${OPENSSL_VERSION}
