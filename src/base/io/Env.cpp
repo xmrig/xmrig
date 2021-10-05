@@ -143,17 +143,10 @@ xmrig::String xmrig::Env::get(const String &name, const std::map<String, String>
 xmrig::String xmrig::Env::hostname()
 {
     char buf[UV_MAXHOSTNAMESIZE]{};
-    size_t size = sizeof(buf);
 
-#   if UV_VERSION_HEX >= 0x010c00
-    if (uv_os_gethostname(buf, &size) == 0) {
+    if (gethostname(buf, sizeof(buf)) == 0) {
         return static_cast<const char *>(buf);
     }
-#   else
-    if (gethostname(buf, size) == 0) {
-        return static_cast<const char *>(buf);
-    }
-#   endif
 
     return {};
 }

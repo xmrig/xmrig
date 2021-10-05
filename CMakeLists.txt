@@ -58,6 +58,7 @@ set(HEADERS
     src/core/config/usage.h
     src/core/Controller.h
     src/core/Miner.h
+    src/core/Taskbar.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
     src/net/JobResults.h
@@ -106,6 +107,7 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
+    src/core/Taskbar.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp

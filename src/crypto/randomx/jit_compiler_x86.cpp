@@ -114,40 +114,42 @@ namespace randomx {
 	#define codeLoopBegin ADDR(randomx_program_loop_begin)
 	#define codeLoopLoad ADDR(randomx_program_loop_load)
 	#define codeLoopLoadXOP ADDR(randomx_program_loop_load_xop)
-	#define codeProgamStart ADDR(randomx_program_start)
+	#define codeProgramStart ADDR(randomx_program_start)
+	#define codeReadDataset ADDR(randomx_program_read_dataset)
 	#define codeReadDatasetLightSshInit ADDR(randomx_program_read_dataset_sshash_init)
 	#define codeReadDatasetLightSshFin ADDR(randomx_program_read_dataset_sshash_fin)
 	#define codeDatasetInit ADDR(randomx_dataset_init)
-	#define codeDatasetInitAVX2_prologue ADDR(randomx_dataset_init_avx2_prologue)
-	#define codeDatasetInitAVX2_loop_end ADDR(randomx_dataset_init_avx2_loop_end)
-	#define codeDatasetInitAVX2_loop_epilogue ADDR(randomx_dataset_init_avx2_epilogue)
-	#define codeDatasetInitAVX2_ssh_load ADDR(randomx_dataset_init_avx2_ssh_load)
-	#define codeDatasetInitAVX2_ssh_prefetch ADDR(randomx_dataset_init_avx2_ssh_prefetch)
+	#define codeDatasetInitAVX2Prologue ADDR(randomx_dataset_init_avx2_prologue)
+	#define codeDatasetInitAVX2LoopEnd ADDR(randomx_dataset_init_avx2_loop_end)
+	#define codeDatasetInitAVX2Epilogue ADDR(randomx_dataset_init_avx2_epilogue)
+	#define codeDatasetInitAVX2SshLoad ADDR(randomx_dataset_init_avx2_ssh_load)
+	#define codeDatasetInitAVX2SshPrefetch ADDR(randomx_dataset_init_avx2_ssh_prefetch)
 	#define codeLoopStore ADDR(randomx_program_loop_store)
 	#define codeLoopEnd ADDR(randomx_program_loop_end)
 	#define codeEpilogue ADDR(randomx_program_epilogue)
 	#define codeProgramEnd ADDR(randomx_program_end)
-	#define codeShhLoad ADDR(randomx_sshash_load)
-	#define codeShhPrefetch ADDR(randomx_sshash_prefetch)
-	#define codeShhEnd ADDR(randomx_sshash_end)
-	#define codeShhInit ADDR(randomx_sshash_init)
+	#define codeSshLoad ADDR(randomx_sshash_load)
+	#define codeSshPrefetch ADDR(randomx_sshash_prefetch)
+	#define codeSshEnd ADDR(randomx_sshash_end)
+	#define codeSshInit ADDR(randomx_sshash_init)
 
 	#define prologueSize (codeLoopBegin - codePrologue)
 	#define loopLoadSize (codeLoopLoadXOP - codeLoopLoad)
-	#define loopLoadXOPSize (codeProgamStart - codeLoopLoadXOP)
+	#define loopLoadXOPSize (codeProgramStart - codeLoopLoadXOP)
+	#define readDatasetSize (codeReadDatasetLightSshInit - codeReadDataset)
 	#define readDatasetLightInitSize (codeReadDatasetLightSshFin - codeReadDatasetLightSshInit)
 	#define readDatasetLightFinSize (codeLoopStore - codeReadDatasetLightSshFin)
 	#define loopStoreSize (codeLoopEnd - codeLoopStore)
-	#define datasetInitSize (codeDatasetInitAVX2_prologue - codeDatasetInit)
-	#define datasetInitAVX2_prologue_size (codeDatasetInitAVX2_loop_end - codeDatasetInitAVX2_prologue)
-	#define datasetInitAVX2_loop_end_size (codeDatasetInitAVX2_loop_epilogue - codeDatasetInitAVX2_loop_end)
-	#define datasetInitAVX2_epilogue_size (codeDatasetInitAVX2_ssh_load - codeDatasetInitAVX2_loop_epilogue)
-	#define datasetInitAVX2_ssh_load_size (codeDatasetInitAVX2_ssh_prefetch - codeDatasetInitAVX2_ssh_load)
-	#define datasetInitAVX2_ssh_prefetch_size (codeEpilogue - codeDatasetInitAVX2_ssh_prefetch)
-	#define epilogueSize (codeShhLoad - codeEpilogue)
-	#define codeSshLoadSize (codeShhPrefetch - codeShhLoad)
-	#define codeSshPrefetchSize (codeShhEnd - codeShhPrefetch)
-	#define codeSshInitSize (codeProgramEnd - codeShhInit)
+	#define datasetInitSize (codeDatasetInitAVX2Prologue - codeDatasetInit)
+	#define datasetInitAVX2PrologueSize (codeDatasetInitAVX2LoopEnd - codeDatasetInitAVX2Prologue)
+	#define datasetInitAVX2LoopEndSize (codeDatasetInitAVX2Epilogue - codeDatasetInitAVX2LoopEnd)
+	#define datasetInitAVX2EpilogueSize (codeDatasetInitAVX2SshLoad - codeDatasetInitAVX2Epilogue)
+	#define datasetInitAVX2SshLoadSize (codeDatasetInitAVX2SshPrefetch - codeDatasetInitAVX2SshLoad)
+	#define datasetInitAVX2SshPrefetchSize (codeEpilogue - codeDatasetInitAVX2SshPrefetch)
+	#define epilogueSize (codeSshLoad - codeEpilogue)
+	#define codeSshLoadSize (codeSshPrefetch - codeSshLoad)
+	#define codeSshPrefetchSize (codeSshEnd - codeSshPrefetch)
+	#define codeSshInitSize (codeProgramEnd - codeSshInit)
 
 	#define epilogueOffset ((CodeSize - epilogueSize) & ~63)
 
@@ -352,7 +354,7 @@ namespace randomx {
 		uint8_t* p = code;
 		if (initDatasetAVX2) {
 			codePos = 0;
-			emit(codeDatasetInitAVX2_prologue, datasetInitAVX2_prologue_size, code, codePos);
+			emit(codeDatasetInitAVX2Prologue, datasetInitAVX2PrologueSize, code, codePos);
 
 			for (unsigned j = 0; j < RandomX_CurrentConfig.CacheAccesses; ++j) {
 				SuperscalarProgram& prog = programs[j];
@@ -361,29 +363,29 @@ namespace randomx {
 					generateSuperscalarCode<true>(prog(i), p, pos);
 				}
 				codePos = pos;
-				emit(codeShhLoad, codeSshLoadSize, code, codePos);
-				emit(codeDatasetInitAVX2_ssh_load, datasetInitAVX2_ssh_load_size, code, codePos);
+				emit(codeSshLoad, codeSshLoadSize, code, codePos);
+				emit(codeDatasetInitAVX2SshLoad, datasetInitAVX2SshLoadSize, code, codePos);
 				if (j < RandomX_CurrentConfig.CacheAccesses - 1) {
 					*(uint32_t*)(code + codePos) = 0xd88b49 + (static_cast<uint32_t>(prog.getAddressRegister()) << 16);
 					codePos += 3;
-					emit(RandomX_CurrentConfig.codeShhPrefetchTweaked, codeSshPrefetchSize, code, codePos);
+					emit(RandomX_CurrentConfig.codeSshPrefetchTweaked, codeSshPrefetchSize, code, codePos);
 					uint8_t* p = code + codePos;
-					emit(codeDatasetInitAVX2_ssh_prefetch, datasetInitAVX2_ssh_prefetch_size, code, codePos);
+					emit(codeDatasetInitAVX2SshPrefetch, datasetInitAVX2SshPrefetchSize, code, codePos);
 					p[3] += prog.getAddressRegister() << 3;
 				}
 			}
 
-			emit(codeDatasetInitAVX2_loop_end, datasetInitAVX2_loop_end_size, code, codePos);
+			emit(codeDatasetInitAVX2LoopEnd, datasetInitAVX2LoopEndSize, code, codePos);
 
 			// Number of bytes from the start of randomx_dataset_init_avx2_prologue to loop_begin label
 			constexpr int32_t prologue_size = 320;
 			*(int32_t*)(code + codePos - 4) = prologue_size - codePos;
 
-			emit(codeDatasetInitAVX2_loop_epilogue, datasetInitAVX2_epilogue_size, code, codePos);
+			emit(codeDatasetInitAVX2Epilogue, datasetInitAVX2EpilogueSize, code, codePos);
 			return;
 		}
 
-		memcpy(code + superScalarHashOffset, codeShhInit, codeSshInitSize);
+		memcpy(code + superScalarHashOffset, codeSshInit, codeSshInitSize);
 		codePos = superScalarHashOffset + codeSshInitSize;
 		for (unsigned j = 0; j < RandomX_CurrentConfig.CacheAccesses; ++j) {
 			SuperscalarProgram& prog = programs[j];
@@ -392,11 +394,11 @@ namespace randomx {
 				generateSuperscalarCode<false>(prog(i), p, pos);
 			}
 			codePos = pos;
-			emit(codeShhLoad, codeSshLoadSize, code, codePos);
+			emit(codeSshLoad, codeSshLoadSize, code, codePos);
 			if (j < RandomX_CurrentConfig.CacheAccesses - 1) {
 				*(uint32_t*)(code + codePos) = 0xd88b49 + (static_cast<uint32_t>(prog.getAddressRegister()) << 16);
 				codePos += 3;
-				emit(RandomX_CurrentConfig.codeShhPrefetchTweaked, codeSshPrefetchSize, code, codePos);
+				emit(RandomX_CurrentConfig.codeSshPrefetchTweaked, codeSshPrefetchSize, code, codePos);
 			}
 		}
 		emitByte(0xc3, code, codePos);
@@ -422,7 +424,7 @@ namespace randomx {
 		}
 
 #		ifdef XMRIG_FIX_RYZEN
-        xmrig::RxFix::setMainLoopBounds(mainLoopBounds);
+		xmrig::RxFix::setMainLoopBounds(mainLoopBounds);
 #		endif
 
 		imul_rcp_storage = code + (ADDR(randomx_program_imul_rcp_store) - codePrologue) + 2;

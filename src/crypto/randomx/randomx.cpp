@@ -198,7 +198,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	{
 		const uint8_t* a = addr(randomx_sshash_prefetch);
 		const uint8_t* b = addr(randomx_sshash_end);
-		memcpy(codeShhPrefetchTweaked, a, b - a);
+		memcpy(codeSshPrefetchTweaked, a, b - a);
 	}
 	{
 		const uint8_t* a = addr(randomx_program_read_dataset);

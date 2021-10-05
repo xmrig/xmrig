@@ -285,9 +285,9 @@ void xmrig::CpuWorker<N>::start()
             bool valid = true;
 
             uint8_t miner_signature_saved[64];
-            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
 
 #           ifdef XMRIG_ALGO_RANDOMX
+            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
 
                 if (first) {
