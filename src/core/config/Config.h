@@ -21,6 +21,9 @@
 
 
 #include <cstdint>
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+#include <vector>
+#endif
 
 
 #include "3rdparty/rapidjson/fwd.h"
@@ -46,6 +49,9 @@ public:
 
     static const char *kPauseOnBattery;
     static const char *kPauseOnActive;
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    static const char *kPauseOnProcess;
+#   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
     static const char *kOcl;
@@ -67,10 +73,15 @@ public:
     ~Config() override;
 
     inline bool isPauseOnActive() const { return idleTime() > 0; }
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    inline bool isPauseOnProcess() const { return !processList().empty(); }
+#   endif
 
     bool isPauseOnBattery() const;
     const CpuConfig &cpu() const;
     uint32_t idleTime() const;
+    std::vector<std::string> processList() const;
+    rapidjson::Value getPauseProcesses(rapidjson::Document &doc) const;
 
 #   ifdef XMRIG_FEATURE_OPENCL
     const OclConfig &cl() const;

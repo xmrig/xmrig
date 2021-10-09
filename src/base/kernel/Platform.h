@@ -21,6 +21,10 @@
 
 
 #include <cstdint>
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+#include <string>
+#include <vector>
+#endif
 
 
 #include "base/tools/String.h"
@@ -47,10 +51,17 @@ public:
     static void setThreadPriority(int priority);
 
     static inline bool isUserActive(uint64_t ms)    { return idleTime() < ms; }
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    static inline bool isProcessActive(std::vector<std::string> search) { return checkProcesses(search); }
+#endif
     static inline const String &userAgent()         { return m_userAgent; }
 
     static bool isOnBatteryPower();
     static uint64_t idleTime();
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    static bool checkProcesses(std::vector<std::string>&);
+    std::vector<std::string> processList;
+#endif
 
 private:
     static char *createUserAgent();

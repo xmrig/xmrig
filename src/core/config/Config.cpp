@@ -54,6 +54,9 @@ constexpr static uint32_t kIdleTime     = 60U;
 
 const char *Config::kPauseOnBattery     = "pause-on-battery";
 const char *Config::kPauseOnActive      = "pause-on-active";
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+const char *Config::kPauseOnProcess     = "pause-on-process";
+#endif
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -79,6 +82,9 @@ public:
     bool pauseOnBattery = false;
     CpuConfig cpu;
     uint32_t idleTime   = 0;
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    std::vector<std::string> processList;
+#   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
     RxConfig rx;
@@ -109,6 +115,21 @@ public:
             idleTime = value.GetUint();
         }
     }
+
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    void setPauseProcesses(const rapidjson::Value &value)
+    {
+        processList.clear();
+        if (value.IsArray()) {
+            for (const rapidjson::Value &item : value.GetArray()) {
+                if (!item.IsString()) {
+                    continue;
+                }
+                processList.push_back(item.GetString());
+            }
+        }
+    }
+#   endif
 };
 
 } // namespace xmrig
@@ -142,6 +163,34 @@ uint32_t xmrig::Config::idleTime() const
 {
     return d_ptr->idleTime * 1000U;
 }
+
+
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+std::vector<std::string> xmrig::Config::processList() const
+{
+    return d_ptr->processList;
+}
+
+rapidjson::Value xmrig::Config::getPauseProcesses(rapidjson::Document &doc) const
+{
+    rapidjson::Value out;
+
+    if (!d_ptr->processList.empty()) {
+        auto &allocator = doc.GetAllocator();
+
+        out.SetArray();
+
+        for (const auto& process: d_ptr->processList) {
+            rapidjson::Value value;
+            value.SetString(process.c_str(), allocator);
+            out.PushBack(value, allocator);
+        }
+    }
+    else out.SetBool(false);
+
+    return out;
+}
+#endif
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -214,6 +263,9 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
 
     d_ptr->pauseOnBattery = reader.getBool(kPauseOnBattery, d_ptr->pauseOnBattery);
     d_ptr->setIdleTime(reader.getValue(kPauseOnActive));
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    d_ptr->setPauseProcesses(reader.getArray(kPauseOnProcess));
+#   endif
 
     d_ptr->cpu.read(reader.getValue(CpuConfig::kField));
 
@@ -305,4 +357,7 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);
     doc.AddMember(StringRef(kPauseOnBattery),           isPauseOnBattery(), allocator);
     doc.AddMember(StringRef(kPauseOnActive),            (d_ptr->idleTime == 0U || d_ptr->idleTime == kIdleTime) ? Value(isPauseOnActive()) : Value(d_ptr->idleTime), allocator);
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    doc.AddMember(StringRef(kPauseOnProcess),           getPauseProcesses(doc), allocator);
+#   endif
 }

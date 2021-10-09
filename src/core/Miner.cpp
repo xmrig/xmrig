@@ -339,6 +339,9 @@ public:
     bool active         = false;
     bool battery_power  = false;
     bool user_active    = false;
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    bool process_active = false;
+#   endif
     bool enabled        = true;
     int32_t auto_pause = 0;
     bool reset          = true;
@@ -639,6 +642,12 @@ void xmrig::Miner::onTimer(const Timer *)
     if (config->isPauseOnActive()) {
         autoPause(d_ptr->user_active, Platform::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
+
+#   ifdef XMRIG_FEATURE_PAUSE_PROCESS
+    if (config->isPauseOnProcess()) {
+        autoPause(d_ptr->process_active, Platform::isProcessActive(config->processList()), YELLOW_BOLD("process active"), GREEN_BOLD("process inactive"));
+    }
+#   endif
 
     if (stopMiner) {
         stop();

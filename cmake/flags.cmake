@@ -1,6 +1,9 @@
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_CXX_STANDARD 11)
+if (WITH_PAUSE_PROCESS)
+    set(CMAKE_CXX_STANDARD 17)
+endif()
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -53,7 +56,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
 
     if (${CMAKE_VERSION} VERSION_LESS "3.1.0")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -std=c99")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        if (WITH_PAUSE_PROCESS)
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+        else()
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+        endif()
     endif()
 
     #set(CMAKE_C_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -gdwarf-2")

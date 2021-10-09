@@ -35,6 +35,12 @@
 #include <thread>
 #include <fstream>
 #include <limits>
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+#include <algorithm>
+#include <filesystem>
+#include <string>
+#include <vector>
+#endif
 
 
 #include "base/kernel/Platform.h"
@@ -159,6 +165,65 @@ bool xmrig::Platform::isOnBatteryPower()
     }
     return false;
 }
+
+
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+struct ci_char_traits : public std::char_traits<char> {
+    static bool eq(char c1, char c2) { return std::tolower(c1) == std::tolower(c2); }
+    static bool ne(char c1, char c2) { return std::tolower(c1) != std::tolower(c2); }
+    static bool lt(char c1, char c2) { return std::tolower(c1) <  std::tolower(c2); }
+    static int compare(const char* s1, const char* s2, size_t n) {
+        while( n-- != 0 ) {
+            if( std::tolower(*s1) < std::tolower(*s2) ) return -1;
+            if( std::tolower(*s1) > std::tolower(*s2) ) return 1;
+            ++s1; ++s2;
+        }
+        return 0;
+    }
+    static const char* find(const char* s, int n, char a) {
+        while( n-- > 0 && std::tolower(*s) != std::tolower(a) ) {
+            ++s;
+        }
+        return s;
+    }
+};
+
+bool IsNumeric(const std::string& s)
+{
+    return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
+}
+
+bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
+{
+    const std::filesystem::path proc{"/proc/"};
+    for(auto const& dirEnt: std::filesystem::directory_iterator{proc})
+    {
+        if (dirEnt.is_directory() && IsNumeric(dirEnt.path().stem().string()))
+        {
+            std::string procFile = dirEnt.path().string() + "/cmdline";
+            std::ifstream myfile (procFile);
+            if (myfile.is_open())
+            {
+                std::string cmdLine;
+                std::getline(myfile, cmdLine);
+                myfile.close();
+                std::basic_string_view<std::string::value_type, ci_char_traits> cmdLineCI{ cmdLine.c_str() };
+                if (!cmdLine.empty())
+                {
+                    for (auto const& processName : processList)
+                    {
+                        if (cmdLineCI.find(processName.c_str()) != std::string::npos)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+#endif
 
 
 uint64_t xmrig::Platform::idleTime()

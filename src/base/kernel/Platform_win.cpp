@@ -22,6 +22,14 @@
 #include <windows.h>
 #include <uv.h>
 #include <limits>
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+#include <tchar.h>
+#include <psapi.h>
+#include <shlwapi.h>
+#include <locale>
+#include <string>
+#include <vector>
+#endif
 
 
 #include "base/kernel/Platform.h"
@@ -175,3 +183,60 @@ uint64_t xmrig::Platform::idleTime()
 
     return static_cast<uint64_t>(GetTickCount() - info.dwTime);
 }
+
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+std::wstring s2ws(const std::string& s)
+{
+    int len;
+    int slength = (int)s.length() + 1;
+    len = MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, 0, 0);
+    std::wstring buf;
+    buf.resize(len);
+    MultiByteToWideChar(CP_ACP, 0, s.c_str(), slength, const_cast<WCHAR*>(buf.c_str()), len);
+    return buf;
+}
+
+bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
+{
+    DWORD aProcesses[1024], cbNeeded;
+    unsigned int i;
+    DWORD dwProcessNameLen;
+
+    if (EnumProcesses(aProcesses, sizeof(aProcesses), &cbNeeded))
+    {
+        for (i = 0; i < cbNeeded / sizeof(DWORD); i++)
+        {
+            if (aProcesses[i] != 0)
+            {
+                std::unique_ptr<WCHAR[]> wszProcessName(new WCHAR[MAX_PATH]);
+                std::unique_ptr<WCHAR[]> wszSearchName(new WCHAR[MAX_PATH]);
+                HANDLE hProcess = OpenProcess(PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, FALSE, aProcesses[i]);
+                if (NULL != hProcess)
+                {
+                    HMODULE hMod;
+                    DWORD cbNeeded;
+                    if (EnumProcessModulesEx(hProcess, &hMod, sizeof(hMod), &cbNeeded, LIST_MODULES_ALL))
+                    {
+                        dwProcessNameLen = MAX_PATH;
+                        if (QueryFullProcessImageName(hProcess, 0, wszProcessName.get(), &dwProcessNameLen))
+                        {
+                            for (auto const& searchName : processList)
+                            {
+                                std::wstring wrapper = s2ws(searchName);
+                                wcsncpy_s(wszSearchName.get(), MAX_PATH / sizeof(WCHAR), wrapper.c_str(), wrapper.length());
+                                if (NULL != StrStrI(wszProcessName.get(), wszSearchName.get()))
+                                {
+                                    CloseHandle(hProcess);
+                                    return true;
+                                }
+                            }
+                        }
+                    }
+                }
+                CloseHandle(hProcess);
+            }
+        }
+    }
+    return false;
+}
+#endif

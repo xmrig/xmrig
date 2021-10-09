@@ -109,6 +109,15 @@ bool xmrig::Platform::isOnBatteryPower()
 }
 
 
+#ifdef XMRIG_FEATURE_PAUSE_PROCESS
+bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
+{
+    // not yet implemented
+    return false;
+}
+#endif
+
+
 uint64_t xmrig::Platform::idleTime()
 {
     uint64_t idle_time  = 0;
