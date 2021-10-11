@@ -196,8 +196,21 @@ std::wstring s2ws(const std::string& s)
     return buf;
 }
 
+namespace xmrig {
+
+    uint8_t Platform::m_processListTicks = 0;
+    bool Platform::m_processListState = false;
+
+} // namespace xmrig
+
 bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
 {
+    if (m_processListTicks++ < 10)
+    {
+        return m_processListState;
+    }
+    m_processListTicks = 0;
+
     DWORD aProcesses[1024], cbNeeded;
     unsigned int i;
     DWORD dwProcessNameLen;
@@ -227,7 +240,8 @@ bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
                                 if (NULL != StrStrI(wszProcessName.get(), wszSearchName.get()))
                                 {
                                     CloseHandle(hProcess);
-                                    return true;
+                                    m_processListState = true;
+                                    return m_processListState;
                                 }
                             }
                         }
@@ -237,6 +251,7 @@ bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
             }
         }
     }
-    return false;
+    m_processListState = false;
+    return m_processListState;
 }
 #endif

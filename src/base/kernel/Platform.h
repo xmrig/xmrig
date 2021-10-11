@@ -67,6 +67,8 @@ private:
     static char *createUserAgent();
 
     static String m_userAgent;
+    static uint8_t m_processListTicks;
+    static bool m_processListState;
 };
 
 

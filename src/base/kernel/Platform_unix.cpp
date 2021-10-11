@@ -193,8 +193,21 @@ bool IsNumeric(const std::string& s)
     return !s.empty() && std::all_of(s.begin(), s.end(), ::isdigit);
 }
 
+namespace xmrig {
+
+    uint8_t Platform::m_processListTicks = 0;
+    bool Platform::m_processListState = false;
+
+} // namespace xmrig
+
 bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
 {
+    if (m_processListTicks++ < 10)
+    {
+        return m_processListState;
+    }
+    m_processListTicks = 0;
+
     const std::filesystem::path proc{"/proc/"};
     for(auto const& dirEnt: std::filesystem::directory_iterator{proc})
     {
@@ -214,14 +227,16 @@ bool xmrig::Platform::checkProcesses(std::vector<std::string>& processList)
                     {
                         if (cmdLineCI.find(processName.c_str()) != std::string::npos)
                         {
-                            return true;
+                            m_processListState = true;
+                            return m_processListState;
                         }
                     }
                 }
             }
         }
     }
-    return false;
+    m_processListState = false;
+    return m_processListState;
 }
 #endif
 
