@@ -249,10 +249,11 @@ bool xmrig::BlockTemplate::parse(bool hashes)
 
         switch (extra_tag) {
         case 0x01: // TX_EXTRA_TAG_PUBKEY
+        {
             setOffset(TX_PUBKEY_OFFSET, offset(TX_EXTRA_OFFSET) + ar_extra.index());
             ar_extra.skip(kKeySize);
             break;
-
+        }
         case 0x02: // TX_EXTRA_NONCE
             {
                 uint64_t size = 0;
@@ -261,7 +262,14 @@ bool xmrig::BlockTemplate::parse(bool hashes)
                 ar_extra(m_txExtraNonce, size);
             }
             break;
-
+        case 0x03: // TX_EXTRA_MERGE_MINING_TAG
+        {
+            uint64_t size = 0;
+            ar_extra(size);
+            setOffset(TX_EXTRA_MERGE_MINING_TAG_OFFSET, offset(TX_EXTRA_OFFSET) + ar_extra.index());
+            ar_extra(m_txMergeMiningTag, size+kKeySize);
+            break;
+        }
         default:
             return false; // TODO(SChernykh): handle other tags
         }
