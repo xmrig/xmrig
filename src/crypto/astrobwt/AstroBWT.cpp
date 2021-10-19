@@ -108,6 +108,9 @@ static inline bool smaller(const uint8_t* v, uint64_t a, uint64_t b)
 
 	const uint64_t data_a = bswap_64(*reinterpret_cast<const uint64_t*>(v + a + 5));
 	const uint64_t data_b = bswap_64(*reinterpret_cast<const uint64_t*>(v + b + 5));
+	if (data_a == data_b) {
+		return (a < b);
+	}
 	return (data_a < data_b);
 }
 
