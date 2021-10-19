@@ -210,6 +210,144 @@ void sort_indices(uint32_t N, const uint8_t* v, uint64_t* indices, uint64_t* tmp
 	}
 }
 
+void sort_indices2(uint32_t N, const uint8_t* v, uint64_t* indices, uint64_t* tmp_indices)
+{
+	alignas(16) uint32_t counters[1 << COUNTING_SORT_BITS] = {};
+	alignas(16) uint32_t counters2[1 << COUNTING_SORT_BITS];
+
+	{
+#define ITER(X) { \
+			const uint64_t k = bswap_64(*reinterpret_cast<const uint64_t*>(v + i + X)); \
+			++counters[k >> (64 - COUNTING_SORT_BITS)]; \
+		}
+
+		uint32_t i = 0;
+		const uint32_t n = (N / 32) * 32;
+		for (; i < n; i += 32) {
+			ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+			ITER(8); ITER(9); ITER(10); ITER(11); ITER(12); ITER(13); ITER(14); ITER(15);
+			ITER(16); ITER(17); ITER(18); ITER(19); ITER(20); ITER(21); ITER(22); ITER(23);
+			ITER(24); ITER(25); ITER(26); ITER(27); ITER(28); ITER(29); ITER(30); ITER(31);
+		}
+		for (; i < N; ++i) {
+			ITER(0);
+		}
+
+#undef ITER
+	}
+
+	uint32_t prev = static_cast<uint32_t>(-1);
+	for (uint32_t i = 0; i < (1 << COUNTING_SORT_BITS); i += 16)
+	{
+#define ITER(X) { \
+			const uint32_t cur = counters[i + X] + prev; \
+			counters[i + X] = cur; \
+			counters2[i + X] = cur; \
+			prev = cur; \
+		}
+		ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+		ITER(8); ITER(9); ITER(10); ITER(11); ITER(12); ITER(13); ITER(14); ITER(15);
+#undef ITER
+	}
+
+	{
+#define ITER(X) \
+		do { \
+			const uint64_t k = bswap_64(*reinterpret_cast<const uint64_t*>(v + (i - X))); \
+			indices[counters[k >> (64 - COUNTING_SORT_BITS)]--] = (k & (static_cast<uint64_t>(-1) << 21)) | (i - X); \
+		} while (0)
+
+		uint32_t i = N;
+		for (; i >= 8; i -= 8) {
+			ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7); ITER(8);
+		}
+		for (; i > 0; --i) {
+			ITER(1);
+		}
+
+#undef ITER
+	}
+
+	uint32_t prev_i = 0;
+	for (uint32_t i0 = 0; i0 < (1 << COUNTING_SORT_BITS); ++i0) {
+		const uint32_t i = counters2[i0] + 1;
+		const uint32_t n = i - prev_i;
+		if (n > 1) {
+			memset(counters, 0, sizeof(uint32_t) * (1 << COUNTING_SORT_BITS));
+
+			const uint32_t n8 = (n / 8) * 8;
+			uint32_t j = 0;
+
+#define ITER(X) { \
+				const uint64_t k = indices[prev_i + j + X]; \
+				++counters[(k >> (64 - COUNTING_SORT_BITS * 2)) & ((1 << COUNTING_SORT_BITS) - 1)]; \
+				tmp_indices[j + X] = k; \
+			}
+			for (; j < n8; j += 8) {
+				ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+			}
+			for (; j < n; ++j) {
+				ITER(0);
+			}
+#undef ITER
+
+			uint32_t prev = static_cast<uint32_t>(-1);
+			for (uint32_t j = 0; j < (1 << COUNTING_SORT_BITS); j += 32)
+			{
+#define ITER(X) { \
+					const uint32_t cur = counters[j + X] + prev; \
+					counters[j + X] = cur; \
+					prev = cur; \
+				}
+				ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+				ITER(8); ITER(9); ITER(10); ITER(11); ITER(12); ITER(13); ITER(14); ITER(15);
+				ITER(16); ITER(17); ITER(18); ITER(19); ITER(20); ITER(21); ITER(22); ITER(23);
+				ITER(24); ITER(25); ITER(26); ITER(27); ITER(28); ITER(29); ITER(30); ITER(31);
+#undef ITER
+			}
+
+#define ITER(X) { \
+				const uint64_t k = tmp_indices[j + X]; \
+				const uint32_t index = counters[(k >> (64 - COUNTING_SORT_BITS * 2)) & ((1 << COUNTING_SORT_BITS) - 1)]--; \
+				indices[prev_i + index] = k; \
+			}
+			for (j = 0; j < n8; j += 8) {
+				ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+			}
+			for (; j < n; ++j) {
+				ITER(0);
+			}
+#undef ITER
+
+			uint64_t prev_t = indices[prev_i];
+			for (uint64_t* p = indices + prev_i + 1, *e = indices + i; p != e; ++p)
+			{
+				uint64_t t = *p;
+				if (smaller(v, t, prev_t))
+				{
+					const uint64_t t2 = prev_t;
+					uint64_t* p1 = p;
+					do
+					{
+						*p1 = prev_t;
+						--p1;
+
+						if (p1 <= indices + prev_i) {
+							break;
+						}
+
+						prev_t = *(p1 - 1);
+					} while (smaller(v, t, prev_t));
+					*p1 = t;
+					t = t2;
+				}
+				prev_t = t;
+			}
+		}
+		prev_i = i;
+	}
+}
+
 bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash, int stage2_max_size, bool avx2)
 {
 	alignas(8) uint8_t key[32];
@@ -264,7 +402,7 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 		Salsa20_XORKeyStream(key, stage2_output, stage2_size);
 	}
 
-	sort_indices(stage2_size + 1, stage2_output, indices, tmp_indices);
+	sort_indices2(stage2_size + 1, stage2_output, indices, tmp_indices);
 
 	{
 		const uint8_t* tmp = stage2_output - 1;
