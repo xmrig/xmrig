@@ -307,15 +307,15 @@ void sort_indices2(uint32_t N, const uint8_t* v, uint64_t* indices, uint64_t* tm
 			}
 
 #define ITER(X) { \
-				const uint64_t k = tmp_indices[j + X]; \
+				const uint64_t k = tmp_indices[j - X]; \
 				const uint32_t index = counters[(k >> (64 - COUNTING_SORT_BITS * 2)) & ((1 << COUNTING_SORT_BITS) - 1)]--; \
 				indices[prev_i + index] = k; \
 			}
-			for (j = 0; j < n8; j += 8) {
-				ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
+			for (j = n; j >= 8; j -= 8) {
+				ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7); ITER(8);
 			}
-			for (; j < n; ++j) {
-				ITER(0);
+			for (; j > 0; --j) {
+				ITER(1);
 			}
 #undef ITER
 
