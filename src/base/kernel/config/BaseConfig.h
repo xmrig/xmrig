@@ -41,6 +41,7 @@ class BaseConfig : public IConfig
 {
 public:
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    static const char *kAlgoMinTime;
     static const char *kAlgoPerf;
 #   endif
     static const char *kApi;
@@ -87,6 +88,7 @@ public:
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
     inline bool isRebenchAlgo() const                       { return m_rebenchAlgo; }
     inline int  benchAlgoTime() const                       { return m_benchAlgoTime; }
+    inline int  algoMinTime() const                         { return m_algoMinTime; }
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
@@ -122,6 +124,7 @@ protected:
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
     bool m_rebenchAlgo   = false;
     int  m_benchAlgoTime = 10;
+    int  m_algoMinTime   = 0;
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS

@@ -96,6 +96,7 @@ public:
 #       ifdef XMRIG_FEATURE_MO_BENCHMARK
         RebenchAlgoKey       = 10001,
         BenchAlgoTimeKey     = 10002,
+        AlgoMinTimeKey       = 10003,
 #       endif
 
         // xmrig cpu
