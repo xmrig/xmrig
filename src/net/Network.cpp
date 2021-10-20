@@ -214,6 +214,11 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
     }
 
     params.AddMember("algo-perf", algo_perf, allocator);
+
+    int algo_min_time = m_controller->config()->algoMinTime();
+    if (algo_min_time > 0) {
+        params.AddMember("algo-min-time", algo_min_time, allocator);
+    }
 #   endif
 }
 
