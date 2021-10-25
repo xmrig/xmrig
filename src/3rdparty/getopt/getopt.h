@@ -109,11 +109,7 @@ char    *optarg;		/* argument associated with option */
 extern char __declspec(dllimport) *__progname;
 #endif
 
-#ifdef __CYGWIN__
 static char EMSG[] = "";
-#else
-#define	EMSG		""
-#endif
 
 static int getopt_internal(int, char * const *, const char *,
 			   const struct option *, int *, int);
