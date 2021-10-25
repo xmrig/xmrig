@@ -59,6 +59,7 @@ public:
     };
 
     CnHash();
+    virtual ~CnHash();
 
     static cn_hash_fun fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly);
 
