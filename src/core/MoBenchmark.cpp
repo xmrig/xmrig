@@ -76,7 +76,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
 
     Value obj(kObjectType);
 
-    for (const auto &a : m_controller->miner()->algorithms()) {
+    for (const Algorithm a : Algorithm::all()) {
         if (algo_perf[a.id()] == 0.0f) continue;
         obj.AddMember(StringRef(a.name()), algo_perf[a.id()], allocator);
     }
@@ -86,7 +86,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
 
 void MoBenchmark::read(const rapidjson::Value &value)
 {
-    for (const Algorithm::Id algo : Algorithm::all([this](const Algorithm&) { return true; })) {
+    for (const Algorithm::Id algo : Algorithm::all()) {
         algo_perf[algo] = 0.0f;
     }
     if (value.IsObject()) {
