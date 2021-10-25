@@ -62,6 +62,7 @@ private:
     uintptr_t m_key;
 
     static Storage<DnsUvBackend>& getStorage();
+    void releaseStorage();
 };
 
 

@@ -28,11 +28,17 @@
 
 namespace xmrig {
 
+static Storage<DnsUvBackend>* storage = nullptr;
 
 Storage<DnsUvBackend>& DnsUvBackend::getStorage()
 {
-    static Storage<DnsUvBackend>* storage = new Storage<DnsUvBackend>();
+    if (storage == nullptr) storage = new Storage<DnsUvBackend>();
     return *storage;
+}
+
+void DnsUvBackend::releaseStorage()
+{
+    delete storage;
 }
 
 static addrinfo hints{};
@@ -56,6 +62,7 @@ xmrig::DnsUvBackend::DnsUvBackend()
 xmrig::DnsUvBackend::~DnsUvBackend()
 {
     getStorage().release(m_key);
+    releaseStorage();
 }
 
 

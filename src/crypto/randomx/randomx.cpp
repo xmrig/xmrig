@@ -410,6 +410,7 @@ extern "C" {
 	}
 
 	void randomx_release_cache(randomx_cache* cache) {
+		delete cache->jit;
 		delete cache;
 	}
 
