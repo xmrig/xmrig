@@ -72,7 +72,14 @@ int64_t xmrig::SelfSelectClient::submit(const JobResult &result)
         submitOriginDaemon(result);
     }
 
-    return m_client->submit(result);
+    uint64_t submit_result = m_client->submit(result);
+
+    if (m_submitToOrigin) {
+        // Ensure that the latest block template is available after block submission
+        getBlockTemplate();
+    }
+
+    return submit_result;
 }
 
 
@@ -285,9 +292,6 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") " 
         " diff " WHITE("%" PRIu64) " vs. " WHITE("%" PRIu64),
         Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff(), result.diff);
-
-    // Ensure that the latest block template is available after block submission
-    getBlockTemplate();
 }
 
 void xmrig::SelfSelectClient::onHttpData(const HttpData &data)

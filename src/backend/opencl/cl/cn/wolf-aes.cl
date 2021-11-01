@@ -1,11 +1,14 @@
 #ifndef WOLF_AES_CL
 #define WOLF_AES_CL
 
+#ifdef STATIC
+#   undef STATIC
+#endif
 #ifdef cl_amd_media_ops2
+#   define STATIC static
 #   pragma OPENCL EXTENSION cl_amd_media_ops2 : enable
-
-#   define xmrig_amd_bfe(src0, src1, src2) amd_bfe(src0, src1, src2)
 #else
+#   define STATIC
 /* taken from: https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops2.txt
  *     Built-in Function:
  *     uintn amd_bfe (uintn src0, uintn src1, uintn src2)
@@ -21,7 +24,7 @@
  *         dst.s0 = src0.s0 >> offset;
  *     similar operation applied to other components of the vectors
  */
-inline int xmrig_amd_bfe(const uint src0, const uint offset, const uint width)
+inline int amd_bfe(const uint src0, const uint offset, const uint width)
 {
     /* casts are removed because we can implement everything as uint
      * int offset = src1;
@@ -41,10 +44,9 @@ inline int xmrig_amd_bfe(const uint src0, const uint offset, const uint width)
 }
 #endif
 
-
 // AES table - the other three are generated on the fly
 
-static const __constant uint AES0_C[256] =
+STATIC const __constant uint AES0_C[256] =
 {
     0xA56363C6U, 0x847C7CF8U, 0x997777EEU, 0x8D7B7BF6U,
     0x0DF2F2FFU, 0xBD6B6BD6U, 0xB16F6FDEU, 0x54C5C591U,
@@ -112,7 +114,7 @@ static const __constant uint AES0_C[256] =
     0xCBB0B07BU, 0xFC5454A8U, 0xD6BBBB6DU, 0x3A16162CU
 };
 
-#define BYTE(x, y) (xmrig_amd_bfe((x), (y) << 3U, 8U))
+#define BYTE(x, y) (amd_bfe((x), (y) << 3U, 8U))
 
 #if (ALGO == ALGO_CN_HEAVY_TUBE)
 inline uint4 AES_Round_bittube2(const __local uint *AES0, const __local uint *AES1, uint4 x, uint4 k)
@@ -150,10 +152,10 @@ uint4 AES_Round_Two_Tables(const __local uint *AES0, const __local uint *AES1, c
 }
 
 
-static const __constant uchar rcon[8] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40 };
+STATIC const __constant uchar rcon[8] = { 0x8d, 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40 };
 
 
-static const __constant uchar sbox[256] =
+STATIC const __constant uchar sbox[256] =
 {
     0x63, 0x7C, 0x77, 0x7B, 0xF2, 0x6B, 0x6F, 0xC5, 0x30, 0x01, 0x67, 0x2B, 0xFE, 0xD7, 0xAB, 0x76,
     0xCA, 0x82, 0xC9, 0x7D, 0xFA, 0x59, 0x47, 0xF0, 0xAD, 0xD4, 0xA2, 0xAF, 0x9C, 0xA4, 0x72, 0xC0,

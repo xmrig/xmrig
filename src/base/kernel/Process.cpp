@@ -152,7 +152,7 @@ xmrig::String xmrig::Process::exepath()
 {
     size_t size = sizeof(pathBuf);
 
-    return uv_exepath(pathBuf, &size) < 0 ? "" : String(pathBuf, size);
+    return uv_exepath(pathBuf, &size) < 0 ? String("") : String(pathBuf, size);
 }
 
 

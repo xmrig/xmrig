@@ -53,6 +53,7 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
 
     switch (device.type()) {
     case OclDevice::Baffin:
+    case OclDevice::Ellesmere:
     case OclDevice::Polaris:
     case OclDevice::Lexa:
     case OclDevice::Vega_10:
@@ -64,6 +65,10 @@ bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorith
     case OclDevice::Navi_12:
     case OclDevice::Navi_14:
         gcnAsm = true;
+        isNavi = true;
+        break;
+
+    case OclDevice::Navi_21:
         isNavi = true;
         break;
 
