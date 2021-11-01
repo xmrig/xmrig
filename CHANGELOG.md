@@ -1,3 +1,9 @@
+# v6.15.3
+- [#2614](https://github.com/xmrig/xmrig/pull/2614) OpenCL fixes for non-AMD platforms.
+- [#2623](https://github.com/xmrig/xmrig/pull/2623) Fixed compiling without kawpow.
+- [#2636](https://github.com/xmrig/xmrig/pull/2636) [#2639](https://github.com/xmrig/xmrig/pull/2639) AstroBWT speedup (up to +35%).
+- [#2646](https://github.com/xmrig/xmrig/pull/2646) Fixed MSVC compilation error.
+
 # v6.15.2
 - [#2606](https://github.com/xmrig/xmrig/pull/2606) Fixed: AstroBWT auto-config ignored `max-threads-hint`.
 - Fixed possible crash on Windows (regression in v6.15.1).

@@ -81,6 +81,28 @@ static ocl_gen_config_fun generators[] = {
 };
 
 
+static OclVendor getPlatformVendorId(const String &vendor, const String &extensions)
+{
+    if (extensions.contains("cl_amd_") || vendor.contains("Advanced Micro Devices") || vendor.contains("AMD")) {
+        return OCL_VENDOR_AMD;
+    }
+
+    if (extensions.contains("cl_nv_") || vendor.contains("NVIDIA")) {
+        return OCL_VENDOR_NVIDIA;
+    }
+
+    if (extensions.contains("cl_intel_") || vendor.contains("Intel")) {
+        return OCL_VENDOR_INTEL;
+    }
+
+    if (extensions.contains("cl_APPLE_") || vendor.contains("Apple")) {
+        return OCL_VENDOR_APPLE;
+    }
+
+    return OCL_VENDOR_UNKNOWN;
+}
+
+
 static OclVendor getVendorId(const String &vendor)
 {
     if (vendor.contains("Advanced Micro Devices") || vendor.contains("AMD")) {
@@ -88,19 +110,76 @@ static OclVendor getVendorId(const String &vendor)
     }
 
     if (vendor.contains("NVIDIA")) {
-        return  OCL_VENDOR_NVIDIA;
+        return OCL_VENDOR_NVIDIA;
     }
 
     if (vendor.contains("Intel")) {
         return OCL_VENDOR_INTEL;
     }
 
+    if (vendor.contains("Apple")) {
+        return OCL_VENDOR_APPLE;
+    }
+
     return OCL_VENDOR_UNKNOWN;
 }
 
 
-static OclDevice::Type getType(const String &name)
+static OclDevice::Type getType(const String &name, const OclVendor platformVendorId)
 {
+    if (platformVendorId == OCL_VENDOR_APPLE) {
+        // Apple Platform: uses product names, not gfx# or codenames
+        if (name.contains("AMD Radeon")) {
+            if (name.contains(" 450 ") ||
+                name.contains(" 455 ") ||
+                name.contains(" 460 ")) {
+                return OclDevice::Baffin;
+            }
+
+            if (name.contains(" 555 ") || name.contains(" 555X ") ||
+                name.contains(" 560 ") || name.contains(" 560X ") ||
+                name.contains(" 570 ") || name.contains(" 570X ") ||
+                name.contains(" 575 ") || name.contains(" 575X ")) {
+                return OclDevice::Polaris;
+            }
+
+            if (name.contains(" 580 ") || name.contains(" 580X ")) {
+                return OclDevice::Ellesmere;
+            }
+
+            if (name.contains(" Vega ")) {
+                if (name.contains(" 48 ") ||
+                    name.contains(" 56 ") ||
+                    name.contains(" 64 ") ||
+                    name.contains(" 64X ")) {
+                    return OclDevice::Vega_10;
+                }
+                if (name.contains(" 16 ") ||
+                    name.contains(" 20 ") ||
+                    name.contains(" II ")) {
+                    return OclDevice::Vega_20;
+                }
+            }
+
+            if (name.contains(" 5700 ") || name.contains(" W5700X ")) {
+                return OclDevice::Navi_10;
+            }
+
+            if (name.contains(" 5600 ") || name.contains(" 5600M ")) {
+                return OclDevice::Navi_12;
+            }
+
+            if (name.contains(" 5300 ") || name.contains(" 5300M ") ||
+                name.contains(" 5500 ") || name.contains(" 5500M ")) {
+                return OclDevice::Navi_14;
+            }
+
+            if (name.contains(" W6800 ") || name.contains(" W6900X ")) {
+                return OclDevice::Navi_21;
+            }
+        }
+    }
+
     if (name == "gfx900" || name == "gfx901") {
         return OclDevice::Vega_10;
     }
@@ -125,6 +204,10 @@ static OclDevice::Type getType(const String &name)
         return OclDevice::Navi_14;
     }
 
+    if (name == "gfx1030") {
+        return OclDevice::Navi_21;
+    }
+
     if (name == "gfx804") {
         return OclDevice::Lexa;
     }
@@ -133,7 +216,11 @@ static OclDevice::Type getType(const String &name)
         return OclDevice::Baffin;
     }
 
-    if (name == "gfx803" || name.contains("polaris") || name == "Ellesmere") {
+    if (name.contains("Ellesmere")) {
+        return OclDevice::Ellesmere;
+    }
+
+    if (name == "gfx803" || name.contains("polaris")) {
         return OclDevice::Polaris;
     }
 
@@ -147,28 +234,31 @@ static OclDevice::Type getType(const String &name)
 xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id platform) :
     m_id(id),
     m_platform(platform),
-    m_board(OclLib::getString(id, 0x4038 /* CL_DEVICE_BOARD_NAME_AMD */)),
+    m_platformVendor(OclLib::getString(platform, CL_PLATFORM_VENDOR)),
     m_name(OclLib::getString(id, CL_DEVICE_NAME)),
     m_vendor(OclLib::getString(id, CL_DEVICE_VENDOR)),
+    m_extensions(OclLib::getString(id, CL_DEVICE_EXTENSIONS)),
     m_maxMemoryAlloc(OclLib::getUlong(id, CL_DEVICE_MAX_MEM_ALLOC_SIZE)),
     m_globalMemory(OclLib::getUlong(id, CL_DEVICE_GLOBAL_MEM_SIZE)),
     m_computeUnits(OclLib::getUint(id, CL_DEVICE_MAX_COMPUTE_UNITS, 1)),
     m_index(index)
 {
     m_vendorId  = getVendorId(m_vendor);
-    m_type      = getType(m_name);
+    m_platformVendorId = getPlatformVendorId(m_platformVendor, m_extensions);
+    m_type      = getType(m_name, m_platformVendorId);
 
-    if (m_vendorId == OCL_VENDOR_AMD) {
+    if (m_extensions.contains("cl_amd_device_attribute_query")) {
         topology_amd topology;
 
-        if (OclLib::getDeviceInfo(id, 0x4037 /* CL_DEVICE_TOPOLOGY_AMD */, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == 1) {
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_TOPOLOGY_AMD, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
             m_topology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
         }
+        m_board = OclLib::getString(id, CL_DEVICE_BOARD_NAME_AMD);
     }
-    else if (m_vendorId == OCL_VENDOR_NVIDIA) {
+    else if (m_extensions.contains("cl_nv_device_attribute_query")) {
         cl_uint bus = 0;
-        if (OclLib::getDeviceInfo(id, 0x4008 /* CL_DEVICE_PCI_BUS_ID_NV */, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
-            cl_uint slot  = OclLib::getUint(id, 0x4009 /* CL_DEVICE_PCI_SLOT_ID_NV */);
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_PCI_BUS_ID_NV, sizeof (bus), &bus, nullptr) == CL_SUCCESS) {
+            cl_uint slot  = OclLib::getUint(id, CL_DEVICE_PCI_SLOT_ID_NV);
             m_topology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
         }
     }

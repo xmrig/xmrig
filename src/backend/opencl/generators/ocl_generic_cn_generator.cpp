@@ -39,6 +39,10 @@ static inline uint32_t getMaxThreads(const OclDevice &device, const Algorithm &a
         return 40000U;
     }
 
+    if (device.vendorId() == OCL_VENDOR_NVIDIA) {
+        return 4096U;
+    }
+
     const uint32_t ratio = (algorithm.l3() <= oneMiB) ? 2U : 1U;
 
     if (device.vendorId() == OCL_VENDOR_INTEL) {

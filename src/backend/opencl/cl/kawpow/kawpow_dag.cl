@@ -51,7 +51,7 @@ static uint2 ROL2(const uint2 a, const int offset)
     }
     return result;
 }
-#elif PLATFORM == OPENCL_PLATFORM_AMD
+#elif defined(cl_amd_media_ops)
 #pragma OPENCL EXTENSION cl_amd_media_ops : enable
 static uint2 ROL2(const uint2 vv, const int r)
 {

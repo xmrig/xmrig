@@ -322,6 +322,14 @@ xmrig::CnHash::CnHash()
 }
 
 
+xmrig::CnHash::~CnHash()
+{
+    for (auto const& x : m_map) {
+      delete m_map[x.first];
+    }
+}
+
+
 xmrig::cn_hash_fun xmrig::CnHash::fn(const Algorithm &algorithm, AlgoVariant av, Assembly::Id assembly)
 {
     assert(cnHash.m_map.count(algorithm));

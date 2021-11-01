@@ -30,8 +30,6 @@
 
 #if defined(OCL_DEBUG_REFERENCE_COUNT)
 #   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
-#else
-#   define LOG_REFS(x, ...)
 #endif
 
 
@@ -405,7 +403,7 @@ cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_na
     assert(pGetDeviceInfo != nullptr);
 
     const cl_int ret = pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
-    if (ret != CL_SUCCESS && param_name != 0x4038) {
+    if (ret != CL_SUCCESS && param_name != CL_DEVICE_BOARD_NAME_AMD) {
         LOG_ERR("Error %s when calling %s, param 0x%04x", OclError::toString(ret), kGetDeviceInfo, param_name);
     }
 
@@ -476,7 +474,9 @@ cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~queue", command_queue, getUint(command_queue, CL_QUEUE_REFERENCE_COUNT));
+#   endif
 
     finish(command_queue);
 
@@ -493,7 +493,9 @@ cl_int xmrig::OclLib::release(cl_context context) noexcept
 {
     assert(pReleaseContext != nullptr);
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~context", context, getUint(context, CL_CONTEXT_REFERENCE_COUNT));
+#   endif
 
     const cl_int ret = pReleaseContext(context);
     if (ret != CL_SUCCESS) {
@@ -508,7 +510,9 @@ cl_int xmrig::OclLib::release(cl_device_id id) noexcept
 {
     assert(pReleaseDevice != nullptr);
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~device", id, getUint(id, CL_DEVICE_REFERENCE_COUNT));
+#   endif
 
     const cl_int ret = pReleaseDevice(id);
     if (ret != CL_SUCCESS) {
@@ -527,7 +531,9 @@ cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~kernel %s", kernel, getUint(kernel, CL_KERNEL_REFERENCE_COUNT), getString(kernel, CL_KERNEL_FUNCTION_NAME).data());
+#   endif
 
     const cl_int ret = pReleaseKernel(kernel);
     if (ret != CL_SUCCESS) {
@@ -546,7 +552,9 @@ cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~mem %zub", mem_obj, getUint(mem_obj, CL_MEM_REFERENCE_COUNT), getUlong(mem_obj, CL_MEM_SIZE));
+#   endif
 
     const cl_int ret = pReleaseMemObject(mem_obj);
     if (ret != CL_SUCCESS) {
@@ -565,7 +573,9 @@ cl_int xmrig::OclLib::release(cl_program program) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~program %s", program, getUint(program, CL_PROGRAM_REFERENCE_COUNT), getString(program, CL_PROGRAM_KERNEL_NAMES).data());
+#   endif
 
     const cl_int ret = pReleaseProgram(program);
     if (ret != CL_SUCCESS) {
