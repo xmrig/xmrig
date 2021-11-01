@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -105,7 +99,7 @@ bool xmrig::OclRxJitRunner::loadAsmProgram()
     uint32_t elf_header_flags = 0;
     const uint32_t elf_header_flags_offset = 0x30;
 
-    size_t bin_size;
+    size_t bin_size = 0;
     if (OclLib::getProgramInfo(m_program, CL_PROGRAM_BINARY_SIZES, sizeof(bin_size), &bin_size) != CL_SUCCESS) {
         return false;
     }
@@ -120,8 +114,8 @@ bool xmrig::OclRxJitRunner::loadAsmProgram()
         elf_header_flags = *reinterpret_cast<uint32_t*>((binary_data.data() + elf_header_flags_offset));
     }
 
-    size_t len;
-    unsigned char *binary;
+    size_t len              = 0;
+    unsigned char *binary   = nullptr;
 
     switch (m_gcn_version) {
     case 14:
@@ -143,8 +137,8 @@ bool xmrig::OclRxJitRunner::loadAsmProgram()
         *reinterpret_cast<uint32_t*>(binary + elf_header_flags_offset) = elf_header_flags;
     }
 
-    cl_int status;
-    cl_int ret;
+    cl_int status   = 0;
+    cl_int ret      = 0;
     cl_device_id device = data().device.id();
 
     m_asmProgram = OclLib::createProgramWithBinary(ctx(), 1, &device, &len, (const unsigned char**) &binary, &status, &ret);

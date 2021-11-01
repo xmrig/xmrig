@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/Log.h"
@@ -47,7 +46,7 @@ xmrig::ConsoleLog::ConsoleLog(const Title &title)
     m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
 
     HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    if (handle != INVALID_HANDLE_VALUE) {
+    if (handle != INVALID_HANDLE_VALUE) { // NOLINT(cppcoreguidelines-pro-type-cstyle-cast, performance-no-int-to-ptr)
         DWORD mode = 0;
         if (GetConsoleMode(handle, &mode)) {
            mode &= ~ENABLE_QUICK_EDIT_MODE;
@@ -91,7 +90,7 @@ void xmrig::ConsoleLog::print(uint64_t, int, const char *line, size_t, size_t si
 }
 
 
-bool xmrig::ConsoleLog::isSupported() const
+bool xmrig::ConsoleLog::isSupported()
 {
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;

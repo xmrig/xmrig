@@ -65,7 +65,7 @@ protected:
 
 private:
     CpuThreads allThreads(const Algorithm &algorithm, uint32_t limit) const;
-    void processTopLevelCache(hwloc_obj_t obj, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
+    void processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
     void setThreads(size_t threads);
 
     static uint32_t m_features;

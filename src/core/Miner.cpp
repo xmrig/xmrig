@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,13 +16,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <algorithm>
 #include <mutex>
 #include <thread>
 
 
 #include "core/Miner.h"
+#include "core/Taskbar.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/cpu/Cpu.h"
@@ -85,7 +79,7 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(MinerPrivate)
 
 
-    inline MinerPrivate(Controller *controller) : controller(controller) {}
+    inline explicit MinerPrivate(Controller *controller) : controller(controller) {}
 
 
     inline ~MinerPrivate()
@@ -116,15 +110,7 @@ public:
 
     inline void rebuild()
     {
-        algorithms.clear();
-
-        for (int i = 0; i < Algorithm::MAX; ++i) {
-            const Algorithm algo(static_cast<Algorithm::Id>(i));
-
-            if (algo.isValid() && isEnabled(algo)) {
-                algorithms.push_back(algo);
-            }
-        }
+        algorithms = Algorithm::all([this](const Algorithm &algo) { return isEnabled(algo); });
     }
 
 
@@ -171,7 +157,7 @@ public:
         Value algo(kArrayType);
 
         for (const Algorithm &a : algorithms) {
-            algo.PushBack(StringRef(a.shortName()), allocator);
+            algo.PushBack(StringRef(a.name()), allocator);
         }
 
         reply.AddMember("algorithms", algo, allocator);
@@ -344,7 +330,7 @@ public:
 
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    inline bool initRX() { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
+    inline bool initRX() const { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
 
 
@@ -354,6 +340,7 @@ public:
     bool battery_power  = false;
     bool user_active    = false;
     bool enabled        = true;
+    int32_t auto_pause = 0;
     bool reset          = true;
     Controller *controller;
     Job job;
@@ -362,6 +349,8 @@ public:
     String userJobId;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
+
+    Taskbar m_taskbar;
 };
 
 
@@ -489,6 +478,7 @@ void xmrig::Miner::execCommand(char command)
 void xmrig::Miner::pause()
 {
     d_ptr->active = false;
+    d_ptr->m_taskbar.setActive(false);
 
     Nonce::pause(true);
     Nonce::touch();
@@ -508,6 +498,7 @@ void xmrig::Miner::setEnabled(bool enabled)
     }
 
     d_ptr->enabled = enabled;
+    d_ptr->m_taskbar.setEnabled(enabled);
 
     if (enabled) {
         LOG_INFO("%s " GREEN_BOLD("resumed"), Tags::miner());
@@ -565,6 +556,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     mutex.unlock();
 
     d_ptr->active = true;
+    d_ptr->m_taskbar.setActive(true);
 
     if (ready) {
         d_ptr->handleJobChange();
@@ -635,7 +627,8 @@ void xmrig::Miner::onTimer(const Timer *)
             LOG_INFO("%s %s", Tags::miner(), pause ? pauseMessage : activeMessage);
 
             state = pause;
-            setEnabled(!pause);
+            d_ptr->auto_pause += pause ? 1 : -1;
+            setEnabled(d_ptr->auto_pause == 0);
         }
     };
 

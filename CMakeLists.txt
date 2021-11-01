@@ -5,6 +5,7 @@ option(WITH_HWLOC           "Enable hwloc support" ON)
 option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
 option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
 option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
+option(WITH_CN_FEMTO        "Enable CryptoNight-UPX2 algorithm" ON)
 option(WITH_RANDOMX         "Enable RandomX algorithms family" ON)
 option(WITH_ARGON2          "Enable Argon2 algorithms family" ON)
 option(WITH_ASTROBWT        "Enable AstroBWT algorithms family" ON)
@@ -17,6 +18,8 @@ option(WITH_MSR             "Enable MSR mod & 1st-gen Ryzen fix" ON)
 option(WITH_ENV_VARS        "Enable environment variables support in config file" ON)
 option(WITH_EMBEDDED_CONFIG "Enable internal embedded JSON config" OFF)
 option(WITH_OPENCL          "Enable OpenCL backend" ON)
+set(WITH_OPENCL_VERSION 200 CACHE STRING "Target OpenCL version")
+set_property(CACHE WITH_OPENCL_VERSION PROPERTY STRINGS 120 200 210 220)
 option(WITH_CUDA            "Enable CUDA backend" ON)
 option(WITH_NVML            "Enable NVML (NVIDIA Management Library) support (only if CUDA backend enabled)" ON)
 option(WITH_ADL             "Enable ADL (AMD Display Library) or sysfs support (only if OpenCL backend enabled)" ON)
@@ -55,6 +58,7 @@ set(HEADERS
     src/core/config/usage.h
     src/core/Controller.h
     src/core/Miner.h
+    src/core/Taskbar.h
     src/net/interfaces/IJobResultListener.h
     src/net/JobResult.h
     src/net/JobResults.h
@@ -103,6 +107,7 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
+    src/core/Taskbar.cpp
     src/net/JobResults.cpp
     src/net/Network.cpp
     src/net/strategies/DonateStrategy.cpp
@@ -194,6 +199,10 @@ endif()
 
 if (WITH_CN_PICO)
     add_definitions(/DXMRIG_ALGO_CN_PICO)
+endif()
+
+if (WITH_CN_FEMTO)
+    add_definitions(/DXMRIG_ALGO_CN_FEMTO)
 endif()
 
 if (WITH_EMBEDDED_CONFIG)

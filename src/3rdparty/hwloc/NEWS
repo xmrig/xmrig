@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2020 Inria.  All rights reserved.
+Copyright © 2009-2021 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -15,6 +15,76 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.5.0
+-------------
+* API
+  + Add hwloc/windows.h to query Windows processor groups.
+  + Add hwloc_get_obj_with_same_locality() to convert between objects
+    with same locality, for instance NUMA nodes and Packages,
+    or OS devices within a PCI device.
+  + Add hwloc_distances_transform() to modify distances structures.
+    - hwloc-annotate and lstopo have new distances-transform options.
+  + hwloc_distances_add() is replaced with _add_create() followed by
+    _add_values() and _add_commit(). See hwloc/distances.h for details.
+  + Add topology flags to mitigate binding modifications during
+    hwloc discovery, especially on Windows:
+    - HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING and _MEMBINDING
+      restrict discovery to PUs and NUMA nodes inside the binding.
+    - HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING prevents from ever
+      changing the binding during discovery.
+* Backends
+  + Add a levelzero backend for oneAPI L0 devices, exposed as OS devices
+    of subtype "LevelZero" and name such as "ze0".
+    - Add hwloc/levelzero.h for interoperability between converting
+      between L0 API devices and hwloc cpusets or OS devices.
+  + Expose NEC Vector Engine cards on Linux as OS devices of subtype
+    "VectorEngine" and name "ve0", etc.
+    Thanks to Anara Kozhokanova, Tim Cramer and Erich Focht for the help.
+  + Add a NVLinkBandwidth distances structure between NVIDIA GPUs
+    (and POWER processor or NVSwitches) in the NVML backend,
+    and a XGMIBandwidth distances structure between AMD GPUs
+    in the RSMI backends.
+    - See "Topology Attributes: Distances, Memory Attributes and CPU Kinds"
+      in the documentation for details about these new distances.
+  + Add support for NUMA node 0 being offline in Linux, thanks to Jirka Hladky.
+* Build
+  + Add --with-cuda-version=<version> or look at the CUDA_VERSION
+    environment variable to find the appropriate CUDA pkg-config files.
+    Thanks to Stephen Herbein for the suggestion.
+    - Also add --with-cuda=<dir> to specify the CUDA installation path
+      manually (and its NVML and OpenCL components).
+      Thanks to Andrea Bocci for the suggestion.
+    - See "How do I enable CUDA and select which CUDA version to use?"
+      in the FAQ for details.
+* Tools
+  + lstopo now has a --windows-processor-groups option on Windows.
+  + hwloc-ps now has a --short-name option to avoid long/truncated
+    command path.
+  + hwloc-ps now has a --single-ancestor option to return a single
+    (possibly too large) object where a process is bound.
+  + hwloc-ps --pid-cmd may now query environment variables,
+    including MPI-specific variables to find out process ranks.
+
+
+Version 2.4.1
+-------------
+* Fix AMD OpenCL device locality when PCI bus or device number >= 128.
+  Thanks to Edgar Leon for reporting the issue.
+  + Applications using any of the following inline functions must
+    be recompiled to get the fix: hwloc_opencl_get_device_pci_busid()
+    hwloc_opencl_get_device_cpuset(), hwloc_opencl_get_device_osdev().
+* Fix the ranking of cpukinds on non-Windows systems,
+  thanks to Ivan Kochin for the report.
+* Fix the insertion of custom Groups after loading the topology,
+  thanks to Scott Hicks.
+* Add support for CPU0 being offline in Linux, thanks to Garrett Clay.
+* Fix missing x86 Package and Core objects FreeBSD/NetBSD.
+  Thanks to Thibault Payet and Yuri Victorovich for the report.
+* Fix the import of very large distances with heterogeneous object types.
+* Fix a memory leak in the Linux backend,
+  thanks to Perceval Anichini.
 
 
 Version 2.4.0

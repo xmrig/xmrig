@@ -43,7 +43,7 @@ class JobResult
 public:
     JobResult() = delete;
 
-    inline JobResult(const Job &job, uint64_t nonce, const uint8_t *result, const uint8_t* header_hash = nullptr, const uint8_t *mix_hash = nullptr) :
+    inline JobResult(const Job &job, uint64_t nonce, const uint8_t *result, const uint8_t* header_hash = nullptr, const uint8_t *mix_hash = nullptr, const uint8_t* miner_signature = nullptr) :
         algorithm(job.algorithm()),
         clientId(job.clientId()),
         jobId(job.id()),
@@ -60,6 +60,11 @@ public:
 
         if (mix_hash) {
             memcpy(m_mixHash, mix_hash, sizeof(m_mixHash));
+        }
+
+        if (miner_signature) {
+            m_hasMinerSignature = true;
+            memcpy(m_minerSignature, miner_signature, sizeof(m_minerSignature));
         }
     }
 
@@ -80,6 +85,8 @@ public:
     inline const uint8_t *headerHash() const { return m_headerHash; }
     inline const uint8_t *mixHash() const    { return m_mixHash; }
 
+    inline const uint8_t *minerSignature() const { return m_hasMinerSignature ? m_minerSignature : nullptr; }
+
     const Algorithm algorithm;
     const String clientId;
     const String jobId;
@@ -92,6 +99,9 @@ private:
     uint8_t m_result[32]     = { 0 };
     uint8_t m_headerHash[32] = { 0 };
     uint8_t m_mixHash[32]    = { 0 };
+
+    uint8_t m_minerSignature[64] = { 0 };
+    bool m_hasMinerSignature = false;
 };
 
 

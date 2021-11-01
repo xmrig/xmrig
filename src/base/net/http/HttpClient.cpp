@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,15 +19,17 @@
 
 
 #include "base/net/http/HttpClient.h"
-#include "3rdparty/http-parser/http_parser.h"
+#include "3rdparty/llhttp/llhttp.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
+#include "base/net/dns/DnsRecords.h"
 #include "base/net/tools/NetBuffer.h"
 #include "base/tools/Timer.h"
 
 
 #include <sstream>
+#include <uv.h>
 
 
 namespace xmrig {
@@ -48,7 +50,6 @@ xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::we
     url     = std::move(m_req.path);
     body    = std::move(m_req.body);
     headers = std::move(m_req.headers);
-    m_dns   = std::make_shared<Dns>(this);
 
     if (m_req.timeout) {
         m_timer = std::make_shared<Timer>(this, m_req.timeout, 0);
@@ -58,30 +59,29 @@ xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::we
 
 bool xmrig::HttpClient::connect()
 {
-    return m_dns->resolve(m_req.host);
+    m_dns = Dns::resolve(m_req.host, this);
+
+    return true;
 }
 
 
-void xmrig::HttpClient::onResolved(const Dns &dns, int status)
+void xmrig::HttpClient::onResolved(const DnsRecords &records, int status, const char *error)
 {
     this->status = status;
+    m_dns.reset();
 
-    if (status < 0 && dns.isEmpty()) {
+    if (status < 0 && records.isEmpty()) {
         if (!isQuiet()) {
-            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(status));
+            LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), error);
         }
 
         return;
     }
 
-    sockaddr *addr = dns.get().addr(port());
-
     auto req  = new uv_connect_t;
     req->data = this;
 
-    uv_tcp_connect(req, m_tcp, addr, onConnect);
-
-    delete addr;
+    uv_tcp_connect(req, m_tcp, records.get().addr(port()), onConnect);
 }
 
 
@@ -102,7 +102,7 @@ void xmrig::HttpClient::handshake()
     }
 
     std::stringstream ss;
-    ss << http_method_str(static_cast<http_method>(method)) << " " << url << " HTTP/1.1" << kCRLF;
+    ss << llhttp_method_name(static_cast<llhttp_method>(method)) << " " << url << " HTTP/1.1" << kCRLF;
 
     for (auto &header : headers) {
         ss << header.first << ": " << header.second << kCRLF;
@@ -119,7 +119,7 @@ void xmrig::HttpClient::handshake()
 
 void xmrig::HttpClient::read(const char *data, size_t size)
 {
-    if (parse(data, size) < size) {
+    if (!parse(data, size)) {
         close(UV_EPROTO);
     }
 }

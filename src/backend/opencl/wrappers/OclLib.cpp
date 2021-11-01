@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <thread>
 #include <stdexcept>
 #include <uv.h>
@@ -37,8 +30,6 @@
 
 #if defined(OCL_DEBUG_REFERENCE_COUNT)
 #   define LOG_REFS(x, ...) xmrig::Log::print(xmrig::Log::WARNING, x, ##__VA_ARGS__)
-#else
-#   define LOG_REFS(x, ...)
 #endif
 
 
@@ -273,7 +264,7 @@ xmrig::String xmrig::OclLib::defaultLoader()
 
 cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device, cl_int *errcode_ret) noexcept
 {
-    cl_command_queue result;
+    cl_command_queue result = nullptr;
 
 #   if defined(CL_VERSION_2_0)
     if (pCreateCommandQueueWithProperties) {
@@ -300,7 +291,7 @@ cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device
 
 cl_command_queue xmrig::OclLib::createCommandQueue(cl_context context, cl_device_id device)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_command_queue queue = createCommandQueue(context, device, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -327,7 +318,7 @@ cl_context xmrig::OclLib::createContext(const cl_context_properties *properties,
 
 cl_context xmrig::OclLib::createContext(const std::vector<cl_device_id> &ids)
 {
-    cl_int ret;
+    cl_int ret = 0;
     return createContext(nullptr, static_cast<cl_uint>(ids.size()), ids.data(), nullptr, nullptr, &ret);
 }
 
@@ -412,7 +403,7 @@ cl_int xmrig::OclLib::getDeviceInfo(cl_device_id device, cl_device_info param_na
     assert(pGetDeviceInfo != nullptr);
 
     const cl_int ret = pGetDeviceInfo(device, param_name, param_value_size, param_value, param_value_size_ret);
-    if (ret != CL_SUCCESS && param_name != 0x4038) {
+    if (ret != CL_SUCCESS && param_name != CL_DEVICE_BOARD_NAME_AMD) {
         LOG_ERR("Error %s when calling %s, param 0x%04x", OclError::toString(ret), kGetDeviceInfo, param_name);
     }
 
@@ -483,7 +474,9 @@ cl_int xmrig::OclLib::release(cl_command_queue command_queue) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~queue", command_queue, getUint(command_queue, CL_QUEUE_REFERENCE_COUNT));
+#   endif
 
     finish(command_queue);
 
@@ -500,7 +493,9 @@ cl_int xmrig::OclLib::release(cl_context context) noexcept
 {
     assert(pReleaseContext != nullptr);
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~context", context, getUint(context, CL_CONTEXT_REFERENCE_COUNT));
+#   endif
 
     const cl_int ret = pReleaseContext(context);
     if (ret != CL_SUCCESS) {
@@ -515,7 +510,9 @@ cl_int xmrig::OclLib::release(cl_device_id id) noexcept
 {
     assert(pReleaseDevice != nullptr);
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~device", id, getUint(id, CL_DEVICE_REFERENCE_COUNT));
+#   endif
 
     const cl_int ret = pReleaseDevice(id);
     if (ret != CL_SUCCESS) {
@@ -534,7 +531,9 @@ cl_int xmrig::OclLib::release(cl_kernel kernel) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~kernel %s", kernel, getUint(kernel, CL_KERNEL_REFERENCE_COUNT), getString(kernel, CL_KERNEL_FUNCTION_NAME).data());
+#   endif
 
     const cl_int ret = pReleaseKernel(kernel);
     if (ret != CL_SUCCESS) {
@@ -553,7 +552,9 @@ cl_int xmrig::OclLib::release(cl_mem mem_obj) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~mem %zub", mem_obj, getUint(mem_obj, CL_MEM_REFERENCE_COUNT), getUlong(mem_obj, CL_MEM_SIZE));
+#   endif
 
     const cl_int ret = pReleaseMemObject(mem_obj);
     if (ret != CL_SUCCESS) {
@@ -572,7 +573,9 @@ cl_int xmrig::OclLib::release(cl_program program) noexcept
         return CL_SUCCESS;
     }
 
+#   if defined(OCL_DEBUG_REFERENCE_COUNT)
     LOG_REFS("%p %u ~program %s", program, getUint(program, CL_PROGRAM_REFERENCE_COUNT), getString(program, CL_PROGRAM_KERNEL_NAMES).data());
+#   endif
 
     const cl_int ret = pReleaseProgram(program);
     if (ret != CL_SUCCESS) {
@@ -615,7 +618,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 
 cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_name)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_kernel kernel = createKernel(program, kernel_name, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -627,7 +630,7 @@ cl_kernel xmrig::OclLib::createKernel(cl_program program, const char *kernel_nam
 
 cl_mem xmrig::OclLib::createBuffer(cl_context context, cl_mem_flags flags, size_t size, void *host_ptr)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_mem mem = createBuffer(context, flags, size, host_ptr, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -671,7 +674,7 @@ cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t 
 
 cl_mem xmrig::OclLib::createSubBuffer(cl_mem buffer, cl_mem_flags flags, size_t offset, size_t size)
 {
-    cl_int ret;
+    cl_int ret = 0;
     cl_mem mem = createSubBuffer(buffer, flags, offset, size, &ret);
     if (ret != CL_SUCCESS) {
         throw std::runtime_error(OclError::toString(ret));
@@ -737,8 +740,8 @@ cl_program xmrig::OclLib::retain(cl_program program) noexcept
 
 cl_uint xmrig::OclLib::getNumPlatforms() noexcept
 {
-    cl_uint count = 0;
-    cl_int ret;
+    cl_uint count   = 0;
+    cl_int ret      = 0;
 
     if ((ret = OclLib::getPlatformIDs(0, nullptr, &count)) != CL_SUCCESS) {
         LOG_ERR("Error %s when calling clGetPlatformIDs for number of platforms.", OclError::toString(ret));

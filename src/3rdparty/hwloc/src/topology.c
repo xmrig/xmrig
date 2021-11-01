@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -52,6 +52,42 @@
 #include <windows.h>
 #endif
 
+/*
+ * Define ZES_ENABLE_SYSMAN=1 early so that the LevelZero backend gets Sysman enabled.
+ * Use the constructor if supported and/or the Windows DllMain callback.
+ * Do it in the main hwloc library instead of the levelzero component because
+ * the latter could be loaded later as a plugin.
+ *
+ * L0 seems to be using getenv() to check this variable on Windows
+ * (at least in the Intel Compute-Runtime of March 2021),
+ * so use putenv() to set the variable.
+ *
+ * For the record, Get/SetEnvironmentVariable() is not exactly the same as getenv/putenv():
+ * - getenv() doesn't see what was set with SetEnvironmentVariable()
+ * - GetEnvironmentVariable() doesn't see putenv() in cygwin (while it does in MSVC and MinGW).
+ * Hence, if L0 ever switches from getenv() to GetEnvironmentVariable(),
+ * it will break in cygwin, we'll have to use both putenv() and SetEnvironmentVariable().
+ * Hopefully L0 will be provide a way to enable Sysman without env vars before it happens.
+ */
+#ifdef HWLOC_HAVE_ATTRIBUTE_CONSTRUCTOR
+static void hwloc_constructor(void) __attribute__((constructor));
+static void hwloc_constructor(void)
+{
+  if (!getenv("ZES_ENABLE_SYSMAN"))
+    putenv((char *) "ZES_ENABLE_SYSMAN=1");
+}
+#endif
+#ifdef HWLOC_WIN_SYS
+BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
+{
+  if (fdwReason == DLL_PROCESS_ATTACH) {
+    if (!getenv("ZES_ENABLE_SYSMAN"))
+      putenv((char *) "ZES_ENABLE_SYSMAN=1");
+  }
+  return TRUE;
+}
+#endif
+
 unsigned hwloc_get_api_version(void)
 {
   return HWLOC_API_VERSION;
@@ -64,7 +100,7 @@ int hwloc_topology_abi_check(hwloc_topology_t topology)
 
 int hwloc_hide_errors(void)
 {
-  static int hide = 0;
+  static int hide = 1; /* only show critical errors by default. lstopo will show others */
   static int checked = 0;
   if (!checked) {
     const char *envvar = getenv("HWLOC_HIDE_ERRORS");
@@ -106,7 +142,7 @@ static void report_insert_error(hwloc_obj_t new, hwloc_obj_t old, const char *ms
 {
   static int reported = 0;
 
-  if (reason && !reported && !hwloc_hide_errors()) {
+  if (reason && !reported && hwloc_hide_errors() < 2) {
     char newstr[512];
     char oldstr[512];
     report_insert_error_format_obj(newstr, sizeof(newstr), new);
@@ -567,8 +603,9 @@ hwloc_free_unlinked_object(hwloc_obj_t obj)
 }
 
 /* Replace old with contents of new object, and make new freeable by the caller.
- * Only updates next_sibling/first_child pointers,
- * so may only be used during early discovery.
+ * Requires reconnect (for siblings pointers and group depth),
+ * fixup of sets (only the main cpuset was likely compared before merging),
+ * and update of total_memory and group depth.
  */
 static void
 hwloc_replace_linked_object(hwloc_obj_t old, hwloc_obj_t new)
@@ -1348,7 +1385,7 @@ merge_insert_equal(hwloc_obj_t new, hwloc_obj_t old)
 
 /* returns the result of merge, or NULL if not merged */
 static __hwloc_inline hwloc_obj_t
-hwloc__insert_try_merge_group(hwloc_obj_t old, hwloc_obj_t new)
+hwloc__insert_try_merge_group(hwloc_topology_t topology, hwloc_obj_t old, hwloc_obj_t new)
 {
   if (new->type == HWLOC_OBJ_GROUP && old->type == HWLOC_OBJ_GROUP) {
     /* which group do we keep? */
@@ -1359,6 +1396,7 @@ hwloc__insert_try_merge_group(hwloc_obj_t old, hwloc_obj_t new)
 
       /* keep the new one, it doesn't want to be merged */
       hwloc_replace_linked_object(old, new);
+      topology->modified = 1;
       return new;
 
     } else {
@@ -1366,9 +1404,12 @@ hwloc__insert_try_merge_group(hwloc_obj_t old, hwloc_obj_t new)
 	/* keep the old one, it doesn't want to be merged */
 	return old;
 
-      /* compare subkinds to decice who to keep */
-      if (new->attr->group.kind < old->attr->group.kind)
+      /* compare subkinds to decide which group to keep */
+      if (new->attr->group.kind < old->attr->group.kind) {
+        /* keep smaller kind */
 	hwloc_replace_linked_object(old, new);
+        topology->modified = 1;
+      }
       return old;
     }
   }
@@ -1394,6 +1435,7 @@ hwloc__insert_try_merge_group(hwloc_obj_t old, hwloc_obj_t new)
      * and let the caller free the new object
      */
     hwloc_replace_linked_object(old, new);
+    topology->modified = 1;
     return old;
 
   } else {
@@ -1435,7 +1477,7 @@ hwloc___insert_object_by_cpuset(struct hwloc_topology *topology, hwloc_obj_t cur
     int setres = res;
 
     if (res == HWLOC_OBJ_EQUAL) {
-      hwloc_obj_t merged = hwloc__insert_try_merge_group(child, obj);
+      hwloc_obj_t merged = hwloc__insert_try_merge_group(topology, child, obj);
       if (merged)
 	return merged;
       /* otherwise compare actual types to decide of the inclusion */
@@ -1931,12 +1973,24 @@ hwloc_topology_insert_group_object(struct hwloc_topology *topology, hwloc_obj_t 
 
   if (!res)
     return NULL;
-  if (res != obj)
-    /* merged */
+
+  if (res != obj && res->type != HWLOC_OBJ_GROUP)
+    /* merged, not into a Group, nothing to update */
     return res;
 
+  /* res == obj means that the object was inserted.
+   * We need to reconnect levels, fill all its cpu/node sets,
+   * compute its total memory, group depth, etc.
+   *
+   * res != obj usually means that our new group was merged into an
+   * existing object, no need to recompute anything.
+   * However, if merging with an existing group, depending on their kinds,
+   * the contents of obj may overwrite the contents of the old group.
+   * This requires reconnecting levels, filling sets, recomputing total memory, etc.
+   */
+
   /* properly inserted */
-  hwloc_obj_add_children_sets(obj);
+  hwloc_obj_add_children_sets(res);
   if (hwloc_topology_reconnect(topology, 0) < 0)
     return NULL;
 
@@ -1948,7 +2002,7 @@ hwloc_topology_insert_group_object(struct hwloc_topology *topology, hwloc_obj_t 
 #endif
     hwloc_topology_check(topology);
 
-  return obj;
+  return res;
 }
 
 hwloc_obj_t
@@ -2289,9 +2343,15 @@ hwloc__filter_bridges(hwloc_topology_t topology, hwloc_obj_t root, unsigned dept
 
     child->attr->bridge.depth = depth;
 
-    if (child->type == HWLOC_OBJ_BRIDGE
-	&& filter == HWLOC_TYPE_FILTER_KEEP_IMPORTANT
-	&& !child->io_first_child) {
+    /* remove bridges that have no child,
+     * and pci-to-non-pci bridges (pcidev) that no child either.
+     * keep NVSwitch since they may be used in NVLink matrices.
+     */
+    if (filter == HWLOC_TYPE_FILTER_KEEP_IMPORTANT
+	&& !child->io_first_child
+        && (child->type == HWLOC_OBJ_BRIDGE
+            || (child->type == HWLOC_OBJ_PCI_DEVICE && (child->attr->pcidev.class_id >> 8) == 0x06
+                && (!child->subtype || strcmp(child->subtype, "NVSwitch"))))) {
       unlink_and_free_single_object(pchild);
       topology->modified = 1;
     }
@@ -3070,7 +3130,8 @@ hwloc_connect_levels(hwloc_topology_t topology)
       tmpnbobjs = realloc(topology->level_nbobjects,
 			  2 * topology->nb_levels_allocated * sizeof(*topology->level_nbobjects));
       if (!tmplevels || !tmpnbobjs) {
-	fprintf(stderr, "hwloc failed to realloc level arrays to %u\n", topology->nb_levels_allocated * 2);
+        if (hwloc_hide_errors() < 2)
+          fprintf(stderr, "hwloc: failed to realloc level arrays to %u\n", topology->nb_levels_allocated * 2);
 
 	/* if one realloc succeeded, make sure the caller will free the new buffer */
 	if (tmplevels)
@@ -3452,15 +3513,18 @@ hwloc_discover(struct hwloc_topology *topology,
   hwloc_debug("%s", "\nRemoving empty objects\n");
   remove_empty(topology, &topology->levels[0][0]);
   if (!topology->levels[0][0]) {
-    fprintf(stderr, "Topology became empty, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology became empty, aborting!\n");
     return -1;
   }
   if (hwloc_bitmap_iszero(topology->levels[0][0]->cpuset)) {
-    fprintf(stderr, "Topology does not contain any PU, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology does not contain any PU, aborting!\n");
     return -1;
   }
   if (hwloc_bitmap_iszero(topology->levels[0][0]->nodeset)) {
-    fprintf(stderr, "Topology does not contain any NUMA node, aborting!\n");
+    if (hwloc_hide_errors() < 2)
+      fprintf(stderr, "hwloc: Topology does not contain any NUMA node, aborting!\n");
     return -1;
   }
   hwloc_debug_print_objects(0, topology->levels[0][0]);
@@ -3698,7 +3762,18 @@ hwloc_topology_set_flags (struct hwloc_topology *topology, unsigned long flags)
     return -1;
   }
 
-  if (flags & ~(HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM|HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES|HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT)) {
+  if (flags & ~(HWLOC_TOPOLOGY_FLAG_INCLUDE_DISALLOWED|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM|HWLOC_TOPOLOGY_FLAG_THISSYSTEM_ALLOWED_RESOURCES|HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT|HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING|HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING|HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING)) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if ((flags & (HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM)) == HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    /* RESTRICT_TO_CPUBINDING requires THISSYSTEM for binding */
+    errno = EINVAL;
+    return -1;
+  }
+  if ((flags & (HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING|HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM)) == HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING) {
+    /* RESTRICT_TO_MEMBINDING requires THISSYSTEM for binding */
     errno = EINVAL;
     return -1;
   }
@@ -3984,6 +4059,31 @@ hwloc_topology_load (struct hwloc_topology *topology)
   hwloc_internal_memattrs_refresh(topology);
 
   topology->is_loaded = 1;
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    /* FIXME: filter directly in backends during the discovery.
+     * Only x86 does it because binding may cause issues on Windows.
+     */
+    hwloc_bitmap_t set = hwloc_bitmap_alloc();
+    if (set) {
+      err = hwloc_get_cpubind(topology, set, HWLOC_CPUBIND_STRICT);
+      if (!err)
+        hwloc_topology_restrict(topology, set, 0);
+      hwloc_bitmap_free(set);
+    }
+  }
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING) {
+    /* FIXME: filter directly in backends during the discovery.
+     */
+    hwloc_bitmap_t set = hwloc_bitmap_alloc();
+    hwloc_membind_policy_t policy;
+    if (set) {
+      err = hwloc_get_membind(topology, set, &policy, HWLOC_MEMBIND_STRICT | HWLOC_MEMBIND_BYNODESET);
+      if (!err)
+        hwloc_topology_restrict(topology, set, HWLOC_RESTRICT_FLAG_BYNODESET);
+      hwloc_bitmap_free(set);
+    }
+  }
 
   if (topology->backend_phases & HWLOC_DISC_PHASE_TWEAK) {
     dstatus.phase = HWLOC_DISC_PHASE_TWEAK;
@@ -4658,6 +4758,9 @@ hwloc__check_misc_children(hwloc_topology_t topology, hwloc_bitmap_t gp_indexes,
 static void
 hwloc__check_object(hwloc_topology_t topology, hwloc_bitmap_t gp_indexes, hwloc_obj_t obj)
 {
+  hwloc_uint64_t total_memory;
+  hwloc_obj_t child;
+
   assert(!hwloc_bitmap_isset(gp_indexes, obj->gp_index));
   hwloc_bitmap_set(gp_indexes, obj->gp_index);
 
@@ -4714,6 +4817,18 @@ hwloc__check_object(hwloc_topology_t topology, hwloc_bitmap_t gp_indexes, hwloc_
       assert(0);
     assert(hwloc_cache_type_by_depth_type(obj->attr->cache.depth, obj->attr->cache.type) == obj->type);
   }
+
+  /* check total memory */
+  total_memory = 0;
+  if (obj->type == HWLOC_OBJ_NUMANODE)
+    total_memory += obj->attr->numanode.local_memory;
+  for_each_child(child, obj) {
+    total_memory += child->total_memory;
+  }
+  for_each_memory_child(child, obj) {
+    total_memory += child->total_memory;
+  }
+  assert(total_memory == obj->total_memory);
 
   /* check children */
   hwloc__check_normal_children(topology, gp_indexes, obj);

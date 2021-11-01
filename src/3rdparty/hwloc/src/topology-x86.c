@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Inria.  All rights reserved.
+ * Copyright © 2010-2021 Inria.  All rights reserved.
  * Copyright © 2010-2013 Université Bordeaux
  * Copyright © 2010-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -7,11 +7,14 @@
  *
  * This backend is only used when the operating system does not export
  * the necessary hardware topology information to user-space applications.
- * Currently, only the FreeBSD backend relies on this x86 backend.
+ * Currently, FreeBSD and NetBSD only add PUs and then fallback to this
+ * backend for CPU/Cache discovery.
  *
  * Other backends such as Linux have their own way to retrieve various
  * pieces of hardware topology information from the operating system
  * on various architectures, without having to use this x86-specific code.
+ * But this backend is still used after them to annotate some objects with
+ * additional details (CPU info in Package, Inclusiveness in Caches).
  */
 
 #include "private/autogen/config.h"
@@ -908,6 +911,16 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
   int gotnuma = 0;
   int fulldiscovery = (flags & HWLOC_X86_DISC_FLAG_FULL);
 
+#ifdef HWLOC_DEBUG
+  hwloc_debug("\nSummary of x86 CPUID topology:\n");
+  for(i=0; i<nbprocs; i++) {
+    hwloc_debug("PU %u present=%u apicid=%u on PKG %d CORE %d DIE %d NODE %d\n",
+                i, infos[i].present, infos[i].apicid,
+                infos[i].ids[PKG], infos[i].ids[CORE], infos[i].ids[DIE], infos[i].ids[NODE]);
+  }
+  hwloc_debug("\n");
+#endif
+
   for (i = 0; i < nbprocs; i++)
     if (infos[i].present) {
       hwloc_bitmap_set(complete_cpuset, i);
@@ -1247,7 +1260,8 @@ static int
 look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long flags,
 	   unsigned highest_cpuid, unsigned highest_ext_cpuid, unsigned *features, enum cpuid_type cpuid_type,
 	   int (*get_cpubind)(hwloc_topology_t topology, hwloc_cpuset_t set, int flags),
-	   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags))
+	   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags),
+           hwloc_bitmap_t restrict_set)
 {
   struct hwloc_x86_backend_data_s *data = backend->private_data;
   struct hwloc_topology *topology = backend->topology;
@@ -1267,6 +1281,12 @@ look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long 
 
   for (i = 0; i < nbprocs; i++) {
     struct cpuiddump *src_cpuiddump = NULL;
+
+    if (restrict_set && !hwloc_bitmap_isset(restrict_set, i)) {
+      /* skip this CPU outside of the binding mask */
+      continue;
+    }
+
     if (data->src_cpuiddump_path) {
       src_cpuiddump = cpuiddump_read(data->src_cpuiddump_path, i);
       if (!src_cpuiddump)
@@ -1400,6 +1420,7 @@ static
 int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 {
   struct hwloc_x86_backend_data_s *data = backend->private_data;
+  struct hwloc_topology *topology = backend->topology;
   unsigned nbprocs = data->nbprocs;
   unsigned eax, ebx, ecx = 0, edx;
   unsigned i;
@@ -1415,8 +1436,20 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
   struct hwloc_topology_membind_support memsupport __hwloc_attribute_unused;
   int (*get_cpubind)(hwloc_topology_t topology, hwloc_cpuset_t set, int flags) = NULL;
   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags) = NULL;
+  hwloc_bitmap_t restrict_set = NULL;
   struct cpuiddump *src_cpuiddump = NULL;
   int ret = -1;
+
+  /* check if binding works */
+  memset(&hooks, 0, sizeof(hooks));
+  support.membind = &memsupport;
+  /* We could just copy the main hooks (except in some corner cases),
+   * but the current overhead is negligible, so just always reget them.
+   */
+  hwloc_set_native_binding_hooks(&hooks, &support);
+  /* in theory, those are only needed if !data->src_cpuiddump_path || HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_BINDING
+   * but that's the vast majority of cases anyway, and the overhead is very small.
+   */
 
   if (data->src_cpuiddump_path) {
     /* Just read cpuid from the dump (implies !topology->is_thissystem by default) */
@@ -1430,13 +1463,6 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
      * we may still force use this backend when debugging with !thissystem.
      */
 
-    /* check if binding works */
-    memset(&hooks, 0, sizeof(hooks));
-    support.membind = &memsupport;
-    /* We could just copy the main hooks (except in some corner cases),
-     * but the current overhead is negligible, so just always reget them.
-     */
-    hwloc_set_native_binding_hooks(&hooks, &support);
     if (hooks.get_thisthread_cpubind && hooks.set_thisthread_cpubind) {
       get_cpubind = hooks.get_thisthread_cpubind;
       set_cpubind = hooks.set_thisthread_cpubind;
@@ -1453,6 +1479,20 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 	goto out;
       get_cpubind = fake_get_cpubind;
       set_cpubind = fake_set_cpubind;
+    }
+  }
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    restrict_set = hwloc_bitmap_alloc();
+    if (!restrict_set)
+      goto out;
+    if (hooks.get_thisproc_cpubind)
+      hooks.get_thisproc_cpubind(topology, restrict_set, 0);
+    else if (hooks.get_thisthread_cpubind)
+      hooks.get_thisthread_cpubind(topology, restrict_set, 0);
+    if (hwloc_bitmap_iszero(restrict_set)) {
+      hwloc_bitmap_free(restrict_set);
+      restrict_set = NULL;
     }
   }
 
@@ -1520,7 +1560,7 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 
   ret = look_procs(backend, infos, flags,
 		   highest_cpuid, highest_ext_cpuid, features, cpuid_type,
-		   get_cpubind, set_cpubind);
+		   get_cpubind, set_cpubind, restrict_set);
   if (!ret)
     /* success, we're done */
     goto out_with_os_state;
@@ -1545,6 +1585,7 @@ out_with_infos:
   }
 
 out:
+  hwloc_bitmap_free(restrict_set);
   if (src_cpuiddump)
     cpuiddump_free(src_cpuiddump);
   return ret;
@@ -1560,6 +1601,11 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
   int ret;
 
   assert(dstatus->phase == HWLOC_DISC_PHASE_CPU);
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING) {
+    /* TODO: Things would work if there's a single PU, no need to rebind */
+    return 0;
+  }
 
   if (getenv("HWLOC_X86_TOPOEXT_NUMANODES")) {
     flags |= HWLOC_X86_DISC_FLAG_TOPOEXT_NUMANODES;
@@ -1587,7 +1633,8 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
   }
 
   if (topology->levels[0][0]->cpuset) {
-    /* somebody else discovered things */
+    /* somebody else discovered things, reconnect levels so that we can look at them */
+    hwloc_topology_reconnect(topology, 0);
     if (topology->nb_levels == 2 && topology->level_nbobjects[1] == data->nbprocs) {
       /* only PUs were discovered, as much as we would, complete the topology with everything else */
       alreadypus = 1;
@@ -1595,7 +1642,6 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
     }
 
     /* several object types were added, we can't easily complete, just do partial discovery */
-    hwloc_topology_reconnect(topology, 0);
     ret = hwloc_look_x86(backend, flags);
     if (ret)
       hwloc_obj_add_info(topology->levels[0][0], "Backend", "x86");

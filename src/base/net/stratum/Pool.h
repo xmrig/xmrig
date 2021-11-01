@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -71,6 +71,8 @@ public:
     static const char *kTls;
     static const char *kUrl;
     static const char *kUser;
+    static const char* kSpendSecretKey;
+    static const char* kDaemonZMQPort;
     static const char *kNicehashHost;
 
     constexpr static int kKeepAliveTimeout         = 60;
@@ -78,7 +80,7 @@ public:
     constexpr static uint64_t kDefaultPollInterval = 1000;
 
     Pool() = default;
-    Pool(const char *host, uint16_t port, const char *user, const char *password, int keepAlive, bool nicehash, bool tls, Mode mode);
+    Pool(const char *host, uint16_t port, const char *user, const char *password, const char* spendSecretKey, int keepAlive, bool nicehash, bool tls, Mode mode);
     Pool(const char *url);
     Pool(const rapidjson::Value &object);
 
@@ -101,10 +103,12 @@ public:
     inline const String &rigId() const                  { return m_rigId; }
     inline const String &url() const                    { return m_url.url(); }
     inline const String &user() const                   { return !m_user.isNull() ? m_user : kDefaultUser; }
+    inline const String &spendSecretKey() const         { return m_spendSecretKey; }
     inline const Url &daemon() const                    { return m_daemon; }
     inline int keepAlive() const                        { return m_keepAlive; }
     inline Mode mode() const                            { return m_mode; }
     inline uint16_t port() const                        { return m_url.port(); }
+    inline int zmq_port() const                         { return m_zmqPort; }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setPassword(const String &password)     { m_password = password; }
@@ -149,9 +153,11 @@ private:
     String m_password;
     String m_rigId;
     String m_user;
+    String m_spendSecretKey;
     uint64_t m_pollInterval         = kDefaultPollInterval;
     Url m_daemon;
     Url m_url;
+    int m_zmqPort                   = -1;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     std::shared_ptr<BenchConfig> m_benchmark;

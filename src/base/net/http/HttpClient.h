@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 namespace xmrig {
 
 
-class String;
+class DnsRequest;
 
 
 class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
@@ -51,7 +51,7 @@ public:
     bool connect();
 
 protected:
-    void onResolved(const Dns &dns, int status) override;
+    void onResolved(const DnsRecords &records, int status, const char *error) override;
     void onTimer(const Timer *timer) override;
 
     virtual void handshake();
@@ -65,7 +65,7 @@ private:
 
     const char *m_tag;
     FetchRequest m_req;
-    std::shared_ptr<Dns> m_dns;
+    std::shared_ptr<DnsRequest> m_dns;
     std::shared_ptr<Timer> m_timer;
 };
 

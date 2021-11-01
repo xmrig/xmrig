@@ -8,7 +8,7 @@
 # Please update HWLOC_VERSION* in contrib/windows/hwloc_config.h too.
 
 major=2
-minor=4
+minor=5
 release=0
 
 # greek is used for alpha or beta release tags.  If it is non-empty,
@@ -22,7 +22,7 @@ greek=
 
 # The date when this release was created
 
-date="Nov 26, 2020"
+date="Jun 14, 2021"
 
 # If snapshot=1, then use the value from snapshot_version as the
 # entire hwloc version (i.e., ignore major, minor, release, and
@@ -41,7 +41,7 @@ snapshot_version=${major}.${minor}.${release}${greek}-git
 # 2. Version numbers are described in the Libtool current:revision:age
 # format.
 
-libhwloc_so_version=19:0:4
+libhwloc_so_version=20:0:5
 libnetloc_so_version=0:0:0
 
 # Please also update the <TargetName> lines in contrib/windows/libhwloc.vcxproj

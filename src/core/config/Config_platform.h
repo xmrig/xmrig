@@ -52,6 +52,7 @@ static const option options[] = {
     { "daemon-poll-interval",  1, nullptr, IConfig::DaemonPollKey         },
     { "self-select",           1, nullptr, IConfig::SelfSelectKey         },
     { "submit-to-origin",      0, nullptr, IConfig::SubmitToOriginKey     },
+    { "daemon-zmq-port",       1, nullptr, IConfig::DaemonZMQPortKey      },
 #   endif
     { "av",                    1, nullptr, IConfig::AVKey                 },
     { "background",            0, nullptr, IConfig::BackgroundKey         },
@@ -68,6 +69,8 @@ static const option options[] = {
     { "no-huge-pages",         0, nullptr, IConfig::HugePagesKey          },
     { "no-hugepages",          0, nullptr, IConfig::HugePagesKey          },
     { "hugepage-size",         1, nullptr, IConfig::HugePageSizeKey       },
+    { "huge-pages-jit",        0, nullptr, IConfig::HugePagesJitKey       },
+    { "hugepages-jit",         0, nullptr, IConfig::HugePagesJitKey       },
     { "pass",                  1, nullptr, IConfig::PasswordKey           },
     { "print-time",            1, nullptr, IConfig::PrintTimeKey          },
     { "retries",               1, nullptr, IConfig::RetriesKey            },
@@ -93,7 +96,10 @@ static const option options[] = {
     { "title",                 1, nullptr, IConfig::TitleKey              },
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
     { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
-    { "pause-on-active",       1, nullptr, IConfig::PauseOnActiveKey     },
+    { "pause-on-active",       1, nullptr, IConfig::PauseOnActiveKey      },
+    { "dns-ipv6",              0, nullptr, IConfig::DnsIPv6Key            },
+    { "dns-ttl",               1, nullptr, IConfig::DnsTtlKey             },
+    { "spend-secret-key",      1, nullptr, IConfig::SpendSecretKey        },
 #   ifdef XMRIG_FEATURE_BENCHMARK
     { "stress",                0, nullptr, IConfig::StressKey             },
     { "bench",                 1, nullptr, IConfig::BenchKey              },

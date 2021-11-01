@@ -16,8 +16,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "core/config/ConfigTransform.h"
+#include "base/crypto/Algorithm.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
@@ -103,6 +103,9 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
         profile.AddMember(StringRef(kThreads),   m_threads, allocator);
         profile.AddMember(StringRef(kAffinity),  m_affinity, allocator);
 
+#       ifdef XMRIG_ALGO_KAWPOW
+        doc[CpuConfig::kField].AddMember(StringRef(Algorithm::kKAWPOW), false, doc.GetAllocator());
+#       endif
         doc[CpuConfig::kField].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
 
@@ -195,6 +198,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 
     case IConfig::RandomXCacheQoSKey: /* --cache-qos */
         return set(doc, RxConfig::kField, RxConfig::kCacheQoS, true);
+
+    case IConfig::HugePagesJitKey: /* --huge-pages-jit */
+        return set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
@@ -262,6 +268,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::BenchTokenKey:    /* --token */
     case IConfig::BenchSeedKey:     /* --seed */
     case IConfig::BenchHashKey:     /* --hash */
+    case IConfig::UserKey:          /* --user */
         return transformBenchmark(doc, key, arg);
 #   endif
 
@@ -347,6 +354,12 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::BenchHashKey: /* --hash */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kHash, arg);
+
+    case IConfig::UserKey: /* --user */
+        return set(doc, BenchConfig::kBenchmark, BenchConfig::kUser, arg);
+
+    default:
+        break;
     }
 }
 #endif

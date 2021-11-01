@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2014-2019 heapwolf    <https://github.com/heapwolf>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,7 +47,8 @@ public:
     inline HttpData(uint64_t id) : m_id(id) {}
     virtual ~HttpData() = default;
 
-    inline uint64_t id() const  { return m_id; }
+    inline const char *statusName() const   { return statusName(status); }
+    inline uint64_t id() const              { return m_id; }
 
     virtual bool isRequest() const                      = 0;
     virtual const char *host() const                    = 0;
@@ -59,8 +60,9 @@ public:
 
     bool isJSON() const;
     const char *methodName() const;
-    const char *statusName() const;
     rapidjson::Document json() const;
+
+    static const char *statusName(int status);
 
     int method      = 0;
     int status      = 0;

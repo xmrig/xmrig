@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #ifdef XMRIG_HWLOC_DEBUG
 #   include <uv.h>
 #endif
@@ -217,12 +216,6 @@ bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 
 xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm == Algorithm::ASTROBWT_DERO) {
-        return allThreads(algorithm, limit);
-    }
-#   endif
-
 #   ifndef XMRIG_ARM
     if (L2() == 0 && L3() == 0) {
         return BasicCpuInfo::threads(algorithm, limit);
@@ -259,7 +252,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 
     if (threads.isEmpty()) {
-        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.shortName());
+        LOG_WARN("hwloc auto configuration for algorithm \"%s\" failed.", algorithm.name());
 
         return BasicCpuInfo::threads(algorithm, limit);
     }
@@ -308,8 +301,15 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     size_t L2               = 0;
     int L2_associativity    = 0;
     size_t extra            = 0;
-    const size_t scratchpad = algorithm.l3();
+    size_t scratchpad       = algorithm.l3();
     uint32_t intensity      = algorithm.maxIntensity() == 1 ? 0 : 1;
+
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (algorithm == Algorithm::ASTROBWT_DERO) {
+        // Use fake low value to force usage of all available cores for AstroBWT (taking 'limit' into account)
+        scratchpad = 16 * 1024;
+    }
+#   endif
 
     if (cache->attr->cache.depth == 3) {
         for (size_t i = 0; i < cache->arity; ++i) {
@@ -336,11 +336,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
     size_t cacheHashes = ((L3 + extra) + (scratchpad / 2)) / scratchpad;
 
-#   ifdef XMRIG_ALGO_CN_PICO
-    if (intensity && algorithm == Algorithm::CN_PICO_0 && (cacheHashes / PUs) >= 2) {
+    const auto family = algorithm.family();
+    if (intensity && ((family == Algorithm::CN_PICO) || (family == Algorithm::CN_FEMTO)) && (cacheHashes / PUs) >= 2) {
         intensity = 2;
     }
-#   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (extra == 0 && algorithm.l2() > 0) {

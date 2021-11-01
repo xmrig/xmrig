@@ -85,9 +85,10 @@ public:
     }
 
 
+    inline int32_t nonceOffset() const { return currentJob().nonceOffset(); }
+    inline size_t nonceSize() const { return currentJob().nonceSize(); }
+
 private:
-    inline int32_t nonceOffset() const  { return currentJob().nonceOffset(); }
-    inline size_t nonceSize() const     { return currentJob().nonceSize(); }
     inline uint64_t nonceMask() const     { return m_nonce_mask[index()]; }
 
     inline void save(const Job &job, uint32_t reserveCount, Nonce::Backend backend)

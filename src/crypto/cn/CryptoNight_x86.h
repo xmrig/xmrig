@@ -75,18 +75,7 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
-#if defined(__x86_64__) || defined(_M_AMD64)
-#   ifdef __GNUC__
-static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
-    *hi = r >> 64;
-    return (uint64_t) r;
-}
-#   else
-    #define __umul128 _umul128
-#   endif
-#elif defined(__i386__) || defined(_M_IX86)
+#if defined(__i386__) || defined(_M_IX86)
 static inline int64_t _mm_cvtsi128_si64(__m128i a)
 {
     return ((uint64_t)(uint32_t)_mm_cvtsi128_si32(a) | ((uint64_t)(uint32_t)_mm_cvtsi128_si32(_mm_srli_si128(a, 4)) << 32));
@@ -94,31 +83,6 @@ static inline int64_t _mm_cvtsi128_si64(__m128i a)
 
 static inline __m128i _mm_cvtsi64_si128(int64_t a) {
     return _mm_set_epi64x(0, a);
-}
-
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
-    // multiplier   = ab = a * 2^32 + b
-    // multiplicand = cd = c * 2^32 + d
-    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
-    uint64_t a = multiplier >> 32;
-    uint64_t b = multiplier & 0xFFFFFFFF;
-    uint64_t c = multiplicand >> 32;
-    uint64_t d = multiplicand & 0xFFFFFFFF;
-
-    //uint64_t ac = a * c;
-    uint64_t ad = a * d;
-    //uint64_t bc = b * c;
-    uint64_t bd = b * d;
-
-    uint64_t adbc = ad + (b * c);
-    uint64_t adbc_carry = adbc < ad ? 1 : 0;
-
-    // multiplier * multiplicand = product_hi * 2^64 + product_lo
-    uint64_t product_lo = bd + (adbc << 32);
-    uint64_t product_lo_carry = product_lo < bd ? 1 : 0;
-    *product_hi = (a * c) + (adbc >> 32) + (adbc_carry << 32) + product_lo_carry;
-
-    return product_lo;
 }
 #endif
 
@@ -377,12 +341,15 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         _mm_store_si128(output + 1, xin1);
         _mm_store_si128(output + 2, xin2);
         _mm_store_si128(output + 3, xin3);
-        output += (64 << interleave) / sizeof(__m128i);
-        _mm_store_si128(output + 0, xin4);
-        _mm_store_si128(output + 1, xin5);
-        _mm_store_si128(output + 2, xin6);
-        _mm_store_si128(output + 3, xin7);
-        output += (64 << interleave) / sizeof(__m128i);
+
+        constexpr int output_increment = (64 << interleave) / sizeof(__m128i);
+
+        _mm_store_si128(output + output_increment + 0, xin4);
+        _mm_store_si128(output + output_increment + 1, xin5);
+        _mm_store_si128(output + output_increment + 2, xin6);
+        _mm_store_si128(output + output_increment + 3, xin7);
+
+        output += output_increment * 2;
     }
 }
 
@@ -414,13 +381,15 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
         xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
         xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
         xout3 = _mm_xor_si128(_mm_load_si128(input + 3), xout3);
-        input += (64 << interleave) / sizeof(__m128i);
-        xout4 = _mm_xor_si128(_mm_load_si128(input + 0), xout4);
-        xout5 = _mm_xor_si128(_mm_load_si128(input + 1), xout5);
-        xout6 = _mm_xor_si128(_mm_load_si128(input + 2), xout6);
-        xout7 = _mm_xor_si128(_mm_load_si128(input + 3), xout7);
-        input += (64 << interleave) / sizeof(__m128i);
 
+        constexpr int input_increment = (64 << interleave) / sizeof(__m128i);
+
+        xout4 = _mm_xor_si128(_mm_load_si128(input + input_increment + 0), xout4);
+        xout5 = _mm_xor_si128(_mm_load_si128(input + input_increment + 1), xout5);
+        xout6 = _mm_xor_si128(_mm_load_si128(input + input_increment + 2), xout6);
+        xout7 = _mm_xor_si128(_mm_load_si128(input + input_increment + 3), xout7);
+
+        input += input_increment * 2;
         i += 8;
 
         if ((interleave > 0) && (i < props.memory() / sizeof(__m128i))) {
@@ -563,7 +532,7 @@ static inline void cryptonight_monero_tweak(uint64_t *mem_out, const uint8_t *l,
     constexpr CnAlgo<ALGO> props;
 
     if (props.base() == Algorithm::CN_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
         _mm_store_si128(reinterpret_cast<__m128i *>(mem_out), _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -715,7 +684,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -739,8 +708,18 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #       ifdef XMRIG_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             int64_t n = ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0];
-            int32_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
-            int64_t q = n / (d | 0x5);
+            int64_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
+
+            int64_t d5;
+
+#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8))
+            d5 = d | 5;
+#           else
+            // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit
+            asm("mov %1, %0\n\tor $5, %0" : "=r"(d5) : "r"(d));
+#           endif
+
+            int64_t q = n / d5;
 
             ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0] = n ^ q;
 
@@ -779,6 +758,7 @@ extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_double_mainloop_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_upx_double_mainloop_zen3_asm(cryptonight_ctx * *ctx);
 
 
 namespace xmrig {
@@ -812,6 +792,8 @@ extern cn_mainloop_fun cn_double_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_double_mainloop_bulldozer_asm;
 extern cn_mainloop_fun cn_double_double_mainloop_sandybridge_asm;
 
+extern cn_mainloop_fun cn_upx2_mainloop_asm;
+extern cn_mainloop_fun cn_upx2_double_mainloop_asm;
 
 } // namespace xmrig
 
@@ -924,6 +906,11 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_double_mainloop_bulldozer_asm(ctx);
         }
     }
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    else if (ALGO == Algorithm::CN_UPX2) {
+        cn_upx2_mainloop_asm(ctx);
+    }
+#   endif
     else if (props.isR()) {
         ctx[0]->generated_code(ctx);
     }
@@ -965,6 +952,16 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     }
     else if (ALGO == Algorithm::CN_PICO_TLO) {
         cn_tlo_double_mainloop_sandybridge_asm(ctx);
+    }
+#   endif
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    else if (ALGO == Algorithm::CN_UPX2) {
+        if (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) {
+            cnv2_upx_double_mainloop_zen3_asm(ctx);
+        }
+        else {
+            cn_upx2_double_mainloop_asm(ctx);
+        }
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
@@ -1124,7 +1121,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -1182,7 +1179,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -1292,7 +1289,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (ALGO == Algorithm::CN_R) {                                                                      \
             VARIANT2_SHUFFLE(l, idx & MASK, a, b0, b1, c, 0);                                               \
         } else {                                                                                            \
-            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));       \
+            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0)); \
         }                                                                                                   \
     }                                                                                                       \
     if (ALGO == Algorithm::CN_R) {                                                                          \

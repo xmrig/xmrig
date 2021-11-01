@@ -48,5 +48,12 @@ cnv2_rwz_double_mainloop_asm PROC
 	mov eax, 3735929054
 cnv2_rwz_double_mainloop_asm ENDP
 
+ALIGN(64)
+cnv2_upx_double_mainloop_zen3_asm PROC
+	INCLUDE cn2/cnv2_upx_double_mainloop_zen3.inc
+	ret 0
+	mov eax, 3735929054
+cnv2_upx_double_mainloop_zen3_asm ENDP
+
 _TEXT_CNV2_MAINLOOP ENDS
 END

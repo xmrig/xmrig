@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "backend/cpu/CpuConfig.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/CpuConfig_gen.h"
@@ -54,7 +53,7 @@ const char *CpuConfig::kAstroBWTAVX2        = "astrobwt-avx2";
 
 extern template class Threads<CpuThreads>;
 
-}
+} // namespace xmrig
 
 
 bool xmrig::CpuConfig::isHwAES() const
@@ -197,6 +196,7 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::CN_LITE>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::CN_HEAVY>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::CN_PICO>(m_threads, m_limit);
+    count += xmrig::generate<Algorithm::CN_FEMTO>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);

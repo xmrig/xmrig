@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <cassert>
 #include <thread>
@@ -86,7 +85,9 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
         if (!cn_heavyZen3Memory) {
-            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * m_threads, data.hugePages, false, false, node());
+            // Round up number of threads to the multiple of 8
+            const size_t num_threads = ((m_threads + 7) / 8) * 8;
+            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * num_threads, data.hugePages, false, false, node());
         }
         m_memory = cn_heavyZen3Memory;
     }
@@ -191,6 +192,12 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    if (m_algorithm.family() == Algorithm::CN_FEMTO) {
+        return verify(Algorithm::CN_UPX2, test_output_femto_upx2);
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_ARGON2
     if (m_algorithm.family() == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
@@ -266,10 +273,16 @@ void xmrig::CpuWorker<N>::start()
 
             bool valid = true;
 
+            uint8_t miner_signature_saved[64];
+
 #           ifdef XMRIG_ALGO_RANDOMX
+            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
+                    if (job.hasMinerSignature()) {
+                        job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+                    }
                     randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
                 }
 
@@ -277,6 +290,10 @@ void xmrig::CpuWorker<N>::start()
                     break;
                 }
 
+                if (job.hasMinerSignature()) {
+                    memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
+                    job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+                }
                 randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
@@ -284,8 +301,9 @@ void xmrig::CpuWorker<N>::start()
             {
 #               ifdef XMRIG_ALGO_ASTROBWT
                 if (job.algorithm().family() == Algorithm::ASTROBWT) {
-                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2))
+                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2)) {
                         valid = false;
+                    }
                 }
                 else
 #               endif
@@ -311,7 +329,7 @@ void xmrig::CpuWorker<N>::start()
                     else
 #                   endif
                     if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32));
+                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
                     }
                 }
                 m_count += N;

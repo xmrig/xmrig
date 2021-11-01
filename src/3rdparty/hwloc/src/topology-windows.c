@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -11,6 +11,7 @@
 
 #include "private/autogen/config.h"
 #include "hwloc.h"
+#include "hwloc/windows.h"
 #include "private/private.h"
 #include "private/debug.h"
 
@@ -190,9 +191,6 @@ typedef struct _PROCESSOR_NUMBER {
 typedef WORD (WINAPI *PFN_GETACTIVEPROCESSORGROUPCOUNT)(void);
 static PFN_GETACTIVEPROCESSORGROUPCOUNT GetActiveProcessorGroupCountProc;
 
-static unsigned long nr_processor_groups = 1;
-static unsigned long max_numanode_index = 0;
-
 typedef WORD (WINAPI *PFN_GETACTIVEPROCESSORCOUNT)(WORD);
 static PFN_GETACTIVEPROCESSORCOUNT GetActiveProcessorCountProc;
 
@@ -269,9 +267,6 @@ static void hwloc_win_get_function_ptrs(void)
       VirtualFreeExProc =
 	(PFN_VIRTUALFREEEX) GetProcAddress(kernel32, "VirtualFreeEx");
     }
-
-    if (GetActiveProcessorGroupCountProc)
-      nr_processor_groups = GetActiveProcessorGroupCountProc();
 
     if (!QueryWorkingSetExProc) {
       HMODULE psapi = LoadLibrary("psapi.dll");
@@ -360,6 +355,171 @@ static int hwloc_bitmap_to_single_ULONG_PTR(hwloc_const_bitmap_t set, unsigned *
     return -1;
   *mask = hwloc_bitmap_to_ith_ULONG_PTR(set, first_ulp);
   *index = first_ulp;
+  return 0;
+}
+
+/**********************
+ * Processor Groups
+ */
+
+static unsigned long max_numanode_index = 0;
+
+static unsigned long nr_processor_groups = 1;
+static hwloc_cpuset_t * processor_group_cpusets = NULL;
+
+static void
+hwloc_win_get_processor_groups(void)
+{
+  PSYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX procInfoTotal, tmpprocInfoTotal, procInfo;
+  DWORD length;
+  unsigned i;
+
+  hwloc_debug("querying windows processor groups\n");
+
+  if (!GetActiveProcessorGroupCountProc || !GetLogicalProcessorInformationExProc)
+    goto error;
+
+  nr_processor_groups = GetActiveProcessorGroupCountProc();
+  if (!nr_processor_groups)
+    goto error;
+
+  hwloc_debug("found %lu windows processor groups\n", nr_processor_groups);
+
+  if (nr_processor_groups > 1 && SIZEOF_VOID_P == 4) {
+    if (!hwloc_hide_errors())
+      fprintf(stderr, "hwloc: multiple processor groups found on 32bits Windows, topology may be invalid/incomplete.\n");
+  }
+
+  length = 0;
+  procInfoTotal = NULL;
+
+  while (1) {
+    if (GetLogicalProcessorInformationExProc(RelationGroup, procInfoTotal, &length))
+      break;
+    if (GetLastError() != ERROR_INSUFFICIENT_BUFFER)
+      goto error;
+    tmpprocInfoTotal = realloc(procInfoTotal, length);
+    if (!tmpprocInfoTotal)
+      goto error_with_procinfo;
+    procInfoTotal = tmpprocInfoTotal;
+  }
+
+  processor_group_cpusets = calloc(nr_processor_groups, sizeof(*processor_group_cpusets));
+  if (!processor_group_cpusets)
+    goto error_with_procinfo;
+
+  for (procInfo = procInfoTotal;
+       (void*) procInfo < (void*) ((uintptr_t) procInfoTotal + length);
+       procInfo = (void*) ((uintptr_t) procInfo + procInfo->Size)) {
+    unsigned id;
+
+    assert(procInfo->Relationship == RelationGroup);
+
+    for (id = 0; id < procInfo->Group.ActiveGroupCount; id++) {
+      KAFFINITY mask;
+      hwloc_bitmap_t set;
+
+      set = hwloc_bitmap_alloc();
+      if (!set)
+        goto error_with_cpusets;
+
+      mask = procInfo->Group.GroupInfo[id].ActiveProcessorMask;
+      hwloc_debug("group %u %d cpus mask %lx\n", id,
+                  procInfo->Group.GroupInfo[id].ActiveProcessorCount, mask);
+      /* KAFFINITY is ULONG_PTR */
+      hwloc_bitmap_set_ith_ULONG_PTR(set, id, mask);
+      /* FIXME: what if running 32bits on a 64bits windows with 64-processor groups?
+       * ULONG_PTR is 32bits, so half the group is invisible?
+       * maybe scale id to id*8/sizeof(ULONG_PTR) so that groups are 64-PU aligned?
+       */
+      hwloc_debug_2args_bitmap("group %u %d bitmap %s\n", id, procInfo->Group.GroupInfo[id].ActiveProcessorCount, set);
+      processor_group_cpusets[id] = set;
+    }
+  }
+
+  free(procInfoTotal);
+  return;
+
+ error_with_cpusets:
+  for(i=0; i<nr_processor_groups; i++) {
+    if (processor_group_cpusets[i])
+      hwloc_bitmap_free(processor_group_cpusets[i]);
+  }
+  free(processor_group_cpusets);
+  processor_group_cpusets = NULL;
+ error_with_procinfo:
+  free(procInfoTotal);
+ error:
+  /* on error set nr to 1 and keep cpusets NULL. We'll use the topology cpuset whenever needed */
+  nr_processor_groups = 1;
+}
+
+static void
+hwloc_win_free_processor_groups(void)
+{
+  unsigned i;
+  for(i=0; i<nr_processor_groups; i++) {
+    if (processor_group_cpusets[i])
+      hwloc_bitmap_free(processor_group_cpusets[i]);
+  }
+  free(processor_group_cpusets);
+  processor_group_cpusets = NULL;
+  nr_processor_groups = 1;
+}
+
+
+int
+hwloc_windows_get_nr_processor_groups(hwloc_topology_t topology, unsigned long flags)
+{
+  if (!topology->is_loaded || !topology->is_thissystem) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (flags) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  return nr_processor_groups;
+}
+
+int
+hwloc_windows_get_processor_group_cpuset(hwloc_topology_t topology, unsigned pg_index, hwloc_cpuset_t cpuset, unsigned long flags)
+{
+  if (!topology->is_loaded || !topology->is_thissystem) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (!cpuset) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (flags) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  if (pg_index >= nr_processor_groups) {
+    errno = ENOENT;
+    return -1;
+  }
+
+  if (!processor_group_cpusets) {
+    assert(nr_processor_groups == 1);
+    /* we found no processor groups, return the entire topology as a single one */
+    hwloc_bitmap_copy(cpuset, topology->levels[0][0]->cpuset);
+    return 0;
+  }
+
+  if (!processor_group_cpusets[pg_index]) {
+    errno = ENOENT;
+    return -1;
+  }
+
+  hwloc_bitmap_copy(cpuset, processor_group_cpusets[pg_index]);
   return 0;
 }
 
@@ -1328,11 +1488,13 @@ hwloc_set_windows_hooks(struct hwloc_binding_hooks *hooks,
 static int hwloc_windows_component_init(unsigned long flags __hwloc_attribute_unused)
 {
   hwloc_win_get_function_ptrs();
+  hwloc_win_get_processor_groups();
   return 0;
 }
 
 static void hwloc_windows_component_finalize(unsigned long flags __hwloc_attribute_unused)
 {
+  hwloc_win_free_processor_groups();
 }
 
 static struct hwloc_backend *

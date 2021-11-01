@@ -190,8 +190,8 @@
     r##part[1] = static_cast<uint32_t>(h##part[12] >> 32); \
     r##part[2] = static_cast<uint32_t>(h##part[13]); \
     r##part[3] = static_cast<uint32_t>(h##part[13] >> 32); \
-  } \
-  v4_random_math_init<ALGO>(code##part, height);
+    v4_random_math_init<ALGO>(code##part, height); \
+  }
 
 #define VARIANT4_RANDOM_MATH(part, al, ah, cl, bx0, bx1) \
   if (props.isR()) { \

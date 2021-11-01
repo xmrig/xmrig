@@ -109,7 +109,7 @@ static int exportTopology(const Process &)
 {
     const String path = Process::location(Process::ExeLocation, "topology.xml");
 
-    hwloc_topology_t topology;
+    hwloc_topology_t topology = nullptr;
     hwloc_topology_init(&topology);
     hwloc_topology_load(topology);
 
@@ -141,7 +141,7 @@ xmrig::Entry::Id xmrig::Entry::get(const Process &process)
          return Usage;
     }
 
-    if (args.hasArg("-V") || args.hasArg("--version")) {
+    if (args.hasArg("-V") || args.hasArg("--version") || args.hasArg("--versions")) {
          return Version;
     }
 

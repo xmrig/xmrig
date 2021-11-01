@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <fstream>
 #include <map>
@@ -50,7 +43,7 @@ static cl_program createFromSource(const IOclRunner *runner)
 {
     LOG_INFO("%s GPU " WHITE_BOLD("#%zu") " " YELLOW_BOLD("compiling..."), ocl_tag(), runner->data().device.index());
 
-    cl_int ret;
+    cl_int ret = 0;
     cl_device_id device = runner->data().device.id();
     const char *source  = runner->source();
     const uint64_t ts   = Chrono::steadyMSecs();
@@ -89,8 +82,8 @@ static cl_program createFromBinary(const IOclRunner *runner, const std::string &
     auto data_ptr           = s.data();
     cl_device_id device     = runner->data().device.id();
 
-    cl_int clStatus;
-    cl_int ret;
+    cl_int clStatus = 0;
+    cl_int ret      = 0;
     cl_program program = OclLib::createProgramWithBinary(runner->ctx(), 1, &device, &bin_size, reinterpret_cast<const unsigned char **>(&data_ptr), &clStatus, &ret);
     if (ret != CL_SUCCESS) {
         return nullptr;

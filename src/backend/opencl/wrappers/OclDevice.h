@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -51,6 +45,7 @@ public:
     enum Type {
         Unknown,
         Baffin,
+        Ellesmere,
         Polaris,
         Lexa,
         Vega_10,
@@ -58,7 +53,8 @@ public:
         Raven,
         Navi_10,
         Navi_12,
-        Navi_14
+        Navi_14,
+        Navi_21
     };
 
     OclDevice() = delete;
@@ -70,11 +66,14 @@ public:
 
     inline bool isValid() const                 { return m_id != nullptr && m_platform != nullptr; }
     inline cl_device_id id() const              { return m_id; }
+    inline const String &platformVendor() const { return m_platformVendor; }
+    inline OclVendor platformVendorId() const   { return m_vendorId; }
     inline const PciTopology &topology() const  { return m_topology; }
     inline const String &board() const          { return m_board.isNull() ? m_name : m_board; }
     inline const String &name() const           { return m_name; }
     inline const String &vendor() const         { return m_vendor; }
     inline OclVendor vendorId() const           { return m_vendorId; }
+    inline const String &extensions() const     { return m_extensions; }
     inline Type type() const                    { return m_type; }
     inline uint32_t computeUnits() const        { return m_computeUnits; }
     inline size_t freeMemSize() const           { return std::min(maxMemAllocSize(), globalMemSize()); }
@@ -89,13 +88,16 @@ public:
 private:
     cl_device_id m_id               = nullptr;
     cl_platform_id m_platform       = nullptr;
-    const String m_board;
+    const String m_platformVendor;
+    String m_board;
     const String m_name;
     const String m_vendor;
+    String m_extensions;
     const size_t m_maxMemoryAlloc   = 0;
     const size_t m_globalMemory     = 0;
     const uint32_t m_computeUnits   = 1;
     const uint32_t m_index          = 0;
+    OclVendor m_platformVendorId    = OCL_VENDOR_UNKNOWN;
     OclVendor m_vendorId            = OCL_VENDOR_UNKNOWN;
     PciTopology m_topology;
     Type m_type                     = Unknown;

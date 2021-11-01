@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2020 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -93,7 +93,7 @@ extern "C" {
  * Two stable releases of the same series usually have the same ::HWLOC_API_VERSION
  * even if their HWLOC_VERSION are different.
  */
-#define HWLOC_API_VERSION 0x00020400
+#define HWLOC_API_VERSION 0x00020500
 
 /** \brief Indicate at runtime which hwloc API version was used at build time.
  *
@@ -1966,7 +1966,69 @@ enum hwloc_topology_flags_e {
    * hwloc and machine support.
    *
    */
-  HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT = (1UL<<3)
+  HWLOC_TOPOLOGY_FLAG_IMPORT_SUPPORT = (1UL<<3),
+
+  /** \brief Do not consider resources outside of the process CPU binding.
+   *
+   * If the binding of the process is limited to a subset of cores,
+   * ignore the other cores during discovery.
+   *
+   * The resulting topology is identical to what a call to hwloc_topology_restrict()
+   * would generate, but this flag also prevents hwloc from ever touching other
+   * resources during the discovery.
+   *
+   * This flag especially tells the x86 backend to never temporarily
+   * rebind a thread on any excluded core. This is useful on Windows
+   * because such temporary rebinding can change the process binding.
+   * Another use-case is to avoid cores that would not be able to
+   * perform the hwloc discovery anytime soon because they are busy
+   * executing some high-priority real-time tasks.
+   *
+   * If process CPU binding is not supported,
+   * the thread CPU binding is considered instead if supported,
+   * or the flag is ignored.
+   *
+   * This flag requires ::HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM as well
+   * since binding support is required.
+   */
+  HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING = (1UL<<4),
+
+  /** \brief Do not consider resources outside of the process memory binding.
+   *
+   * If the binding of the process is limited to a subset of NUMA nodes,
+   * ignore the other NUMA nodes during discovery.
+   *
+   * The resulting topology is identical to what a call to hwloc_topology_restrict()
+   * would generate, but this flag also prevents hwloc from ever touching other
+   * resources during the discovery.
+   *
+   * This flag is meant to be used together with
+   * ::HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING when both cores
+   * and NUMA nodes should be ignored outside of the process binding.
+   *
+   * If process memory binding is not supported,
+   * the thread memory binding is considered instead if supported,
+   * or the flag is ignored.
+   *
+   * This flag requires ::HWLOC_TOPOLOGY_FLAG_IS_THISSYSTEM as well
+   * since binding support is required.
+   */
+  HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING = (1UL<<5),
+
+  /** \brief Do not ever modify the process or thread binding during discovery.
+   *
+   * This flag disables all hwloc discovery steps that require a change of
+   * the process or thread binding. This currently only affects the x86
+   * backend which gets entirely disabled.
+   *
+   * This is useful when hwloc_topology_load() is called while the
+   * application also creates additional threads or modifies the binding.
+   *
+   * This flag is also a strict way to make sure the process binding will
+   * not change to due thread binding changes on Windows
+   * (see ::HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING).
+   */
+  HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = (1UL<<6)
 };
 
 /** \brief Set OR'ed flags to non-yet-loaded topology.
@@ -2362,22 +2424,9 @@ HWLOC_DECLSPEC hwloc_obj_t hwloc_topology_insert_misc_object(hwloc_topology_t to
 /** \brief Allocate a Group object to insert later with hwloc_topology_insert_group_object().
  *
  * This function returns a new Group object.
- * The caller should (at least) initialize its sets before inserting the object.
- * See hwloc_topology_insert_group_object().
  *
- * The \p subtype object attribute may be set to display something else
- * than "Group" as the type name for this object in lstopo.
- * Custom name/value info pairs may be added with hwloc_obj_add_info() after
- * insertion.
- *
- * The \p kind group attribute should be 0. The \p subkind group attribute may
- * be set to identify multiple Groups of the same level.
- *
- * It is recommended not to set any other object attribute before insertion,
- * since the Group may get discarded during insertion.
- *
- * The object will be destroyed if passed to hwloc_topology_insert_group_object()
- * without any set defined.
+ * The caller should (at least) initialize its sets before inserting
+ * the object in the topology. See hwloc_topology_insert_group_object().
  */
 HWLOC_DECLSPEC hwloc_obj_t hwloc_topology_alloc_group_object(hwloc_topology_t topology);
 
@@ -2388,34 +2437,44 @@ HWLOC_DECLSPEC hwloc_obj_t hwloc_topology_alloc_group_object(hwloc_topology_t to
  * the final location of the Group in the topology.
  * Then the object can be passed to this function for actual insertion in the topology.
  *
- * The group \p dont_merge attribute may be set to prevent the core from
- * ever merging this object with another object hierarchically-identical.
- *
  * Either the cpuset or nodeset field (or both, if compatible) must be set
  * to a non-empty bitmap. The complete_cpuset or complete_nodeset may be set
  * instead if inserting with respect to the complete topology
  * (including disallowed, offline or unknown objects).
- *
- * It grouping several objects, hwloc_obj_add_other_obj_sets() is an easy way
+ * If grouping several objects, hwloc_obj_add_other_obj_sets() is an easy way
  * to build the Group sets iteratively.
- *
  * These sets cannot be larger than the current topology, or they would get
  * restricted silently.
- *
  * The core will setup the other sets after actual insertion.
+ *
+ * The \p subtype object attribute may be defined (to a dynamically
+ * allocated string) to display something else than "Group" as the
+ * type name for this object in lstopo.
+ * Custom name/value info pairs may be added with hwloc_obj_add_info() after
+ * insertion.
+ *
+ * The group \p dont_merge attribute may be set to \c 1 to prevent
+ * the hwloc core from ever merging this object with another
+ * hierarchically-identical object.
+ * This is useful when the Group itself describes an important feature
+ * that cannot be exposed anywhere else in the hierarchy.
+ *
+ * The group \p kind attribute may be set to a high value such
+ * as \c 0xffffffff to tell hwloc that this new Group should always
+ * be discarded in favor of any existing Group with the same locality.
  *
  * \return The inserted object if it was properly inserted.
  *
- * \return An existing object if the Group was discarded because the topology already
- * contained an object at the same location (the Group did not add any locality information).
- * Any name/info key pair set before inserting is appended to the existing object.
+ * \return An existing object if the Group was merged or discarded
+ * because the topology already contained an object at the same
+ * location (the Group did not add any hierarchy information).
  *
  * \return \c NULL if the insertion failed because of conflicting sets in topology tree.
  *
  * \return \c NULL if Group objects are filtered-out of the topology (::HWLOC_TYPE_FILTER_KEEP_NONE).
  *
- * \return \c NULL if the object was discarded because no set was initialized in the Group
- * before insert, or all of them were empty.
+ * \return \c NULL if the object was discarded because no set was
+ * initialized in the Group before insert, or all of them were empty.
  */
 HWLOC_DECLSPEC hwloc_obj_t hwloc_topology_insert_group_object(hwloc_topology_t topology, hwloc_obj_t group);
 

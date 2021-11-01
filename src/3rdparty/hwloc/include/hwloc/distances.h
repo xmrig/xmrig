@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2020 Inria.  All rights reserved.
+ * Copyright © 2010-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -35,9 +35,19 @@ extern "C" {
  * from a core in another node.
  * The corresponding kind is ::HWLOC_DISTANCES_KIND_FROM_OS | ::HWLOC_DISTANCES_KIND_FROM_USER.
  * The name of this distances structure is "NUMALatency".
+ * Others distance structures include and "XGMIBandwidth" and "NVLinkBandwidth".
  *
  * The matrix may also contain bandwidths between random sets of objects,
  * possibly provided by the user, as specified in the \p kind attribute.
+ *
+ * Pointers \p objs and \p values should not be replaced, reallocated, freed, etc.
+ * However callers are allowed to modify \p kind as well as the contents
+ * of \p objs and \p values arrays.
+ * For instance, if there is a single NUMA node per Package,
+ * hwloc_get_obj_with_same_locality() may be used to convert between them
+ * and replace NUMA nodes in the \p objs array with the corresponding Packages.
+ * See also hwloc_distances_transform() for applying some transformations
+ * to the structure.
  */
 struct hwloc_distances_s {
   unsigned nbobjs;		/**< \brief Number of objects described by the distance matrix. */
@@ -91,6 +101,8 @@ enum hwloc_distances_kind_e {
   HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH = (1UL<<3),
 
   /** \brief This distances structure covers objects of different types.
+   * This may apply to the "NVLinkBandwidth" structure in presence
+   * of a NVSwitch or POWER processor NVLink port.
    * \hideinitializer
    */
   HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES = (1UL<<4)
@@ -147,6 +159,7 @@ hwloc_distances_get_by_type(hwloc_topology_t topology, hwloc_obj_type_t type,
  * Usually only one distances structure may match a given name.
  *
  * The name of the most common structure is "NUMALatency".
+ * Others include "XGMIBandwidth" and "NVLinkBandwidth".
  */
 HWLOC_DECLSPEC int
 hwloc_distances_get_by_name(hwloc_topology_t topology, const char *name,
@@ -167,6 +180,85 @@ hwloc_distances_get_name(hwloc_topology_t topology, struct hwloc_distances_s *di
  */
 HWLOC_DECLSPEC void
 hwloc_distances_release(hwloc_topology_t topology, struct hwloc_distances_s *distances);
+
+/** \brief Transformations of distances structures. */
+enum hwloc_distances_transform_e {
+  /** \brief Remove \c NULL objects from the distances structure.
+   *
+   * Every object that was replaced with \c NULL in the \p objs array
+   * is removed and the \p values array is updated accordingly.
+   *
+   * At least \c 2 objects must remain, otherwise hwloc_distances_transform()
+   * will return \c -1 with \p errno set to \c EINVAL.
+   *
+   * \p kind will be updated with or without ::HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES
+   * according to the remaining objects.
+   *
+   * \hideinitializer
+   */
+  HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL = 0,
+
+  /** \brief Replace bandwidth values with a number of links.
+   *
+   * Usually all values will be either \c 0 (no link) or \c 1 (one link).
+   * However some matrices could get larger values if some pairs of
+   * peers are connected by different numbers of links.
+   *
+   * Values on the diagonal are set to \c 0.
+   *
+   * This transformation only applies to bandwidth matrices.
+   *
+   * \hideinitializer
+   */
+  HWLOC_DISTANCES_TRANSFORM_LINKS = 1,
+
+  /** \brief Merge switches with multiple ports into a single object.
+   * This currently only applies to NVSwitches where GPUs seem connected to different
+   * separate switch ports in the NVLinkBandwidth matrix. This transformation will
+   * replace all of them with the same port connected to all GPUs.
+   * Other ports are removed by applying ::HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL internally.
+   * \hideinitializer
+   */
+  HWLOC_DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS = 2,
+
+  /** \brief Apply a transitive closure to the matrix to connect objects across switches.
+   * This currently only applies to GPUs and NVSwitches in the NVLinkBandwidth matrix.
+   * All pairs of GPUs will be reported as directly connected.
+   * \hideinitializer
+   */
+  HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE = 3
+};
+
+/** \brief Apply a transformation to a distances structure.
+ *
+ * Modify a distances structure that was previously obtained with
+ * hwloc_distances_get() or one of its variants.
+ *
+ * This modifies the local copy of the distances structures but does
+ * not modify the distances information stored inside the topology
+ * (retrieved by another call to hwloc_distances_get() or exported to XML).
+ * To do so, one should add a new distances structure with same
+ * name, kind, objects and values (see \ref hwlocality_distances_add)
+ * and then remove this old one with hwloc_distances_release_remove().
+ *
+ * \p transform must be one of the transformations listed
+ * in ::hwloc_distances_transform_e.
+ *
+ * These transformations may modify the contents of the \p objs or \p values arrays.
+ *
+ * \p transform_attr must be \c NULL for now.
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \note Objects in distances array \p objs may be directly modified
+ * in place without using hwloc_distances_transform().
+ * One may use hwloc_get_obj_with_same_locality() to easily convert
+ * between similar objects of different types.
+ */
+HWLOC_DECLSPEC int hwloc_distances_transform(hwloc_topology_t topology, struct hwloc_distances_s *distances,
+                                             enum hwloc_distances_transform_e transform,
+                                             void *transform_attr,
+                                             unsigned long flags);
 
 /** @} */
 
@@ -215,13 +307,84 @@ hwloc_distances_obj_pair_values(struct hwloc_distances_s *distances,
 
 
 
-/** \defgroup hwlocality_distances_add Add or remove distances between objects
+/** \defgroup hwlocality_distances_add Add distances between objects
+ *
+ * The usual way to add distances is:
+ * \code
+ * hwloc_distances_add_handle_t handle;
+ * int err = -1;
+ * handle = hwloc_distances_add_create(topology, "name", kind, 0);
+ * if (handle) {
+ *   err = hwloc_distances_add_values(topology, handle, nbobjs, objs, values, 0);
+ *   if (!err)
+ *     err = hwloc_distances_add_commit(topology, handle, flags);
+ * }
+ * \endcode
+ * If \p err is \c 0 at the end, then addition was successful.
+ *
  * @{
  */
+
+/** \brief Handle to a new distances structure during its addition to the topology. */
+typedef void * hwloc_distances_add_handle_t;
+
+/** \brief Create a new empty distances structure.
+ *
+ * Create an empty distances structure
+ * to be filled with hwloc_distances_add_values()
+ * and then committed with hwloc_distances_add_commit().
+ *
+ * Parameter \p name is optional, it may be \c NULL.
+ * Otherwise, it will be copied internally and may later be freed by the caller.
+ *
+ * \p kind specifies the kind of distance as a OR'ed set of ::hwloc_distances_kind_e.
+ * Kind ::HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES will be automatically set
+ * according to objects having different types in hwloc_distances_add_values().
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \return A hwloc_distances_add_handle_t that should then be passed
+ * to hwloc_distances_add_values() and hwloc_distances_add_commit().
+ *
+ * \return \c NULL on error.
+ */
+HWLOC_DECLSPEC hwloc_distances_add_handle_t
+hwloc_distances_add_create(hwloc_topology_t topology,
+                           const char *name, unsigned long kind,
+                           unsigned long flags);
+
+/** \brief Specify the objects and values in a new empty distances structure.
+ *
+ * Specify the objects and values for a new distances structure
+ * that was returned as a handle by hwloc_distances_add_create().
+ * The structure must then be committed with hwloc_distances_add_commit().
+ *
+ * The number of objects is \p nbobjs and the array of objects is \p objs.
+ * Distance values are stored as a one-dimension array in \p values.
+ * The distance from object i to object j is in slot i*nbobjs+j.
+ *
+ * \p nbobjs must be at least 2.
+ *
+ * Arrays \p objs and \p values will be copied internally,
+ * they may later be freed by the caller.
+ *
+ * On error, the temporary distances structure and its content are destroyed.
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \return \c 0 on success.
+ * \return \c -1 on error.
+ */
+HWLOC_DECLSPEC int hwloc_distances_add_values(hwloc_topology_t topology,
+                                              hwloc_distances_add_handle_t handle,
+                                              unsigned nbobjs, hwloc_obj_t *objs,
+                                              hwloc_uint64_t *values,
+                                              unsigned long flags);
 
 /** \brief Flags for adding a new distances to a topology. */
 enum hwloc_distances_add_flag_e {
   /** \brief Try to group objects based on the newly provided distance information.
+   * This is ignored for distances between objects of different types.
    * \hideinitializer
    */
   HWLOC_DISTANCES_ADD_FLAG_GROUP = (1UL<<0),
@@ -233,23 +396,33 @@ enum hwloc_distances_add_flag_e {
   HWLOC_DISTANCES_ADD_FLAG_GROUP_INACCURATE = (1UL<<1)
 };
 
-/** \brief Provide a new distance matrix.
+/** \brief Commit a new distances structure.
  *
- * Provide the matrix of distances between a set of objects given by \p nbobjs
- * and the \p objs array. \p nbobjs must be at least 2.
- * The distances are stored as a one-dimension array in \p values.
- * The distance from object i to object j is in slot i*nbobjs+j.
+ * This function finalizes the distances structure and inserts in it the topology.
  *
- * \p kind specifies the kind of distance as a OR'ed set of ::hwloc_distances_kind_e.
- * Kind ::HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES will be automatically added
- * if objects of different types are given.
+ * Parameter \p handle was previously returned by hwloc_distances_add_create().
+ * Then objects and values were specified with hwloc_distances_add_values().
  *
  * \p flags configures the behavior of the function using an optional OR'ed set of
  * ::hwloc_distances_add_flag_e.
+ * It may be used to request the grouping of existing objects based on distances.
+ *
+ * On error, the temporary distances structure and its content are destroyed.
+ *
+ * \return \c 0 on success.
+ * \return \c -1 on error.
  */
-HWLOC_DECLSPEC int hwloc_distances_add(hwloc_topology_t topology,
-				       unsigned nbobjs, hwloc_obj_t *objs, hwloc_uint64_t *values,
-				       unsigned long kind, unsigned long flags);
+HWLOC_DECLSPEC int hwloc_distances_add_commit(hwloc_topology_t topology,
+                                              hwloc_distances_add_handle_t handle,
+                                              unsigned long flags);
+
+/** @} */
+
+
+
+/** \defgroup hwlocality_distances_remove Remove distances between objects
+ * @{
+ */
 
 /** \brief Remove all distance matrices from a topology.
  *
