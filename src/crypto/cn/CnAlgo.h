@@ -24,10 +24,10 @@
 #include <cstdint>
 
 
-#include "base/crypto/Algorithm.h"
+#include "crypto/common/Algorithm.h"
 
 
-namespace xmrig
+namespace xmrig_cuda
 {
 
 
@@ -137,7 +137,7 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const 
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::mask() const               { return 0x1FFF0; }
 
 
-} /* namespace xmrig */
+} /* namespace xmrig_cuda */
 
 
 #endif /* XMRIG_CN_ALGO_H */
