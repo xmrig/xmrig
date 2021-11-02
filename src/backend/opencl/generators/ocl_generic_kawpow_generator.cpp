@@ -46,6 +46,7 @@ bool ocl_generic_kawpow_generator(const OclDevice &device, const Algorithm &algo
     case OclDevice::Navi_10:
     case OclDevice::Navi_12:
     case OclDevice::Navi_14:
+    case OclDevice::Navi_21:
         isNavi = true;
         break;
 

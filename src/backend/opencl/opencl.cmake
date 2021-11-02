@@ -5,9 +5,13 @@ if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
 endif()
 
 if (WITH_OPENCL)
-    add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
-    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
     add_definitions(/DXMRIG_FEATURE_OPENCL)
+    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
+    if (XMRIG_OS_APPLE)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
+    elseif (WITH_OPENCL_VERSION)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
+    endif()
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h

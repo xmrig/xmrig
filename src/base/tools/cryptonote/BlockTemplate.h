@@ -54,6 +54,7 @@ public:
         TX_EXTRA_OFFSET,
         TX_PUBKEY_OFFSET,
         TX_EXTRA_NONCE_OFFSET,
+        TX_EXTRA_MERGE_MINING_TAG_OFFSET,
         OFFSET_COUNT
     };
 
@@ -86,6 +87,7 @@ public:
     inline uint64_t outputType() const                      { return m_outputType; }
     inline const Span &ephPublicKey() const                 { return m_ephPublicKey; }
     inline const Span &txExtraNonce() const                 { return m_txExtraNonce; }
+    inline const Span &txMergeMiningTag() const             { return m_txMergeMiningTag; }
 
     // Transaction hashes
     inline uint64_t numHashes() const                       { return m_numHashes; }
@@ -140,7 +142,7 @@ private:
     Span m_ephPublicKey;
     uint64_t m_extraSize    = 0;
     Span m_txExtraNonce;
-
+    Span m_txMergeMiningTag = 0;
     uint64_t m_numHashes    = 0;
     Buffer m_hashes;
     Buffer m_minerTxMerkleTreeBranch;

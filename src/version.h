@@ -21,15 +21,24 @@
 
 #define APP_ID        "xmrig-cuda"
 #define APP_NAME      "XMRig"
+<<<<<<< HEAD
 #define APP_DESC      "XMRig CUDA plugin"
 #define APP_VERSION   "6.15.1"
+=======
+#define APP_DESC      "XMRig miner"
+#define APP_VERSION   "6.15.3"
+>>>>>>> ae8459bd35bbc0a6d95c203d20845c262659661a
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
 #define APP_COPYRIGHT "Copyright (C) 2016-2021 xmrig.com"
 
 #define APP_VER_MAJOR  6
 #define APP_VER_MINOR  15
+<<<<<<< HEAD
 #define APP_VER_PATCH  1
+=======
+#define APP_VER_PATCH  3
+>>>>>>> ae8459bd35bbc0a6d95c203d20845c262659661a
 
 #define API_VERSION    4
 

@@ -55,7 +55,7 @@
 #define PC64(j, r)  ((sph_u64)((j) + (r)))
 #define QC64(j, r)  (((sph_u64)(r) << 56) ^ (~((sph_u64)(j) << 56)))
 
-static const __constant ulong T0_G[] =
+STATIC const __constant ulong T0_G[] =
 {
 	0xc6a597f4a5f432c6UL, 0xf884eb9784976ff8UL, 0xee99c7b099b05eeeUL, 0xf68df78c8d8c7af6UL, 
 	0xff0de5170d17e8ffUL, 0xd6bdb7dcbddc0ad6UL, 0xdeb1a7c8b1c816deUL, 0x915439fc54fc6d91UL, 
@@ -123,7 +123,7 @@ static const __constant ulong T0_G[] =
 	0x7bcbf646cb463d7bUL, 0xa8fc4b1ffc1fb7a8UL, 0x6dd6da61d6610c6dUL, 0x2c3a584e3a4e622cUL
 };
 
-static const __constant ulong T4_G[] =
+STATIC const __constant ulong T4_G[] =
 {
 	0xA5F432C6C6A597F4UL, 0x84976FF8F884EB97UL, 0x99B05EEEEE99C7B0UL, 0x8D8C7AF6F68DF78CUL, 
 	0x0D17E8FFFF0DE517UL, 0xBDDC0AD6D6BDB7DCUL, 0xB1C816DEDEB1A7C8UL, 0x54FC6D91915439FCUL, 
@@ -286,4 +286,3 @@ static const __constant ulong T4_G[] =
 		for (int r = 0; r < 10; r ++) \
 			ROUND_SMALL_Q(a, r); \
 		} while (0)
-
