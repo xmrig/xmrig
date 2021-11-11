@@ -111,6 +111,7 @@ public:
     virtual size_t packages() const                                                 = 0;
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
+    virtual uint32_t model() const                                                  = 0;
 };
 
 

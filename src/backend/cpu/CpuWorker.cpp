@@ -82,7 +82,8 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 {
 #   ifdef XMRIG_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
-    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+    const bool is_vermeer = (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) && (Cpu::info()->model() == 0x21);
+    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && is_vermeer) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
         if (!cn_heavyZen3Memory) {
             // Round up number of threads to the multiple of 8
