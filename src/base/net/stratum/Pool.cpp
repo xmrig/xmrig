@@ -219,7 +219,8 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
 
     if (m_mode == MODE_POOL) {
 #       ifdef XMRIG_ALGO_KAWPOW
-        if ((m_algorithm.family() == Algorithm::KAWPOW) || (m_coin == Coin::RAVEN)) {
+        const uint32_t f = m_algorithm.family();
+        if ((f == Algorithm::KAWPOW) || (f == Algorithm::GHOSTRIDER) || (m_coin == Coin::RAVEN)) {
             client = new EthStratumClient(id, Platform::userAgent(), listener);
         }
         else

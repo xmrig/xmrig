@@ -239,6 +239,9 @@ xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *han
 
     case 5:
         return new CpuWorker<5>(handle->id(), handle->config());
+
+    case 8:
+        return new CpuWorker<8>(handle->id(), handle->config());
     }
 
     return nullptr;
