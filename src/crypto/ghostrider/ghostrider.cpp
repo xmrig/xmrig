@@ -53,8 +53,12 @@
 #include <hwloc.h>
 #endif
 
-#ifdef XMRIG_ARM
+#if defined(XMRIG_ARM)
 #   include "crypto/cn/sse2neon.h"
+#elif defined(__GNUC__)
+#   include <x86intrin.h>
+#else
+#   include <intrin.h>
 #endif
 
 #define CORE_HASH(i, x) static void h##i(const uint8_t* data, size_t size, uint8_t* output) \
