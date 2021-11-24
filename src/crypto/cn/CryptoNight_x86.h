@@ -1375,15 +1375,16 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
     uint64_t idx2 = al2;
     uint64_t idx3 = al3;
 
-    for (size_t i = 0; i < props.iterations(); i++) {
-        __m128i cx0, cx1, cx2, cx3;
-        if (!SOFT_AES) {
-            cx0 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l0[idx0 & MASK]));
-            cx1 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l1[idx1 & MASK]));
-            cx2 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l2[idx2 & MASK]));
-            cx3 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l3[idx3 & MASK]));
-        }
+    __m128i cx0, cx1, cx2, cx3;
 
+    if (!SOFT_AES) {
+        cx0 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l0[idx0 & MASK]));
+        cx1 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l1[idx1 & MASK]));
+        cx2 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l2[idx2 & MASK]));
+        cx3 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l3[idx3 & MASK]));
+    }
+
+    for (size_t i = 0; i < props.iterations(); i++) {
         const __m128i ax0 = _mm_set_epi64x(ah0, al0);
         const __m128i ax1 = _mm_set_epi64x(ah1, al1);
         const __m128i ax2 = _mm_set_epi64x(ah2, al2);
@@ -1400,6 +1401,12 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
             cx1 = _mm_aesenc_si128(cx1, ax1);
             cx2 = _mm_aesenc_si128(cx2, ax2);
             cx3 = _mm_aesenc_si128(cx3, ax3);
+            if (MASK > 131072) {
+                _mm_prefetch((const char*)(&l0[_mm_cvtsi128_si32(cx0) & MASK]), _MM_HINT_T0);
+                _mm_prefetch((const char*)(&l1[_mm_cvtsi128_si32(cx1) & MASK]), _MM_HINT_T0);
+                _mm_prefetch((const char*)(&l2[_mm_cvtsi128_si32(cx2) & MASK]), _MM_HINT_T0);
+                _mm_prefetch((const char*)(&l3[_mm_cvtsi128_si32(cx3) & MASK]), _MM_HINT_T0);
+            }
         }
 
         cryptonight_monero_tweak_gr((uint64_t*)&l0[idx0 & MASK], l0, idx0 & MASK, ax0, bx00, cx0);
@@ -1424,6 +1431,8 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         al0 ^= cl;
         ah0 ^= ch;
         idx0 = al0;
+        bx00 = cx0;
+        if (!SOFT_AES) cx0 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l0[idx0 & MASK]));
 
         cl = ((uint64_t*)&l1[idx1 & MASK])[0];
         ch = ((uint64_t*)&l1[idx1 & MASK])[1];
@@ -1435,6 +1444,8 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         al1 ^= cl;
         ah1 ^= ch;
         idx1 = al1;
+        bx10 = cx1;
+        if (!SOFT_AES) cx1 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l1[idx1 & MASK]));
 
         cl = ((uint64_t*)&l2[idx2 & MASK])[0];
         ch = ((uint64_t*)&l2[idx2 & MASK])[1];
@@ -1446,6 +1457,8 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         al2 ^= cl;
         ah2 ^= ch;
         idx2 = al2;
+        bx20 = cx2;
+        if (!SOFT_AES) cx2 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l2[idx2 & MASK]));
 
         cl = ((uint64_t*)&l3[idx3 & MASK])[0];
         ch = ((uint64_t*)&l3[idx3 & MASK])[1];
@@ -1457,11 +1470,8 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         al3 ^= cl;
         ah3 ^= ch;
         idx3 = al3;
-
-        bx00 = cx0;
-        bx10 = cx1;
-        bx20 = cx2;
         bx30 = cx3;
+        if (!SOFT_AES) cx3 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l3[idx3 & MASK]));
     }
 
     cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
