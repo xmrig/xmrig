@@ -276,6 +276,7 @@ struct HelperThread
 
 void benchmark()
 {
+#ifndef XMRIG_ARM
     static std::atomic<int> done{ 0 };
     if (done.exchange(1)) {
         return;
@@ -331,12 +332,6 @@ void benchmark()
 
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
-#               ifdef XMRIG_ARM
-                if (step == 4) {
-                    continue;
-                }
-#               endif
-
                 const size_t cur_scratchpad_size = cn_sizes[algo] * step;
                 if (cur_scratchpad_size > max_scratchpad_size) {
                     continue;
@@ -386,12 +381,6 @@ void benchmark()
 
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
-#               ifdef XMRIG_ARM
-                if (step == 4) {
-                    continue;
-                }
-#               endif
-
                 const size_t cur_scratchpad_size = cn_sizes[algo] * step * 2;
                 if (cur_scratchpad_size > max_scratchpad_size) {
                     continue;
@@ -455,6 +444,7 @@ void benchmark()
             LOG_VERBOSE("%24s | %ux%u | %.2f h/s", cn_names[algo], tune8MB[algo].step, tune8MB[algo].threads, tune8MB[algo].hashrate);
         }
     }
+#endif
 }
 
 
@@ -789,7 +779,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     select_indices(cn_indices, seed);
 
 #ifdef XMRIG_ARM
-    uint32_t step[6] = { 1, 1, 1, 1, 1, 2 };
+    uint32_t step[6] = { 1, 1, 1, 1, 1, 1 };
 #else
     uint32_t step[6] = { 4, 4, 1, 2, 4, 4 };
 #endif
