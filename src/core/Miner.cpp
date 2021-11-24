@@ -564,7 +564,9 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    d_ptr->initGhostRider();
+    if (job.algorithm().family() == Algorithm::GHOSTRIDER) {
+        d_ptr->initGhostRider();
+    }
 #   endif
 
     mutex.unlock();
