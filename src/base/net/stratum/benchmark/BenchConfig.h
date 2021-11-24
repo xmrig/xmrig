@@ -37,6 +37,7 @@ public:
     static const char *kId;
     static const char *kSeed;
     static const char *kSize;
+    static const char* kRotation;
     static const char *kSubmit;
     static const char *kToken;
     static const char *kUser;
@@ -50,7 +51,7 @@ public:
     static constexpr const uint16_t kApiPort    = 18805;
 #   endif
 
-    BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi);
+    BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi, uint32_t rotation);
 
     static BenchConfig *create(const rapidjson::Value &object, bool dmi);
 
@@ -63,6 +64,7 @@ public:
     inline const String &user() const           { return m_user; }
     inline uint32_t size() const                { return m_size; }
     inline uint64_t hash() const                { return m_hash; }
+    inline uint32_t rotation() const            { return m_rotation; }
 
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
@@ -77,6 +79,7 @@ private:
     String m_token;
     String m_user;
     uint32_t m_size;
+    uint32_t m_rotation;
     uint64_t m_hash = 0;
 };
 
