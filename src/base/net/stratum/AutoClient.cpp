@@ -50,7 +50,7 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
     }
 
     const Algorithm algo(Json::getString(result, "algo"));
-    if (algo.family() != Algorithm::KAWPOW) {
+    if (algo.family() != Algorithm::KAWPOW && algo.family() != Algorithm::GHOSTRIDER) {
         *code = 6;
         return false;
     }
