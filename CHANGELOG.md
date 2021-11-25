@@ -1,3 +1,6 @@
+# v6.16.0
+- [#2712](https://github.com/xmrig/xmrig/pull/2712) **GhostRider algorithm (Raptoreum) support**: read the [RELEASE NOTES](src/crypto/ghostrider/README.md) for quick start guide and performance comparisons.
+
 # v6.15.3
 - [#2614](https://github.com/xmrig/xmrig/pull/2614) OpenCL fixes for non-AMD platforms.
 - [#2623](https://github.com/xmrig/xmrig/pull/2623) Fixed compiling without kawpow.
