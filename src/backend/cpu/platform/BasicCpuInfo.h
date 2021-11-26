@@ -62,6 +62,14 @@ protected:
     inline size_t packages() const override                     { return 1; }
     inline size_t threads() const override                      { return m_threads; }
     inline Vendor vendor() const override                       { return m_vendor; }
+    inline uint32_t model() const override
+    {
+#   ifndef XMRIG_ARM
+        return m_model;
+#   else
+        return 0;
+#   endif
+    }
 
 protected:
     Arch m_arch             = ARCH_UNKNOWN;

@@ -39,6 +39,7 @@ const char *BenchConfig::kHash      = "hash";
 const char *BenchConfig::kId        = "id";
 const char *BenchConfig::kSeed      = "seed";
 const char *BenchConfig::kSize      = "size";
+const char *BenchConfig::kRotation  = "rotation";
 const char *BenchConfig::kSubmit    = "submit";
 const char *BenchConfig::kToken     = "token";
 const char *BenchConfig::kUser      = "user";
@@ -53,7 +54,7 @@ const char *BenchConfig::kApiHost   = "127.0.0.1";
 } // namespace xmrig
 
 
-xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi) :
+xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson::Value &object, bool dmi, uint32_t rotation) :
     m_algorithm(Json::getString(object, kAlgo)),
     m_dmi(dmi),
     m_submit(Json::getBool(object, kSubmit)),
@@ -61,9 +62,15 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
     m_seed(Json::getString(object, kSeed)),
     m_token(Json::getString(object, kToken)),
     m_user(Json::getString(object, kUser)),
-    m_size(size)
+    m_size(size),
+    m_rotation(rotation)
 {
-    if (!m_algorithm.isValid() || m_algorithm.family() != Algorithm::RANDOM_X) {
+    auto f = m_algorithm.family();
+    if (!m_algorithm.isValid() || (f != Algorithm::RANDOM_X
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        && f != Algorithm::GHOSTRIDER
+#       endif
+        )) {
         m_algorithm = Algorithm::RX_0;
     }
 
@@ -80,14 +87,17 @@ xmrig::BenchConfig *xmrig::BenchConfig::create(const rapidjson::Value &object, b
         return nullptr;
     }
 
-    const uint32_t size = getSize(Json::getString(object, kSize));
-    const String id     = Json::getString(object, kVerify);
+    const uint32_t size     = getSize(Json::getString(object, kSize));
+    const String id         = Json::getString(object, kVerify);
+
+    const char* rotation_str = Json::getString(object, kRotation);
+    const uint32_t rotation = rotation_str ? strtoul(rotation_str, nullptr, 10) : 0;
 
     if (size == 0 && id.isEmpty()) {
         return nullptr;
     }
 
-    return new BenchConfig(size, id, object, dmi);
+    return new BenchConfig(size, id, object, dmi, rotation);
 }
 
 
