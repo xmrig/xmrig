@@ -230,7 +230,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 
         auto arr = params.GetArray();
 
-        auto algo = Algorithm(Algorithm::KAWPOW_RVN); //m_pool.algorithm();
+        auto algo = m_pool.algorithm();
         if (!algo.isValid()) {
             algo = m_pool.coin().algorithm();
         }

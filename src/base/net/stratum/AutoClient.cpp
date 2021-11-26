@@ -72,7 +72,7 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t xmrig::AutoClient::submit(const JobResult &result)
 {
-    if (result.algorithm.family() != Algorithm::KAWPOW) {
+    if (result.algorithm.family() != Algorithm::KAWPOW || result.algorithm.family() != Algorithm::GHOSTRIDER) {
         return Client::submit(result); // NOLINT(bugprone-parent-virtual-call)
     }
 
