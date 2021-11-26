@@ -96,8 +96,8 @@ void MoBenchmark::read(const rapidjson::Value &value)
                 LOG_INFO("%s " BRIGHT_BLACK_BG(MAGENTA_BOLD_S " Ignoring wrong name for algo-perf[%s] "), Tags::benchmark(), member.name.GetString());
                 continue;
             }
-            if (member.value.IsFloat()) {
-                algo_perf[algo.id()] = member.value.GetFloat();
+            if (member.value.IsDouble()) {
+                algo_perf[algo.id()] = member.value.GetDouble();
                 m_isNewBenchRun = false;
                 continue;
             }
