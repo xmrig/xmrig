@@ -122,8 +122,15 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
     const size_t count = threads.count();
     out.reserve(count);
 
+    std::vector<int64_t> affinities;
+    affinities.reserve(count);
+
+    for (const auto& thread : threads.data()) {
+        affinities.emplace_back(thread.affinity());
+    }
+
     for (const auto &thread : threads.data()) {
-        out.emplace_back(miner, algorithm, *this, thread, count);
+        out.emplace_back(miner, algorithm, *this, thread, count, affinities);
     }
 
     return out;
@@ -200,6 +207,7 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);
+    count += xmrig::generate<Algorithm::GHOSTRIDER>(m_threads, m_limit);
 
     m_shouldSave |= count > 0;
 }

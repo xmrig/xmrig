@@ -34,6 +34,7 @@
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
+#include "crypto/ghostrider/ghostrider.h"
 #include "net/JobResults.h"
 
 
@@ -82,7 +83,8 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 {
 #   ifdef XMRIG_ALGO_CN_HEAVY
     // cn-heavy optimization for Zen3 CPUs
-    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3)) {
+    const bool is_vermeer = (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) && (Cpu::info()->model() == 0x21);
+    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && is_vermeer) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
         if (!cn_heavyZen3Memory) {
             // Round up number of threads to the multiple of 8
@@ -96,6 +98,10 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     {
         m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
     }
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    m_ghHelper = ghostrider::create_helper_thread(affinity(), data.affinities);
+#   endif
 }
 
 
@@ -114,6 +120,10 @@ xmrig::CpuWorker<N>::~CpuWorker()
     {
         delete m_memory;
     }
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    ghostrider::destroy_helper_thread(m_ghHelper);
+#   endif
 }
 
 
@@ -148,6 +158,12 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   ifdef XMRIG_ALGO_RANDOMX
     if (m_algorithm.family() == Algorithm::RANDOM_X) {
         return N == 1;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (m_algorithm.family() == Algorithm::GHOSTRIDER) {
+        return N == 8;
     }
 #   endif
 
@@ -311,16 +327,30 @@ void xmrig::CpuWorker<N>::start()
             else
 #           endif
             {
+                switch (job.algorithm().family()) {
+
 #               ifdef XMRIG_ALGO_ASTROBWT
-                if (job.algorithm().family() == Algorithm::ASTROBWT) {
+                case Algorithm::ASTROBWT:
                     if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2)) {
                         valid = false;
                     }
-                }
-                else
+                    break;
 #               endif
-                {
+
+#               ifdef XMRIG_ALGO_GHOSTRIDER
+                case Algorithm::GHOSTRIDER:
+                    if (N == 8) {
+                        ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                    }
+                    else {
+                        valid = false;
+                    }
+                    break;
+#               endif
+
+                default:
                     fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                    break;
                 }
 
                 if (!nextRound()) {
@@ -495,6 +525,7 @@ template class CpuWorker<2>;
 template class CpuWorker<3>;
 template class CpuWorker<4>;
 template class CpuWorker<5>;
+template class CpuWorker<8>;
 
 } // namespace xmrig
 

@@ -272,6 +272,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::BenchSeedKey:     /* --seed */
     case IConfig::BenchHashKey:     /* --hash */
     case IConfig::UserKey:          /* --user */
+    case IConfig::RotationKey:      /* --rotation */
         return transformBenchmark(doc, key, arg);
 #   endif
 
@@ -360,6 +361,9 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::UserKey: /* --user */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kUser, arg);
+
+    case IConfig::RotationKey: /* --rotation */
+        return set(doc, BenchConfig::kBenchmark, BenchConfig::kRotation, arg);
 
     default:
         break;

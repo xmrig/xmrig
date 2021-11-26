@@ -67,6 +67,11 @@
 #endif
 
 
+#ifdef XMRIG_ALGO_GHOSTRIDER
+#   include "crypto/ghostrider/ghostrider.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -334,6 +339,11 @@ public:
 #   endif
 
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    inline void initGhostRider() const { ghostrider::benchmark(); }
+#   endif
+
+
     Algorithm algorithm;
     Algorithms algorithms;
     bool active         = false;
@@ -551,6 +561,12 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     const bool ready = d_ptr->initRX();
 #   else
     constexpr const bool ready = true;
+#   endif
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (job.algorithm().family() == Algorithm::GHOSTRIDER) {
+        d_ptr->initGhostRider();
+    }
 #   endif
 
     mutex.unlock();

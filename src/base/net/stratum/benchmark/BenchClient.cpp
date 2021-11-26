@@ -48,6 +48,39 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     std::vector<char> blob(112 * 2 + 1, '0');
     blob.back() = '\0';
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (m_benchmark->algorithm() == Algorithm::GHOSTRIDER_RTM) {
+        const uint32_t r = benchmark->rotation() % 20;
+
+        static constexpr uint32_t indices[20][3] = {
+             { 0, 1, 2 },
+             { 0, 1, 3 },
+             { 0, 1, 4 },
+             { 0, 1, 5 },
+             { 0, 2, 3 },
+             { 0, 2, 4 },
+             { 0, 2, 5 },
+             { 0, 3, 4 },
+             { 0, 3, 5 },
+             { 0, 4, 5 },
+             { 1, 2, 3 },
+             { 1, 2, 4 },
+             { 1, 2, 5 },
+             { 1, 3, 4 },
+             { 1, 3, 5 },
+             { 1, 4, 5 },
+             { 2, 3, 4 },
+             { 2, 3, 5 },
+             { 2, 4, 5 },
+             { 3, 4, 5 },
+        };
+
+        blob[ 8] = '0' + indices[r][1];
+        blob[ 9] = '0' + indices[r][0];
+        blob[11] = '0' + indices[r][2];
+    }
+#   endif
+
     m_job.setAlgorithm(m_benchmark->algorithm());
     m_job.setBlob(blob.data());
     m_job.setDiff(std::numeric_limits<uint64_t>::max());
@@ -60,7 +93,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     BenchState::init(this, m_benchmark->size());
 
 #   ifdef XMRIG_FEATURE_HTTP
-    if (m_benchmark->isSubmit()) {
+    if (m_benchmark->isSubmit() && (m_benchmark->algorithm().family() == Algorithm::RANDOM_X)) {
         m_mode  = ONLINE_BENCH;
         m_token = m_benchmark->token();
 

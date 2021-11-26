@@ -169,6 +169,15 @@ size_t inline generate<Algorithm::ASTROBWT>(Threads<CpuThreads>& threads, uint32
 }
 #endif
 
+#ifdef XMRIG_ALGO_GHOSTRIDER
+template<>
+size_t inline generate<Algorithm::GHOSTRIDER>(Threads<CpuThreads>& threads, uint32_t limit)
+{
+    return generate(Algorithm::kGHOSTRIDER, threads, Algorithm::GHOSTRIDER_RTM, limit);
+}
+#endif
+
+
 } /* namespace xmrig */
 
 

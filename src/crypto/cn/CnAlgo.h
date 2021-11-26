@@ -43,6 +43,7 @@ public:
     constexpr inline size_t memory() const       { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return Algorithm::l3(ALGO); }
     constexpr inline uint32_t iterations() const { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
     constexpr inline uint32_t mask() const       { return static_cast<uint32_t>(((memory() - 1) / 16) * 16); }
+    constexpr inline uint32_t half_mem() const   { return mask() < memory() / 2; }
 
     inline static uint32_t iterations(Algorithm::Id algo)
     {
@@ -119,6 +120,16 @@ public:
         }
 #       endif
 
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        if (algo == Algorithm::CN_GR_1) {
+            return 0x3FFF0;
+        }
+
+        if (algo == Algorithm::CN_GR_5) {
+            return 0x1FFF0;
+        }
+#       endif
+
         return ((Algorithm::l3(algo) - 1) / 16) * 16;
     }
 
@@ -148,6 +159,18 @@ template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::iterations() co
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_PICO_0>::mask() const             { return 0x1FFF0; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GPU>::mask() const                { return 0x1FFFC0; }
 template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_UPX2>::mask() const               { return 0x1FFF0; }
+
+#ifdef XMRIG_ALGO_GHOSTRIDER
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_0>::iterations() const         { return CN_ITER / 4; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_1>::iterations() const         { return CN_ITER / 4; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_2>::iterations() const         { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_3>::iterations() const         { return CN_ITER / 2; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_4>::iterations() const         { return CN_ITER / 8; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_5>::iterations() const         { return CN_ITER / 8; }
+
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_1>::mask() const               { return 0x3FFF0; }
+template<> constexpr inline uint32_t CnAlgo<Algorithm::CN_GR_5>::mask() const               { return 0x1FFF0; }
+#endif
 
 
 } /* namespace xmrig */
