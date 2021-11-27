@@ -34,6 +34,7 @@ class Job;
 class MoBenchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
+            GHOSTRIDER_RTM, // "ghostrider"       GhostRider
             CN_R,           // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_LITE_1,      // "cn-lite/1"        CryptoNight-Lite variant 1.
             CN_HEAVY_XHV,   // "cn-heavy/xhv"     CryptoNight-Heavy (modified, Haven Protocol only).
@@ -47,13 +48,13 @@ class MoBenchmark : public IJobResultListener {
             RX_GRAFT,       // "rx/graft"         RandomGraft (Graft).
             RX_ARQ,         // "rx/arq"           RandomARQ (Arqma).
             RX_XLA,         // "panthera"         Panthera (Scala2).
-            //GHOSTRIDER_RTM, // "ghostrider"       GhostRider
             MAX,
             MIN = 0,
             INVALID = -1,
         };
 
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
+            Algorithm::GHOSTRIDER_RTM,
             Algorithm::CN_R,
             Algorithm::CN_LITE_1,
             Algorithm::CN_HEAVY_XHV,
@@ -67,7 +68,6 @@ class MoBenchmark : public IJobResultListener {
             Algorithm::RX_GRAFT,
             Algorithm::RX_ARQ,
             Algorithm::RX_XLA,
-            //Algorithm::GHOSTRIDER_RTM,
         };
 
         Job* m_bench_job[BenchAlgo::MAX];

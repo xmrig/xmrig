@@ -139,7 +139,7 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::RX_GRAFT:       return m_bench_algo_perf[BenchAlgo::RX_GRAFT];
         case Algorithm::RX_ARQ:         return m_bench_algo_perf[BenchAlgo::RX_ARQ];
         case Algorithm::RX_XLA:         return m_bench_algo_perf[BenchAlgo::RX_XLA];
-        //case Algorithm::GHOSTRIDER_RTM: return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
+        case Algorithm::GHOSTRIDER_RTM: return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
         default: return 0.0f;
     }
 }
@@ -158,16 +158,24 @@ void MoBenchmark::start(const BenchAlgo bench_algo) {
     // prepare test job for benchmark runs ("benchmark" client id is to make sure we can detect benchmark jobs)
     Job& job = *m_bench_job[bench_algo];
     job.setId(algo.name()); // need to set different id so that workers will see job change
-    if (bench_algo == BenchAlgo::KAWPOW_RVN) {
-      job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139988aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
-      job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
-      job.setHeight(1500000);
-    } else {
-      // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
-      job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
-      job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
-      job.setHeight(1000);
-      job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
+    switch(bench_algo) {
+      case BenchAlgo::KAWPOW_RVN:
+          job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139988aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
+          job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
+          job.setHeight(1500000);
+          break;
+
+      case BenchAlgo::GHOSTRIDER_RTM:
+          job.setBlob("000000208c246d0b90c3b389c4086e8b672ee040d64db5b9648527133e217fbfa48da64c0f3c0a0b0e8350800568b40fbb323ac3ccdf2965de51b9aaeb939b4f11ff81c49b74a16156ff251c00000000");
+          job.setDiff(1000000000);
+          break;
+
+      default:
+          // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
+          job.setBlob("9905A0DBD6BF05CF16E503F3A66F78007CBF34144332ECBFC22ED95C8700383B309ACE1923A0964B00000008BA939A62724C0D7581FCE5761E9D8A0E6A1C3F924FDD8493D1115649C05EB601");
+          job.setTarget("FFFFFFFFFFFFFF20"); // set difficulty to 8 cause onJobResult after every 8-th computed hash
+          job.setHeight(1000);
+          job.setSeedHash("0000000000000000000000000000000000000000000000000000000000000001");
     }
     m_bench_algo  = bench_algo; // current perf bench_algo
     m_hash_count  = 0;          // number of hashes calculated for current perf bench_algo
