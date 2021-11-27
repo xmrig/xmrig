@@ -44,7 +44,7 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     affinity(thread.affinity()),
     miner(miner),
     threads(threads),
-    intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity())),
+    intensity(std::max<uint32_t>(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity()), algorithm.minIntensity())),
     affinities(affinities)
 {
 }
