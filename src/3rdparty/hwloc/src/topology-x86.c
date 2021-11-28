@@ -1688,7 +1688,7 @@ hwloc_x86_check_cpuiddump_input(const char *src_cpuiddump_path, hwloc_bitmap_t s
   char line [32];
 
   dir = opendir(src_cpuiddump_path);
-  if (!dir) 
+  if (!dir)
     return -1;
 
   path = malloc(strlen(src_cpuiddump_path) + strlen("/hwloc-cpuid-info") + 1);

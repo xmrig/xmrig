@@ -22,7 +22,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#define ROUNDS 24 
+#define ROUNDS 24
 #define R64(a,b,c) (((a) << b) | ((a) >> c))
 
 __constant const uint64_t rc[2][ROUNDS] = {
@@ -118,7 +118,7 @@ __kernel void sha3(__global const uint8_t* inputs, __global const uint32_t* inpu
 				D[t] = C[b[20+s]] ^ R64(C[b[5+s]], 1, 63);
 				C[t] = R64(A[a[t]] ^ D[b[t]], ro[t][0], ro[t][1]);
 				A[d[t]] = C[c[t][0]] ^ ((~C[c[t][1]]) & C[c[t][2]]);
-				A[t] ^= rc[(t == 0) ? 0 : 1][i]; 
+				A[t] ^= rc[(t == 0) ? 0 : 1][i];
 			}
 			wordIndex = 0;
 		}
@@ -140,7 +140,7 @@ __kernel void sha3(__global const uint8_t* inputs, __global const uint32_t* inpu
 		D[t] = C[b[20+s]] ^ R64(C[b[5+s]], 1, 63);
 		C[t] = R64(A[a[t]] ^ D[b[t]], ro[t][0], ro[t][1]);
 		A[d[t]] = C[c[t][0]] ^ ((~C[c[t][1]]) & C[c[t][2]]);
-		A[t] ^= rc[(t == 0) ? 0 : 1][i]; 
+		A[t] ^= rc[(t == 0) ? 0 : 1][i];
 	}
 
 	if (t < 4)
@@ -187,7 +187,7 @@ __kernel void sha3_initial(__global const uint8_t* input_data, uint32_t input_si
 		D[t] = C[b[20+s]] ^ R64(C[b[5+s]], 1, 63);
 		C[t] = R64(A[a[t]] ^ D[b[t]], ro[t][0], ro[t][1]);
 		A[d[t]] = C[c[t][0]] ^ ((~C[c[t][1]]) & C[c[t][2]]);
-		A[t] ^= rc[(t == 0) ? 0 : 1][i]; 
+		A[t] ^= rc[(t == 0) ? 0 : 1][i];
 	}
 
 	if (t < 4)

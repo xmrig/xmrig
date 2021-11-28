@@ -1,5 +1,5 @@
 // Tencent is pleased to support the open source community by making RapidJSON available->
-// 
+//
 // Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip-> All rights reserved->
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
@@ -7,9 +7,9 @@
 //
 // http://opensource->org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied-> See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied-> See the License for the
 // specific language governing permissions and limitations under the License->
 
 #ifndef RAPIDJSON_SCHEMA_H_
@@ -256,10 +256,10 @@ public:
     bool Uint(unsigned u) { Number n; n.u.u = u; n.d = static_cast<double>(u); return WriteNumber(n); }
     bool Int64(int64_t i) { Number n; n.u.i = i; n.d = static_cast<double>(i); return WriteNumber(n); }
     bool Uint64(uint64_t u) { Number n; n.u.u = u; n.d = static_cast<double>(u); return WriteNumber(n); }
-    bool Double(double d) { 
-        Number n; 
+    bool Double(double d) {
+        Number n;
         if (d < 0) n.u.i = static_cast<int64_t>(d);
-        else       n.u.u = static_cast<uint64_t>(d); 
+        else       n.u.u = static_cast<uint64_t>(d);
         n.d = d;
         return WriteNumber(n);
     }
@@ -276,7 +276,7 @@ public:
 
     bool StartObject() { return true; }
     bool Key(const Ch* str, SizeType len, bool copy) { return String(str, len, copy); }
-    bool EndObject(SizeType memberCount) { 
+    bool EndObject(SizeType memberCount) {
         uint64_t h = Hash(0, kObjectType);
         uint64_t* kv = stack_.template Pop<uint64_t>(memberCount * 2);
         for (SizeType i = 0; i < memberCount; i++)
@@ -284,9 +284,9 @@ public:
         *stack_.template Push<uint64_t>() = h;
         return true;
     }
-    
+
     bool StartArray() { return true; }
-    bool EndArray(SizeType elementCount) { 
+    bool EndArray(SizeType elementCount) {
         uint64_t h = Hash(0, kArrayType);
         uint64_t* e = stack_.template Pop<uint64_t>(elementCount);
         for (SizeType i = 0; i < elementCount; i++)
@@ -313,9 +313,9 @@ private:
     };
 
     bool WriteType(Type type) { return WriteBuffer(type, 0, 0); }
-    
+
     bool WriteNumber(const Number& n) { return WriteBuffer(kNumberType, &n, sizeof(n)); }
-    
+
     bool WriteBuffer(Type type, const void* data, size_t len) {
         // FNV-1a from http://isthe.com/chongo/tech/comp/fnv/
         uint64_t h = Hash(RAPIDJSON_UINT64_C2(0x84222325, 0xcbf29ce4), type);
@@ -1987,7 +1987,7 @@ template <
     typename OutputHandler = BaseReaderHandler<typename SchemaDocumentType::SchemaType::EncodingType>,
     typename StateAllocator = CrtAllocator>
 class GenericSchemaValidator :
-    public internal::ISchemaStateFactory<typename SchemaDocumentType::SchemaType>, 
+    public internal::ISchemaStateFactory<typename SchemaDocumentType::SchemaType>,
     public internal::ISchemaValidator,
     public internal::IValidationErrorHandler<typename SchemaDocumentType::SchemaType> {
 public:
@@ -2008,7 +2008,7 @@ public:
     */
     GenericSchemaValidator(
         const SchemaDocumentType& schemaDocument,
-        StateAllocator* allocator = 0, 
+        StateAllocator* allocator = 0,
         size_t schemaStackCapacity = kDefaultSchemaStackCapacity,
         size_t documentStackCapacity = kDefaultDocumentStackCapacity)
         :
@@ -2040,7 +2040,7 @@ public:
     GenericSchemaValidator(
         const SchemaDocumentType& schemaDocument,
         OutputHandler& outputHandler,
-        StateAllocator* allocator = 0, 
+        StateAllocator* allocator = 0,
         size_t schemaStackCapacity = kDefaultSchemaStackCapacity,
         size_t documentStackCapacity = kDefaultDocumentStackCapacity)
         :
@@ -2390,7 +2390,7 @@ RAPIDJSON_MULTILINEMACRO_END
         RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(StartObject, ());
         return valid_ = !outputHandler_ || outputHandler_->StartObject();
     }
-    
+
     bool Key(const Ch* str, SizeType len, bool copy) {
         if (!valid_) return false;
         AppendToken(str, len);
@@ -2398,7 +2398,7 @@ RAPIDJSON_MULTILINEMACRO_END
         RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(Key, (str, len, copy));
         return valid_ = !outputHandler_ || outputHandler_->Key(str, len, copy);
     }
-    
+
     bool EndObject(SizeType memberCount) {
         if (!valid_) return false;
         RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(EndObject, (memberCount));
@@ -2411,7 +2411,7 @@ RAPIDJSON_MULTILINEMACRO_END
         RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(StartArray, ());
         return valid_ = !outputHandler_ || outputHandler_->StartArray();
     }
-    
+
     bool EndArray(SizeType elementCount) {
         if (!valid_) return false;
         RAPIDJSON_SCHEMA_HANDLE_PARALLEL_(EndArray, (elementCount));
@@ -2468,7 +2468,7 @@ private:
     typedef GenericValue<UTF8<>, StateAllocator> HashCodeArray;
     typedef internal::Hasher<EncodingType, StateAllocator> HasherType;
 
-    GenericSchemaValidator( 
+    GenericSchemaValidator(
         const SchemaDocumentType& schemaDocument,
         const SchemaType& root,
         const char* basePath, size_t basePathSize,
@@ -2554,7 +2554,7 @@ private:
 #endif
         void* hasher = CurrentContext().hasher;
         uint64_t h = hasher && CurrentContext().arrayUniqueness ? static_cast<HasherType*>(hasher)->GetHashCode() : 0;
-        
+
         PopSchema();
 
         if (!schemaStack_.Empty()) {
@@ -2603,7 +2603,7 @@ private:
     }
 
     RAPIDJSON_FORCEINLINE void PushSchema(const SchemaType& schema) { new (schemaStack_.template Push<Context>()) Context(*this, *this, &schema); }
-    
+
     RAPIDJSON_FORCEINLINE void PopSchema() {
         Context* c = schemaStack_.template Pop<Context>(1);
         if (HashCodeArray* a = static_cast<HashCodeArray*>(c->arrayElementHashCodes)) {

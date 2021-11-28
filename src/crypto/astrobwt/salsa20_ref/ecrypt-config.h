@@ -9,7 +9,7 @@
 
 /* Guess the endianness of the target architecture. */
 
-/* 
+/*
  * The LITTLE endian machines:
  */
 #if defined(__ultrix)           /* Older MIPS */
@@ -27,15 +27,15 @@
 #elif defined(__INTEL_COMPILER) /* x86 (surely Intel compiler icl.exe) */
 #define ECRYPT_LITTLE_ENDIAN
 
-/* 
- * The BIG endian machines: 
+/*
+ * The BIG endian machines:
  */
 #elif defined(sun)              /* Newer Sparc's */
 #define ECRYPT_BIG_ENDIAN
 #elif defined(__ppc__)          /* PowerPC */
 #define ECRYPT_BIG_ENDIAN
 
-/* 
+/*
  * Finally machines with UNKNOWN endianness:
  */
 #elif defined (_AIX)            /* RS6000 */

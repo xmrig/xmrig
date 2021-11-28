@@ -250,7 +250,7 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         ar_extra(extra_tag);
 
         switch (extra_tag) {
-        case 0x01: // TX_EXTRA_TAG_PUBKEY        
+        case 0x01: // TX_EXTRA_TAG_PUBKEY
             setOffset(TX_PUBKEY_OFFSET, offset(TX_EXTRA_OFFSET) + ar_extra.index());
             ar_extra.skip(kKeySize);
             break;

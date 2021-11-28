@@ -1471,7 +1471,7 @@ typedef enum _ADLProfilePropertyType
 #define ADL_HDR_FREESYNC_HDR    0x0004      ///< FreeSync HDR supported
 /// @}
 
-/// \defgroup define_FreesyncFlags ADLDDCInfo2 Freesync HDR flags 
+/// \defgroup define_FreesyncFlags ADLDDCInfo2 Freesync HDR flags
 /// @{
 /// defines for iFreesyncFlags in ADLDDCInfo2
 #define ADL_HDR_FREESYNC_BACKLIGHT_SUPPORT           0x0001      ///< Global backlight control supported
@@ -1738,7 +1738,7 @@ enum ADLODNDPMMaskType
      ADL_ODN_DPM_MASK                = 1 << 2,
 };
 
-//ODN features Bits for ADLODNCapabilitiesX2 
+//ODN features Bits for ADLODNCapabilitiesX2
 enum ADLODNFeatureControl
 {
      ADL_ODN_SCLK_DPM                = 1 << 0,
@@ -1764,7 +1764,7 @@ enum ADLODNFeatureControl
 
 //If any new feature is added, PPLIB only needs to add ext feature ID and Item ID(Seeting ID). These IDs should match the drive defined in CWDDEPM.h
 enum ADLODNExtFeatureControl
-{	
+{
 	ADL_ODN_EXT_FEATURE_MEMORY_TIMING_TUNE = 1 << 0,
 	ADL_ODN_EXT_FEATURE_FAN_ZERO_RPM_CONTROL = 1 << 1,
 	ADL_ODN_EXT_FEATURE_AUTO_UV_ENGINE = 1 << 2,   //Auto under voltage
@@ -1794,7 +1794,7 @@ enum ADLODNExtSettingId
 	ADL_ODN_PARAMETER_FAN_CURVE_SPEED_5,
     ADL_ODN_POWERGAUGE,
 	ODN_COUNT
-	
+
 } ;
 
 //OD8 Capability features bits
@@ -1811,7 +1811,7 @@ enum ADLOD8FeatureControl
     ADL_OD8_MEMORY_TIMING_TUNE = 1 << 8,
     ADL_OD8_FAN_ZERO_RPM_CONTROL = 1 << 9 ,
 	ADL_OD8_AUTO_UV_ENGINE = 1 << 10,  //Auto under voltage
-	ADL_OD8_AUTO_OC_ENGINE = 1 << 11,  //Auto overclock engine     
+	ADL_OD8_AUTO_OC_ENGINE = 1 << 11,  //Auto overclock engine
 	ADL_OD8_AUTO_OC_MEMORY = 1 << 12,  //Auto overclock memory
 	ADL_OD8_FAN_CURVE = 1 << 13,   //Fan curve
 	ADL_OD8_WS_AUTO_FAN_ACOUSTIC_LIMIT = 1 << 14, //Workstation Manual Fan controller
@@ -1888,7 +1888,7 @@ typedef enum _ADLSensorType
 	PMLOG_TEMPERATURE_VRSOC = 24,
 	PMLOG_TEMPERATURE_VRMVDD0 = 25,
 	PMLOG_TEMPERATURE_VRMVDD1 = 26,
-	PMLOG_TEMPERATURE_HOTSPOT = 27,    
+	PMLOG_TEMPERATURE_HOTSPOT = 27,
         PMLOG_TEMPERATURE_GFX = 28,
         PMLOG_TEMPERATURE_SOC = 29,
         PMLOG_GFX_POWER = 30,

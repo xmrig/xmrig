@@ -33,7 +33,7 @@
 #       include <stdint.h>
 #       include <machine/armreg.h>
 #       ifndef ID_AA64ISAR0_AES_VAL
-#           define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES        
+#           define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES
 #       endif
 #   endif
 #endif
