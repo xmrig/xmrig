@@ -692,9 +692,9 @@ memcpy( state_out, state_in, 32 );
 #undef SHA2_IN
 }
 
-void sph_sha256_transform_be( uint32_t *state_out, const uint32_t *data, 
+void sph_sha256_transform_be( uint32_t *state_out, const uint32_t *data,
                               const uint32_t *state_in )
-{  
+{
 memcpy( state_out, state_in, 32 );
 #define SHA2_IN(x)   sph_dec32be_aligned( data+(x) )
    SHA2_ROUND_BODY( SHA2_IN, state_out );
@@ -775,7 +775,7 @@ void sph_sha256_full( void *dst, const void *data, size_t len )
    sph_sha256_init( &cc );
    sph_sha256( &cc, data, len );
    sph_sha256_close( &cc, dst );
-}   
+}
 
 void sha256d(void* hash, const void* data, int len)
 {

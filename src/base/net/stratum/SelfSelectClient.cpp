@@ -264,7 +264,7 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     if (result.diff == 0 || m_blockDiff == 0) {
         return;
     }
-    
+
     if (result.actualDiff() < m_blockDiff) {
         m_originNotSubmitted++;
         LOG_DEBUG("%s " RED_BOLD("not submitted to origin daemon, difficulty too low") " (%" PRId64 "/%" PRId64 ") "
@@ -287,9 +287,9 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
 
     FetchRequest req(HTTP_POST, pool().daemon().host(), pool().daemon().port(), "/json_rpc", doc, pool().daemon().isTLS(), isQuiet());
     fetch(tag(), std::move(req), m_httpListener);
-    
+
     m_originSubmitted++;
-    LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") " 
+    LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") "
         " diff " WHITE("%" PRIu64) " vs. " WHITE("%" PRIu64),
         Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff(), result.diff);
 }
