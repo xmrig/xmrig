@@ -133,6 +133,14 @@ if (CMAKE_C_COMPILER_ID MATCHES GNU)
     set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
 endif()
 
+if (NOT XMRIG_ARM)
+    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86_vaes.h)
+    set(SOURCES_CRYPTO "${SOURCES_CRYPTO}" src/crypto/cn/CryptoNight_x86_vaes.cpp)
+    if (CMAKE_C_COMPILER_ID MATCHES GNU)
+        set_source_files_properties(src/crypto/cn/CryptoNight_x86_vaes.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize -mavx2 -mvaes")
+    endif()
+endif()
+
 if (WITH_HWLOC)
     list(APPEND HEADERS_CRYPTO
         src/crypto/common/NUMAMemoryPool.h

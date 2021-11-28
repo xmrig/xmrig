@@ -538,7 +538,7 @@ void destroy_helper_thread(HelperThread* t)
 }
 
 
-void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread* helper)
+void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread* helper, bool verbose)
 {
     enum { N = 8 };
 
@@ -554,11 +554,13 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     uint32_t cn_indices[6];
     select_indices(cn_indices, data + 4);
 
-    static uint32_t prev_indices[3];
-    if (memcmp(cn_indices, prev_indices, sizeof(prev_indices)) != 0) {
-        memcpy(prev_indices, cn_indices, sizeof(prev_indices));
-        for (int i = 0; i < 3; ++i) {
-            LOG_INFO("%s GhostRider algo %d: %s", Tags::cpu(), i + 1, cn_names[cn_indices[i]]);
+    if (verbose) {
+        static uint32_t prev_indices[3];
+        if (memcmp(cn_indices, prev_indices, sizeof(prev_indices)) != 0) {
+            memcpy(prev_indices, cn_indices, sizeof(prev_indices));
+            for (int i = 0; i < 3; ++i) {
+                LOG_INFO("%s GhostRider algo %d: %s", Tags::cpu(), i + 1, cn_names[cn_indices[i]]);
+            }
         }
     }
 
@@ -765,7 +767,7 @@ HelperThread* create_helper_thread(int64_t, const std::vector<int64_t>&) { retur
 void destroy_helper_thread(HelperThread*) {}
 
 
-void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread*)
+void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread*, bool verbose)
 {
     constexpr uint32_t N = 8;
 
@@ -784,11 +786,13 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     uint32_t step[6] = { 4, 4, 1, 2, 4, 4 };
 #endif
 
-    static uint32_t prev_indices[3];
-    if (memcmp(cn_indices, prev_indices, sizeof(prev_indices)) != 0) {
-        memcpy(prev_indices, cn_indices, sizeof(prev_indices));
-        for (int i = 0; i < 3; ++i) {
-            LOG_INFO("%s GhostRider algo %d: %s", Tags::cpu(), i + 1, cn_names[cn_indices[i]]);
+    if (verbose) {
+        static uint32_t prev_indices[3];
+        if (memcmp(cn_indices, prev_indices, sizeof(prev_indices)) != 0) {
+            memcpy(prev_indices, cn_indices, sizeof(prev_indices));
+            for (int i = 0; i < 3; ++i) {
+                LOG_INFO("%s GhostRider algo %d: %s", Tags::cpu(), i + 1, cn_names[cn_indices[i]]);
+            }
         }
     }
 
