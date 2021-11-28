@@ -31,7 +31,7 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 
-#ifdef XMRIG_ALGO_KAWPOW
+#if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
 #   include "base/net/stratum/AutoClient.h"
 #   include "base/net/stratum/EthStratumClient.h"
 #endif
@@ -218,7 +218,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
     IClient *client = nullptr;
 
     if (m_mode == MODE_POOL) {
-#       ifdef XMRIG_ALGO_KAWPOW
+#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
         const uint32_t f = m_algorithm.family();
         if ((f == Algorithm::KAWPOW) || (f == Algorithm::GHOSTRIDER) || (m_coin == Coin::RAVEN)) {
             client = new EthStratumClient(id, Platform::userAgent(), listener);
@@ -237,7 +237,7 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
         client = new SelfSelectClient(id, Platform::userAgent(), listener, m_submitToOrigin);
     }
 #   endif
-#   ifdef XMRIG_ALGO_KAWPOW
+#   if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
     else if (m_mode == MODE_AUTO_ETH) {
         client = new AutoClient(id, Platform::userAgent(), listener);
     }
