@@ -213,12 +213,13 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             return;
         }
 
-        if (!arr[0].IsDouble()) {
+        if (!arr[0].IsDouble() && !arr[0].IsUint64()) {
             LOG_ERR("%s " RED("invalid mining.set_difficulty notification: difficulty is not a number"), tag());
             return;
         }
 
-        m_nextDifficulty = static_cast<uint64_t>(ceil(arr[0].GetDouble() * 65536.0));
+        const double diff = arr[0].IsDouble() ? arr[0].GetDouble() : arr[0].GetUint64();
+        m_nextDifficulty = static_cast<uint64_t>(ceil(diff * 65536.0));
     }
 #   endif
 
