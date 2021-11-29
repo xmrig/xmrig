@@ -61,6 +61,10 @@
 #   include <intrin.h>
 #endif
 
+#ifdef XMRIG_OS_WIN
+#   include <Windows.h>
+#endif
+
 #define CORE_HASH(i, x) static void h##i(const uint8_t* data, size_t size, uint8_t* output) \
 { \
     sph_##x##_context ctx; \
@@ -328,7 +332,16 @@ void benchmark()
         LOG_VERBOSE("%24s |  N  | Hashrate", "Algorithm");
         LOG_VERBOSE("-------------------------|-----|-------------");
 
+#       ifdef XMRIG_OS_WIN
+        LARGE_INTEGER timer_freq;
+        QueryPerformanceFrequency(&timer_freq);
+        auto measure_time = []() { LARGE_INTEGER t; QueryPerformanceCounter(&t); return t.QuadPart; };
+        auto delta_time = [&timer_freq](LONGLONG t1, LONGLONG t2) { return static_cast<double>(t2 - t1) / timer_freq.QuadPart; };
+#       else
         using namespace std::chrono;
+        auto measure_time = []() { return high_resolution_clock::now(); };
+        auto delta_time = [](const high_resolution_clock::time_point& t1, const high_resolution_clock::time_point& t2) { return duration_cast<nanoseconds>(t2 - t1).count() / 1e9; };
+#       endif
 
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
@@ -339,20 +352,20 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                const high_resolution_clock::time_point start_time = high_resolution_clock::now();
+                auto start_time = measure_time();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    const high_resolution_clock::time_point t1 = high_resolution_clock::now();
+                    auto t1 = measure_time();
 
                     // Stop after 15 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (duration_cast<milliseconds>(t1 - start_time).count() >= 15)) {
+                    if ((iter >= 10) && (delta_time(start_time, t1) >= 0.015)) {
                         break;
                     }
 
                     f(buf, sizeof(buf), hash, ctx, 0);
 
-                    const double dt = duration_cast<nanoseconds>(high_resolution_clock::now() - t1).count() / 1e9;
+                    const double dt = delta_time(t1, measure_time());
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
@@ -388,14 +401,14 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                const high_resolution_clock::time_point start_time = high_resolution_clock::now();
+                auto start_time = measure_time();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    const high_resolution_clock::time_point t1 = high_resolution_clock::now();
+                    auto t1 = measure_time();
 
                     // Stop after 30 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (duration_cast<milliseconds>(t1 - start_time).count() >= 30)) {
+                    if ((iter >= 10) && (delta_time(start_time, t1) >= 0.03)) {
                         break;
                     }
 
@@ -403,7 +416,7 @@ void benchmark()
                     f(buf, sizeof(buf), hash, ctx, 0);
                     helper->wait();
 
-                    const double dt = duration_cast<nanoseconds>(high_resolution_clock::now() - t1).count() / 1e9;
+                    const double dt = delta_time(t1, measure_time());
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
