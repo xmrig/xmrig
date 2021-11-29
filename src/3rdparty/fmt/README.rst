@@ -81,7 +81,7 @@ Examples
 .. code:: c++
 
     #include <fmt/core.h>
-    
+
     int main() {
       fmt::print("Hello, world!\n");
     }
@@ -293,11 +293,11 @@ Projects using this library
   An open-source library for mathematical programming
 
 * `Aseprite <https://github.com/aseprite/aseprite>`_:
-  Animated sprite editor & pixel art tool 
+  Animated sprite editor & pixel art tool
 
 * `AvioBook <https://www.aviobook.aero/en>`_: A comprehensive aircraft
   operations suite
-  
+
 * `Celestia <https://celestia.space/>`_: Real-time 3D visualization of space
 
 * `Ceph <https://ceph.com/>`_: A scalable distributed storage system
@@ -351,7 +351,7 @@ Projects using this library
 
 * `quasardb <https://www.quasardb.net/>`_: A distributed, high-performance,
   associative database
-  
+
 * `Quill <https://github.com/odygrd/quill>`_: Asynchronous low-latency logging library
 
 * `QKW <https://github.com/ravijanjam/qkw>`_: Generalizing aliasing to simplify

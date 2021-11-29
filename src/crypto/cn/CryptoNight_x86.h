@@ -43,6 +43,11 @@
 #include "crypto/cn/soft_aes.h"
 
 
+#ifdef XMRIG_VAES
+#   include "crypto/cn/CryptoNight_x86_vaes.h"
+#endif
+
+
 extern "C"
 {
 #include "crypto/cn/c_groestl.h"
@@ -289,6 +294,13 @@ static NOINLINE void cn_explode_scratchpad(cryptonight_ctx *ctx)
 {
     constexpr CnAlgo<ALGO> props;
 
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_explode_scratchpad_vaes<ALGO>(ctx);
+        return;
+    }
+#   endif
+
     constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
 
     __m128i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
@@ -341,7 +353,7 @@ static NOINLINE void cn_explode_scratchpad(cryptonight_ctx *ctx)
     constexpr int output_increment = (64 << interleave) / sizeof(__m128i);
     constexpr int prefetch_dist = 2048 / sizeof(__m128i);
 
-    __m128i* e = output + N - prefetch_dist;
+    __m128i* e = output + (N << interleave) - prefetch_dist;
     __m128i* prefetch_ptr = output + prefetch_dist;
 
     for (int i = 0; i < 2; ++i) {
@@ -395,6 +407,13 @@ template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
 static NOINLINE void cn_implode_scratchpad(cryptonight_ctx *ctx)
 {
     constexpr CnAlgo<ALGO> props;
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_implode_scratchpad_vaes<ALGO>(ctx);
+        return;
+    }
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_GPU
     constexpr bool IS_HEAVY = props.isHeavy() || ALGO == Algorithm::CN_GPU;
@@ -1070,8 +1089,17 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         ctx[0]->first_half = true;
         ctx[1]->first_half = true;
     }
-    cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
-    cn_explode_scratchpad<ALGO, false, 0>(ctx[1]);
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
 
     if (ALGO == Algorithm::CN_2) {
         cnv2_double_mainloop_sandybridge_asm(ctx);
@@ -1110,8 +1138,16 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         ctx[0]->generated_code(ctx);
     }
 
-    cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
-    cn_implode_scratchpad<ALGO, false, 0>(ctx[1]);
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
 
     keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
     keccakf(reinterpret_cast<uint64_t*>(ctx[1]->state), 24);
@@ -1166,8 +1202,17 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         ctx[0]->first_half = true;
         ctx[1]->first_half = true;
     }
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+    }
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t al1 = h1[0] ^ h1[4];
@@ -1362,8 +1407,16 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         bx10 = cx1;
     }
 
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+    }
 
     keccakf(h0, 24);
     keccakf(h1, 24);
@@ -1424,10 +1477,19 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         ctx[3]->first_half = true;
     }
 
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[2], ctx[3]);
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+    }
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t al1 = h1[0] ^ h1[4];
@@ -1548,10 +1610,19 @@ void cryptonight_quad_hash_zen(const uint8_t* __restrict__ input, size_t size, u
         if (!SOFT_AES) cx3 = _mm_load_si128(reinterpret_cast<const __m128i*>(&l3[idx3 & MASK]));
     }
 
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[2], ctx[3]);
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+    }
 
     keccakf(h0, 24);
     keccakf(h1, 24);
@@ -1788,7 +1859,20 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
         if (props.half_mem()) {
             ctx[i]->first_half = true;
         }
-        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
+    }
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+        cn_explode_scratchpad_vaes_double<ALGO>(ctx[2], ctx[3]);
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
     }
 
     uint8_t* l0  = ctx[0]->memory;
@@ -1840,8 +1924,21 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
         CN_STEP4(3, ax3, bx30, bx31, cx3, l3, mc3, ptr3, idx3);
     }
 
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && Cpu::info()->hasVAES()) {
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[0], ctx[1]);
+        cn_implode_scratchpad_vaes_double<ALGO>(ctx[2], ctx[3]);
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+    }
+
     for (size_t i = 0; i < 4; i++) {
-        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
         keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }

@@ -174,7 +174,7 @@ uint32_t xmrig::Pools::benchSize() const
     return m_benchmark ? m_benchmark->size() : 0;
 #   else
     return 0;
-#   endif    
+#   endif
 }
 
 

@@ -53,6 +53,8 @@ public:
     inline void add(size_t threadId, uint64_t count, uint64_t timestamp)    { addData(threadId + 1U, count, timestamp); }
     inline void add(uint64_t count, uint64_t timestamp)                     { addData(0U, count, timestamp); }
 
+    double average() const;
+
     static const char *format(double h, char *buf, size_t size);
     static rapidjson::Value normalize(double d);
 
@@ -72,6 +74,9 @@ private:
     uint32_t* m_top;
     uint64_t** m_counts;
     uint64_t** m_timestamps;
+
+    uint64_t m_earliestTimestamp;
+    uint64_t m_totalCount;
 };
 
 

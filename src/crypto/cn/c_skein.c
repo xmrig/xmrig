@@ -5,7 +5,7 @@
 ** Source code author: Doug Whiting, 2008.
 **
 ** This algorithm and source code is released to the public domain.
-** 
+**
 ************************************************************************/
 
 #define  SKEIN_PORT_CODE /* instantiate any code in skein_port.h */
@@ -57,7 +57,7 @@ static int  Skein_512_Final (Skein_512_Ctxt_t *ctx, u08b_t * hashVal);
 
 /*****************************************************************
 ** "Internal" Skein definitions
-**    -- not needed for sequential hashing API, but will be 
+**    -- not needed for sequential hashing API, but will be
 **           helpful for other uses of Skein (e.g., tree hash mode).
 **    -- included here so that they can be shared between
 **           reference and optimized code.
@@ -179,11 +179,11 @@ static int  Skein_512_Final (Skein_512_Ctxt_t *ctx, u08b_t * hashVal);
 #define Skein_Assert(x,retCode)/* default: ignore all Asserts, for performance */
 #define Skein_assert(x)
 #elif   defined(SKEIN_ASSERT)
-#include <assert.h>     
-#define Skein_Assert(x,retCode) assert(x) 
-#define Skein_assert(x)         assert(x) 
+#include <assert.h>
+#define Skein_Assert(x,retCode) assert(x)
+#define Skein_assert(x)         assert(x)
 #else
-#include <assert.h>     
+#include <assert.h>
 #define Skein_Assert(x,retCode) { if (!(x)) return retCode; } /*  caller  error */
 #define Skein_assert(x)         assert(x)                     /* internal error */
 #endif
@@ -191,8 +191,8 @@ static int  Skein_512_Final (Skein_512_Ctxt_t *ctx, u08b_t * hashVal);
 /*****************************************************************
 ** Skein block function constants (shared across Ref and Opt code)
 ******************************************************************/
-enum    
-{   
+enum
+{
   /* Skein_512 round rotation constants */
   R_512_0_0=46, R_512_0_1=36, R_512_0_2=19, R_512_0_3=37,
   R_512_1_0=33, R_512_1_1=27, R_512_1_2=14, R_512_1_3=42,
@@ -251,7 +251,7 @@ const u64b_t SKEIN_512_IV_256[] =
 #define BLK_BITS        (WCNT*64)               /* some useful definitions for code here */
 #define KW_TWK_BASE     (0)
 #define KW_KEY_BASE     (3)
-#define ks              (kw + KW_KEY_BASE)                
+#define ks              (kw + KW_KEY_BASE)
 #define ts              (kw + KW_TWK_BASE)
 
 #ifdef SKEIN_DEBUG
@@ -310,7 +310,7 @@ static void Skein_512_Process_Block(Skein_512_Ctxt_t *ctx,const u08b_t *blkPtr,s
         ks[5] = ctx->X[5];
         ks[6] = ctx->X[6];
         ks[7] = ctx->X[7];
-        ks[8] = ks[0] ^ ks[1] ^ ks[2] ^ ks[3] ^ 
+        ks[8] = ks[0] ^ ks[1] ^ ks[2] ^ ks[3] ^
                 ks[4] ^ ks[5] ^ ks[6] ^ ks[7] ^ SKEIN_KS_PARITY;
 
         ts[2] = ts[0] ^ ts[1];
@@ -338,7 +338,7 @@ static void Skein_512_Process_Block(Skein_512_Ctxt_t *ctx,const u08b_t *blkPtr,s
     X##p4 += X##p5; X##p5 = RotL_64(X##p5,ROT##_2); X##p5 ^= X##p4; \
     X##p6 += X##p7; X##p7 = RotL_64(X##p7,ROT##_3); X##p7 ^= X##p6; \
 
-#if SKEIN_UNROLL_512 == 0                       
+#if SKEIN_UNROLL_512 == 0
 #define R512(p0,p1,p2,p3,p4,p5,p6,p7,ROT,rNum)      /* unrolled */  \
     Round512(p0,p1,p2,p3,p4,p5,p6,p7,ROT,rNum)                      \
     Skein_Show_R_Ptr(BLK_BITS,&ctx->h,rNum,Xptr);
@@ -469,7 +469,7 @@ static int Skein_512_Init(Skein_512_Ctxt_t *ctx, size_t hashBitLen)
         u08b_t  b[SKEIN_512_STATE_BYTES];
         u64b_t  w[SKEIN_512_STATE_WORDS];
         } cfg;                              /* config block */
-        
+
     Skein_Assert(hashBitLen > 0,SKEIN_BAD_HASHLEN);
     ctx->h.hashBitLen = hashBitLen;         /* output hash bit count */
 
@@ -548,7 +548,7 @@ static int Skein_512_Update(Skein_512_Ctxt_t *ctx, const u08b_t *msg, size_t msg
 
     return SKEIN_SUCCESS;
     }
-   
+
 /*++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
 /* finalize the hash computation and output the result */
 static int Skein_512_Final(Skein_512_Ctxt_t *ctx, u08b_t *hashVal)
@@ -562,7 +562,7 @@ static int Skein_512_Final(Skein_512_Ctxt_t *ctx, u08b_t *hashVal)
         memset(&ctx->b[ctx->h.bCnt],0,SKEIN_512_BLOCK_BYTES - ctx->h.bCnt);
 
     Skein_512_Process_Block(ctx,ctx->b,1,ctx->h.bCnt);  /* process the final block */
-    
+
     /* now output the result */
     byteCnt = (ctx->h.hashBitLen + 7) >> 3;             /* total number of output bytes */
 

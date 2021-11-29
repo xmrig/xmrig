@@ -5,8 +5,8 @@
  * and should be used carefully. They should NOT be used with
  * parameters which perform some action. E.g., the following two lines
  * are not equivalent:
- * 
- *  1) ++x; y = ROTL32(x, n); 
+ *
+ *  1) ++x; y = ROTL32(x, n);
  *  2) y = ROTL32(++x, n);
  */
 

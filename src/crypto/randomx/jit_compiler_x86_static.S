@@ -180,7 +180,7 @@ init_block_loop:
 	prefetchw byte ptr [rsi]
 	mov rbx, rbp
 	.byte 232 ;# 0xE8 = call
-	;# .set CALL_LOC, 
+	;# .set CALL_LOC,
 	.int 32768 - (call_offset - DECL(randomx_dataset_init))
 call_offset:
 	mov qword ptr [rsi+0], r8

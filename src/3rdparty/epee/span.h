@@ -145,7 +145,7 @@ namespace epee
   span<const std::uint8_t> to_byte_span(const span<const T> src) noexcept
   {
     static_assert(!has_padding<T>(), "source type may have padding");
-    return {reinterpret_cast<const std::uint8_t*>(src.data()), src.size_bytes()}; 
+    return {reinterpret_cast<const std::uint8_t*>(src.data()), src.size_bytes()};
   }
 
   //! \return `span<const std::uint8_t>` which represents the bytes at `&src`.

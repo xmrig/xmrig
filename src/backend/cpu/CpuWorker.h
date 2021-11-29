@@ -52,6 +52,15 @@ public:
     CpuWorker(size_t id, const CpuLaunchData &data);
     ~CpuWorker() override;
 
+    size_t threads() const override
+    {
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        return m_ghHelper ? 2 : 1;
+#       else
+        return 1;
+#       endif
+    }
+
 protected:
     bool selfTest() override;
     void hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const override;

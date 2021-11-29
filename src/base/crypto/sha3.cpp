@@ -1,16 +1,16 @@
 /* -------------------------------------------------------------------------
- * Works when compiled for either 32-bit or 64-bit targets, optimized for 
+ * Works when compiled for either 32-bit or 64-bit targets, optimized for
  * 64 bit.
  *
- * Canonical implementation of Init/Update/Finalize for SHA-3 byte input. 
+ * Canonical implementation of Init/Update/Finalize for SHA-3 byte input.
  *
  * SHA3-256, SHA3-384, SHA-512 are implemented. SHA-224 can easily be added.
  *
  * Based on code from http://keccak.noekeon.org/ .
  *
- * I place the code that I wrote into public domain, free to use. 
+ * I place the code that I wrote into public domain, free to use.
  *
- * I would appreciate if you give credits to this work if you used it to 
+ * I would appreciate if you give credits to this work if you used it to
  * write or test * your code.
  *
  * Aug 2015. Andrey Jivsov. crypto@brainhub.org
@@ -32,7 +32,7 @@
 #define SHA3_TRACE_BUF(format, buf, l, args...)
 #endif
 
-/* 
+/*
  * This flag is used to configure "pure" Keccak, as opposed to NIST SHA3.
  */
 #define SHA3_USE_KECCAK_FLAG 0x80000000
@@ -108,7 +108,7 @@ sha3_Update(void *priv, void const *bufIn, size_t len)
     SHA3_ASSERT(ctx->byteIndex < 8);
     SHA3_ASSERT(ctx->wordIndex < sizeof(ctx->s) / sizeof(ctx->s[0]));
 
-    if(len < old_tail) {        /* have no complete word or haven't started 
+    if(len < old_tail) {        /* have no complete word or haven't started
                                  * the word yet */
         SHA3_TRACE("because %d<%d, store it and return", (unsigned)len,
                 (unsigned)old_tail);
@@ -180,7 +180,7 @@ sha3_Update(void *priv, void const *bufIn, size_t len)
 }
 
 /* This is simply the 'update' with the padding block.
- * The padding block is 0x01 || 0x00* || 0x80. First 0x01 and last 0x80 
+ * The padding block is 0x01 || 0x00* || 0x80. First 0x01 and last 0x80
  * bytes are always present, but they can be the same byte.
  */
 void const *
@@ -214,7 +214,7 @@ sha3_Finalize(void *priv)
 
     /* Return first bytes of the ctx->s. This conversion is not needed for
      * little-endian platforms e.g. wrap with #if !defined(__BYTE_ORDER__)
-     * || !defined(__ORDER_LITTLE_ENDIAN__) || __BYTE_ORDER__!=__ORDER_LITTLE_ENDIAN__ 
+     * || !defined(__ORDER_LITTLE_ENDIAN__) || __BYTE_ORDER__!=__ORDER_LITTLE_ENDIAN__
      *    ... the conversion below ...
      * #endif */
     {

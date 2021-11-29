@@ -39,12 +39,12 @@ xmrig::CpuLaunchData::CpuLaunchData(const Miner *miner, const Algorithm &algorit
     hugePages(config.isHugePages()),
     hwAES(config.isHwAES()),
     yield(config.isYield()),
-    astrobwtMaxSize(config.astrobwtMaxSize()),    
+    astrobwtMaxSize(config.astrobwtMaxSize()),
     priority(config.priority()),
     affinity(thread.affinity()),
     miner(miner),
     threads(threads),
-    intensity(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity())),
+    intensity(std::max<uint32_t>(std::min<uint32_t>(thread.intensity(), algorithm.maxIntensity()), algorithm.minIntensity())),
     affinities(affinities)
 {
 }
