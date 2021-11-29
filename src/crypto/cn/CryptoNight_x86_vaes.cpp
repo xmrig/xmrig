@@ -524,6 +524,7 @@ void (*vaes_instances[])() = {
     VAES_Instance<Algorithm::CN_GR_3>,
     VAES_Instance<Algorithm::CN_GR_4>,
     VAES_Instance<Algorithm::CN_GR_5>,
+    VAES_Instance<Algorithm::CN_GPU>,
 };
 
 
