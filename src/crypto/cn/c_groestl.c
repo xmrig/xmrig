@@ -4,7 +4,7 @@
  *
  *  This work is based on the implementation of
  *          Soeren S. Thomsen and Krystian Matusiewicz
- *          
+ *
  *
  */
 
@@ -22,7 +22,7 @@ const uint8_t indices_cyclic[15] = {0,1,2,3,4,5,6,7,0,1,2,3,4,5,6};
 #define ROTATE_COLUMN_DOWN(v1, v2, amount_bytes, temp_var) {temp_var = (v1<<(8*amount_bytes))|(v2>>(8*(4-amount_bytes))); \
 															v2 = (v2<<(8*amount_bytes))|(v1>>(8*(4-amount_bytes))); \
 															v1 = temp_var;}
-  
+
 
 #define COLUMN(x,y,i,c0,c1,c2,c3,c4,c5,c6,c7,tv1,tv2,tu,tl,t)				\
    tu = T[2*(uint32_t)x[4*c0+0]];			    \
@@ -161,11 +161,11 @@ static void F512(uint32_t *h, const uint32_t *m) {
 
 /* digest up to msglen bytes of input (full blocks only) */
 static void Transform(groestlHashState *ctx,
-	       const uint8_t *input, 
+	       const uint8_t *input,
 	       int msglen) {
 
   /* digest message, one block at a time */
-  for (; msglen >= SIZE512; 
+  for (; msglen >= SIZE512;
        msglen -= SIZE512, input += SIZE512) {
     F512(ctx->chaining,(uint32_t*)input);
 
@@ -199,7 +199,7 @@ static void OutputTransformation(groestlHashState *ctx) {
 	RND512P((uint8_t*)y, temp, 0x00000009);
 	for (j = 0; j < 2*COLS512; j++) {
 	  ctx->chaining[j] ^= temp[j];
-	}									  
+	}									
 }
 
 /* initialise context */
@@ -313,7 +313,7 @@ static void Final(groestlHashState* ctx,
     ctx->block_counter2 >>= 8;
   }
   /* digest final padding block */
-  Transform(ctx, ctx->buffer, SIZE512); 
+  Transform(ctx, ctx->buffer, SIZE512);
   /* perform output transformation */
   OutputTransformation(ctx);
 
@@ -332,7 +332,7 @@ static void Final(groestlHashState* ctx,
 }
 
 /* hash bit sequence */
-void groestl(const BitSequence* data, 
+void groestl(const BitSequence* data,
 		DataLength databitlen,
 		BitSequence* hashval) {
 

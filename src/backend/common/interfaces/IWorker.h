@@ -46,6 +46,7 @@ public:
     virtual const VirtualMemory *memory() const                                                     = 0;
     virtual size_t id() const                                                                       = 0;
     virtual size_t intensity() const                                                                = 0;
+    virtual size_t threads() const                                                                  = 0;
     virtual void hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const  = 0;
     virtual void jobEarlyNotification(const Job &job)                                               = 0;
     virtual void start()                                                                            = 0;

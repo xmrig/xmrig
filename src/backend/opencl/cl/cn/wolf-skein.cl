@@ -79,19 +79,19 @@ ulong8 SkeinEvenRound(ulong8 p, const ulong8 h, const ulong *t, const uint s)
 {
     SKEIN_INJECT_KEY(p, s);
     ulong4 pv0 = p.even, pv1 = p.odd;
-    
+
     SkeinMix8(&pv0, &pv1, 46, 36, 19, 37);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 33, 27, 14, 42);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 17, 49, 36, 39);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 44, 9, 54, 56);
     return(shuffle2(pv0, pv1, (ulong8)(1, 4, 2, 7, 3, 6, 0, 5)));
 }
@@ -100,19 +100,19 @@ ulong8 SkeinOddRound(ulong8 p, const ulong8 h, const ulong *t, const uint s)
 {
     SKEIN_INJECT_KEY(p, s);
     ulong4 pv0 = p.even, pv1 = p.odd;
-    
+
     SkeinMix8(&pv0, &pv1, 39, 30, 34, 24);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 13, 50, 10, 17);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 25, 29, 39, 43);
     pv0 = shuffle(pv0, (ulong4)(1, 2, 3, 0));
     pv1 = shuffle(pv1, (ulong4)(0, 3, 2, 1));
-    
+
     SkeinMix8(&pv0, &pv1, 8, 35, 56, 22);
     return(shuffle2(pv0, pv1, (ulong8)(1, 4, 2, 7, 3, 6, 0, 5)));
 }
@@ -134,7 +134,7 @@ ulong8 Skein512Block(ulong8 p, ulong8 h, ulong h8, const ulong *t)
         h.s7 = h8;
         h8 = tmp;
     }
-    
+
     SKEIN_INJECT_KEY(p, 18);
     return(p);
 }

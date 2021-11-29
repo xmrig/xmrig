@@ -50,10 +50,10 @@ along with RandomX OpenCL. If not, see <http://www.gnu.org/licenses/>.
 		.arg _.vqueue_pointer, "size_t", long
 		.arg _.aqlwrap_pointer, "size_t", long
 		.arg dataset, "uchar*", uchar*, global, const, rdonly
-		.arg scratchpad, "uchar*", uchar*, global, 
-		.arg registers, "ulong*", ulong*, global, 
+		.arg scratchpad, "uchar*", uchar*, global,
+		.arg registers, "ulong*", ulong*, global,
 		.arg rounding_modes, "uint*", uint*, global,
-		.arg programs, "uint*", uint*, global, 
+		.arg programs, "uint*", uint*, global,
 		.arg batch_size, "uint", uint
 		.arg rx_parameters, "uint", uint
 	.text
