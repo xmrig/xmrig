@@ -26,13 +26,13 @@ While individual algorithm implementations are a bit unoptimized, XMRig achieves
 
 For the same reason, XMRig can sometimes use less than 100% CPU on Ryzen 3000/5000 CPUs if it finds that running 1 thread per core is faster for some Cryptonight variants on your system.
 
-**Windows** (detailed results [here](https://imgur.com/a/GCjEWpl))
+**Windows** (detailed results [here](https://imgur.com/a/uRU1yO2))
 CPU|cpuminer-gr-avx2 (tuned), h/s|XMRig (MSVC build), h/s|Speedup
 -|-|-|-
 AMD Ryzen 7 4700U|632.6|731|+15.5%
 Intel Core i7-2600|496.4|533.6|+7.5%
 AMD Ryzen 7 3700X @ 4.1 GHz|2453.0|2469.1|+0.65%
-AMD Ryzen 5 5600X @ 4.65 GHz|2112.6|2221.2|+5.1%
+AMD Ryzen 5 5600X @ 4.65 GHz|2112.6|2313.2|+9.5%
 
 **Linux** (tested by **Delgon**, detailed results [here](https://cdn.discordapp.com/attachments/604375870236524574/913167614749048872/unknown.png))
 CPU|cpuminer-gr-avx2 (tuned), h/s|XMRig (GCC build), h/s|Speedup
