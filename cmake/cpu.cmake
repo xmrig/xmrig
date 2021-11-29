@@ -9,6 +9,18 @@ if (NOT CMAKE_SYSTEM_PROCESSOR)
     message(WARNING "CMAKE_SYSTEM_PROCESSOR not defined")
 endif()
 
+include(CheckCXXCompilerFlag)
+
+if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
+    set(VAES_SUPPORTED ON)
+else()
+    CHECK_CXX_COMPILER_FLAG("-mavx2 -mvaes" VAES_SUPPORTED)
+endif()
+
+if (NOT VAES_SUPPORTED)
+    set(WITH_VAES OFF)
+endif()
+
 if (XMRIG_64_BIT AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
     add_definitions(-DRAPIDJSON_SSE2)
 else()
@@ -29,8 +41,6 @@ if (ARM_TARGET AND ARM_TARGET GREATER 6)
     add_definitions(-DXMRIG_ARM=${ARM_TARGET})
 
     message(STATUS "Use ARM_TARGET=${ARM_TARGET} (${CMAKE_SYSTEM_PROCESSOR})")
-
-    include(CheckCXXCompilerFlag)
 
     if (ARM_TARGET EQUAL 8)
         CHECK_CXX_COMPILER_FLAG(-march=armv8-a+crypto XMRIG_ARM_CRYPTO)
