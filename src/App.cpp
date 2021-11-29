@@ -86,20 +86,21 @@ int xmrig::App::exec()
     }
 
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
-    m_controller->pre_start();
-    m_controller->config()->benchmark().set_controller(m_controller);
+    if (pool.mode() != Pool::MODE_BENCHMARK) {
+        m_controller->pre_start();
+        m_controller->config()->benchmark().set_controller(m_controller);
 
-    if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
-        if (m_controller->config()->isShouldSave()) {
-            m_controller->config()->save();
+        if (m_controller->config()->benchmark().isNewBenchRun() || m_controller->config()->isRebenchAlgo()) {
+            if (m_controller->config()->isShouldSave()) {
+                m_controller->config()->save();
+            }
+            m_controller->config()->benchmark().start();
+        } else {
+            m_controller->start();
         }
-        m_controller->config()->benchmark().start();
-    } else {
-        m_controller->start();
-    }
-#   else
-    m_controller->start();
+    } else
 #   endif
+    m_controller->start();
 
     rc = uv_run(uv_default_loop(), UV_RUN_DEFAULT);
     uv_loop_close(uv_default_loop());
