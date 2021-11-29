@@ -73,7 +73,7 @@ class MoBenchmark : public IJobResultListener {
         Job* m_bench_job[BenchAlgo::MAX];
         double m_bench_algo_perf[BenchAlgo::MAX];
 
-        std::shared_ptr<Controller> m_controller;          // to get access to config and network
+        Controller *m_controller;          // to get access to config and network
         bool m_isNewBenchRun;              // true if benchmark is need to be executed or was executed
         MoBenchmark::BenchAlgo m_bench_algo; // current perf algo we benchmark
         uint64_t m_hash_count;             // number of hashes calculated for current perf algo
@@ -93,7 +93,7 @@ class MoBenchmark : public IJobResultListener {
         MoBenchmark();
         virtual ~MoBenchmark();
 
-        void set_controller(std::shared_ptr<Controller> controller) { m_controller = controller; }
+        void set_controller(std::shared_ptr<Controller> controller) { m_controller = controller.get(); }
 
         void start(); // start benchmarks
 
