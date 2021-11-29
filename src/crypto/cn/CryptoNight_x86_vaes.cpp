@@ -179,16 +179,16 @@ NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
 
     if (props.half_mem() && !ctx->first_half) {
         const __m256i* p = reinterpret_cast<const __m256i*>(ctx->save_state);
-        xin01 = _mm256_load_si256(p + 0);
-        xin23 = _mm256_load_si256(p + 1);
-        xin45 = _mm256_load_si256(p + 2);
-        xin67 = _mm256_load_si256(p + 3);
+        xin01 = _mm256_loadu_si256(p + 0);
+        xin23 = _mm256_loadu_si256(p + 1);
+        xin45 = _mm256_loadu_si256(p + 2);
+        xin67 = _mm256_loadu_si256(p + 3);
     }
     else {
-        xin01 = _mm256_load_si256(reinterpret_cast<const __m256i*>(input + 4));
-        xin23 = _mm256_load_si256(reinterpret_cast<const __m256i*>(input + 6));
-        xin45 = _mm256_load_si256(reinterpret_cast<const __m256i*>(input + 8));
-        xin67 = _mm256_load_si256(reinterpret_cast<const __m256i*>(input + 10));
+        xin01 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + 4));
+        xin23 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + 6));
+        xin45 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + 8));
+        xin67 = _mm256_loadu_si256(reinterpret_cast<const __m256i*>(input + 10));
     }
 
     constexpr int output_increment = 64 / sizeof(__m256i);
@@ -228,10 +228,10 @@ NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
 
     if (props.half_mem() && ctx->first_half) {
         __m256i* p = reinterpret_cast<__m256i*>(ctx->save_state);
-        _mm256_store_si256(p + 0, xin01);
-        _mm256_store_si256(p + 1, xin23);
-        _mm256_store_si256(p + 2, xin45);
-        _mm256_store_si256(p + 3, xin67);
+        _mm256_storeu_si256(p + 0, xin01);
+        _mm256_storeu_si256(p + 1, xin23);
+        _mm256_storeu_si256(p + 2, xin45);
+        _mm256_storeu_si256(p + 3, xin67);
     }
 
     _mm256_zeroupper();
@@ -347,10 +347,10 @@ NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx)
 
     vaes_genkey(reinterpret_cast<__m128i*>(output) + 2, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
-    xout01 = _mm256_load_si256(output + 2);
-    xout23 = _mm256_load_si256(output + 3);
-    xout45 = _mm256_load_si256(output + 4);
-    xout67 = _mm256_load_si256(output + 5);
+    xout01 = _mm256_loadu_si256(output + 2);
+    xout23 = _mm256_loadu_si256(output + 3);
+    xout45 = _mm256_loadu_si256(output + 4);
+    xout67 = _mm256_loadu_si256(output + 5);
 
     const __m256i* input_begin = input;
     for (size_t part = 0; part < (props.half_mem() ? 2 : 1); ++part) {
@@ -390,10 +390,10 @@ NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx)
         }
     }
 
-    _mm256_store_si256(output + 2, xout01);
-    _mm256_store_si256(output + 3, xout23);
-    _mm256_store_si256(output + 4, xout45);
-    _mm256_store_si256(output + 5, xout67);
+    _mm256_storeu_si256(output + 2, xout01);
+    _mm256_storeu_si256(output + 3, xout23);
+    _mm256_storeu_si256(output + 4, xout45);
+    _mm256_storeu_si256(output + 5, xout67);
 
     _mm256_zeroupper();
 }
