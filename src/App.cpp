@@ -86,7 +86,8 @@ int xmrig::App::exec()
     }
 
 #   ifdef XMRIG_FEATURE_MO_BENCHMARK
-    if (pool.mode() != Pool::MODE_BENCHMARK) {
+    const std::vector<Pool>& pools = m_controller->config()->pools().data();
+    if (pools.size() != 1 || pools[0].mode() != Pool::MODE_BENCHMARK) {
         m_controller->pre_start();
         m_controller->config()->benchmark().set_controller(m_controller);
 
