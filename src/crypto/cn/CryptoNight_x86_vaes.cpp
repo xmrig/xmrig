@@ -30,6 +30,23 @@
 
 #ifdef __GNUC__
 #   include <x86intrin.h>
+#if !defined(__clang__) && !defined(__ICC) && __GNUC__ < 10
+static inline __m256i
+__attribute__((__always_inline__))
+  _mm256_loadu2_m128i(const __m128i* const hiaddr, const __m128i* const loaddr)
+{
+    return _mm256_inserti128_si256(
+            _mm256_castsi128_si256(_mm_loadu_si128(loaddr)), _mm_loadu_si128(hiaddr), 1);
+}
+
+static inline void
+__attribute__((__always_inline__))
+  _mm256_storeu2_m128i(__m128i* const hiaddr, __m128i* const loaddr, const __m256i a)
+{
+    _mm_storeu_si128(loaddr, _mm256_castsi256_si128(a));
+      _mm_storeu_si128(hiaddr, _mm256_extracti128_si256(a, 1));
+}
+#endif
 #else
 #   include <intrin.h>
 #endif
