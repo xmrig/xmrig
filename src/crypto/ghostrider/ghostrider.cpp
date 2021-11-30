@@ -36,6 +36,7 @@
 
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/tools/Chrono.h"
 #include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
 #include "crypto/cn/CnCtx.h"
@@ -44,7 +45,6 @@
 
 #include <thread>
 #include <atomic>
-#include <chrono>
 #include <uv.h>
 
 #ifdef XMRIG_FEATURE_HWLOC
@@ -59,10 +59,6 @@
 #   include <x86intrin.h>
 #else
 #   include <intrin.h>
-#endif
-
-#ifdef XMRIG_OS_WIN
-#   include <Windows.h>
 #endif
 
 #define CORE_HASH(i, x) static void h##i(const uint8_t* data, size_t size, uint8_t* output) \
@@ -332,17 +328,6 @@ void benchmark()
         LOG_VERBOSE("%24s |  N  | Hashrate", "Algorithm");
         LOG_VERBOSE("-------------------------|-----|-------------");
 
-#       ifdef XMRIG_OS_WIN
-        LARGE_INTEGER timer_freq;
-        QueryPerformanceFrequency(&timer_freq);
-        auto measure_time = []() { LARGE_INTEGER t; QueryPerformanceCounter(&t); return t.QuadPart; };
-        auto delta_time = [&timer_freq](LONGLONG t1, LONGLONG t2) { return static_cast<double>(t2 - t1) / timer_freq.QuadPart; };
-#       else
-        using namespace std::chrono;
-        auto measure_time = []() { return high_resolution_clock::now(); };
-        auto delta_time = [](const high_resolution_clock::time_point& t1, const high_resolution_clock::time_point& t2) { return duration_cast<nanoseconds>(t2 - t1).count() / 1e9; };
-#       endif
-
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
                 const size_t cur_scratchpad_size = cn_sizes[algo] * step;
@@ -352,26 +337,26 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                auto start_time = measure_time();
+                double start_time = Chrono::highResolutionMSecs();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    auto t1 = measure_time();
+                    double t1 = Chrono::highResolutionMSecs();
 
                     // Stop after 15 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (delta_time(start_time, t1) >= 0.015)) {
+                    if ((iter >= 10) && (t1 - start_time >= 15.0)) {
                         break;
                     }
 
                     f(buf, sizeof(buf), hash, ctx, 0);
 
-                    const double dt = delta_time(t1, measure_time());
+                    const double dt = Chrono::highResolutionMSecs() - t1;
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
                 }
 
-                const double hashrate = step / min_dt;
+                const double hashrate = step * 1e3 / min_dt;
                 LOG_VERBOSE("%24s | %" PRIu64 "x1 | %.2f h/s", cn_names[algo], step, hashrate);
 
                 if (hashrate > tune8MB[algo].hashrate) {
@@ -401,14 +386,14 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                auto start_time = measure_time();
+                double start_time = Chrono::highResolutionMSecs();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    auto t1 = measure_time();
+                    double t1 = Chrono::highResolutionMSecs();
 
                     // Stop after 30 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (delta_time(start_time, t1) >= 0.03)) {
+                    if ((iter >= 10) && (t1 - start_time >= 30.0)) {
                         break;
                     }
 
@@ -416,13 +401,13 @@ void benchmark()
                     f(buf, sizeof(buf), hash, ctx, 0);
                     helper->wait();
 
-                    const double dt = delta_time(t1, measure_time());
+                    const double dt = Chrono::highResolutionMSecs() - t1;
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
                 }
 
-                const double hashrate = step * 2.0 / min_dt * 1.0075;
+                const double hashrate = step * 2e3 / min_dt * 1.0075;
                 LOG_VERBOSE("%24s | %" PRIu64 "x2 | %.2f h/s", cn_names[algo], step, hashrate);
 
                 if (hashrate > tune8MB[algo].hashrate) {
