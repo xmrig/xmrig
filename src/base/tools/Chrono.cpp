@@ -16,42 +16,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_CHRONO_H
-#define XMRIG_CHRONO_H
+#include "Chrono.h"
 
 
-#include <chrono>
+#ifdef XMRIG_OS_WIN
+#   include <Windows.h>
+#endif
 
 
 namespace xmrig {
 
 
-class Chrono
+double Chrono::highResolutionMSecs()
 {
-public:
-    static double highResolutionMSecs();
-
-
-    static inline uint64_t steadyMSecs()
-    {
-        using namespace std::chrono;
-        if (high_resolution_clock::is_steady) {
-            return static_cast<uint64_t>(time_point_cast<milliseconds>(high_resolution_clock::now()).time_since_epoch().count());
-        }
-
-        return static_cast<uint64_t>(time_point_cast<milliseconds>(steady_clock::now()).time_since_epoch().count());
-    }
-
-
-    static inline uint64_t currentMSecsSinceEpoch()
-    {
-        using namespace std::chrono;
-
-        return static_cast<uint64_t>(time_point_cast<milliseconds>(system_clock::now()).time_since_epoch().count());
-    }
-};
+#   ifdef XMRIG_OS_WIN
+    LARGE_INTEGER f, t;
+    QueryPerformanceFrequency(&f);
+    QueryPerformanceCounter(&t);
+    return static_cast<double>(t.QuadPart) * 1e3 / f.QuadPart;
+#   else
+    using namespace std::chrono;
+    return static_cast<uint64_t>(duration_cast<nanoseconds>(high_resolution_clock::now().time_since_epoch()).count()) / 1e6;
+#   endif
+}
 
 
 } /* namespace xmrig */
-
-#endif /* XMRIG_CHRONO_H */
