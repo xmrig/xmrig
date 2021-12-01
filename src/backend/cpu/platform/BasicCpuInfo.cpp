@@ -340,6 +340,12 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_GPU
+    if (algorithm == Algorithm::CN_GPU) {
+        return count_limit;
+    }
+#   endif
+
 #   ifdef XMRIG_ALGO_RANDOMX
     if (f == Algorithm::RANDOM_X) {
         if (algorithm == Algorithm::RX_WOW) {
@@ -371,12 +377,6 @@ xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint3
             threads.add(i, 0);
         }
         return threads;
-    }
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_GPU
-    if (algorithm == Algorithm::CN_GPU) {
-        return count_limit;
     }
 #   endif
 

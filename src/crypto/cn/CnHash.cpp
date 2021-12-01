@@ -290,6 +290,12 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_UPX2);
 #   endif
 
+#   ifdef XMRIG_ALGO_CN_GPU
+    m_map[Algorithm::CN_GPU] = new cn_hash_fun_array{};
+    m_map[Algorithm::CN_GPU]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
+    m_map[Algorithm::CN_GPU]->data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
+#   endif
+
 #   ifdef XMRIG_ALGO_ARGON2
     m_map[Algorithm::AR2_CHUKWA] = new cn_hash_fun_array{};
     m_map[Algorithm::AR2_CHUKWA]->data[AV_SINGLE][Assembly::NONE]         = argon2::single_hash<Algorithm::AR2_CHUKWA>;
@@ -308,12 +314,6 @@ xmrig::CnHash::CnHash()
     m_map[Algorithm::ASTROBWT_DERO] = new cn_hash_fun_array{};
     m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
     m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
-#   endif
-
-#   ifdef XMRIG_ALGO_CN_GPU
-    m_map[Algorithm::CN_GPU] = new cn_hash_fun_array{};
-    m_map[Algorithm::CN_GPU]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash_gpu<Algorithm::CN_GPU, false>;
-    m_map[Algorithm::CN_GPU]->data[AV_SINGLE_SOFT][Assembly::NONE] = cryptonight_single_hash_gpu<Algorithm::CN_GPU, true>;
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
