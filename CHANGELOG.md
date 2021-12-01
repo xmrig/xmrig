@@ -1,3 +1,12 @@
+# v6.16.2
+- [#2751](https://github.com/xmrig/xmrig/pull/2751) Fixed crash on CPUs supporting VAES and running GCC-compiled xmrig
+- [#2761](https://github.com/xmrig/xmrig/pull/2761) Fixed broken auto-tuning in GCC Windows build
+- [#2769](https://github.com/xmrig/xmrig/pull/2769) Performance fixes:
+  - Fixed several performance bottlenecks introduced in v6.16.1
+  - Fixed overall GCC-compiled build performance, it's the same speed as MSVC build now
+  - **Linux builds are up to 10% faster now compared to v6.16.0 GCC build**
+  - **Windows builds are up to 5% faster now compared to v6.16.0 MSVC build**
+
 # v6.16.1
 - [#2729](https://github.com/xmrig/xmrig/pull/2729) GhostRider fixes:
   - Added average hashrate display
