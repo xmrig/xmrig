@@ -30,6 +30,12 @@
 #endif
 
 
+#include "crypto/cn/CryptoNight_monero.h"
+#ifdef XMRIG_VAES
+#   include "crypto/cn/CryptoNight_x86_vaes.h"
+#endif
+
+
 #include "backend/cpu/platform/BasicCpuInfo.h"
 #include "3rdparty/rapidjson/document.h"
 #include "crypto/common/Assembly.h"
@@ -294,6 +300,9 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         }
     }
 #   endif
+
+    cn_sse41_enabled = has(FLAG_SSE41);
+    cn_vaes_enabled = has(FLAG_VAES);
 }
 
 

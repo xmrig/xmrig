@@ -162,12 +162,9 @@ static FORCEINLINE void vaes_round(__m256i key, __m256i& x0, __m256i& x1, __m256
 namespace xmrig {
 
 
-template<Algorithm::Id ALGO>
-NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
+NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx, size_t memory, bool half_mem)
 {
-    constexpr CnAlgo<ALGO> props;
-
-    constexpr size_t N = (props.memory() / sizeof(__m256i)) / (props.half_mem() ? 2 : 1);
+    const size_t N = (memory / sizeof(__m256i)) / (half_mem ? 2 : 1);
 
     __m256i xin01, xin23, xin45, xin67;
     __m256i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -177,7 +174,7 @@ NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
 
     vaes_genkey(input, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
-    if (props.half_mem() && !ctx->first_half) {
+    if (half_mem && !ctx->first_half) {
         const __m256i* p = reinterpret_cast<const __m256i*>(ctx->save_state);
         xin01 = _mm256_loadu_si256(p + 0);
         xin23 = _mm256_loadu_si256(p + 1);
@@ -226,7 +223,7 @@ NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
         prefetch_ptr = output;
     }
 
-    if (props.half_mem() && ctx->first_half) {
+    if (half_mem && ctx->first_half) {
         __m256i* p = reinterpret_cast<__m256i*>(ctx->save_state);
         _mm256_storeu_si256(p + 0, xin01);
         _mm256_storeu_si256(p + 1, xin23);
@@ -238,12 +235,9 @@ NOINLINE void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx)
 }
 
 
-template<Algorithm::Id ALGO>
-NOINLINE void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2)
+NOINLINE void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2, size_t memory, bool half_mem)
 {
-    constexpr CnAlgo<ALGO> props;
-
-    constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
+    const size_t N = (memory / sizeof(__m128i)) / (half_mem ? 2 : 1);
 
     __m256i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
     __m256i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -257,7 +251,7 @@ NOINLINE void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonig
     vaes_genkey_double(input1, input2, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
     {
-        const bool b = props.half_mem() && !ctx1->first_half && !ctx2->first_half;
+        const bool b = half_mem && !ctx1->first_half && !ctx2->first_half;
         const __m128i* p1 = b ? reinterpret_cast<const __m128i*>(ctx1->save_state) : (input1 + 4);
         const __m128i* p2 = b ? reinterpret_cast<const __m128i*>(ctx2->save_state) : (input2 + 4);
         xin0 = _mm256_loadu2_m128i(p2 + 0, p1 + 0);
@@ -315,7 +309,7 @@ NOINLINE void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonig
         prefetch_ptr2 = output2;
     }
 
-    if (props.half_mem() && ctx1->first_half && ctx2->first_half) {
+    if (half_mem && ctx1->first_half && ctx2->first_half) {
         __m128i* p1 = reinterpret_cast<__m128i*>(ctx1->save_state);
         __m128i* p2 = reinterpret_cast<__m128i*>(ctx2->save_state);
         _mm256_storeu2_m128i(p2 + 0, p1 + 0, xin0);
@@ -332,12 +326,9 @@ NOINLINE void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonig
 }
 
 
-template<Algorithm::Id ALGO>
-NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx)
+NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx, size_t memory, bool half_mem)
 {
-    constexpr CnAlgo<ALGO> props;
-
-    constexpr size_t N = (props.memory() / sizeof(__m256i)) / (props.half_mem() ? 2 : 1);
+    const size_t N = (memory / sizeof(__m256i)) / (half_mem ? 2 : 1);
 
     __m256i xout01, xout23, xout45, xout67;
     __m256i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -353,11 +344,11 @@ NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx)
     xout67 = _mm256_loadu_si256(output + 5);
 
     const __m256i* input_begin = input;
-    for (size_t part = 0; part < (props.half_mem() ? 2 : 1); ++part) {
-        if (props.half_mem() && (part == 1)) {
+    for (size_t part = 0; part < (half_mem ? 2 : 1); ++part) {
+        if (half_mem && (part == 1)) {
             input = input_begin;
             ctx->first_half = false;
-            cn_explode_scratchpad_vaes<ALGO>(ctx);
+            cn_explode_scratchpad_vaes(ctx, memory, half_mem);
         }
 
         for (size_t i = 0; i < N;) {
@@ -399,12 +390,9 @@ NOINLINE void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx)
 }
 
 
-template<Algorithm::Id ALGO>
-NOINLINE void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2)
+NOINLINE void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2, size_t memory, bool half_mem)
 {
-    constexpr CnAlgo<ALGO> props;
-
-    constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
+    const size_t N = (memory / sizeof(__m128i)) / (half_mem ? 2 : 1);
 
     __m256i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m256i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
@@ -428,13 +416,13 @@ NOINLINE void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonig
 
     const __m128i* input_begin1 = input1;
     const __m128i* input_begin2 = input2;
-    for (size_t part = 0; part < (props.half_mem() ? 2 : 1); ++part) {
-        if (props.half_mem() && (part == 1)) {
+    for (size_t part = 0; part < (half_mem ? 2 : 1); ++part) {
+        if (half_mem && (part == 1)) {
             input1 = input_begin1;
             input2 = input_begin2;
             ctx1->first_half = false;
             ctx2->first_half = false;
-            cn_explode_scratchpad_vaes_double<ALGO>(ctx1, ctx2);
+            cn_explode_scratchpad_vaes_double(ctx1, ctx2, memory, half_mem);
         }
 
         for (size_t i = 0; i < N;) {
@@ -485,47 +473,6 @@ NOINLINE void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonig
 
     _mm256_zeroupper();
 }
-
-
-template<Algorithm::Id ALGO>
-void VAES_Instance()
-{
-    cn_explode_scratchpad_vaes<ALGO>(nullptr);
-    cn_explode_scratchpad_vaes_double<ALGO>(nullptr, nullptr);
-    cn_implode_scratchpad_vaes<ALGO>(nullptr);
-    cn_implode_scratchpad_vaes_double<ALGO>(nullptr, nullptr);
-}
-
-
-void (*vaes_instances[])() = {
-    VAES_Instance<Algorithm::CN_0>,
-    VAES_Instance<Algorithm::CN_1>,
-    VAES_Instance<Algorithm::CN_2>,
-    VAES_Instance<Algorithm::CN_R>,
-    VAES_Instance<Algorithm::CN_FAST>,
-    VAES_Instance<Algorithm::CN_HALF>,
-    VAES_Instance<Algorithm::CN_XAO>,
-    VAES_Instance<Algorithm::CN_RTO>,
-    VAES_Instance<Algorithm::CN_RWZ>,
-    VAES_Instance<Algorithm::CN_ZLS>,
-    VAES_Instance<Algorithm::CN_DOUBLE>,
-    VAES_Instance<Algorithm::CN_CCX>,
-    VAES_Instance<Algorithm::CN_LITE_0>,
-    VAES_Instance<Algorithm::CN_LITE_1>,
-    VAES_Instance<Algorithm::CN_HEAVY_0>,
-    VAES_Instance<Algorithm::CN_HEAVY_TUBE>,
-    VAES_Instance<Algorithm::CN_HEAVY_XHV>,
-    VAES_Instance<Algorithm::CN_PICO_0>,
-    VAES_Instance<Algorithm::CN_PICO_TLO>,
-    VAES_Instance<Algorithm::CN_UPX2>,
-    VAES_Instance<Algorithm::CN_GPU>,
-    VAES_Instance<Algorithm::CN_GR_0>,
-    VAES_Instance<Algorithm::CN_GR_1>,
-    VAES_Instance<Algorithm::CN_GR_2>,
-    VAES_Instance<Algorithm::CN_GR_3>,
-    VAES_Instance<Algorithm::CN_GR_4>,
-    VAES_Instance<Algorithm::CN_GR_5>,
-};
 
 
 } // xmrig
