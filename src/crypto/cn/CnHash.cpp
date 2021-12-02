@@ -55,6 +55,10 @@
     } while (0)
 
 
+bool cn_sse41_enabled = false;
+bool cn_vaes_enabled = false;
+
+
 #ifdef XMRIG_FEATURE_ASM
 #   define ADD_FN_ASM(algo) do {                                                                                    \
         m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
@@ -64,10 +68,6 @@
         m_map[algo]->data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
         m_map[algo]->data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
     } while (0)
-
-
-bool cn_sse41_enabled = false;
-bool cn_vaes_enabled = false;
 
 
 namespace xmrig {
