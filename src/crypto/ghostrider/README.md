@@ -4,8 +4,6 @@
 
 No tuning is required - auto-config works well on most CPUs!
 
-**Note for Windows users: MSVC binary is ~5% faster than GCC binary!**
-
 ### Sample command line (non-SSL port)
 ```
 xmrig -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS
@@ -26,16 +24,16 @@ While individual algorithm implementations are a bit unoptimized, XMRig achieves
 
 For the same reason, XMRig can sometimes use less than 100% CPU on Ryzen 3000/5000 CPUs if it finds that running 1 thread per core is faster for some Cryptonight variants on your system.
 
-**Windows** (detailed results [here](https://imgur.com/a/uRU1yO2))
-CPU|cpuminer-gr-avx2 (tuned), h/s|XMRig (MSVC build), h/s|Speedup
+**Windows** (detailed results [here](https://imgur.com/a/0njIVVW))
+CPU|cpuminer-gr-avx2 1.2.4.1 (tuned), h/s|XMRig v6.16.2 (MSVC build), h/s|Speedup
 -|-|-|-
-AMD Ryzen 7 4700U|632.6|731|+15.5%
-Intel Core i7-2600|496.4|533.6|+7.5%
-AMD Ryzen 7 3700X @ 4.1 GHz|2453.0|2469.1|+0.65%
-AMD Ryzen 5 5600X @ 4.65 GHz|2112.6|2313.2|+9.5%
+AMD Ryzen 7 4700U|632.6|733.1|+15.89%
+Intel Core i7-2600|496.4|554.6|+11.72%
+AMD Ryzen 7 3700X @ 4.1 GHz|2453.0|2496.5|+1.77%
+AMD Ryzen 5 5600X @ 4.65 GHz|2112.6|2337.5|+10.65%
 
-**Linux** (tested by **Delgon**, detailed results [here](https://cdn.discordapp.com/attachments/604375870236524574/913167614749048872/unknown.png))
-CPU|cpuminer-gr-avx2 (tuned), h/s|XMRig (GCC build), h/s|Speedup
+**Linux (outdated)** (tested by **Delgon**, detailed results [here](https://cdn.discordapp.com/attachments/604375870236524574/913167614749048872/unknown.png))
+CPU|cpuminer-gr-avx2 1.2.4.1 (tuned), h/s|XMRig v6.16.0 (GCC build), h/s|Speedup
 -|-|-|-
 AMD Ryzen 9 3900X|3746.51|3604.89|-3.78%
 2xIntel Xeon E5-2698v3|2563.4|2638.38|+2.925%

@@ -36,10 +36,10 @@ struct cryptonight_ctx;
 namespace xmrig {
 
 
-template<Algorithm::Id ALGO> void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx);
-template<Algorithm::Id ALGO> void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2);
-template<Algorithm::Id ALGO> void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx);
-template<Algorithm::Id ALGO> void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2);
+void cn_explode_scratchpad_vaes(cryptonight_ctx* ctx, size_t memory, bool half_mem);
+void cn_explode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2, size_t memory, bool half_mem);
+void cn_implode_scratchpad_vaes(cryptonight_ctx* ctx, size_t memory, bool half_mem);
+void cn_implode_scratchpad_vaes_double(cryptonight_ctx* ctx1, cryptonight_ctx* ctx2, size_t memory, bool half_mem);
 
 
 } // xmrig
