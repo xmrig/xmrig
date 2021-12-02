@@ -1,12 +1,22 @@
+# v6.16.2
+- [#2751](https://github.com/xmrig/xmrig/pull/2751) Fixed crash on CPUs supporting VAES and running GCC-compiled xmrig.
+- [#2761](https://github.com/xmrig/xmrig/pull/2761) Fixed broken auto-tuning in GCC Windows build.
+- [#2771](https://github.com/xmrig/xmrig/issues/2771) Fixed environment variables support for GhostRider and KawPow. 
+- [#2769](https://github.com/xmrig/xmrig/pull/2769) Performance fixes:
+  - Fixed several performance bottlenecks introduced in v6.16.1.
+  - Fixed overall GCC-compiled build performance, it's the same speed as MSVC build now.
+  - **Linux builds are up to 10% faster now compared to v6.16.0 GCC build.**
+  - **Windows builds are up to 5% faster now compared to v6.16.0 MSVC build.**
+
 # v6.16.1
 - [#2729](https://github.com/xmrig/xmrig/pull/2729) GhostRider fixes:
-  - Added average hashrate display
-  - Fixed the number of threads shown at startup
-  - Fixed `--threads` or `-t` command line option (but `--cpu-max-threads-hint` is recommended to use)
+  - Added average hashrate display.
+  - Fixed the number of threads shown at startup.
+  - Fixed `--threads` or `-t` command line option (but `--cpu-max-threads-hint` is recommended to use).
 - [#2738](https://github.com/xmrig/xmrig/pull/2738) GhostRider fixes:
-  - Fixed "difficulty is not a number" error when diff is high on some pools
-  - Fixed GhostRider compilation when WITH_KAWPOW=OFF
-- [#2740](https://github.com/xmrig/xmrig/pull/2740) Added VAES support for Cryptonight variants **+4% speedup on Zen3**
+  - Fixed "difficulty is not a number" error when diff is high on some pools.
+  - Fixed GhostRider compilation when `WITH_KAWPOW=OFF`.
+- [#2740](https://github.com/xmrig/xmrig/pull/2740) Added VAES support for Cryptonight variants **+4% speedup on Zen3**.
   - VAES instructions are available on Intel Ice Lake/AMD Zen3 and newer CPUs.
   - +4% speedup on Ryzen 5 5600X.
 

@@ -55,6 +55,10 @@
     } while (0)
 
 
+bool cn_sse41_enabled = false;
+bool cn_vaes_enabled = false;
+
+
 #ifdef XMRIG_FEATURE_ASM
 #   define ADD_FN_ASM(algo) do {                                                                                    \
         m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
@@ -97,6 +101,27 @@ cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 cn_mainloop_fun        cn_upx2_mainloop_asm                       = nullptr;
 cn_mainloop_fun        cn_upx2_double_mainloop_asm                = nullptr;
 
+cn_mainloop_fun        cn_gr0_single_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr1_single_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr2_single_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr3_single_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr4_single_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr5_single_mainloop_asm                 = nullptr;
+
+cn_mainloop_fun        cn_gr0_double_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr1_double_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr2_double_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr3_double_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr4_double_mainloop_asm                 = nullptr;
+cn_mainloop_fun        cn_gr5_double_mainloop_asm                 = nullptr;
+
+cn_mainloop_fun        cn_gr0_quad_mainloop_asm                   = nullptr;
+cn_mainloop_fun        cn_gr1_quad_mainloop_asm                   = nullptr;
+cn_mainloop_fun        cn_gr2_quad_mainloop_asm                   = nullptr;
+cn_mainloop_fun        cn_gr3_quad_mainloop_asm                   = nullptr;
+cn_mainloop_fun        cn_gr4_quad_mainloop_asm                   = nullptr;
+cn_mainloop_fun        cn_gr5_quad_mainloop_asm                   = nullptr;
+
 
 template<Algorithm::Id SOURCE_ALGO = Algorithm::CN_2, typename T, typename U>
 static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t mask = CnAlgo<Algorithm::CN_HALF>().mask())
@@ -136,7 +161,7 @@ static void patchCode(T dst, U src, const uint32_t iterations, const uint32_t ma
 
 static void patchAsmVariants()
 {
-    const int allocation_size = 131072;
+    constexpr size_t allocation_size = 0x20000;
     auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size, false));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
@@ -171,6 +196,29 @@ static void patchAsmVariants()
 #   ifdef XMRIG_ALGO_CN_FEMTO
     cn_upx2_mainloop_asm                        = reinterpret_cast<cn_mainloop_fun>         (base + 0x14000);
     cn_upx2_double_mainloop_asm                 = reinterpret_cast<cn_mainloop_fun>         (base + 0x15000);
+#   endif
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    cn_gr0_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x16000);
+    cn_gr1_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x16800);
+    cn_gr2_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x17000);
+    cn_gr3_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x17800);
+    cn_gr4_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x18000);
+    cn_gr5_single_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x18800);
+
+    cn_gr0_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x19000);
+    cn_gr1_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x19800);
+    cn_gr2_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1A000);
+    cn_gr3_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1A800);
+    cn_gr4_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1B000);
+    cn_gr5_double_mainloop_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1B800);
+
+    cn_gr0_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1C000);
+    cn_gr1_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1C800);
+    cn_gr2_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1D000);
+    cn_gr3_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1D800);
+    cn_gr4_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1E000);
+    cn_gr5_quad_mainloop_asm                    = reinterpret_cast<cn_mainloop_fun>         (base + 0x1E800);
 #   endif
 
     {
@@ -230,7 +278,30 @@ static void patchAsmVariants()
         patchCode<Algorithm::CN_RWZ>(cn_upx2_mainloop_asm,        cnv2_rwz_mainloop_asm,            ITER,   MASK);
         patchCode<Algorithm::CN_RWZ>(cn_upx2_double_mainloop_asm, cnv2_rwz_double_mainloop_asm,     ITER,   MASK);
     }
-#endif
+#   endif
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    patchCode<Algorithm::CN_1>(cn_gr0_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_0>().iterations(), CnAlgo<Algorithm::CN_GR_0>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr1_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_1>().iterations(), CnAlgo<Algorithm::CN_GR_1>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr2_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_2>().iterations(), CnAlgo<Algorithm::CN_GR_2>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr3_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_3>().iterations(), CnAlgo<Algorithm::CN_GR_3>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr4_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_4>().iterations(), CnAlgo<Algorithm::CN_GR_4>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr5_single_mainloop_asm, cnv1_single_mainloop_asm, CnAlgo<Algorithm::CN_GR_5>().iterations(), CnAlgo<Algorithm::CN_GR_5>().mask());
+
+    patchCode<Algorithm::CN_1>(cn_gr0_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_0>().iterations(), CnAlgo<Algorithm::CN_GR_0>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr1_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_1>().iterations(), CnAlgo<Algorithm::CN_GR_1>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr2_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_2>().iterations(), CnAlgo<Algorithm::CN_GR_2>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr3_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_3>().iterations(), CnAlgo<Algorithm::CN_GR_3>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr4_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_4>().iterations(), CnAlgo<Algorithm::CN_GR_4>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr5_double_mainloop_asm, cnv1_double_mainloop_asm, CnAlgo<Algorithm::CN_GR_5>().iterations(), CnAlgo<Algorithm::CN_GR_5>().mask());
+
+    patchCode<Algorithm::CN_1>(cn_gr0_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_0>().iterations(), CnAlgo<Algorithm::CN_GR_0>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr1_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_1>().iterations(), CnAlgo<Algorithm::CN_GR_1>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr2_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_2>().iterations(), CnAlgo<Algorithm::CN_GR_2>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr3_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_3>().iterations(), CnAlgo<Algorithm::CN_GR_3>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr4_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_4>().iterations(), CnAlgo<Algorithm::CN_GR_4>().mask());
+    patchCode<Algorithm::CN_1>(cn_gr5_quad_mainloop_asm, cnv1_quad_mainloop_asm, CnAlgo<Algorithm::CN_GR_5>().iterations(), CnAlgo<Algorithm::CN_GR_5>().mask());
+#   endif
 
     VirtualMemory::protectRX(base, allocation_size);
     VirtualMemory::flushInstructionCache(base, allocation_size);

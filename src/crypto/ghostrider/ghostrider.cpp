@@ -36,6 +36,7 @@
 
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
+#include "base/tools/Chrono.h"
 #include "backend/cpu/Cpu.h"
 #include "crypto/cn/CnHash.h"
 #include "crypto/cn/CnCtx.h"
@@ -44,7 +45,6 @@
 
 #include <thread>
 #include <atomic>
-#include <chrono>
 #include <uv.h>
 
 #ifdef XMRIG_FEATURE_HWLOC
@@ -328,8 +328,6 @@ void benchmark()
         LOG_VERBOSE("%24s |  N  | Hashrate", "Algorithm");
         LOG_VERBOSE("-------------------------|-----|-------------");
 
-        using namespace std::chrono;
-
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
                 const size_t cur_scratchpad_size = cn_sizes[algo] * step;
@@ -339,26 +337,26 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                const high_resolution_clock::time_point start_time = high_resolution_clock::now();
+                double start_time = Chrono::highResolutionMSecs();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    const high_resolution_clock::time_point t1 = high_resolution_clock::now();
+                    double t1 = Chrono::highResolutionMSecs();
 
                     // Stop after 15 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (duration_cast<milliseconds>(t1 - start_time).count() >= 15)) {
+                    if ((iter >= 10) && (t1 - start_time >= 15.0)) {
                         break;
                     }
 
                     f(buf, sizeof(buf), hash, ctx, 0);
 
-                    const double dt = duration_cast<nanoseconds>(high_resolution_clock::now() - t1).count() / 1e9;
+                    const double dt = Chrono::highResolutionMSecs() - t1;
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
                 }
 
-                const double hashrate = step / min_dt;
+                const double hashrate = step * 1e3 / min_dt;
                 LOG_VERBOSE("%24s | %" PRIu64 "x1 | %.2f h/s", cn_names[algo], step, hashrate);
 
                 if (hashrate > tune8MB[algo].hashrate) {
@@ -388,14 +386,14 @@ void benchmark()
 
                 auto f = CnHash::fn(cn_hash[algo], av[step], Assembly::AUTO);
 
-                const high_resolution_clock::time_point start_time = high_resolution_clock::now();
+                double start_time = Chrono::highResolutionMSecs();
 
                 double min_dt = 1e10;
                 for (uint32_t iter = 0;; ++iter) {
-                    const high_resolution_clock::time_point t1 = high_resolution_clock::now();
+                    double t1 = Chrono::highResolutionMSecs();
 
                     // Stop after 30 milliseconds, but only if at least 10 iterations were done
-                    if ((iter >= 10) && (duration_cast<milliseconds>(t1 - start_time).count() >= 30)) {
+                    if ((iter >= 10) && (t1 - start_time >= 30.0)) {
                         break;
                     }
 
@@ -403,13 +401,13 @@ void benchmark()
                     f(buf, sizeof(buf), hash, ctx, 0);
                     helper->wait();
 
-                    const double dt = duration_cast<nanoseconds>(high_resolution_clock::now() - t1).count() / 1e9;
+                    const double dt = Chrono::highResolutionMSecs() - t1;
                     if (dt < min_dt) {
                         min_dt = dt;
                     }
                 }
 
-                const double hashrate = step * 2.0 / min_dt * 1.0075;
+                const double hashrate = step * 2e3 / min_dt * 1.0075;
                 LOG_VERBOSE("%24s | %" PRIu64 "x2 | %.2f h/s", cn_names[algo], step, hashrate);
 
                 if (hashrate > tune8MB[algo].hashrate) {

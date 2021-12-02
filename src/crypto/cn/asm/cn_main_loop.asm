@@ -1,10 +1,34 @@
 _TEXT_CNV2_MAINLOOP SEGMENT PAGE READ EXECUTE
+PUBLIC cnv1_single_mainloop_asm
+PUBLIC cnv1_double_mainloop_asm
+PUBLIC cnv1_quad_mainloop_asm
 PUBLIC cnv2_mainloop_ivybridge_asm
 PUBLIC cnv2_mainloop_ryzen_asm
 PUBLIC cnv2_mainloop_bulldozer_asm
 PUBLIC cnv2_double_mainloop_sandybridge_asm
 PUBLIC cnv2_rwz_mainloop_asm
 PUBLIC cnv2_rwz_double_mainloop_asm
+
+ALIGN(64)
+cnv1_single_mainloop_asm PROC
+	INCLUDE cn1/cnv1_single_main_loop.inc
+	ret 0
+	mov eax, 3735929054
+cnv1_single_mainloop_asm ENDP
+
+ALIGN(64)
+cnv1_double_mainloop_asm PROC
+	INCLUDE cn1/cnv1_double_main_loop.inc
+	ret 0
+	mov eax, 3735929054
+cnv1_double_mainloop_asm ENDP
+
+ALIGN(64)
+cnv1_quad_mainloop_asm PROC
+	INCLUDE cn1/cnv1_quad_main_loop.inc
+	ret 0
+	mov eax, 3735929054
+cnv1_quad_mainloop_asm ENDP
 
 ALIGN(64)
 cnv2_mainloop_ivybridge_asm PROC

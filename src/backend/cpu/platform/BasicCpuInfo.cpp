@@ -30,6 +30,12 @@
 #endif
 
 
+#include "crypto/cn/CryptoNight_monero.h"
+#ifdef XMRIG_VAES
+#   include "crypto/cn/CryptoNight_x86_vaes.h"
+#endif
+
+
 #include "backend/cpu/platform/BasicCpuInfo.h"
 #include "3rdparty/rapidjson/document.h"
 #include "crypto/common/Assembly.h"
@@ -140,7 +146,7 @@ static inline bool has_osxsave()    { return has_feature(PROCESSOR_INFO,        
 static inline bool has_aes_ni()     { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 25); }
 static inline bool has_avx()        { return has_feature(PROCESSOR_INFO,        ECX_Reg, 1 << 28) && has_osxsave() && has_xcr_avx(); }
 static inline bool has_avx2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 5) && has_osxsave() && has_xcr_avx(); }
-static inline bool has_vaes()       { return has_feature(EXTENDED_FEATURES,     ECX_Reg, 1 << 9); }
+static inline bool has_vaes()       { return has_feature(EXTENDED_FEATURES,     ECX_Reg, 1 << 9) && has_osxsave() && has_xcr_avx(); }
 static inline bool has_avx512f()    { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 16) && has_osxsave() && has_xcr_avx512(); }
 static inline bool has_bmi2()       { return has_feature(EXTENDED_FEATURES,     EBX_Reg, 1 << 8); }
 static inline bool has_pdpe1gb()    { return has_feature(PROCESSOR_EXT_INFO,    EDX_Reg, 1 << 26); }
@@ -294,6 +300,9 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         }
     }
 #   endif
+
+    cn_sse41_enabled = has(FLAG_SSE41);
+    cn_vaes_enabled = has(FLAG_VAES);
 }
 
 

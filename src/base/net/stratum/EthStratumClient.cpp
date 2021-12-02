@@ -73,7 +73,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     auto& allocator = doc.GetAllocator();
 
     Value params(kArrayType);
-    params.PushBack(m_pool.user().toJSON(), allocator);
+    params.PushBack(m_user.toJSON(), allocator);
     params.PushBack(result.jobId.toJSON(), allocator);
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -471,8 +471,8 @@ void xmrig::EthStratumClient::authorize()
     auto &allocator = doc.GetAllocator();
 
     Value params(kArrayType);
-    params.PushBack(m_pool.user().toJSON(), allocator);
-    params.PushBack(m_pool.password().toJSON(), allocator);
+    params.PushBack(m_user.toJSON(), allocator);
+    params.PushBack(m_password.toJSON(), allocator);
 
     JsonRequest::create(doc, m_sequence, "mining.authorize", params);
 

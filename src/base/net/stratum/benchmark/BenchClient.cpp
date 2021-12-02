@@ -50,6 +50,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (m_benchmark->algorithm() == Algorithm::GHOSTRIDER_RTM) {
+        const uint32_t q = (benchmark->rotation() / 20) & 1;
         const uint32_t r = benchmark->rotation() % 20;
 
         static constexpr uint32_t indices[20][3] = {
@@ -75,9 +76,9 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
              { 3, 4, 5 },
         };
 
-        blob[ 8] = '0' + indices[r][1];
+        blob[ 8] = '0' + indices[r][q ? 2 : 1];
         blob[ 9] = '0' + indices[r][0];
-        blob[11] = '0' + indices[r][2];
+        blob[11] = '0' + indices[r][q ? 1 : 2];
     }
 #   endif
 

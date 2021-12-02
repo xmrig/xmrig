@@ -55,7 +55,7 @@ public:
     size_t threads() const override
     {
 #       ifdef XMRIG_ALGO_GHOSTRIDER
-        return m_ghHelper ? 2 : 1;
+        return ((m_algorithm.family() == Algorithm::GHOSTRIDER) && m_ghHelper) ? 2 : 1;
 #       else
         return 1;
 #       endif
