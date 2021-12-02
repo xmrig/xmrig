@@ -634,12 +634,15 @@ static inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
     cx = _mm_xor_si128(cx, _mm_cvttps_epi32(nc));
 }
 
+#ifdef XMRIG_FEATURE_ASM
 template<Algorithm::Id ALGO>
-void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height);
+static void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height);
+#endif
 
 template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
     if (!SOFT_AES) {
         switch (ALGO) {
         case Algorithm::CN_GR_0:
@@ -658,6 +661,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             break;
         }
     }
+#   endif
 
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
@@ -1137,6 +1141,7 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 namespace xmrig {
 
 
+#ifdef XMRIG_FEATURE_ASM
 template<Algorithm::Id ALGO>
 static NOINLINE void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height)
 {
@@ -1233,11 +1238,13 @@ static NOINLINE void cryptonight_double_hash_gr_sse41(const uint8_t *__restrict_
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
     extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
 }
+#endif
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
     if (!SOFT_AES) {
         switch (ALGO) {
         case Algorithm::CN_GR_0:
@@ -1256,6 +1263,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             break;
         }
     }
+#   endif
 
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
@@ -1516,6 +1524,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
 }
 
 
+#ifdef XMRIG_FEATURE_ASM
 template<Algorithm::Id ALGO>
 static NOINLINE void cryptonight_quad_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height)
 {
@@ -1591,6 +1600,7 @@ static NOINLINE void cryptonight_quad_hash_gr_sse41(const uint8_t* __restrict__ 
     extra_hashes[ctx[2]->state[0] & 3](ctx[2]->state, 200, output + 64);
     extra_hashes[ctx[3]->state[0] & 3](ctx[3]->state, 200, output + 96);
 }
+#endif
 
 
 #define CN_STEP1(a, b0, b1, c, l, ptr, idx, conc_var) \
@@ -1786,6 +1796,7 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
     if (!SOFT_AES) {
         switch (ALGO) {
         case Algorithm::CN_GR_0:
@@ -1804,6 +1815,7 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
             break;
         }
     }
+#   endif
 
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
