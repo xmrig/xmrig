@@ -16,5 +16,8 @@
 :: Smaller pools also often have smaller fees/payout limits.
 
 cd %~dp0
+:: Use this command line to connect to non-SSL port
 xmrig.exe -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS -p x
+:: Or use this command line to connect to an SSL port
+:: xmrig.exe -a gr -o rtm.suprnova.cc:4273 --tls -u WALLET_ADDRESS -p x
 pause

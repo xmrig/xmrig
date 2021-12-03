@@ -6,12 +6,12 @@ No tuning is required - auto-config works well on most CPUs!
 
 ### Sample command line (non-SSL port)
 ```
-xmrig -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS
+xmrig -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS -p x
 ```
 
 ### Sample command line (SSL port)
 ```
-xmrig -a gr -o us.flockpool.com:5555 --tls -u WALLET_ADDRESS
+xmrig -a gr -o rtm.suprnova.cc:4273 --tls -u WALLET_ADDRESS -p x
 ```
 
 You can use **rtm_ghostrider_example.cmd** as a template and put pool URL and your wallet address there. The general XMRig documentation is available [here](https://xmrig.com/docs/miner).
