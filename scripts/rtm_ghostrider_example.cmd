@@ -15,6 +15,6 @@
 :: Choose pools outside of top 5 to help Raptoreum network be more decentralized!
 :: Smaller pools also often have smaller fees/payout limits.
 
-cd %~dp0
+cd /d "%~dp0"
 xmrig.exe -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS -p x
 pause
