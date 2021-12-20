@@ -100,7 +100,7 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     }
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    m_ghHelper = ghostrider::create_helper_thread(affinity(), data.affinities);
+    m_ghHelper = ghostrider::create_helper_thread(affinity(), data.priority, data.affinities);
 #   endif
 }
 
