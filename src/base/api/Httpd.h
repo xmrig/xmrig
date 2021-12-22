@@ -48,6 +48,7 @@ public:
 
     bool start();
     void stop();
+    inline const bool isBound() const { return m_server != nullptr; }
 
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;

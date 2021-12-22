@@ -123,6 +123,20 @@ void xmrig::Api::stop()
 }
 
 
+void xmrig::Api::tick()
+{
+#   ifdef XMRIG_FEATURE_HTTP
+    if (!m_base->config()->http().isEnabled() || m_httpd->isBound()) {
+        return;
+    }
+    if (++m_ticks % 10 == 0) {
+        m_ticks = 0;
+        m_httpd->start();
+    }
+#   endif
+}
+
+
 void xmrig::Api::onConfigChanged(Config *config, Config *previousConfig)
 {
     if (config->apiId() != previousConfig->apiId()) {
