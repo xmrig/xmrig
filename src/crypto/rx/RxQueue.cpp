@@ -154,6 +154,8 @@ void xmrig::RxQueue::backgroundInit()
             continue;
         }
 
+        // Update seed here again in case there was more than one item in the queue
+        m_seed = item.seed;
         m_state = STATE_IDLE;
         m_async->send();
     }
