@@ -84,6 +84,7 @@ protected:
     inline const char *url() const                                          { return m_pool.url(); }
     inline const String &rpcId() const                                      { return m_rpcId; }
     inline void setRpcId(const char *id)                                    { m_rpcId = id; }
+    inline void setPoolUrl(const char *url)                                 { m_pool.setUrl(url); }
 
     virtual bool parseLogin(const rapidjson::Value &result, int *code);
     virtual void login();
