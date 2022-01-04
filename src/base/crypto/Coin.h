@@ -40,8 +40,8 @@ public:
         KEVA,
         RAVEN,
         WOWNERO,
-        MAX,
-	LOZZAX
+	LOZZAX,
+        MAX
     };
 
     static const char *kDisabled;
