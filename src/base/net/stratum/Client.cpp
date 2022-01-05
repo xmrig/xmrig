@@ -661,7 +661,7 @@ void xmrig::Client::parse(char *line, size_t len)
 
     LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", url(), len, static_cast<int>(len), line);
 
-    if (len < 32 || line[0] != '{') {
+    if (len < 22 || line[0] != '{') {
         if (!isQuiet()) {
             LOG_ERR("%s " RED("JSON decode failed"), tag());
         }
