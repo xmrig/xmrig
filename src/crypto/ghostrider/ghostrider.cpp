@@ -293,7 +293,7 @@ void benchmark()
         hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, thread_index1);
         hwloc_obj_t pu2;
         hwloc_get_closest_objs(topology, pu, &pu2, 1);
-        uint32_t thread_index2 = pu2->os_index;
+        uint32_t thread_index2 = pu2 ? pu2->os_index : thread_index1;
 
         if (thread_index2 < thread_index1) {
             std::swap(thread_index1, thread_index2);
