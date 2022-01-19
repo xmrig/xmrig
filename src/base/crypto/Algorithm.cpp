@@ -153,9 +153,8 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(RX_ARQ),
     ALGO_NAME(RX_GRAFT),
     ALGO_NAME(RX_SFX),
-    ALGO_NAME(RX_LOZZ),
     ALGO_NAME(RX_KEVA),
-
+    ALGO_NAME(RX_LOZZ),
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
