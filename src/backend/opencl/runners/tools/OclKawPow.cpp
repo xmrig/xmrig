@@ -439,7 +439,9 @@ cl_kernel OclKawPow::get(const IOclRunner &runner, uint64_t height, uint32_t wor
 {
     const uint64_t period = height / KPHash::PERIOD_LENGTH;
 
-    builder.build_async(runner, period + 1, worksize);
+    if (!cache.search(runner, period + 1, worksize)) {
+        builder.build_async(runner, period + 1, worksize);
+    }
 
     cl_kernel kernel = cache.search(runner, period, worksize);
     if (kernel) {
