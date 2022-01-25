@@ -821,7 +821,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
             int64_t d5;
 
-#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8))
+#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
             d5 = d | 5;
 #           else
             // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit

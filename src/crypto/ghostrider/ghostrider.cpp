@@ -166,7 +166,7 @@ static struct AlgoTune
 
 struct HelperThread
 {
-    HelperThread(hwloc_bitmap_t cpu_set, bool is8MB) : m_cpuSet(cpu_set), m_is8MB(is8MB)
+    HelperThread(hwloc_bitmap_t cpu_set, int priority, bool is8MB) : m_cpuSet(cpu_set), m_priority(priority), m_is8MB(is8MB)
     {
         uv_mutex_init(&m_mutex);
         uv_cond_init(&m_cond);
@@ -241,6 +241,8 @@ struct HelperThread
             }
         }
 
+        Platform::setThreadPriority(m_priority);
+
         uv_mutex_lock(&m_mutex);
         m_ready = true;
 
@@ -268,6 +270,7 @@ struct HelperThread
     volatile bool m_ready = false;
     volatile bool m_finished = false;
     hwloc_bitmap_t m_cpuSet = {};
+    int m_priority = -1;
     bool m_is8MB = false;
 
     std::thread* m_thread = nullptr;
@@ -290,13 +293,14 @@ void benchmark()
         hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, thread_index1);
         hwloc_obj_t pu2;
         hwloc_get_closest_objs(topology, pu, &pu2, 1);
-        uint32_t thread_index2 = pu2->os_index;
+        uint32_t thread_index2 = pu2 ? pu2->os_index : thread_index1;
 
         if (thread_index2 < thread_index1) {
             std::swap(thread_index1, thread_index2);
         }
 
         Platform::setThreadAffinity(thread_index1);
+        Platform::setThreadPriority(3);
 
         constexpr uint32_t N = 1U << 21;
 
@@ -375,7 +379,7 @@ void benchmark()
 
         hwloc_bitmap_t helper_set = hwloc_bitmap_alloc();
         hwloc_bitmap_set(helper_set, thread_index2);
-        HelperThread* helper = new HelperThread(helper_set, false);
+        HelperThread* helper = new HelperThread(helper_set, 3, false);
 
         for (uint32_t algo = 0; algo < 6; ++algo) {
             for (uint64_t step : { 1, 2, 4}) {
@@ -465,7 +469,7 @@ static inline bool findByType(hwloc_obj_t obj, hwloc_obj_type_t type, func lambd
 }
 
 
-HelperThread* create_helper_thread(int64_t cpu_index, const std::vector<int64_t>& affinities)
+HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::vector<int64_t>& affinities)
 {
 #ifndef XMRIG_ARM
     hwloc_bitmap_t helper_cpu_set = hwloc_bitmap_alloc();
@@ -520,7 +524,7 @@ HelperThread* create_helper_thread(int64_t cpu_index, const std::vector<int64_t>
             });
 
             if (hwloc_bitmap_weight(helper_cpu_set) > 0) {
-                return new HelperThread(helper_cpu_set, is8MB);
+                return new HelperThread(helper_cpu_set, priority, is8MB);
             }
         }
     }
@@ -761,7 +765,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
 
 void benchmark() {}
-HelperThread* create_helper_thread(int64_t, const std::vector<int64_t>&) { return nullptr; }
+HelperThread* create_helper_thread(int64_t, int, const std::vector<int64_t>&) { return nullptr; }
 void destroy_helper_thread(HelperThread*) {}
 
 

@@ -76,12 +76,13 @@ public:
     {
         m_workersMemory.clear();
         m_hugePages.reset();
-        m_memory    = memory;
-        m_started   = 0;
-        m_errors    = 0;
-        m_threads   = threads.size();
-        m_ways      = 0;
-        m_ts        = Chrono::steadyMSecs();
+        m_memory       = memory;
+        m_started      = 0;
+        m_totalStarted = 0;
+        m_errors       = 0;
+        m_threads      = threads.size();
+        m_ways         = 0;
+        m_ts           = Chrono::steadyMSecs();
     }
 
     inline bool started(IWorker *worker, bool ready)
