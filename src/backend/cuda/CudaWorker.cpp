@@ -22,6 +22,7 @@
 #include "backend/cuda/runners/CudaCnRunner.h"
 #include "backend/cuda/wrappers/CudaDevice.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
@@ -152,7 +153,7 @@ void xmrig::CudaWorker::start()
             uint32_t foundNonce[16] = { 0 };
             uint32_t foundCount     = 0;
 
-            if (!m_runner->run(*m_job.nonce(), &foundCount, foundNonce)) {
+            if (!m_runner->run(readUnaligned(m_job.nonce()), &foundCount, foundNonce)) {
                 return;
             }
 
