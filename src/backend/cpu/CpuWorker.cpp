@@ -23,6 +23,7 @@
 
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuWorker.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/Chrono.h"
 #include "core/config/Config.h"
 #include "core/Miner.h"
@@ -281,7 +282,7 @@ void xmrig::CpuWorker<N>::start()
 
             uint32_t current_job_nonces[N];
             for (size_t i = 0; i < N; ++i) {
-                current_job_nonces[i] = *m_job.nonce(i);
+                current_job_nonces[i] = readUnaligned(m_job.nonce(i));
             }
 
 #           ifdef XMRIG_FEATURE_BENCHMARK

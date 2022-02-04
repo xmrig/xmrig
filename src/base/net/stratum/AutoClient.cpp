@@ -66,6 +66,12 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
     m_mode = ETH_MODE;
     setAlgo(algo);
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (algo.family() == Algorithm::GHOSTRIDER) {
+        setExtraNonce2Size(Json::getUint64(result, "extra_nonce2_size"));
+    }
+#   endif
+
     return true;
 }
 

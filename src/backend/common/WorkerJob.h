@@ -30,6 +30,7 @@
 
 
 #include "base/net/stratum/Job.h"
+#include "base/tools/Alignment.h"
 #include "crypto/common/Nonce.h"
 
 
@@ -77,7 +78,7 @@ public:
         }
         else {
             for (size_t i = 0; i < N; ++i) {
-                *nonce(i) += roundSize;
+                writeUnaligned(nonce(i), readUnaligned(nonce(i)) + roundSize);
             }
         }
 
@@ -136,11 +137,11 @@ inline bool xmrig::WorkerJob<1>::nextRound(uint32_t rounds, uint32_t roundSize)
             return false;
         }
         if (nonceSize() == sizeof(uint64_t)) {
-            m_jobs[index()].nonce()[1] = n[1];
+            writeUnaligned(m_jobs[index()].nonce() + 1, readUnaligned(n + 1));
         }
     }
     else {
-        *n += roundSize;
+        writeUnaligned(n, readUnaligned(n) + roundSize);
     }
 
     return true;
