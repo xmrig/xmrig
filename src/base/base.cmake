@@ -68,6 +68,7 @@ set(HEADERS_BASE
     src/base/net/tools/MemPool.h
     src/base/net/tools/NetBuffer.h
     src/base/net/tools/Storage.h
+    src/base/tools/Alignment.h
     src/base/tools/Arguments.h
     src/base/tools/Baton.h
     src/base/tools/bswap_64.h

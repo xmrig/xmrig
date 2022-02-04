@@ -45,12 +45,12 @@ public:
 
     inline JobResult(const Job &job, uint64_t nonce, const uint8_t *result, const uint8_t* header_hash = nullptr, const uint8_t *mix_hash = nullptr, const uint8_t* miner_signature = nullptr) :
         algorithm(job.algorithm()),
+        index(job.index()),
         clientId(job.clientId()),
         jobId(job.id()),
         backend(job.backend()),
         nonce(nonce),
-        diff(job.diff()),
-        index(job.index())
+        diff(job.diff())
     {
         memcpy(m_result, result, sizeof(m_result));
 
@@ -70,12 +70,12 @@ public:
 
     inline JobResult(const Job &job) :
         algorithm(job.algorithm()),
+        index(job.index()),
         clientId(job.clientId()),
         jobId(job.id()),
         backend(job.backend()),
         nonce(0),
-        diff(0),
-        index(job.index())
+        diff(0)
     {
     }
 
@@ -88,12 +88,12 @@ public:
     inline const uint8_t *minerSignature() const { return m_hasMinerSignature ? m_minerSignature : nullptr; }
 
     const Algorithm algorithm;
+    const uint8_t index;
     const String clientId;
     const String jobId;
     const uint32_t backend;
     const uint64_t nonce;
     const uint64_t diff;
-    const uint8_t index;
 
 private:
     uint8_t m_result[32]     = { 0 };

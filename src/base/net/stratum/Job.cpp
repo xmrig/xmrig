@@ -30,6 +30,7 @@
 
 
 #include "base/net/stratum/Job.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Cvt.h"
 #include "base/tools/cryptonote/BlockTemplate.h"
@@ -73,7 +74,7 @@ bool xmrig::Job::setBlob(const char *blob)
         return false;
     }
 
-    if (*nonce() != 0 && !m_nicehash) {
+    if (readUnaligned(nonce()) != 0 && !m_nicehash) {
         m_nicehash = true;
     }
 
