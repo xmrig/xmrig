@@ -54,6 +54,7 @@ static const CoinInfo coinInfo[] = {
     { Algorithm::RX_KEVA,       "KVA",      "Kevacoin",     0,      0,              MAGENTA_BG_BOLD(WHITE_BOLD_S " keva    ") },
     { Algorithm::KAWPOW_RVN,    "RVN",      "Ravencoin",    0,      0,              BLUE_BG_BOLD(   WHITE_BOLD_S " raven   ") },
     { Algorithm::RX_WOW,        "WOW",      "Wownero",      300,    100000000000,   MAGENTA_BG_BOLD(WHITE_BOLD_S " wownero ") },
+    { Algorithm::RX_LOZZ,       "LOZZ",     "Lozzax",       120,    1000000000,     MAGENTA_BG_BOLD(WHITE_BOLD_S " lozzax  ") },
 };
 
 

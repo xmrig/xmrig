@@ -234,6 +234,10 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x54,     { Coin::GRAFT,      TESTNET,    PUBLIC,         28881,  28882 } },
         { 0x55,     { Coin::GRAFT,      TESTNET,    INTEGRATED,     28881,  28882 } },
         { 0x70,     { Coin::GRAFT,      TESTNET,    SUBADDRESS,     28881,  28882 } },
+
+        { 0x12,     { Coin::LOZZAX,     MAINNET,    PUBLIC,         11112,  11113 } },
+        { 0x13,     { Coin::LOZZAX,     MAINNET,    INTEGRATED,     11112,  11113 } },
+        { 0x2a,     { Coin::LOZZAX,     MAINNET,    SUBADDRESS,     11112,  11113 } },
     };
 
     const auto it = tags.find(tag);

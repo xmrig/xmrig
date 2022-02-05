@@ -47,6 +47,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_KEVA:
         return &RandomX_KevaConfig;
 
+    case Algorithm::RX_LOZZ:
+        return &RandomX_LozzaxConfig;
+
     default:
         break;
     }

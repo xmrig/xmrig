@@ -100,6 +100,13 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
+RandomX_ConfigurationLozzax::RandomX_ConfigurationLozzax()
+{
+        ArgonSalt = "RandomL\x06";
+	RANDOMX_FREQ_CBRANCH = 16;
+	RANDOMX_FREQ_ISTORE  = 25;
+}
+
 RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
 {
 	ArgonSalt = "RandomKV\x01";
@@ -358,6 +365,7 @@ RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationKeva RandomX_KevaConfig;
+RandomX_ConfigurationLozzax RandomX_LozzaxConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

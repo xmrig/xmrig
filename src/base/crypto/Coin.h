@@ -40,6 +40,7 @@ public:
         KEVA,
         RAVEN,
         WOWNERO,
+	LOZZAX,
         MAX
     };
 

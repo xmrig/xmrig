@@ -10,6 +10,8 @@
 #include "randomx_constants_keva.h"
 #elif (ALGO == ALGO_RX_GRAFT)
 #include "randomx_constants_graft.h"
+#elif (ALGO == ALGO_RX_LOZZ)
+#include "randomx_constants_lozz.h"
 #endif
 
 #include "aes.cl"
