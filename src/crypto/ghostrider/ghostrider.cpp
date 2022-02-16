@@ -773,6 +773,11 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 {
     constexpr uint32_t N = 8;
 
+    uint8_t* ctx_memory[N];
+    for (size_t i = 0; i < N; ++i) {
+        ctx_memory[i] = ctx[i]->memory;
+    }
+
     // PrevBlockHash (GhostRider's seed) is stored in bytes [4; 36)
     const uint8_t* seed = data + 4;
 
@@ -800,29 +805,49 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
     const CnHash::AlgoVariant* av = Cpu::info()->hasAES() ? av_hw_aes : av_soft_aes;
 
-    const cn_hash_fun f[3] = {
-        CnHash::fn(cn_hash[cn_indices[0]], av[step[cn_indices[0]]], Assembly::AUTO),
-        CnHash::fn(cn_hash[cn_indices[1]], av[step[cn_indices[1]]], Assembly::AUTO),
-        CnHash::fn(cn_hash[cn_indices[2]], av[step[cn_indices[2]]], Assembly::AUTO),
-    };
-
     uint8_t tmp[64 * N];
 
-    for (uint64_t part = 0; part < 3; ++part) {
-        for (uint64_t i = 0; i < 5; ++i) {
-            for (uint64_t j = 0; j < N; ++j) {
-                core_hash[core_indices[part * 5 + i]](data + j * size, size, tmp + j * 64);
-                data = tmp;
-                size = 64;
+    for (size_t part = 0; part < 3; ++part) {
+
+        // Allocate scratchpads
+        {
+            uint8_t* p = ctx_memory[0];
+
+            for (size_t i = 0, k = 0; i < N; ++i) {
+                if ((i % step[cn_indices[part]]) == 0) {
+                    k = 0;
+                    p = ctx_memory[0];
+                }
+                else if (p - ctx_memory[k] >= (1 << 21)) {
+                    ++k;
+                    p = ctx_memory[k];
+                }
+                ctx[i]->memory = p;
+                p += cn_sizes[cn_indices[part]];
             }
         }
-        for (uint64_t j = 0, k = step[cn_indices[part]]; j < N; j += k) {
-            f[part](tmp + j * 64, 64, output + j * 32, ctx, 0);
+
+        for (size_t i = 0; i < 5; ++i) {
+            for (size_t j = 0; j < N; ++j) {
+                core_hash[core_indices[part * 5 + i]](data + j * size, size, tmp + j * 64);
+            }
+            data = tmp;
+            size = 64;
         }
-        for (uint64_t j = 0; j < N; ++j) {
+
+        auto f = CnHash::fn(cn_hash[cn_indices[part]], av[step[cn_indices[part]]], Assembly::AUTO);
+        for (size_t j = 0; j < N; j += step[cn_indices[part]]) {
+            f(tmp + j * 64, 64, output + j * 32, ctx, 0);
+        }
+
+        for (size_t j = 0; j < N; ++j) {
             memcpy(tmp + j * 64, output + j * 32, 32);
             memset(tmp + j * 64 + 32, 0, 32);
         }
+    }
+
+    for (size_t i = 0; i < N; ++i) {
+        ctx[i]->memory = ctx_memory[i];
     }
 }
 
