@@ -1,0 +1,69 @@
+name: xmrig
+adopt-info: xmrig
+summary: XMRig is a high performance, open source, cross platform CPU/GPU miner
+description: |
+  XMRig is a high performance, open source, cross platform RandomX, KawPow, 
+  CryptoNight and AstroBWT unified CPU/GPU miner and RandomX benchmark. Official 
+  binaries are available for Windows, Linux, macOS and FreeBSD.
+  
+license: GPL-3.0
+
+base: core20
+grade: stable
+confinement: strict
+compression: lzo
+
+architectures:
+  - build-on: amd64
+    run-on: [amd64, armhf, arm64, ppc64el]
+
+assumes:
+  - command-chain
+
+apps:
+  xmrig:
+    command: bin/xmrig
+    command-chain: 
+      - bin/homeishome-launch     
+    plugs:
+      - home
+      - network
+      - network-bind
+      - opengl
+      
+parts:
+  xmrig:
+    source: https://github.com/xmrig/xmrig
+    source-type: git
+    plugin: nil
+    
+    override-build: |
+      git clone https://github.com/xmrig/xmrig.git
+      mkdir -p build && cd build
+      cmake ..
+      make -j$(nproc) 
+      mkdir -p $SNAPCRAFT_PART_INSTALL/bin/  
+      cp xmrig $SNAPCRAFT_PART_INSTALL/bin/
+      
+    override-pull: |
+      snapcraftctl pull
+      snapcraftctl set-version "$(git describe --tags | sed 's/^v//' | cut -d "-" -f1)"
+      
+    build-packages:
+      - build-essential 
+      - git
+      - cmake
+      - libuv1-dev 
+      - libssl-dev 
+      - libhwloc-dev
+      
+    stage-packages:
+      - libuv1-dev 
+      - libssl-dev 
+      - libhwloc-dev
+      
+  homeishome-launch:
+    plugin: nil
+    stage-snaps:
+      - homeishome-launch  
+          

@@ -6,6 +6,7 @@
 [![GitHub license](https://img.shields.io/github/license/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/blob/master/LICENSE)
 [![GitHub stars](https://img.shields.io/github/stars/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/xmrig/xmrig.svg)](https://github.com/xmrig/xmrig/network)
+[![xmrig](https://snapcraft.io/xmrig/badge.svg)](https://snapcraft.io/xmrig)
 
 XMRig is a high performance, open source, cross platform RandomX, KawPow, CryptoNight, AstroBWT and [GhostRider](https://github.com/xmrig/xmrig/tree/master/src/crypto/ghostrider#readme) unified CPU/GPU miner and [RandomX benchmark](https://xmrig.com/benchmark). Official binaries are available for Windows, Linux, macOS and FreeBSD.
 
@@ -17,6 +18,11 @@ XMRig is a high performance, open source, cross platform RandomX, KawPow, Crypto
 ## Download
 * **[Binary releases](https://github.com/xmrig/xmrig/releases)**
 * **[Build from source](https://xmrig.com/docs/miner/build)**
+
+## Install the snap
+* **[![xmrig](https://snapcraft.io/xmrig/badge.svg)](https://snapcraft.io/xmrig)**
+* For stable snap release: `sudo snap install xmrig` 
+* To stay on the latest releases: `sudo snap install --edge xmrig`
 
 ## Usage
 The preferred way to configure the miner is the [JSON config file](https://xmrig.com/docs/miner/config) as it is more flexible and human friendly. The [command line interface](https://xmrig.com/docs/miner/command-line-options) does not cover all features, such as mining profiles for different algorithms. Important options can be changed during runtime without miner restart by editing the config file or executing [API](https://xmrig.com/docs/miner/api) calls.
