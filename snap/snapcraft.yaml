@@ -3,9 +3,15 @@ adopt-info: xmrig
 summary: XMRig is a high performance, open source, cross platform CPU/GPU miner
 description: |
   XMRig is a high performance, open source, cross platform RandomX, KawPow, 
-  CryptoNight and AstroBWT unified CPU/GPU miner and RandomX benchmark. Official 
-  binaries are available for Windows, Linux, macOS and FreeBSD.
+  CryptoNight and AstroBWT unified CPU/GPU miner and RandomX benchmark. 
   
+  To run, open a terminal:
+    - Ensure you've identified the options you'd like to run
+    - Identify the pool (and port) desired
+    - Use your wallet address
+      - Example: `xmrig -o example.pool.com:4444 -u [wallet address]`
+    - Hit enter and profit
+    
 license: GPL-3.0
 
 base: core20
@@ -15,7 +21,7 @@ compression: lzo
 
 architectures:
   - build-on: amd64
-    run-on: [amd64, armhf, arm64, ppc64el]
+    run-on: [amd64, armhf, arm64, ppc64el, s390x]
 
 assumes:
   - command-chain
@@ -39,8 +45,9 @@ parts:
     
     override-build: |
       git clone https://github.com/xmrig/xmrig.git
-      mkdir -p build && cd build
-      cmake ..
+      cd xmrig/scripts
+      ./build_deps.sh
+      cmake .. -DXMRIG_DEPS=scripts/deps
       make -j$(nproc) 
       mkdir -p $SNAPCRAFT_PART_INSTALL/bin/  
       cp xmrig $SNAPCRAFT_PART_INSTALL/bin/
@@ -53,10 +60,13 @@ parts:
       - build-essential 
       - git
       - cmake
+      - automake
+      - libtool
+      - autoconf
       - libuv1-dev 
       - libssl-dev 
       - libhwloc-dev
-      
+      - wget      
     stage-packages:
       - libuv1-dev 
       - libssl-dev 
@@ -66,4 +76,7 @@ parts:
     plugin: nil
     stage-snaps:
       - homeishome-launch  
-          
+      
+  files:
+    plugin: dump
+    source: files  #files such as "config.json"  
