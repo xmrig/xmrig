@@ -110,7 +110,7 @@ void xmrig::OclBaseRunner::init()
         m_buffer = OclLib::createBuffer(m_ctx, CL_MEM_READ_WRITE, size);
     }
 
-    m_input  = createSubBuffer(CL_MEM_READ_ONLY | CL_MEM_HOST_WRITE_ONLY, Job::kMaxBlobSize);
+    m_input  = createSubBuffer(CL_MEM_READ_ONLY | CL_MEM_WRITE_ONLY, Job::kMaxBlobSize);
     m_output = createSubBuffer(CL_MEM_READ_WRITE, sizeof(cl_uint) * 0x100);
 }
 
