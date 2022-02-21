@@ -60,16 +60,8 @@ const char *xmrig::OclError::toString(cl_int ret)
         return "CL_MISALIGNED_SUB_BUFFER_OFFSET";
     case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST:
         return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
-    case CL_BUILD_PROGRAM_FAILURE:
-        return "CL_BUILD_PROGRAM_FAILURE";
-    case CL_COMPILER_NOT_AVAILABLE:
-        return "CL_COMPILER_NOT_AVAILABLE";
-    case CL_BUILD_PROGRAM_FAILURE:
-        return "CL_BUILD_PROGRAM_FAILURE";
     case CL_DEVICE_PROFILE:
         return "CL_DEVICE_PROFILE";
-    case CL_PROFILING_INFO_NOT_AVAILABLE:
-        return "CL_PROFILING_INFO_NOT_AVAILABLE";
     case CL_INVALID_VALUE:
         return "CL_INVALID_VALUE";
     case CL_INVALID_DEVICE_TYPE:
@@ -88,8 +80,6 @@ const char *xmrig::OclError::toString(cl_int ret)
         return "CL_INVALID_HOST_PTR";
     case CL_INVALID_MEM_OBJECT:
         return "CL_INVALID_MEM_OBJECT";
-    case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR:
-        return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR";
     case CL_INVALID_IMAGE_SIZE:
         return "CL_INVALID_IMAGE_SIZE";
     case CL_INVALID_SAMPLER:
@@ -142,12 +132,6 @@ const char *xmrig::OclError::toString(cl_int ret)
         return "CL_INVALID_PROPERTY";
     case CL_INVALID_IMAGE_FORMAT_DESCRIPTOR:
         return "CL_INVALID_IMAGE_FORMAT_DESCRIPTOR";
-    case CL_INVALID_BUILD_OPTIONS:
-        return "CL_INVALID_BUILD_OPTIONS";
-    case CL_INVALID_BUILD_OPTIONS:
-        return "CL_INVALID_BUILD_OPTIONS";
-    case CL_INVALID_DEVICE_PARTITION_COUNT:
-        return "CL_INVALID_DEVICE_PARTITION_COUNT";
 #ifdef CL_VERSION_2_0
     case CL_INVALID_PIPE_SIZE:
         return "CL_INVALID_PIPE_SIZE";
