@@ -20,8 +20,8 @@ confinement: strict
 compression: lzo
 
 architectures:
-  - build-on: amd64
-    run-on: [amd64, armhf, arm64, ppc64el, s390x]
+  - build-on: amd64    
+    run-on: [amd64, arm64]
 
 assumes:
   - command-chain
@@ -66,17 +66,9 @@ parts:
       - libuv1-dev 
       - libssl-dev 
       - libhwloc-dev
-      - wget      
-    stage-packages:
-      - libuv1-dev 
-      - libssl-dev 
-      - libhwloc-dev
+      - wget
       
   homeishome-launch:
     plugin: nil
     stage-snaps:
       - homeishome-launch  
-      
-  files:
-    plugin: dump
-    source: files  #files such as "config.json"  
