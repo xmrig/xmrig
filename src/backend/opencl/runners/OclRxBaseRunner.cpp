@@ -178,9 +178,9 @@ void xmrig::OclRxBaseRunner::init()
 {
     OclBaseRunner::init();
 
-    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (m_algorithm.l3() + 64) * m_intensity);
-    m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * m_intensity);
-    m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * m_intensity);
-    m_rounding    = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, sizeof(uint32_t) * m_intensity);
+    m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE, (m_algorithm.l3() + 64) * m_intensity);
+    m_hashes      = createSubBuffer(CL_MEM_READ_WRITE, 64 * m_intensity);
+    m_entropy     = createSubBuffer(CL_MEM_READ_WRITE, (128 + 2560) * m_intensity);
+    m_rounding    = createSubBuffer(CL_MEM_READ_WRITE, sizeof(uint32_t) * m_intensity);
     m_dataset     = OclSharedState::get(data().device.index()).dataset();
 }
