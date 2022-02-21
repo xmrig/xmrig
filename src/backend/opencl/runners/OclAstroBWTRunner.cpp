@@ -203,11 +203,11 @@ void xmrig::OclAstroBWTRunner::init()
 {
     OclBaseRunner::init();
 
-    const cl_mem_flags f = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
+    const cl_mem_flags f = CL_MEM_READ_WRITE;
 
     m_salsa20_keys    = createSubBuffer(f, m_batch_size1 * 32);
     m_bwt_data        = createSubBuffer(f, m_bwt_allocation_size);
-    m_bwt_data_sizes  = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_WRITE_ONLY, m_batch_size1 * 4);
+    m_bwt_data_sizes  = createSubBuffer(CL_MEM_READ_WRITE, m_batch_size1 * 4);
     m_indices         = createSubBuffer(f, m_bwt_allocation_size * 8);
     m_tmp_indices     = createSubBuffer(f, m_bwt_allocation_size * 8);
     m_filtered_hashes = createSubBuffer(CL_MEM_READ_WRITE, (m_batch_size1 + m_intensity) * 36 + 4);
