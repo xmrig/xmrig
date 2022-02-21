@@ -61,7 +61,7 @@ const char *xmrig::OclError::toString(cl_int ret)
     case CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST:
         return "CL_EXEC_STATUS_ERROR_FOR_EVENTS_IN_WAIT_LIST";
     case CL_BUILD_PROGRAM_FAILURE:
-        return "CL_BUILD_PROGRAM_FAILURE;
+        return "CL_BUILD_PROGRAM_FAILURE";
     case CL_COMPILER_NOT_AVAILABLE:
         return "CL_COMPILER_NOT_AVAILABLE";
     case CL_BUILD_PROGRAM_FAILURE:
