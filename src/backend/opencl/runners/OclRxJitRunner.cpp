@@ -86,9 +86,9 @@ void xmrig::OclRxJitRunner::init()
 {
     OclRxBaseRunner::init();
 
-    m_registers             = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 256 * m_intensity);
-    m_intermediate_programs = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 5120 * m_intensity);
-    m_programs              = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 10048 * m_intensity);
+    m_registers             = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_NO_ACCESS, 256 * m_intensity);
+    m_intermediate_programs = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_NO_ACCESS, 5120 * m_intensity);
+    m_programs              = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_NO_ACCESS, 10048 * m_intensity);
 }
 
 
