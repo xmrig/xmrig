@@ -3,10 +3,12 @@ if (WITH_ASTROBWT)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/astrobwt/AstroBWT.h
+        src/crypto/astrobwt/sort_indices2.h
     )
 
     list(APPEND SOURCES_CRYPTO
         src/crypto/astrobwt/AstroBWT.cpp
+        src/crypto/astrobwt/sort_indices2.cpp
     )
 
     if (XMRIG_ARM)
@@ -21,6 +23,10 @@ if (WITH_ASTROBWT)
             src/crypto/astrobwt/salsa20_ref/salsa20.c
         )
     else()
+        if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+            set_source_files_properties(src/crypto/astrobwt/sort_indices2.cpp PROPERTIES COMPILE_FLAGS "/std:c++20")
+        endif()
+
         if (CMAKE_SIZEOF_VOID_P EQUAL 8)
             add_definitions(/DASTROBWT_AVX2)
             list(APPEND SOURCES_CRYPTO src/crypto/astrobwt/xmm6int/salsa20_xmm6int-avx2.c)

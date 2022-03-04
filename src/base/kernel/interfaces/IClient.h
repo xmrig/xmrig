@@ -61,6 +61,7 @@ public:
     virtual bool hasExtension(Extension extension) const noexcept           = 0;
     virtual bool isEnabled() const                                          = 0;
     virtual bool isTLS() const                                              = 0;
+    virtual bool isWSS() const                                              = 0;
     virtual const char *mode() const                                        = 0;
     virtual const char *tag() const                                         = 0;
     virtual const char *tlsFingerprint() const                              = 0;
