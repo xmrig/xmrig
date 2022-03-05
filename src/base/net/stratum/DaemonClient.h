@@ -175,6 +175,7 @@ private:
         bool m_handshake      = true;
         uint64_t m_blocks     = 0;
         uint64_t m_miniblocks = 0;
+        uint64_t m_height     = 0;
         std::vector<char> m_data;
         std::vector<char> m_message;
 

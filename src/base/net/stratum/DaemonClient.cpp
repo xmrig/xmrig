@@ -1286,7 +1286,9 @@ void xmrig::DaemonClient::WSSParse()
         job.setBlob(m_blockhashingblob);
         memset(job.blob() + job.nonceOffset(), 0, job.nonceSize());
 
-        job.setHeight(Json::getUint64(doc, kHeight));
+        const uint64_t height = Json::getUint64(doc, kHeight);
+
+        job.setHeight(height);
         job.setDiff(Json::getUint64(doc, "difficultyuint64"));
         //job.setDiff(100000);
 
@@ -1302,10 +1304,11 @@ void xmrig::DaemonClient::WSSParse()
         const uint64_t blocks = Json::getUint64(doc, "blocks");
         const uint64_t miniblocks = Json::getUint64(doc, "miniblocks");
 
-        if ((blocks != m_wss.m_blocks) || (miniblocks != m_wss.m_miniblocks)) {
+        if ((blocks != m_wss.m_blocks) || (miniblocks != m_wss.m_miniblocks) || (height != m_wss.m_height)) {
             LOG_INFO("%s " GREEN_BOLD("%" PRIu64 " blocks, %" PRIu64 " mini blocks"), tag(), blocks, miniblocks);
             m_wss.m_blocks = blocks;
             m_wss.m_miniblocks = miniblocks;
+            m_wss.m_height = height;
         }
 
         m_listener->onJobReceived(this, m_job, doc);
@@ -1344,6 +1347,7 @@ void xmrig::DaemonClient::WSS::cleanup()
     m_handshake = true;
     m_blocks = 0;
     m_miniblocks = 0;
+    m_height = 0;
     m_data.clear();
     m_message.clear();
 }
