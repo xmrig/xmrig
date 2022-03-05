@@ -284,8 +284,9 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     ALGO_ALIAS_AUTO(ASTROBWT_DERO), ALGO_ALIAS(ASTROBWT_DERO,   "astrobwt/dero"),
-    ALGO_ALIAS_AUTO(ASTROBWT_DERO_2), ALGO_ALIAS(ASTROBWT_DERO_2, "astrobwt/derov2"),
     ALGO_ALIAS_AUTO(ASTROBWT_DERO_2), ALGO_ALIAS(ASTROBWT_DERO_2, "astrobwt/v2"),
+    ALGO_ALIAS_AUTO(ASTROBWT_DERO_2), ALGO_ALIAS(ASTROBWT_DERO_2, "astrobwt/dero_he"),
+    ALGO_ALIAS_AUTO(ASTROBWT_DERO_2), ALGO_ALIAS(ASTROBWT_DERO_2, "astrobwt/derohe"),
 #   endif
 
 #   ifdef XMRIG_ALGO_KAWPOW
