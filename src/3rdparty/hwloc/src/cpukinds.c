@@ -42,6 +42,9 @@ hwloc_internal_cpukinds_dup(hwloc_topology_t new, hwloc_topology_t old)
   struct hwloc_internal_cpukind_s *kinds;
   unsigned i;
 
+  if (!old->nr_cpukinds)
+    return 0;
+
   kinds = hwloc_tma_malloc(tma, old->nr_cpukinds * sizeof(*kinds));
   if (!kinds)
     return -1;
@@ -445,7 +448,9 @@ static int hwloc__cpukinds_compare_ranking_values(const void *_a, const void *_b
 {
   const struct hwloc_internal_cpukind_s *a = _a;
   const struct hwloc_internal_cpukind_s *b = _b;
-  return a->ranking_value - b->ranking_value;
+  uint64_t arv = a->ranking_value;
+  uint64_t brv = b->ranking_value;
+  return arv < brv ? -1 : arv > brv ? 1 : 0;
 }
 
 /* this function requires ranking values to be unique */

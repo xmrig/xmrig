@@ -480,6 +480,7 @@ extern char * hwloc_progname(struct hwloc_topology *topology);
 #define HWLOC_GROUP_KIND_AIX_SDL_UNKNOWN		210	/* subkind is SDL level */
 #define HWLOC_GROUP_KIND_WINDOWS_PROCESSOR_GROUP	220	/* no subkind */
 #define HWLOC_GROUP_KIND_WINDOWS_RELATIONSHIP_UNKNOWN	221	/* no subkind */
+#define HWLOC_GROUP_KIND_LINUX_CLUSTER                  222     /* no subkind */
 /* distance groups */
 #define HWLOC_GROUP_KIND_DISTANCE			900	/* subkind is round of adding these groups during distance based grouping */
 /* finally, hwloc-specific groups required to insert something else, should disappear as soon as possible */

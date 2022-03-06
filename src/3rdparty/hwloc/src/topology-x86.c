@@ -500,7 +500,8 @@ static void read_amd_cores_topoext(struct procinfo *infos, unsigned long flags, 
       nodes_per_proc = ((ecx >> 8) & 7) + 1;
     }
     if ((infos->cpufamilynumber == 0x15 && nodes_per_proc > 2)
-	|| ((infos->cpufamilynumber == 0x17 || infos->cpufamilynumber == 0x18) && nodes_per_proc > 4)) {
+	|| ((infos->cpufamilynumber == 0x17 || infos->cpufamilynumber == 0x18) && nodes_per_proc > 4)
+        || (infos->cpufamilynumber == 0x19 && nodes_per_proc > 1)) {
       hwloc_debug("warning: undefined nodes_per_proc value %u, assuming it means %u\n", nodes_per_proc, nodes_per_proc);
     }
   }
@@ -775,13 +776,19 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
 
     } else if (cpuid_type == amd) {
       /* AMD quirks */
-      if (infos->cpufamilynumber == 0x17
-	  && cache->level == 3 && cache->nbthreads_sharing == 6) {
-	/* AMD family 0x17 always shares L3 between 8 APIC ids,
-	 * even when only 6 APIC ids are enabled and reported in nbthreads_sharing
-	 * (on 24-core CPUs).
+      if (infos->cpufamilynumber >= 0x17 && cache->level == 3) {
+	/* AMD family 0x19 always shares L3 between 16 APIC ids (8 HT cores).
+         * while Family 0x17 shares between 8 APIC ids (4 HT cores).
+         * But many models have less APIC ids enabled and reported in nbthreads_sharing.
+         * It means we must round-up nbthreads_sharing to the nearest power of 2
+         * before computing cacheid.
 	 */
-	cache->cacheid = infos->apicid / 8;
+        unsigned nbapics_sharing = cache->nbthreads_sharing;
+        if (nbapics_sharing & (nbapics_sharing-1))
+          /* not a power of two, round-up */
+          nbapics_sharing = 1U<<(1+hwloc_ffsl(nbapics_sharing));
+
+	cache->cacheid = infos->apicid / nbapics_sharing;
 
       } else if (infos->cpufamilynumber== 0x10 && infos->cpumodelnumber == 0x9
 	  && cache->level == 3
@@ -807,7 +814,7 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
       } else if (infos->cpufamilynumber == 0x15
 		 && (infos->cpumodelnumber == 0x1 /* Bulldozer */ || infos->cpumodelnumber == 0x2 /* Piledriver */)
 		 && cache->level == 3 && cache->nbthreads_sharing == 6) {
-	/* AMD Bulldozer and Piledriver 12-core processors have same APIC ids as Magny-Cours below,
+	/* AMD Bulldozer and Piledriver 12-core processors have same APIC ids as Magny-Cours above,
 	 * but we can't merge the checks because the original nbthreads_sharing must be exactly 6 here.
 	 */
 	cache->cacheid = (infos->apicid % legacy_max_log_proc) / cache->nbthreads_sharing /* cacheid within the package */
@@ -1231,6 +1238,18 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	    }
 	  }
 	  cache = hwloc_alloc_setup_object(topology, otype, HWLOC_UNKNOWN_INDEX);
+          /* We don't specify the os_index of caches because we want to be
+           * 100% sure they are identical to what the Linux kernel reports
+           * (so that things like resctrl work).
+           * However, vendor/model-specific quirks in the x86 code above
+           * make this difficult.
+           *
+           * Caveat: if the x86 backend is used on Linux to avoid kernel bugs,
+           * IDs won't be available to resctrl users. But resctrl heavily
+           * relies on the kernel x86 discovery being non-buggy anyway.
+           *
+           * TODO: make this optional? or only disable it on Linux?
+           */
 	  cache->attr->cache.depth = level;
 	  cache->attr->cache.size = infos[i].cache[l].size;
 	  cache->attr->cache.linesize = infos[i].cache[l].linesize;
@@ -1688,7 +1707,7 @@ hwloc_x86_check_cpuiddump_input(const char *src_cpuiddump_path, hwloc_bitmap_t s
   char line [32];
 
   dir = opendir(src_cpuiddump_path);
-  if (!dir)
+  if (!dir) 
     return -1;
 
   path = malloc(strlen(src_cpuiddump_path) + strlen("/hwloc-cpuid-info") + 1);

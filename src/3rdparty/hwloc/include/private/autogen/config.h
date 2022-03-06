@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009, 2011, 2012 CNRS.  All rights reserved.
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009, 2011, 2012, 2015 Université Bordeaux.  All rights reserved.
  * Copyright © 2009-2020 Cisco Systems, Inc.  All rights reserved.
  * $COPYRIGHT$
@@ -289,10 +289,6 @@
 
 /* Define to '1' if sysctlbyname is present and usable */
 /* #undef HAVE_SYSCTLBYNAME */
-
-/* Define to 1 if the system has the type
-   `SYSTEM_LOGICAL_PROCESSOR_INFORMATION'. */
-#define HAVE_SYSTEM_LOGICAL_PROCESSOR_INFORMATION 1
 
 /* Define to 1 if the system has the type
    `SYSTEM_LOGICAL_PROCESSOR_INFORMATION_EX'. */
