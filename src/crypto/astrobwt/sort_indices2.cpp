@@ -183,7 +183,7 @@ static NOINLINE void sort_indices(uint32_t N, const uint8_t* RESTRICT v, uint32_
 
         uint16_t* a = (uint16_t*)indices;
         uint16_t* b = (uint16_t*)indices;
-        uint16_t* e = (uint16_t*)(indices + (N - (unroll - 1)));
+        uint16_t* e = ((uint16_t*)indices) + (N - (unroll - 1));
 
         for (; a < e; a += unroll, b += unroll * 2) {
             ITER(0); ITER(1); ITER(2); ITER(3); ITER(4); ITER(5); ITER(6); ITER(7);
@@ -192,7 +192,7 @@ static NOINLINE void sort_indices(uint32_t N, const uint8_t* RESTRICT v, uint32_
             ITER(24); ITER(25); ITER(26); ITER(27); ITER(28); ITER(29); ITER(30); ITER(31);
         }
 
-        e = (uint16_t*)(indices + N);
+        e = ((uint16_t*)indices) + N;
         for (; a < e; ++a, b += 2) {
             ITER(0);
         }
