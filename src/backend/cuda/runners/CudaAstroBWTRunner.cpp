@@ -32,11 +32,17 @@
 constexpr uint32_t xmrig::CudaAstroBWTRunner::BWT_DATA_STRIDE;
 
 
-xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData &data) :
-    CudaBaseRunner(index, data)
+xmrig::CudaAstroBWTRunner::CudaAstroBWTRunner(size_t index, const CudaLaunchData &data)
+    : CudaBaseRunner(index, data)
+    , m_algorithm(data.algorithm)
 {
     m_intensity = m_data.thread.threads() * m_data.thread.blocks();
     m_intensity -= m_intensity % 32;
+
+    // Dero HE has very fast blocks, so we can't use high intensity
+    if ((m_algorithm == Algorithm::ASTROBWT_DERO_2) && (m_intensity > 4096)) {
+        m_intensity = 4096;
+    }
 }
 
 
@@ -58,10 +64,14 @@ bool xmrig::CudaAstroBWTRunner::set(const Job &job, uint8_t *blob)
 
 size_t xmrig::CudaAstroBWTRunner::roundSize() const
 {
+    if (m_algorithm == Algorithm::ASTROBWT_DERO_2) {
+        return m_intensity;
+    }
+
     constexpr uint32_t STAGE1_SIZE = 147253;
     constexpr uint32_t STAGE1_DATA_STRIDE = (STAGE1_SIZE + 256 + 255) & ~255U;
 
-    const uint32_t BATCH2_SIZE = m_intensity;
+    const uint32_t BATCH2_SIZE = static_cast<uint32_t>(m_intensity);
     const uint32_t BWT_ALLOCATION_SIZE = BATCH2_SIZE * BWT_DATA_STRIDE;
     const uint32_t BATCH1_SIZE = (BWT_ALLOCATION_SIZE / STAGE1_DATA_STRIDE) & ~255U;
 
