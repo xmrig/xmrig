@@ -27,6 +27,7 @@
 
 
 #include "backend/cuda/runners/CudaBaseRunner.h"
+#include "base/crypto/Algorithm.h"
 
 
 namespace xmrig {
@@ -50,6 +51,7 @@ protected:
 
 private:
     size_t m_intensity  = 0;
+    Algorithm m_algorithm;
 };
 
 
