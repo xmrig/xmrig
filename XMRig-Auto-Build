@@ -20,7 +20,7 @@ off="printf \033[0m"
 #
 distroName="$(cat /etc/*-release | grep -w "NAME")"
 distroPrettyName="$(cat /etc/*-release | grep -w "PRETTY_NAME" | sed "s/PRETTY_NAME=//")"
-installDirectory="$(pwd)/xmrig"
+installDirectory="$(pwd)"
 
 ################################################################		START OF SCRIPT		################################################################
 
@@ -103,9 +103,9 @@ else
 fi
 Build_Commands()
 {
-	git clone https://github.com/xmrig/xmrig.git
-	mkdir xmrig/build
-	cd xmrig/scripts
+	cd $installDirectory
+	mkdir build
+	cd scripts
 	./build_deps.sh
 	# 2022-03-10: openssl fails to compile on fedora, libressl is used instead
 	if [[ $foundPackageManager = "dnf" ]]; then
