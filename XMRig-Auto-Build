@@ -1,0 +1,164 @@
+#!/usr/bin/env bash
+#
+#						Colors
+#
+# bold
+bred="printf \033[1;31m"
+bgreen="printf \033[1;32m"
+bblue="printf \033[1;34m"
+bwhite="printf \033[1;37m"
+# high intensity
+ired="printf \033[0;91m"
+igreen="printf \033[0;92m"
+iblue="printf \033[0;94m"
+iwhite="printf \033[0;97m"
+# no color
+off="printf \033[0m"
+
+#
+#						Variables
+#
+distroName="$(cat /etc/*-release | grep -w "NAME")"
+distroPrettyName="$(cat /etc/*-release | grep -w "PRETTY_NAME" | sed "s/PRETTY_NAME=//")"
+installDirectory="$(pwd)/xmrig"
+
+################################################################		START OF SCRIPT		################################################################
+
+#
+#						Initial prompt
+#
+$bgreen; echo "###########################"
+$bgreen; echo "# XMRig auto-build script #"
+$bgreen; echo "###########################"
+$bwhite; echo -n "Install into "
+$bblue; echo -n "${installDirectory}? "
+$bwhite; echo -n "(Y/n) "
+$off
+	read yn
+	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+		$iblue; echo "Starting..."
+	else
+		$ired; echo "Exiting..."
+		exit
+	fi
+
+#
+#						Finding package manager (apt, pacman, dnf)
+#
+Search_For_PackageManager()
+{
+	local packageManager="$1"
+	if [[ -f $packageManager ]]; then
+		$bgreen; echo -n "$distroPrettyName"
+		$iwhite; echo -n " detected: using "
+		$bgreen; echo "$2"
+		found="yes"
+		foundPackageManager="$2"
+		$off
+	fi
+}
+Search_For_PackageManager "/usr/bin/apt" "apt" || exit
+Search_For_PackageManager "/usr/bin/pacman" "pacman" || exit
+Search_For_PackageManager "/usr/bin/dnf" "dnf" || exit
+if [[ $found != "yes" ]]; then
+	$bred; echo "Package Manager not found/supported!"
+	$ired; echo "Exiting script..."
+	exit
+fi
+
+#
+#						Installing dependencies
+#
+$bblue; echo -n "Install dependencies? (Y/n) " ;$off
+read yn
+if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+	case $foundPackageManager in
+		apt)
+			sudo apt install git build-essential cmake automake libtool autoconf
+			;;
+		pacman)
+			sudo pacman -S git base-devel cmake
+			;;
+		dnf)
+			sudo dnf install -y git make cmake gcc gcc-c++ libstdc++-static automake libtool autoconf
+	esac
+	if [[ $? != 0 ]]; then
+		$bred; echo "Installing dependencies failed, exiting..."
+		exit
+	fi
+else
+	$iblue; echo "Skipping dependencies..."
+fi
+#
+#						Build commands from xmrig.com
+#
+echo
+$bblue; echo -n "Start XMRig auto-build? (Y/n) " ;$off
+read yn
+if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+	$iblue; echo "Starting..." ;$off
+else
+	$ired; echo "Exiting..." ;$off
+	exit
+fi
+Build_Commands()
+{
+	git clone https://github.com/xmrig/xmrig.git
+	mkdir xmrig/build
+	cd xmrig/scripts
+	./build_deps.sh
+	# 2022-03-10: openssl fails to compile on fedora, libressl is used instead
+	if [[ $foundPackageManager = "dnf" ]]; then
+		./build_libressl.sh
+	fi
+	cd ../build
+	cmake .. -DXMRIG_DEPS=scripts/deps
+	make -j$(nproc)
+}
+
+Build_Commands
+if [[ $? != 0 ]]; then
+	$bred; echo "XMRig auto-build failed, cleaning up files..."
+	sudo rm -r "$installDirectory"
+	$ired; echo "Exiting..."
+	exit
+else
+	echo
+	$bgreen; echo "XMRig auto-build done!"
+	$bwhite; echo -n "Delete source code? (leaves xmrig and config.json) (Y/n) " ;$off
+
+# moves xmrig/config.json into /xmrig/tmp_autobuild/, deletes everything in /xmrig/, then moves them back and deletes /xmrig/tmp_autobuild/
+# rm needs sudo because .git files are write-protected
+
+	read yn
+	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+		$iblue; echo "Cleaning up..." ;$off
+			cd $installDirectory
+			mkdir "$installDirectory/tmp_autobuild"
+			mv "$installDirectory/build/xmrig" "$installDirectory/tmp_autobuild/"
+			mv "$installDirectory/src/config.json" "$installDirectory/tmp_autobuild/"
+			ls | grep -v "tmp_autobuild" | xargs sudo rm -r > /dev/null
+			mv "$installDirectory/tmp_autobuild/xmrig" $installDirectory
+			mv "$installDirectory/tmp_autobuild/config.json" $installDirectory
+			rm -r "$installDirectory/tmp_autobuild" > /dev/null
+	else
+		$iblue; echo "Skipping cleanup..."
+	fi
+fi
+
+#
+#						End
+#
+echo
+$bgreen; echo "#####################################"
+$bgreen; echo "# XMRig auto-build script complete! #"
+$bgreen; echo "#####################################"
+# shows different locations dependent on if source files are deleted or not
+if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+	$bwhite; echo -n "XMRig Location: "
+	$bblue; echo $installDirectory
+else
+	$bwhite; echo "Location: "
+	$iwhite; echo -n "xmrig: " ;$bblue; echo "$installDirectory/build/xmrig"
+	$iwhite; echo -n "config.json: " ;$bblue; echo "$installDirectory/src/config.json"
+fi
