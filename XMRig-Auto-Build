@@ -21,15 +21,140 @@ off="printf \033[0m"
 distroName="$(cat /etc/*-release | grep -w "NAME")"
 distroPrettyName="$(cat /etc/*-release | grep -w "PRETTY_NAME" | sed "s/PRETTY_NAME=//")"
 installDirectory="$(pwd)"
+AutoBuild="$installDirectory/AutoBuild"
+deps="$AutoBuild/deps"
+libBuild="$AutoBuild/libBuild"
+
+#
+#						Library Code Build Functions
+#
+Build_Folders()
+{
+	$bgreen; echo "Creating Build Folders..." ;$off
+	mkdir -p $AutoBuild
+	mkdir -p $deps
+	mkdir -p $deps/include
+	mkdir -p $deps/lib
+	mkdir -p $libBuild
+}
+Build_Libuv()
+{
+	$bgreen; echo "Building Libuv..." ;$off
+	local UV_VERSION="1.44.1"
+	cd "$libBuild"
+	if [[ $libVersion = "stable" ]]; then
+		wget https://github.com/libuv/libuv/archive/v${UV_VERSION}.tar.gz -O v${UV_VERSION}.tar.gz
+		tar -xzf v${UV_VERSION}.tar.gz
+		cd libuv-${UV_VERSION}
+	else
+		git clone -b master https://github.com/libuv/libuv/
+		cd libuv
+	fi
+	./autogen.sh
+	./configure --disable-shared
+	make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+	mv -f include/* $deps
+	mv -f .libs/libuv.a $deps/lib
+}
+Build_Hwloc()
+{
+	$bgreen; echo "Building Hwloc..." ;$off
+	local HWLOC_VERSION="2.7.0"
+	local HWLOC_V="v2.7"
+	cd "$AutoBuild"
+	cd $libBuild
+	if [[ $libVersion = "stable" ]]; then
+		wget https://download.open-mpi.org/release/hwloc/$HWLOC_V/hwloc-${HWLOC_VERSION}.tar.gz -O hwloc-${HWLOC_VERSION}.tar.gz
+		tar -xzf hwloc-${HWLOC_VERSION}.tar.gz
+		cd hwloc-${HWLOC_VERSION}
+	else
+		git clone -b master https://github.com/open-mpi/hwloc
+		cd hwloc
+		./autogen.sh
+	fi
+	./configure --disable-shared --enable-static --disable-io --disable-libudev --disable-libxml2
+	make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+	mv -f include/* $deps
+	mv -f hwloc/.libs/libhwloc.a $deps/lib
+}
+Build_OpenSSL()
+{
+	$bgreen; echo "Building OpenSSL..." ;$off
+	local OPENSSL_VERSION="1.1.1m"
+	cd "$AutoBuild"
+	cd $libBuild
+	if [[ $libVersion = "stable" ]]; then
+		wget https://www.openssl.org/source/openssl-${OPENSSL_VERSION}.tar.gz -O openssl-${OPENSSL_VERSION}.tar.gz
+		tar -xzf openssl-${OPENSSL_VERSION}.tar.gz
+		cd openssl-${OPENSSL_VERSION}
+	else
+		git clone -b "OpenSSL_1_1_1-stable" https://github.com/openssl/openssl
+		cd openssl
+	fi
+	./config -no-shared -no-asm -no-zlib -no-comp -no-dgram -no-filenames -no-cms
+	make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+	mv -f include/* $deps
+	mv -f libcrypto.a $deps/lib
+	mv -f libssl.a $deps/lib
+}
+Build_LibreSSL()
+{
+	$bgreen; echo "Building LibreSSL..." ;$off
+	local LIBRESSL_VERSION="3.4.2"
+    cd "$AutoBuild"
+	cd $libBuild
+	if [[ $libVersion = "stable" ]]; then
+		wget https://ftp.openbsd.org/pub/OpenBSD/LibreSSL/libressl-${LIBRESSL_VERSION}.tar.gz -O libressl-${LIBRESSL_VERSION}.tar.gz
+		tar -xzf libressl-${LIBRESSL_VERSION}.tar.gz
+		cd libressl-${LIBRESSL_VERSION}
+	else
+		git clone -b master https://github.com/libressl-portable/portable
+		cd portable
+		./autogen.sh
+	fi
+	./configure --disable-shared
+	make -j$(nproc || sysctl -n hw.ncpu || sysctl -n hw.logicalcpu)
+	mv -f include/* $deps
+	mv -f crypto/.libs/libcrypto.a $deps/lib
+	mv -f ssl/.libs/libssl.a $deps/lib
+}
+Build_XMRig()
+{
+	$bgreen; echo "Building XMRig..." ;$off
+	cd "$AutoBuild"
+	cmake .. -DXMRIG_DEPS=$deps
+	make -j$(nproc)
+	cp "$installDirectory/src/config.json" $AutoBuild
+}
+Build_Fail()
+{
+	if [[ $? != 0 ]]; then
+		$bred; echo "XMRig-Auto-Build failed building $1..."
+		$bred; echo "Remove all XMRig-Auto-Build files? (Y/n) "
+			read yn
+		if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+			$bred; echo "Removing..."
+			sudo rm -r "$AutoBuild" &&$green&& echo "Removed!"
+		fi
+		$bred; echo "Remove XMRig folder aswell? (Y/n) "
+			read yn
+		if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+			$bred; echo "Removing..."
+			sudo rm -r "$installDirectory" &&$green&& echo "Removed!"
+		fi
+			$ired; echo "Exiting XMRig-Auto-Build: $1 failed to build..."
+		exit
+	fi
+}
 
 ################################################################		START OF SCRIPT		################################################################
 
 #
-#						Initial prompt
+#						Initial Prompt
 #
-$bgreen; echo "###########################"
-$bgreen; echo "# XMRig auto-build script #"
-$bgreen; echo "###########################"
+$bgreen; echo "########################"
+$bgreen; echo "#   XMRig-Auto-Build   #"
+$bgreen; echo "########################"
 $bwhite; echo -n "Install into "
 $bblue; echo -n "${installDirectory}? "
 $bwhite; echo -n "(Y/n) "
@@ -43,7 +168,18 @@ $off
 	fi
 
 #
-#						Finding package manager (apt, pacman, dnf)
+#						Checks if XMRig-Auto-Build is in /xmrig/
+#
+if [[ $installDirectory = *"/xmrig"* ]];then
+	:
+else
+	$bred; echo "/xmrig/ folder not found!"
+	$ired; echo "Please place XMRig-Auto-Build in the /xmrig/ folder!"
+	exit
+fi
+
+#
+#						Finding Package Manager (apt, pacman, dnf)
 #
 Search_For_PackageManager()
 {
@@ -62,14 +198,14 @@ Search_For_PackageManager "/usr/bin/pacman" "pacman" || exit
 Search_For_PackageManager "/usr/bin/dnf" "dnf" || exit
 if [[ $found != "yes" ]]; then
 	$bred; echo "Package Manager not found/supported!"
-	$ired; echo "Exiting script..."
+	$ired; echo "Exiting..."
 	exit
 fi
 
 #
-#						Installing dependencies
+#						Installing Dependencies
 #
-$bblue; echo -n "Install dependencies? (Y/n) " ;$off
+$bblue; echo -n "Install build dependencies? (Y/n) " ;$off
 read yn
 if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
 	case $foundPackageManager in
@@ -83,17 +219,57 @@ if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
 			sudo dnf install -y git make cmake gcc gcc-c++ libstdc++-static automake libtool autoconf
 	esac
 	if [[ $? != 0 ]]; then
-		$bred; echo "Installing dependencies failed, exiting..."
+		$bred; echo "Installing build dependencies failed, exiting..."
 		exit
 	fi
 else
-	$iblue; echo "Skipping dependencies..."
+	$iblue; echo "Skipping build dependencies..."
 fi
+
 #
-#						Build commands from xmrig.com
+#						Pick Library Build Version
 #
-echo
-$bblue; echo -n "Start XMRig auto-build? (Y/n) " ;$off
+Lib_Yesno()
+{
+	$bblue; echo -n "Build "
+	$bgreen; echo -n "[$libVersion]? "
+	$bblue; echo -n "(Y/n) "
+	read yn
+	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+		finalChoice="yes"
+	fi
+}
+while true; do
+	$bblue; echo -n "Which library versions to build? "
+	$igreen; echo -n "[ Stable / latest ] " ;$off
+	read answer
+	case $answer in
+		"")
+			libVersion="stable"
+			Lib_Yesno
+			[[ $finalChoice = "yes" ]]&&break
+			;;
+		Stable|stable)
+			libVersion="stable"
+			Lib_Yesno
+			[[ $finalChoice = "yes" ]]&&break
+			;;
+		Latest|latest)
+			libVersion="latest"
+			Lib_Yesno
+			[[ $finalChoice = "yes" ]]&&break
+			;;
+		*)
+			$ired; echo "Error, please type valid version"
+			;;
+		esac
+done
+$iblue; echo "[$libVersion] selected..."
+
+#
+#						Build Commands
+#
+$bred; echo -n "Start XMRig-Auto-Build? (Y/n) " ;$off
 read yn
 if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
 	$iblue; echo "Starting..." ;$off
@@ -101,64 +277,60 @@ else
 	$ired; echo "Exiting..." ;$off
 	exit
 fi
-Build_Commands()
-{
-	cd $installDirectory
-	mkdir build
-	cd scripts
-	./build_deps.sh
-	# 2022-03-10: openssl fails to compile on fedora, libressl is used instead
-	if [[ $foundPackageManager = "dnf" ]]; then
-		./build_libressl.sh
-	fi
-	cd ../build
-	cmake .. -DXMRIG_DEPS=scripts/deps
-	make -j$(nproc)
-}
 
-Build_Commands
-if [[ $? != 0 ]]; then
-	$bred; echo "XMRig auto-build failed, cleaning up files..."
-	sudo rm -r "$installDirectory"
-	$ired; echo "Exiting..."
-	exit
+Build_Folders
+Build_Libuv
+Build_Fail "Libuv"
+Build_Hwloc
+Build_Fail "Hwloc"
+if [[ $foundPackageManager = "dnf" ]]; then
+	Build_LibreSSL
+	Build_Fail "LibreSSL"
 else
-	echo
-	$bgreen; echo "XMRig auto-build done!"
-	$bwhite; echo -n "Delete source code? (leaves xmrig and config.json) (Y/n) " ;$off
+	Build_OpenSSL
+	Build_Fail "OpenSSL"
+fi
+Build_XMRig
+Build_Fail "XMRig"
+
+echo
+$bgreen; echo "XMRig-Auto-Build done!"
+$bwhite; echo -n "Delete source code? (leaves xmrig and config.json) (Y/n) " ;$off
 
 # moves xmrig/config.json into /xmrig/tmp_autobuild/, deletes everything in /xmrig/, then moves them back and deletes /xmrig/tmp_autobuild/
 # rm needs sudo because .git files are write-protected
 
-	read yn
-	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-		$iblue; echo "Cleaning up..." ;$off
-			cd $installDirectory
-			mkdir "$installDirectory/tmp_autobuild"
-			mv "$installDirectory/build/xmrig" "$installDirectory/tmp_autobuild/"
-			mv "$installDirectory/src/config.json" "$installDirectory/tmp_autobuild/"
-			ls | grep -v "tmp_autobuild" | xargs sudo rm -r > /dev/null
-			mv "$installDirectory/tmp_autobuild/xmrig" $installDirectory
-			mv "$installDirectory/tmp_autobuild/config.json" $installDirectory
-			rm -r "$installDirectory/tmp_autobuild" > /dev/null
-	else
-		$iblue; echo "Skipping cleanup..."
-	fi
+read yn
+if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+	$iblue; echo "Cleaning up..." ;$off
+		tmp="$installDirectory/tmp_autobuild"
+		mkdir "$tmp"
+		mv "$AutoBuild/xmrig" "$tmp"
+		mv "$installDirectory/src/config.json" "$tmp"
+		cd $installDirectory
+		ls | grep -v "tmp_autobuild" | xargs sudo rm -r > /dev/null
+		sudo rm -r .git .github .gitignore > /dev/null
+		mv "$tmp/xmrig" $installDirectory
+		mv "$tmp/config.json" $installDirectory
+		rm -r "$tmp" > /dev/null
+else
+	$iblue; echo "Skipping cleanup..."
 fi
 
 #
 #						End
 #
 echo
-$bgreen; echo "#####################################"
-$bgreen; echo "# XMRig auto-build script complete! #"
-$bgreen; echo "#####################################"
+$bgreen; echo "##################################"
+$bgreen; echo "#   XMRig-Auto-Build complete!   #"
+$bgreen; echo "##################################"
+
 # shows different locations dependent on if source files are deleted or not
 if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
 	$bwhite; echo -n "XMRig Location: "
 	$bblue; echo $installDirectory
 else
 	$bwhite; echo "Location: "
-	$iwhite; echo -n "xmrig: " ;$bblue; echo "$installDirectory/build/xmrig"
-	$iwhite; echo -n "config.json: " ;$bblue; echo "$installDirectory/src/config.json"
+	$iwhite; echo -n "xmrig: " ;$bblue; echo "$AutoBuild/xmrig"
+	$iwhite; echo -n "config.json: " ;$bblue; echo "$AutoBuild/config.json"
 fi
