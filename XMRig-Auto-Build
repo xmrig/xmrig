@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+
+################################################################		HEADER CODE		################################################################
+
 #
 #						Colors
 #
@@ -26,11 +29,41 @@ deps="$AutoBuild/deps"
 libBuild="$AutoBuild/libBuild"
 
 #
+#						Prompt/Message Functions
+#
+YES_no()
+{
+	read yn
+	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" || $yn = "Yes" ]]; then
+		Yes
+	else
+		No
+	fi
+}
+yes_NO()
+{
+	read yn
+    if [[ $yn = "" || $yn = "n" || $yn = "N" ||$yn = "no" || $yn = "No" ]]; then
+		No
+	else
+		Yes
+	fi
+}
+Build_Message(){ $bgreen; echo "############      $1      ############" ;$off;}
+
+#
+#						Build Dependency Install Functions
+#
+Apt_Build_Dependencies(){ sudo apt install git wget build-essential cmake automake libtool autoconf ;}
+Pacman_Build_Dependencies(){ sudo pacman -S git wget base-devel cmake ;}
+DNF_Build_Dependencies(){ sudo dnf install -y git wget make cmake gcc gcc-c++ libstdc++-static automake libtool autoconf ;}
+
+#
 #						Library Code Build Functions
 #
 Build_Folders()
 {
-	$bgreen; echo "Creating Build Folders..." ;$off
+	Build_Message "Creating Build Folders"
 	mkdir -p $AutoBuild
 	mkdir -p $deps
 	mkdir -p $deps/include
@@ -39,7 +72,7 @@ Build_Folders()
 }
 Build_Libuv()
 {
-	$bgreen; echo "Building Libuv..." ;$off
+	Build_Message "Building Libuv"
 	local UV_VERSION="1.44.1"
 	cd "$libBuild"
 	if [[ $libVersion = "stable" ]]; then
@@ -58,7 +91,7 @@ Build_Libuv()
 }
 Build_Hwloc()
 {
-	$bgreen; echo "Building Hwloc..." ;$off
+	Build_Message "Building Hwloc"
 	local HWLOC_VERSION="2.7.0"
 	local HWLOC_V="v2.7"
 	cd "$AutoBuild"
@@ -79,7 +112,7 @@ Build_Hwloc()
 }
 Build_OpenSSL()
 {
-	$bgreen; echo "Building OpenSSL..." ;$off
+	Build_Message "Building OpenSSL"
 	local OPENSSL_VERSION="1.1.1m"
 	cd "$AutoBuild"
 	cd $libBuild
@@ -99,7 +132,7 @@ Build_OpenSSL()
 }
 Build_LibreSSL()
 {
-	$bgreen; echo "Building LibreSSL..." ;$off
+	Build_Message "Building LibreSSL..."
 	local LIBRESSL_VERSION="3.4.2"
     cd "$AutoBuild"
 	cd $libBuild
@@ -120,7 +153,7 @@ Build_LibreSSL()
 }
 Build_XMRig()
 {
-	$bgreen; echo "Building XMRig..." ;$off
+	Build_Message "Building XMRig..."
 	cd "$AutoBuild"
 	cmake .. -DXMRIG_DEPS=$deps
 	make -j$(nproc)
@@ -130,19 +163,23 @@ Build_Fail()
 {
 	if [[ $? != 0 ]]; then
 		$bred; echo "XMRig-Auto-Build failed building $1..."
-		$bred; echo "Remove all XMRig-Auto-Build files? (Y/n) "
-			read yn
-		if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-			$bred; echo "Removing..."
+		$bred; echo -n "Remove all XMRig-Auto-Build files? (Y/n) " ;$off
+		Yes()
+		{
+			$iwhite; echo "Removing..."
 			sudo rm -r "$AutoBuild" &&$green&& echo "Removed!"
-		fi
-		$bred; echo "Remove XMRig folder aswell? (Y/n) "
-			read yn
-		if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-			$bred; echo "Removing..."
+		}
+		No(){ $iwhite; echo "Skipping..." ;}
+		YES_no
+		$bred; echo -n "Remove XMRig folder aswell? (Y/n) " ;$off
+		Yes()
+		{
+			$iwhite; echo "Removing..."
 			sudo rm -r "$installDirectory" &&$green&& echo "Removed!"
-		fi
-			$ired; echo "Exiting XMRig-Auto-Build: $1 failed to build..."
+		}
+		No(){ $iwhite; echo "Skipping..." ;}
+		YES_no
+		$ired; echo "Exiting XMRig-Auto-Build: $1 failed to build..."
 		exit
 	fi
 }
@@ -157,20 +194,14 @@ $bgreen; echo "#   XMRig-Auto-Build   #"
 $bgreen; echo "########################"
 $bwhite; echo -n "Install into "
 $bblue; echo -n "${installDirectory}? "
-$bwhite; echo -n "(Y/n) "
-$off
-	read yn
-	if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-		$iblue; echo "Starting..."
-	else
-		$ired; echo "Exiting..."
-		exit
-	fi
-
+$bwhite; echo -n "(Y/n) " ;$off
+Yes(){ $iwhite; echo "Starting..." ;}
+No(){ $ired; echo "Exiting..." ;exit; }
+YES_no
 #
-#						Checks if XMRig-Auto-Build is in /xmrig/
+#                       Checks if XMRig-Auto-Build is in /xmrig/
 #
-if [[ $installDirectory = *"/xmrig"* ]];then
+if [[ $installDirectory = *"/xmrig"* ]]; then
 	:
 else
 	$bred; echo "/xmrig/ folder not found!"
@@ -206,25 +237,25 @@ fi
 #						Installing Dependencies
 #
 $bblue; echo -n "Install build dependencies? (Y/n) " ;$off
-read yn
-if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
+Yes()
+{
 	case $foundPackageManager in
 		apt)
-			sudo apt install git build-essential cmake automake libtool autoconf
+			Apt_Build_Dependencies
 			;;
 		pacman)
-			sudo pacman -S git base-devel cmake
+			Pacman_Build_Dependencies
 			;;
 		dnf)
-			sudo dnf install -y git make cmake gcc gcc-c++ libstdc++-static automake libtool autoconf
+			DNF_Build_Dependencies
 	esac
 	if [[ $? != 0 ]]; then
 		$bred; echo "Installing build dependencies failed, exiting..."
 		exit
 	fi
-else
-	$iblue; echo "Skipping build dependencies..."
-fi
+}
+No(){ $iwhite; echo "Skipping build dependencies..." ;}
+YES_no
 
 #
 #						Pick Library Build Version
@@ -241,7 +272,7 @@ Lib_Yesno()
 }
 while true; do
 	$bblue; echo -n "Which library versions to build? "
-	$igreen; echo -n "[ Stable / latest ] " ;$off
+	$bgreen; echo -n "[ Stable / latest ] " ;$off
 	read answer
 	case $answer in
 		"")
@@ -264,19 +295,18 @@ while true; do
 			;;
 		esac
 done
-$iblue; echo "[$libVersion] selected..."
+$iwhite; echo "[$libVersion] selected..."
 
 #
 #						Build Commands
 #
-$bred; echo -n "Start XMRig-Auto-Build? (Y/n) " ;$off
-read yn
-if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-	$iblue; echo "Starting..." ;$off
-else
-	$ired; echo "Exiting..." ;$off
-	exit
-fi
+$bred; echo "#####################################"
+$bred; echo "#   Start XMRig-Auto-Build? (Y/n)   #"
+$bred; echo "#####################################"
+$off
+Yes(){ $iwhite; echo "Starting..." ;$off; }
+No(){ $ired; echo "Exiting..." ;$off;exit; }
+YES_no
 
 Build_Folders
 Build_Libuv
@@ -295,27 +325,27 @@ Build_Fail "XMRig"
 
 echo
 $bgreen; echo "XMRig-Auto-Build done!"
-$bwhite; echo -n "Delete source code? (leaves xmrig and config.json) (Y/n) " ;$off
+$bblue; echo -n "Delete source code? (leaves xmrig and config.json) (Y/n) " ;$off
 
 # moves xmrig/config.json into /xmrig/tmp_autobuild/, deletes everything in /xmrig/, then moves them back and deletes /xmrig/tmp_autobuild/
 # rm needs sudo because .git files are write-protected
 
-read yn
-if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-	$iblue; echo "Cleaning up..." ;$off
-		tmp="$installDirectory/tmp_autobuild"
-		mkdir "$tmp"
-		mv "$AutoBuild/xmrig" "$tmp"
-		mv "$installDirectory/src/config.json" "$tmp"
-		cd $installDirectory
-		ls | grep -v "tmp_autobuild" | xargs sudo rm -r > /dev/null
-		sudo rm -r .git .github .gitignore > /dev/null
-		mv "$tmp/xmrig" $installDirectory
-		mv "$tmp/config.json" $installDirectory
-		rm -r "$tmp" > /dev/null
-else
-	$iblue; echo "Skipping cleanup..."
-fi
+Yes()
+{
+	$iwhite; echo "Cleaning up..." ;$off
+	tmp="$installDirectory/tmp_autobuild"
+	mkdir "$tmp"
+	mv "$AutoBuild/xmrig" "$tmp"
+	mv "$installDirectory/src/config.json" "$tmp"
+	cd $installDirectory
+	ls | grep -v "tmp_autobuild" | xargs sudo rm -r > /dev/null
+	sudo rm -r .git .github .gitignore > /dev/null
+	mv "$tmp/xmrig" $installDirectory
+	mv "$tmp/config.json" $installDirectory
+	rm -r "$tmp" > /dev/null
+}
+No(){ $iblue; echo "Skipping cleanup..." ;}
+YES_no
 
 #
 #						End
@@ -327,10 +357,11 @@ $bgreen; echo "##################################"
 
 # shows different locations dependent on if source files are deleted or not
 if [[ $yn = "" || $yn = "y" || $yn = "Y" ||$yn = "yes" ||$yn = "Yes" ]]; then
-	$bwhite; echo -n "XMRig Location: "
-	$bblue; echo $installDirectory
+	$bblue; echo -n "XMRig Location: "
+	$iwhite; echo $installDirectory
 else
-	$bwhite; echo "Location: "
-	$iwhite; echo -n "xmrig: " ;$bblue; echo "$AutoBuild/xmrig"
-	$iwhite; echo -n "config.json: " ;$bblue; echo "$AutoBuild/config.json"
+	$bblue; echo "Location: "
+	$bwhite; echo -n "xmrig: " ;$iwhite; echo "$AutoBuild/xmrig"
+	$bwhite; echo -n "config.json: " ;$iwhite; echo "$AutoBuild/config.json"
 fi
+$off
