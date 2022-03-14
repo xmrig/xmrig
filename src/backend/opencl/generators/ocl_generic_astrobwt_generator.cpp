@@ -40,6 +40,15 @@ bool ocl_generic_astrobwt_generator(const OclDevice &device, const Algorithm &al
         return false;
     }
 
+    if (algorithm.id() == Algorithm::ASTROBWT_DERO_2) {
+        uint32_t intensity = device.computeUnits() * 128;
+        if (!intensity || (intensity > 4096)) {
+            intensity = 4096;
+        }
+        threads.add(OclThread(device.index(), intensity, 1));
+        return true;
+    }
+
     const size_t mem = device.globalMemSize();
 
     uint32_t per_thread_mem = 10 << 20;

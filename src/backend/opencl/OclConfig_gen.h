@@ -133,6 +133,12 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<OclThreads> &threads, const 
 template<>
 size_t inline generate<Algorithm::ASTROBWT>(Threads<OclThreads>& threads, const std::vector<OclDevice>& devices)
 {
+    size_t count = 0;
+
+    if (!threads.isExist(Algorithm::ASTROBWT_DERO_2)) {
+        count += threads.move(Algorithm::kASTROBWT_DERO_2, OclThreads(devices, Algorithm::ASTROBWT_DERO_2));
+    }
+
     return generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, devices);
 }
 #endif
