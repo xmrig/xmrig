@@ -23,45 +23,19 @@
  */
 
 
-#include "backend/opencl/cl/OclSource.h"
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "base/crypto/Algorithm.h"
+#include "backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_Salsa20Kernel.h"
+#include "backend/opencl/wrappers/OclLib.h"
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/cl/rx/randomx_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#   include "backend/opencl/cl/astrobwt_v2/astrobwt_v2_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_KAWPOW
-#   include "backend/opencl/cl/kawpow/kawpow_cl.h"
-#   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
-#endif
-
-
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+void xmrig::AstroBWT_v2_Salsa20Kernel::enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size)
 {
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return randomx_cl;
-    }
-#   endif
+    const size_t gthreads       = threads * workgroup_size;
+    enqueueNDRange(queue, 1, nullptr, &gthreads, &workgroup_size);
+}
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return (algorithm.id() == Algorithm::ASTROBWT_DERO_2) ? astrobwt_v2_cl : astrobwt_cl;
-    }
-#   endif
 
-#   ifdef XMRIG_ALGO_KAWPOW
-    if (algorithm.family() == Algorithm::KAWPOW) {
-        return kawpow_dag_cl;
-    }
-#   endif
-
-    return cryptonight_cl;
+void xmrig::AstroBWT_v2_Salsa20Kernel::setArgs(cl_mem salsa20_keys, cl_mem outputs)
+{
+    setArg(0, sizeof(cl_mem), &salsa20_keys);
+    setArg(1, sizeof(cl_mem), &outputs);
 }

@@ -22,46 +22,23 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "backend/opencl/cl/OclSource.h"
-#include "backend/opencl/cl/cn/cryptonight_cl.h"
-#include "base/crypto/Algorithm.h"
+#pragma once
 
 
-#ifdef XMRIG_ALGO_RANDOMX
-#   include "backend/opencl/cl/rx/randomx_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#   include "backend/opencl/cl/astrobwt_v2/astrobwt_v2_cl.h"
-#endif
-
-#ifdef XMRIG_ALGO_KAWPOW
-#   include "backend/opencl/cl/kawpow/kawpow_cl.h"
-#   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
-#endif
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
-const char *xmrig::OclSource::get(const Algorithm &algorithm)
+namespace xmrig {
+
+
+class AstroBWT_v2_BWT_PreprocessKernel : public OclKernel
 {
-#   ifdef XMRIG_ALGO_RANDOMX
-    if (algorithm.family() == Algorithm::RANDOM_X) {
-        return randomx_cl;
-    }
-#   endif
+public:
+    inline AstroBWT_v2_BWT_PreprocessKernel(cl_program program) : OclKernel(program, "BWT_preprocess") {}
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return (algorithm.id() == Algorithm::ASTROBWT_DERO_2) ? astrobwt_v2_cl : astrobwt_cl;
-    }
-#   endif
+    void enqueue(cl_command_queue queue, size_t threads, size_t workgroup_size);
+    void setArgs(cl_mem datas, cl_mem keys);
+};
 
-#   ifdef XMRIG_ALGO_KAWPOW
-    if (algorithm.family() == Algorithm::KAWPOW) {
-        return kawpow_dag_cl;
-    }
-#   endif
 
-    return cryptonight_cl;
-}
+} // namespace xmrig
