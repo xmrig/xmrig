@@ -74,7 +74,7 @@ void xmrig::keccakf(uint64_t st[25], int rounds)
 
         X(0); X(1); X(2); X(3); X(4);
 
-#undef (X)
+#undef X
 
         // Rho Pi
         const uint64_t t = st[1];
