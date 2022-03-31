@@ -113,33 +113,33 @@ void MoBenchmark::read(const rapidjson::Value &value)
 
 double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
     switch (algo) {
-        case Algorithm::CN_CCX:         return m_bench_algo_perf[BenchAlgo::CN_CCX];
-        case Algorithm::CN_0:           return m_bench_algo_perf[BenchAlgo::CN_CCX] / 2;
-        case Algorithm::CN_1:           return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_2:           return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_R:           return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_RTO:         return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_XAO:         return m_bench_algo_perf[BenchAlgo::CN_R];
-        case Algorithm::CN_FAST:        return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
-        case Algorithm::CN_HALF:        return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
-        case Algorithm::CN_RWZ:         return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
-        case Algorithm::CN_ZLS:         return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
-        case Algorithm::CN_DOUBLE:      return m_bench_algo_perf[BenchAlgo::CN_R] / 2;
-        case Algorithm::CN_LITE_0:      return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
-        case Algorithm::CN_LITE_1:      return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
-        case Algorithm::CN_HEAVY_XHV:   return m_bench_algo_perf[BenchAlgo::CN_HEAVY_XHV];
-        case Algorithm::CN_PICO_0:      return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
-        case Algorithm::CN_PICO_TLO:    return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
-        case Algorithm::CN_GPU:         return m_bench_algo_perf[BenchAlgo::CN_GPU];
-        case Algorithm::AR2_CHUKWA_V2:  return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA_V2];
-        case Algorithm::ASTROBWT_DERO:  return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO];
-        case Algorithm::KAWPOW_RVN:     return m_bench_algo_perf[BenchAlgo::KAWPOW_RVN];
-        case Algorithm::RX_0:           return m_bench_algo_perf[BenchAlgo::RX_0];
-        case Algorithm::RX_SFX:         return m_bench_algo_perf[BenchAlgo::RX_0];
-        case Algorithm::RX_GRAFT:       return m_bench_algo_perf[BenchAlgo::RX_GRAFT];
-        case Algorithm::RX_ARQ:         return m_bench_algo_perf[BenchAlgo::RX_ARQ];
-        case Algorithm::RX_XLA:         return m_bench_algo_perf[BenchAlgo::RX_XLA];
-        case Algorithm::GHOSTRIDER_RTM: return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
+        case Algorithm::CN_CCX:          return m_bench_algo_perf[BenchAlgo::CN_CCX];
+        case Algorithm::CN_0:            return m_bench_algo_perf[BenchAlgo::CN_CCX] / 2;
+        case Algorithm::CN_1:            return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_2:            return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_R:            return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_RTO:          return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_XAO:          return m_bench_algo_perf[BenchAlgo::CN_R];
+        case Algorithm::CN_FAST:         return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
+        case Algorithm::CN_HALF:         return m_bench_algo_perf[BenchAlgo::CN_R] * 2;
+        case Algorithm::CN_RWZ:          return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
+        case Algorithm::CN_ZLS:          return m_bench_algo_perf[BenchAlgo::CN_R] / 3 * 4;
+        case Algorithm::CN_DOUBLE:       return m_bench_algo_perf[BenchAlgo::CN_R] / 2;
+        case Algorithm::CN_LITE_0:       return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
+        case Algorithm::CN_LITE_1:       return m_bench_algo_perf[BenchAlgo::CN_LITE_1];
+        case Algorithm::CN_HEAVY_XHV:    return m_bench_algo_perf[BenchAlgo::CN_HEAVY_XHV];
+        case Algorithm::CN_PICO_0:       return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
+        case Algorithm::CN_PICO_TLO:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
+        case Algorithm::CN_GPU:          return m_bench_algo_perf[BenchAlgo::CN_GPU];
+        case Algorithm::AR2_CHUKWA_V2:   return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA_V2];
+        case Algorithm::ASTROBWT_DERO_2: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO_2];
+        case Algorithm::KAWPOW_RVN:      return m_bench_algo_perf[BenchAlgo::KAWPOW_RVN];
+        case Algorithm::RX_0:            return m_bench_algo_perf[BenchAlgo::RX_0];
+        case Algorithm::RX_SFX:          return m_bench_algo_perf[BenchAlgo::RX_0];
+        case Algorithm::RX_GRAFT:        return m_bench_algo_perf[BenchAlgo::RX_GRAFT];
+        case Algorithm::RX_ARQ:          return m_bench_algo_perf[BenchAlgo::RX_ARQ];
+        case Algorithm::RX_XLA:          return m_bench_algo_perf[BenchAlgo::RX_XLA];
+        case Algorithm::GHOSTRIDER_RTM:  return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
         default: return 0.0f;
     }
 }
