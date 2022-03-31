@@ -385,6 +385,10 @@ xmrig::CnHash::CnHash()
     m_map[Algorithm::ASTROBWT_DERO] = new cn_hash_fun_array{};
     m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
     m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
+
+    m_map[Algorithm::ASTROBWT_DERO_2] = new cn_hash_fun_array{};
+    m_map[Algorithm::ASTROBWT_DERO_2]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO_2>;
+    m_map[Algorithm::ASTROBWT_DERO_2]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO_2>;
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER

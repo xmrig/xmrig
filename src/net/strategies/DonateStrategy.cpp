@@ -62,9 +62,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     static char donate_user[] = "89TxfrUmqJJcb1V124WsUzA78Xa3UYHt7Bg8RGMhXVeZYPN8cE5CZEk58Y1m23ZMLHN7wYeJ9da5n5MXharEjrm41hSnWHL";
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHost, 20001, donate_user, nullptr, nullptr, 0, true, true,  mode);
+    m_pools.emplace_back(kDonateHost, 20001, donate_user, nullptr, nullptr, 0, true, true, false, mode);
 #   endif
-    m_pools.emplace_back(kDonateHost, 10001, donate_user, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHost, 10001, donate_user, nullptr, nullptr, 0, true, false, false, mode);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
@@ -244,7 +244,7 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     const IClient *client = strategy->client();
     m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
-    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), Pool::MODE_POOL);
+    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), client->isWSS(), Pool::MODE_POOL);
     pool.setAlgo(client->pool().algorithm());
     pool.setProxy(client->pool().proxy());
 

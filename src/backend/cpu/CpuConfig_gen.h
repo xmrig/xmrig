@@ -165,7 +165,15 @@ size_t inline generate<Algorithm::ARGON2>(Threads<CpuThreads> &threads, uint32_t
 template<>
 size_t inline generate<Algorithm::ASTROBWT>(Threads<CpuThreads>& threads, uint32_t limit)
 {
-    return generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, limit);
+    size_t count = 0;
+
+    if (!threads.isExist(Algorithm::ASTROBWT_DERO_2)) {
+        auto v2 = Cpu::info()->threads(Algorithm::ASTROBWT_DERO_2, limit);
+        count += threads.move(Algorithm::kASTROBWT_DERO_2, std::move(v2));
+    }
+
+    count += generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, limit);
+    return count;
 }
 #endif
 

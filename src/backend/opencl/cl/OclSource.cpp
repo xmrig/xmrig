@@ -38,6 +38,7 @@
 
 #ifdef XMRIG_ALGO_ASTROBWT
 #   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
+#   include "backend/opencl/cl/astrobwt_v2/astrobwt_v2_cl.h"
 #endif
 
 #ifdef XMRIG_ALGO_KAWPOW
@@ -62,7 +63,7 @@ const char *xmrig::OclSource::get(const Algorithm &algorithm)
 
 #   ifdef XMRIG_ALGO_ASTROBWT
     if (algorithm.family() == Algorithm::ASTROBWT) {
-        return astrobwt_cl;
+        return (algorithm.id() == Algorithm::ASTROBWT_DERO_2) ? astrobwt_v2_cl : astrobwt_cl;
     }
 #   endif
 

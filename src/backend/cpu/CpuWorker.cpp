@@ -234,9 +234,8 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   endif
 
 #   ifdef XMRIG_ALGO_ASTROBWT
-    if (m_algorithm.family() == Algorithm::ASTROBWT) {
-        return verify(Algorithm::ASTROBWT_DERO, astrobwt_dero_test_out);
-    }
+    if (m_algorithm.id() == Algorithm::ASTROBWT_DERO)   return verify(Algorithm::ASTROBWT_DERO,   astrobwt_dero_test_out);
+    if (m_algorithm.id() == Algorithm::ASTROBWT_DERO_2) return verify(Algorithm::ASTROBWT_DERO_2, astrobwt_dero_2_test_out);
 #   endif
 
     return false;
@@ -331,8 +330,15 @@ void xmrig::CpuWorker<N>::start()
 
 #               ifdef XMRIG_ALGO_ASTROBWT
                 case Algorithm::ASTROBWT:
-                    if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2)) {
-                        valid = false;
+                    if (job.algorithm().id() == Algorithm::ASTROBWT_DERO) {
+                        if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2)) {
+                            valid = false;
+                        }
+                    }
+                    else {
+                        if (!astrobwt::astrobwt_dero_v2(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash)) {
+                            valid = false;
+                        }
                     }
                     break;
 #               endif

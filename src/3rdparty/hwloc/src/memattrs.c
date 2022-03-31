@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Inria.  All rights reserved.
+ * Copyright © 2020-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -126,6 +126,8 @@ hwloc_internal_memattrs_dup(struct hwloc_topology *new, struct hwloc_topology *o
   struct hwloc_tma *tma = new->tma;
   struct hwloc_internal_memattr_s *imattrs;
   hwloc_memattr_id_t id;
+
+  /* old->nr_memattrs is always > 0 thanks to default memattrs */
 
   imattrs = hwloc_tma_malloc(tma, old->nr_memattrs * sizeof(*imattrs));
   if (!imattrs)

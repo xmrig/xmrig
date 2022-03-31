@@ -53,10 +53,8 @@ const uint64_t keccakf_rndc[24] =
 
 void xmrig::keccakf(uint64_t st[25], int rounds)
 {
-    int i, j, round;
-    uint64_t t, bc[5];
-
-    for (round = 0; round < rounds; ++round) {
+    for (int round = 0; round < rounds; ++round) {
+        uint64_t bc[5];
 
         // Theta
         bc[0] = st[0] ^ st[5] ^ st[10] ^ st[15] ^ st[20];
@@ -65,17 +63,21 @@ void xmrig::keccakf(uint64_t st[25], int rounds)
         bc[3] = st[3] ^ st[8] ^ st[13] ^ st[18] ^ st[23];
         bc[4] = st[4] ^ st[9] ^ st[14] ^ st[19] ^ st[24];
 
-        for (i = 0; i < 5; ++i) {
-            t = bc[(i + 4) % 5] ^ ROTL64(bc[(i + 1) % 5], 1);
-            st[i     ] ^= t;
-            st[i +  5] ^= t;
-            st[i + 10] ^= t;
-            st[i + 15] ^= t;
-            st[i + 20] ^= t;
+#define X(i) { \
+            const uint64_t t = bc[(i + 4) % 5] ^ ROTL64(bc[(i + 1) % 5], 1); \
+            st[i     ] ^= t; \
+            st[i +  5] ^= t; \
+            st[i + 10] ^= t; \
+            st[i + 15] ^= t; \
+            st[i + 20] ^= t; \
         }
 
+        X(0); X(1); X(2); X(3); X(4);
+
+#undef X
+
         // Rho Pi
-        t = st[1];
+        const uint64_t t = st[1];
         st[ 1] = ROTL64(st[ 6], 44);
         st[ 6] = ROTL64(st[ 9], 20);
         st[ 9] = ROTL64(st[22], 61);
@@ -103,7 +105,7 @@ void xmrig::keccakf(uint64_t st[25], int rounds)
 
         //  Chi
         // unrolled loop, where only last iteration is different
-        j = 0;
+        int j = 0;
         bc[0] = st[j    ];
         bc[1] = st[j + 1];
 

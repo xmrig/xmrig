@@ -25,6 +25,7 @@
 #include "base/crypto/sha3.h"
 #include "base/tools/bswap_64.h"
 #include "crypto/cn/CryptoNight.h"
+#include "crypto/astrobwt/sort_indices2.h"
 
 
 #include <limits>
@@ -433,6 +434,45 @@ bool xmrig::astrobwt::astrobwt_dero(const void* input_data, uint32_t input_size,
 }
 
 
+bool xmrig::astrobwt::astrobwt_dero_v2(const void* input_data, uint32_t input_size, void* scratchpad, uint8_t* output_hash)
+{
+	constexpr size_t N = 9973;
+	constexpr size_t STRIDE = 10240;
+
+	alignas(8) uint8_t key[32];
+	uint8_t* scratchpad_ptr = (uint8_t*)(scratchpad) + 64;
+	uint8_t* v = scratchpad_ptr;
+	uint32_t* indices = (uint32_t*)(scratchpad_ptr + STRIDE);
+	uint32_t* tmp_indices = (uint32_t*)(scratchpad_ptr + STRIDE * 5);
+
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2) {
+		SHA3_256_AVX2_ASM(input_data, input_size, key);
+		Salsa20_XORKeyStream_AVX256(key, v, N);
+	}
+	else
+#endif
+	{
+		sha3_HashBuffer(256, SHA3_FLAGS_NONE, input_data, input_size, key, sizeof(key));
+		Salsa20_XORKeyStream(key, v, N);
+	}
+
+	sort_indices_astrobwt_v2(N, v, indices, tmp_indices);
+
+#ifdef ASTROBWT_AVX2
+	if (hasAVX2) {
+		SHA3_256_AVX2_ASM(indices, N * 2, output_hash);
+	}
+	else
+#endif
+	{
+		sha3_HashBuffer(256, SHA3_FLAGS_NONE, indices, N * 2, output_hash, 32);
+	}
+
+	return true;
+}
+
+
 void xmrig::astrobwt::init()
 {
 	if (!astrobwtInitialized) {
@@ -449,4 +489,11 @@ template<>
 void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
 {
 	astrobwt_dero(input, static_cast<uint32_t>(size), ctx[0]->memory, output, std::numeric_limits<int>::max(), true);
+}
+
+
+template<>
+void xmrig::astrobwt::single_hash<xmrig::Algorithm::ASTROBWT_DERO_2>(const uint8_t* input, size_t size, uint8_t* output, cryptonight_ctx** ctx, uint64_t)
+{
+	astrobwt_dero_v2(input, static_cast<uint32_t>(size), ctx[0]->memory, output);
 }

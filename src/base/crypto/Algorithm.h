@@ -83,6 +83,7 @@ public:
         AR2_CHUKWA_V2   = 0x61140000,   // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_WRKZ        = 0x61120000,   // "argon2/wrkz"      Argon2id (WRKZ)
         ASTROBWT_DERO   = 0x41000000,   // "astrobwt"         AstroBWT (Dero)
+        ASTROBWT_DERO_2 = 0x41110000,   // "astrobwt/v2"      AstroBWT (Dero HE)
         KAWPOW_RVN      = 0x6b0f0000,   // "kawpow/rvn"       KawPow (RVN)
 
         RX_XLA          = 0x721211ff,   // "panthera"         Panthera (Scala2).
@@ -165,6 +166,7 @@ public:
 #   ifdef XMRIG_ALGO_ASTROBWT
     static const char *kASTROBWT;
     static const char *kASTROBWT_DERO;
+    static const char* kASTROBWT_DERO_2;
 #   endif
 
 #   ifdef XMRIG_ALGO_KAWPOW

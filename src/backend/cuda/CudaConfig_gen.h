@@ -142,7 +142,14 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
 template<>
 size_t inline generate<Algorithm::ASTROBWT>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
 {
-    return generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, devices);
+    size_t count = 0;
+
+    if (!threads.isExist(Algorithm::ASTROBWT_DERO_2)) {
+        count += threads.move(Algorithm::kASTROBWT_DERO_2, CudaThreads(devices, Algorithm::ASTROBWT_DERO_2));
+    }
+
+    count += generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, devices);
+    return count;
 }
 #endif
 

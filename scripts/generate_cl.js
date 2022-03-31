@@ -76,6 +76,14 @@ function astrobwt()
 }
 
 
+function astrobwt_v2()
+{
+    const astrobwt = opencl_minify(addIncludes('astrobwt_v2.cl', [ 'BWT.cl', 'salsa20.cl', 'sha3.cl' ]));
+
+    fs.writeFileSync('astrobwt_v2_cl.h', text2h(astrobwt, 'xmrig', 'astrobwt_v2_cl'));
+}
+
+
 function kawpow()
 {
     const kawpow = opencl_minify(addIncludes('kawpow.cl', [ 'defs.h' ]));
@@ -111,6 +119,11 @@ process.chdir(cwd);
 process.chdir(path.resolve('src/backend/opencl/cl/astrobwt'));
 
 astrobwt();
+
+process.chdir(cwd);
+process.chdir(path.resolve('src/backend/opencl/cl/astrobwt_v2'));
+
+astrobwt_v2();
 
 process.chdir(cwd);
 process.chdir(path.resolve('src/backend/opencl/cl/kawpow'));

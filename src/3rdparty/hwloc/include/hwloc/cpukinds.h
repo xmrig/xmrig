@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020 Inria.  All rights reserved.
+ * Copyright © 2020-2021 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -42,18 +42,23 @@ extern "C" {
  * (for instance the "CoreType" and "FrequencyMaxMHz",
  *  see \ref topoattrs_cpukinds).
  *
- * A higher efficiency value means intrinsic greater performance
+ * A higher efficiency value means greater intrinsic performance
  * (and possibly less performance/power efficiency).
- * Kinds with lower efficiency are ranked first:
+ * Kinds with lower efficiency values are ranked first:
  * Passing 0 as \p kind_index to hwloc_cpukinds_get_info() will
- * return information about the less efficient CPU kind.
+ * return information about the CPU kind with lower performance
+ * but higher energy-efficiency.
+ * Higher \p kind_index values would rather return information
+ * about power-hungry high-performance cores.
  *
- * When available, efficiency values are gathered from the operating
- * system (when \p cpukind_efficiency is set in the
- * struct hwloc_topology_discovery_support array, only on Windows 10 for now).
- * Otherwise hwloc tries to compute efficiencies
- * by comparing CPU kinds using frequencies (on ARM),
- * or core types and frequencies (on other architectures).
+ * When available, efficiency values are gathered from the operating system.
+ * If so, \p cpukind_efficiency is set in the struct hwloc_topology_discovery_support array.
+ * This is currently available on Windows 10, Mac OS X (Darwin),
+ * and on some Linux platforms where core "capacity" is exposed in sysfs.
+ *
+ * If the operating system does not expose core efficiencies natively,
+ * hwloc tries to compute efficiencies by comparing CPU kinds using
+ * frequencies (on ARM), or core types and frequencies (on other architectures).
  * The environment variable HWLOC_CPUKINDS_RANKING may be used
  * to change this heuristics, see \ref envvar.
  *
