@@ -1,25 +1,28 @@
-{
-    "api": {
-        "id": null,
-        "worker-id": null
+{hello
+    "apia" : {
+        "id" : nulo ,
+        "id-trabajador" : nulo
     },
     "http": {
         "enabled": false,
         "host": "127.0.0.1",
         "port": 0,
-        "access-token": null,
-        "restricted": true
+        "token de acceso" : v
+
+        
+erdadero
+        "restringido" : verdadero
     },
-    "autosave": true,
-    "background": false,
-    "colors": true,
+    "guardado automático" : verdadero
+    "fondo" : verdadero
+    "colores" : cierto ,
     "title": true,
     "randomx": {
         "init": -1,
         "init-avx2": -1,
         "mode": "auto",
-        "1gb-pages": false,
-        "rdmsr": true,
+        "1gb-páginas" : falso ,
+        "rdmsr" : verdadero ,
         "wrmsr": true,
         "cache_qos": false,
         "numa": true,
@@ -63,10 +66,10 @@
     "pools": [
         {
             "algo": null,
-            "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
-            "pass": "x",
+            "moneda" : TRX
+            "url" : "donar.v2.xmrig.com:3333" ,
+            "usuario" : "88barEXCTrjR4CXj3njjh9TrA7Tfy3P9NPH5cQKhYZjqbWUqhCeNs2cgUpxQQ6mLBC3gdkSL7QLQKQEsmFDFe4ksKS8cJoK" ,
+            "pasar" : "x" ,
             "rig-id": null,
             "nicehash": false,
             "keepalive": false,
