@@ -1,3 +1,10 @@
+# v6.17.0
+- [#2954](https://github.com/xmrig/xmrig/pull/2954) **Dero HE fork support (`astrobwt/v2` algorithm).**
+  - [#2961](https://github.com/xmrig/xmrig/pull/2961) Dero HE (`astrobwt/v2`) CUDA config generator.
+  - [#2969](https://github.com/xmrig/xmrig/pull/2969) Dero HE (`astrobwt/v2`) OpenCL support.
+- Fixed displayed DMI memory information for empty slots.
+- [#2932](https://github.com/xmrig/xmrig/pull/2932) Fixed GhostRider with hwloc disabled.
+
 # v6.16.4
 - [#2904](https://github.com/xmrig/xmrig/pull/2904) Fixed unaligned memory accesses.
 - [#2908](https://github.com/xmrig/xmrig/pull/2908) Added MSVC/2022 to `version.h`.
