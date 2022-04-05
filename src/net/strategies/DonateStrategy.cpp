@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -70,9 +70,9 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 #   endif
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHostTls, 443, m_userId, nullptr, nullptr, 0, true, true, mode);
+    m_pools.emplace_back(kDonateHostTls, 443, m_userId, nullptr, nullptr, 0, true, true, false, mode);
 #   endif
-    m_pools.emplace_back(kDonateHost, 3333, m_userId, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHost, 3333, m_userId, nullptr, nullptr, 0, true, false, false, mode);
 
     if (m_pools.size() > 1) {
         m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
@@ -106,6 +106,12 @@ int64_t xmrig::DonateStrategy::submit(const JobResult &result)
 
 void xmrig::DonateStrategy::connect()
 {
+#   ifdef XMRIG_ALGO_ASTROBWT
+    if (m_algorithm == Algorithm::ASTROBWT_DERO_2) {
+        return;
+    }
+#   endif
+
     m_proxy = createProxy();
     if (m_proxy) {
         m_proxy->connect();
@@ -252,7 +258,7 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     const IClient *client = strategy->client();
     m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
-    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), Pool::MODE_POOL);
+    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), client->isWSS(), Pool::MODE_POOL);
     pool.setAlgo(client->pool().algorithm());
     pool.setProxy(client->pool().proxy());
 

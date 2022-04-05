@@ -504,7 +504,7 @@ hwloc__obj_type_is_icache(hwloc_obj_type_t type)
   }                                    \
 } while(0)
 #else /* HAVE_USELOCALE */
-#if __HWLOC_HAVE_ATTRIBUTE_UNUSED
+#if HWLOC_HAVE_ATTRIBUTE_UNUSED
 #define hwloc_localeswitch_declare int __dummy_nolocale __hwloc_attribute_unused
 #define hwloc_localeswitch_init()
 #else

@@ -205,7 +205,7 @@ public:
         size_t algo_l3 = algo.l3();
 
 #       ifdef XMRIG_ALGO_ASTROBWT
-        if (algo.family() == Algorithm::ASTROBWT) {
+        if (algo.id() == Algorithm::ASTROBWT_DERO) {
             algo_l3 = OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
         }
 #       endif

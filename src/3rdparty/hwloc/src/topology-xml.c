@@ -243,7 +243,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
   else if (!strcmp(name, "dont_merge")) {
     unsigned long lvalue = strtoul(value, NULL, 10);
     if (obj->type == HWLOC_OBJ_GROUP)
-      obj->attr->group.dont_merge = lvalue;
+      obj->attr->group.dont_merge = (unsigned char) lvalue;
     else if (hwloc__xml_verbose())
       fprintf(stderr, "%s: ignoring dont_merge attribute for non-group object type\n",
 	      state->global->msgprefix);
@@ -2825,6 +2825,7 @@ hwloc__xml_v1export_object_with_memory(hwloc__xml_export_state_t parentstate, hw
     /* child has sibling, we must add a Group around those memory children */
     hwloc_obj_t group = parentstate->global->v1_memory_group;
     parentstate->new_child(parentstate, &gstate, "object");
+    group->parent = obj->parent;
     group->cpuset = obj->cpuset;
     group->complete_cpuset = obj->complete_cpuset;
     group->nodeset = obj->nodeset;

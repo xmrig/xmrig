@@ -17,6 +17,76 @@ bug fixes (and other actions) for each version of hwloc since version
 0.9.
 
 
+Version 2.7.0
+-------------
+* Backends
+  + Add support for NUMA nodes and caches with more than 64 PUs across
+    multiple processor groups on Windows 11 and Windows Server 2022.
+  + Group objects are not created for Windows processor groups anymore,
+    except if HWLOC_WINDOWS_PROCESSOR_GROUP_OBJS=1 in the environment.
+  + Expose "Cluster" group objects on Linux kernel 5.16+ for CPUs
+    that share some internal cache or bus. This can be equivalent
+    to the L2 Cache level on some platforms (e.g. x86) or a specific
+    level between L2 and L3 on others (e.g. ARM Kungpeng 920).
+    Thanks to Jonathan Cameron for the help.
+    - HWLOC_DONT_MERGE_CLUSTER_GROUPS=1 may be set in the environment
+      to prevent these groups from being merged with identical caches, etc.
+  + Improve the oneAPI LevelZero backend:
+    - Expose subdevices such as "ze0.1" inside root OS devices ("ze0")
+      when the hardware contains multiple subdevices.
+    - Add many new attributes to describe device type, and the
+      numbers of slices, subslices, execution units and threads.
+    - Expose the memory information as LevelZeroHBM/DDR/MemorySize infos.
+  + Ignore the max frequencies of cores in Linux cpukinds when the
+    base frequencies are available (to avoid exposing hybrid CPUs
+    when Intel Turbo Boost Max 3.0 gives slightly different max
+    frequencies to CPU cores).
+    - May be reverted by setting HWLOC_CPUKINDS_MAXFREQ=1 in the environment.
+* Tools
+  + Add --grey and --palette options to switch lstopo to greyscale or
+    white-background-only graphics, or to tune individual colors.
+* Build
+  + Windows CMake builds now support non-MSVC compilers, detect several
+    features at build time, can build/run tests, etc.
+    Thanks to Michael Hirsch and Alexander Neumann .
+
+
+Version 2.6.0
+-------------
+* Backends
+  + Expose two cpukinds for energy-efficient cores (icestorm) and
+    high-performance cores (firestorm) on Apple M1 on Mac OS X.
+  + Use sysfs CPU "capacity" to rank hybrid cores by efficiency
+    on Linux when available (mostly on recent ARM platforms for now).
+  + Improve HWLOC_MEMBIND_BIND (without the STRICT flag) on Linux kernel
+    >= 5.15: If more than one node is given, the kernel may now use all
+    of them instead of only the first one before falling back to others.
+  + Expose cache os_index when available on Linux, it may be needed
+    when using resctrl to configure cache partitioning, memory bandwidth
+    monitoring, etc.
+  + Add a "XGMIHops" distances matrix in the RSMI backend for AMD GPU
+    interconnected through XGMI links.
+  + Expose AMD GPU memory information (VRAM and GTT) in the RSMI backend.
+  + Add OS devices such as "bxi0" for Atos/Bull BXI HCAs on Linux.
+* Tools
+  + lstopo has a better placement algorithm with respect to I/O
+    objects, see --children-order in the manpage for details.
+  + hwloc-annotate may now change object subtypes and cache or memory
+    sizes.
+* Build
+  + Allow to specify the ROCm installation for building the RSMI backend:
+    - Use a custom installation path if specified with --with-rocm=<dir>.
+    - Use /opt/rocm-<version> if specified with --with-rocm-version=<version>
+      or the ROCM_VERSION environment variable.
+    - Try /opt/rocm if it exists.
+    - See "How do I enable ROCm SMI and select which version to use?"
+      in the FAQ for details.
+  + Add a CMakeLists for Windows under contrib/windows-cmake/ .
+* Documentation
+  + Add FAQ entry "How do I create a custom heterogeneous and
+     asymmetric topology?"
+
+
 Version 2.5.0
 -------------
 * API

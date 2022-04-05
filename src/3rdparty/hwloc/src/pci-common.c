@@ -810,13 +810,14 @@ hwloc_pcidisc_find_linkspeed(const unsigned char *config,
    * PCIe Gen3 = 8  GT/s signal-rate per lane with 128/130 encoding = 1   GB/s data-rate per lane
    * PCIe Gen4 = 16 GT/s signal-rate per lane with 128/130 encoding = 2   GB/s data-rate per lane
    * PCIe Gen5 = 32 GT/s signal-rate per lane with 128/130 encoding = 4   GB/s data-rate per lane
+   * PCIe Gen6 = 64 GT/s signal-rate per lane with 128/130 encoding = 8   GB/s data-rate per lane
    */
 
   /* lanespeed in Gbit/s */
   if (speed <= 2)
     lanespeed = 2.5f * speed * 0.8f;
   else
-    lanespeed = 8.0f * (1<<(speed-3)) * 128/130; /* assume Gen6 will be 64 GT/s and so on */
+    lanespeed = 8.0f * (1<<(speed-3)) * 128/130; /* assume Gen7 will be 128 GT/s and so on */
 
   /* linkspeed in GB/s */
   *linkspeed = lanespeed * width / 8;

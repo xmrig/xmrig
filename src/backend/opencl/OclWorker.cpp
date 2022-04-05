@@ -37,6 +37,7 @@
 
 #ifdef XMRIG_ALGO_ASTROBWT
 #   include "backend/opencl/runners/OclAstroBWTRunner.h"
+#   include "backend/opencl/runners/OclAstroBWT_v2_Runner.h"
 #endif
 
 #ifdef XMRIG_ALGO_KAWPOW
@@ -92,7 +93,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
 
     case Algorithm::ASTROBWT:
 #       ifdef XMRIG_ALGO_ASTROBWT
-        m_runner = new OclAstroBWTRunner(id, data);
+        if (m_algorithm.id() == Algorithm::ASTROBWT_DERO_2) {
+            m_runner = new OclAstroBWT_v2_Runner(id, data);
+        }
+        else {
+            m_runner = new OclAstroBWTRunner(id, data);
+        }
 #       endif
         break;
 

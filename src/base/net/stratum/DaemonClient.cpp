@@ -48,8 +48,14 @@
 #include "net/JobResult.h"
 
 
+#ifdef XMRIG_FEATURE_TLS
+#include <openssl/ssl.h>
+#endif
+
+
 #include <algorithm>
 #include <cassert>
+#include <random>
 
 
 namespace xmrig {
@@ -58,7 +64,9 @@ namespace xmrig {
 Storage<DaemonClient> DaemonClient::m_storage;
 
 
-static const char* kBlocktemplateBlob = "blocktemplate_blob";
+static const char* kBlocktemplateBlob       = "blocktemplate_blob";
+static const char* kBlockhashingBlob        = "blockhashing_blob";
+static const char* kLastError               = "lasterror";
 static const char *kGetHeight               = "/getheight";
 static const char *kGetInfo                 = "/getinfo";
 static const char *kHash                    = "hash";
@@ -72,6 +80,14 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
+
+static const char kWSSLogin[] = "\
+GET /ws/%s HTTP/1.1\r\n\
+Host: %s\r\n\
+Upgrade: websocket\r\n\
+Connection: Upgrade\r\n\
+Sec-WebSocket-Key: %s\r\n\
+Sec-WebSocket-Version: 13\r\n\r\n";
 
 } // namespace xmrig
 
@@ -89,11 +105,20 @@ xmrig::DaemonClient::~DaemonClient()
 {
     delete m_timer;
     delete m_ZMQSocket;
+#   ifdef XMRIG_FEATURE_TLS
+    delete m_wss.m_socket;
+#   endif
 }
 
 
 void xmrig::DaemonClient::deleteLater()
 {
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_pool.isWSS()) {
+        WSSClose(true);
+    }
+    else
+#   endif
     if (m_pool.zmq_port() >= 0) {
         ZMQClose(true);
     }
@@ -120,6 +145,12 @@ bool xmrig::DaemonClient::isTLS() const
 #   else
     return false;
 #   endif
+}
+
+
+bool xmrig::DaemonClient::isWSS() const
+{
+    return m_pool.isWSS();
 }
 
 
@@ -150,6 +181,17 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 #   else
 
     Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
+
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_pool.isWSS() && (m_apiVersion == API_DERO) && (m_pool.algorithm().id() == Algorithm::ASTROBWT_DERO_2)) {
+        char buf[256];
+        const int n = snprintf(buf, sizeof(buf), "{\"jobid\":\"%s\",\"mbl_blob\":\"%s\"}", m_job.id().data(), data);
+        if (0 <= n && n < static_cast<int>(sizeof(buf))) {
+            return WSSWrite(buf, n) ? 1 : -1;
+        }
+        return -1;
+    }
+#   endif
 
     if (m_blocktemplate.hasMinerSignature()) {
         Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
@@ -193,19 +235,24 @@ void xmrig::DaemonClient::connect()
 
     setState(ConnectingState);
 
-    if (!m_walletAddress.isValid()) {
-        return connectError("Invalid wallet address.");
-    }
-
     if (!m_coin.isValid() && !m_pool.algorithm().isValid()) {
         return connectError("Invalid algorithm.");
     }
 
-    if ((m_pool.algorithm() == Algorithm::ASTROBWT_DERO) || (m_coin == Coin::DERO)) {
+    if (!m_pool.algorithm().isValid()) {
+        m_pool.setAlgo(m_coin.algorithm());
+    }
+
+    const xmrig::Algorithm algo = m_pool.algorithm();
+    if ((algo == Algorithm::ASTROBWT_DERO) || (algo == Algorithm::ASTROBWT_DERO_2) || (m_coin == Coin::DERO) || (m_coin == Coin::DERO_HE)) {
         m_apiVersion = API_DERO;
     }
 
-    if (m_pool.zmq_port() >= 0) {
+    if ((m_apiVersion == API_MONERO) && !m_walletAddress.isValid()) {
+        return connectError("Invalid wallet address.");
+    }
+
+    if ((m_pool.zmq_port() >= 0) || m_pool.isWSS()) {
         m_dns = Dns::resolve(m_pool.host(), this);
     }
     else {
@@ -306,6 +353,9 @@ void xmrig::DaemonClient::onTimer(const Timer *)
         connect();
     }
     else if (m_state == ConnectedState) {
+        if (m_pool.isWSS()) {
+            return;
+        }
         if (m_apiVersion == API_DERO) {
             rpcSend(JsonRequest::create(m_sequence, "get_info"));
         }
@@ -330,26 +380,35 @@ void xmrig::DaemonClient::onResolved(const DnsRecords &records, int status, cons
     }
 
 
-    delete m_ZMQSocket;
-
-
     const auto &record = records.get();
     m_ip = record.ip();
 
     auto req = new uv_connect_t;
     req->data = m_storage.ptr(m_key);
 
-    m_ZMQSocket = new uv_tcp_t;
-    m_ZMQSocket->data = m_storage.ptr(m_key);
+    uv_tcp_t* s = new uv_tcp_t;
+    s->data = m_storage.ptr(m_key);
 
-    uv_tcp_init(uv_default_loop(), m_ZMQSocket);
-    uv_tcp_nodelay(m_ZMQSocket, 1);
+    uv_tcp_init(uv_default_loop(), s);
+    uv_tcp_nodelay(s, 1);
 
 #   ifndef WIN32
-    uv_tcp_keepalive(m_ZMQSocket, 1, 60);
+    uv_tcp_keepalive(s, 1, 60);
 #   endif
 
-    uv_tcp_connect(req, m_ZMQSocket, record.addr(m_pool.zmq_port()), onZMQConnect);
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_pool.isWSS()) {
+        delete m_wss.m_socket;
+        m_wss.m_socket = s;
+        uv_tcp_connect(req, s, record.addr(m_pool.port()), onWSSConnect);
+    }
+    else
+#   endif
+    if (m_pool.zmq_port() > 0) {
+        delete m_ZMQSocket;
+        m_ZMQSocket = s;
+        uv_tcp_connect(req, s, record.addr(m_pool.zmq_port()), onZMQConnect);
+    }
 }
 
 
@@ -396,7 +455,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
     );
 #   endif
 
-    m_blockhashingblob = Json::getString(params, "blockhashing_blob");
+    m_blockhashingblob = Json::getString(params, kBlockhashingBlob);
 
     if (m_blocktemplate.hasMinerSignature()) {
         if (m_pool.spendSecretKey().isEmpty()) {
@@ -589,6 +648,12 @@ void xmrig::DaemonClient::retry()
         setState(ConnectingState);
     }
 
+#   ifdef XMRIG_FEATURE_TLS
+    if (m_wss.m_socket) {
+        uv_close(reinterpret_cast<uv_handle_t*>(m_wss.m_socket), onWSSClose);
+    }
+    else
+#   endif
     if ((m_ZMQConnectionState != ZMQ_NOT_CONNECTED) && (m_ZMQConnectionState != ZMQ_DISCONNECTING)) {
         uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), onZMQClose);
     }
@@ -913,3 +978,377 @@ bool xmrig::DaemonClient::ZMQClose(bool shutdown)
 
     return false;
 }
+
+
+#ifdef XMRIG_FEATURE_TLS
+void xmrig::DaemonClient::onWSSConnect(uv_connect_t* req, int status)
+{
+    DaemonClient* client = getClient(req->data);
+    delete req;
+
+    if (!client) {
+        return;
+    }
+
+    if (status < 0) {
+        LOG_ERR("%s " RED("WSS connect error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
+        client->retry();
+        return;
+    }
+
+    client->WSSConnected();
+}
+
+
+void xmrig::DaemonClient::onWSSRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
+{
+    DaemonClient* client = getClient(stream->data);
+    if (client) {
+        client->WSSRead(nread, buf);
+    }
+
+    NetBuffer::release(buf);
+}
+
+
+void xmrig::DaemonClient::onWSSClose(uv_handle_t* handle)
+{
+    DaemonClient* client = getClient(handle->data);
+    if (client) {
+#       ifdef APP_DEBUG
+        LOG_DEBUG(CYAN("%s") BLACK_BOLD(" disconnected"), client->m_pool.url().data());
+#       endif
+        client->m_wss.cleanup();
+        client->retry();
+    }
+}
+
+
+void xmrig::DaemonClient::onWSSShutdown(uv_handle_t* handle)
+{
+    DaemonClient* client = getClient(handle->data);
+    if (client) {
+#       ifdef APP_DEBUG
+        LOG_DEBUG(CYAN("%s") BLACK_BOLD(" shutdown"), client->m_pool.url().data());
+#       endif
+        client->m_wss.cleanup();
+        m_storage.remove(client->m_key);
+    }
+}
+
+
+void xmrig::DaemonClient::WSSConnected()
+{
+    m_wss.m_ctx   = SSL_CTX_new(SSLv23_method());
+    m_wss.m_write = BIO_new(BIO_s_mem());
+    m_wss.m_read  = BIO_new(BIO_s_mem());
+
+    SSL_CTX_set_options(m_wss.m_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+    m_wss.m_ssl = SSL_new(m_wss.m_ctx);
+    SSL_set_connect_state(m_wss.m_ssl);
+    SSL_set_bio(m_wss.m_ssl, m_wss.m_read, m_wss.m_write);
+    SSL_do_handshake(m_wss.m_ssl);
+
+    if (WSSWrite(nullptr, 0)) {
+        uv_read_start(reinterpret_cast<uv_stream_t*>(m_wss.m_socket), NetBuffer::onAlloc, onWSSRead);
+    }
+}
+
+
+bool xmrig::DaemonClient::WSSWrite(const char* data, size_t size)
+{
+    if (!m_wss.m_socket) {
+        return false;
+    }
+
+    if (data && size) {
+#   ifdef APP_DEBUG
+        LOG_DEBUG(CYAN("%s") BLACK_BOLD(" write ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes") " %s", m_pool.url().data(), size, data);
+#   endif
+
+        if (!m_wss.m_handshake) {
+            WSS::Header h{};
+            h.fin = 1;
+            h.mask = 1;
+            h.opcode = 1;
+
+            uint8_t size_buf[8];
+            if (size < 126) {
+                h.payload_len = static_cast<uint8_t>(size);
+            }
+            else if (size < 65536) {
+                h.payload_len = 126;
+                size_buf[0] = static_cast<uint8_t>(size >> 8);
+                size_buf[1] = static_cast<uint8_t>(size & 0xFF);
+            }
+            else {
+                h.payload_len = 127;
+                uint64_t k = size;
+                for (int i = 7; i >= 0; --i, k >>= 8) {
+                    size_buf[i] = static_cast<uint8_t>(k & 0xFF);
+                }
+            }
+
+            // Header
+            SSL_write(m_wss.m_ssl, &h, sizeof(h));
+
+            // Optional extended payload length
+            if (h.payload_len == 126) SSL_write(m_wss.m_ssl, size_buf, 2);
+            if (h.payload_len == 127) SSL_write(m_wss.m_ssl, size_buf, 8);
+
+            // Masking-key
+            SSL_write(m_wss.m_ssl, "\0\0\0\0", 4);
+        }
+
+        SSL_write(m_wss.m_ssl, data, static_cast<int>(size));
+    }
+
+    uv_buf_t buf;
+    buf.len = BIO_get_mem_data(m_wss.m_write, &buf.base);
+
+    if (buf.len == 0) {
+        return true;
+    }
+
+    const int rc = uv_try_write(reinterpret_cast<uv_stream_t*>(m_wss.m_socket), &buf, 1);
+
+    BIO_reset(m_wss.m_write);
+
+    if (static_cast<size_t>(rc) == buf.len) {
+        return true;
+    }
+
+    LOG_ERR("%s " RED("WSS write failed, rc = %d"), tag(), rc);
+    WSSClose();
+    return false;
+}
+
+
+void xmrig::DaemonClient::WSSRead(ssize_t nread, const uv_buf_t* read_buf)
+{
+    if (nread <= 0) {
+        LOG_ERR("%s " RED("WSS read failed, nread = %" PRId64), tag(), nread);
+        WSSClose();
+        return;
+    }
+
+    BIO_write(m_wss.m_read, read_buf->base, static_cast<int>(nread));
+
+    if (!SSL_is_init_finished(m_wss.m_ssl)) {
+        const int rc = SSL_connect(m_wss.m_ssl);
+
+        if ((rc < 0) && (SSL_get_error(m_wss.m_ssl, rc) == SSL_ERROR_WANT_READ)) {
+            WSSWrite(nullptr, 0);
+        }
+        else if (rc == 1) {
+            // login
+            static constexpr char Base64[] = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+            char key[25];
+            std::random_device r;
+
+            for (int i = 0; i < 21; ++i) {
+                key[i] = Base64[r() % 64];
+            }
+
+            key[21] = Base64[0];
+            key[22] = '=';
+            key[23] = '=';
+            key[24] = '\0';
+
+            const int n = snprintf(m_wss.m_buf, sizeof(m_wss.m_buf), kWSSLogin, m_pool.user().data(), m_pool.host().data(), key);
+            if (0 <= n && n < static_cast<int>(sizeof(m_wss.m_buf))) {
+                WSSWrite(m_wss.m_buf, n);
+            }
+            else {
+                WSSClose();
+            }
+        }
+
+        return;
+    }
+
+    int n = 0;
+    while ((n = SSL_read(m_wss.m_ssl, m_wss.m_buf, sizeof(m_wss.m_buf))) > 0) {
+        m_wss.m_data.insert(m_wss.m_data.end(), m_wss.m_buf, m_wss.m_buf + n);
+
+        // Skip the first message (HTTP upgrade response)
+        if (m_wss.m_handshake) {
+            const size_t len = m_wss.m_data.size();
+            if (len >= 4) {
+                for (size_t k = 0; k <= len - 4; ++k) {
+                    if (memcmp(m_wss.m_data.data() + k, "\r\n\r\n", 4) == 0) {
+                        m_wss.m_handshake = false;
+                        m_wss.m_data.erase(m_wss.m_data.begin(), m_wss.m_data.begin() + k + 4);
+                        break;
+                    }
+                }
+            }
+            continue;
+        }
+
+        const uint8_t* p0 = reinterpret_cast<uint8_t*>(m_wss.m_data.data());
+        const uint8_t* p = p0;
+        const uint8_t* e = p0 + m_wss.m_data.size();
+
+        if (e - p < static_cast<int>(sizeof(WSS::Header)))
+            continue;
+
+        const WSS::Header* h = reinterpret_cast<const WSS::Header*>(p);
+        p += sizeof(WSS::Header);
+
+        uint64_t len = h->payload_len;
+
+        if (len == 126) {
+            if (e - p < static_cast<int>(sizeof(uint16_t))) {
+                continue;
+            }
+            len = 0;
+            for (size_t i = 0; i < sizeof(uint16_t); ++i, ++p) {
+                len = (len << 8) | *p;
+            }
+        }
+        else if (len == 127) {
+            if (e - p < static_cast<int>(sizeof(uint64_t))) {
+                continue;
+            }
+            len = 0;
+            for (size_t i = 0; i < sizeof(uint64_t); ++i, ++p) {
+                len = (len << 8) | *p;
+            }
+        }
+
+        uint8_t mask_key[4] = {};
+        if (h->mask) {
+            if (e - p < 4)
+                continue;
+            memcpy(mask_key, p, 4);
+            p += 4;
+        }
+
+        if (static_cast<uint64_t>(e - p) < len)
+            continue;
+
+        for (uint64_t i = 0; i < len; ++i) {
+            m_wss.m_message.push_back(p[i] ^ mask_key[i % 4]);
+        }
+        p += len;
+
+        m_wss.m_data.erase(m_wss.m_data.begin(), m_wss.m_data.begin() + (p - p0));
+
+        if (h->fin) {
+            if (m_wss.m_message.back() == '\n') {
+                m_wss.m_message.back() = '\0';
+            }
+            else {
+                m_wss.m_message.push_back('\0');
+            }
+            WSSParse();
+            m_wss.m_message.clear();
+        }
+    }
+}
+
+
+void xmrig::DaemonClient::WSSParse()
+{
+#   ifdef APP_DEBUG
+    LOG_DEBUG(CYAN("%s") BLACK_BOLD(" read ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes") " %s", m_pool.url().data(), m_wss.m_message.size(), m_wss.m_message.data());
+#   endif
+
+    using namespace rapidjson;
+
+    Document doc;
+    if (doc.ParseInsitu(m_wss.m_message.data()).HasParseError() || !doc.IsObject()) {
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("JSON decode failed: ") RED_BOLD("\"%s\""), tag(), GetParseError_En(doc.GetParseError()));
+        }
+
+        return retry();
+    }
+
+    if (doc.HasMember(kLastError)) {
+        String err = Json::getString(doc, kLastError, "");
+        if (!err.isEmpty()) {
+            LOG_ERR("%s " RED_BOLD("\"%s\""), tag(), err.data());
+            return;
+        }
+    }
+
+    if (doc.HasMember(kBlockhashingBlob)) {
+        Job job(false, m_pool.algorithm(), String());
+
+        m_blockhashingblob = Json::getString(doc, kBlockhashingBlob, "");
+        if (m_blockhashingblob.isEmpty()) {
+            LOG_ERR("%s " RED_BOLD("blockhashing_blob is empty"), tag());
+            return;
+        }
+        job.setBlob(m_blockhashingblob);
+        memset(job.blob() + job.nonceOffset(), 0, job.nonceSize());
+
+        const uint64_t height = Json::getUint64(doc, kHeight);
+
+        job.setHeight(height);
+        job.setDiff(Json::getUint64(doc, "difficultyuint64"));
+        //job.setDiff(100000);
+
+        m_currentJobId = Json::getString(doc, "jobid");
+        job.setId(m_currentJobId);
+
+        m_job = std::move(job);
+
+        if (m_state == ConnectingState) {
+            setState(ConnectedState);
+        }
+
+        const uint64_t blocks = Json::getUint64(doc, "blocks");
+        const uint64_t miniblocks = Json::getUint64(doc, "miniblocks");
+
+        if ((blocks != m_wss.m_blocks) || (miniblocks != m_wss.m_miniblocks) || (height != m_wss.m_height)) {
+            LOG_INFO("%s " GREEN_BOLD("%" PRIu64 " blocks, %" PRIu64 " mini blocks"), tag(), blocks, miniblocks);
+            m_wss.m_blocks = blocks;
+            m_wss.m_miniblocks = miniblocks;
+            m_wss.m_height = height;
+        }
+
+        m_listener->onJobReceived(this, m_job, doc);
+        return;
+    }
+}
+
+
+bool xmrig::DaemonClient::WSSClose(bool shutdown)
+{
+    if (m_wss.m_socket && (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_wss.m_socket)) == 0)) {
+        uv_close(reinterpret_cast<uv_handle_t*>(m_wss.m_socket), shutdown ? onWSSShutdown : onWSSClose);
+        return true;
+    }
+
+    return false;
+}
+
+
+void xmrig::DaemonClient::WSS::cleanup()
+{
+    delete m_socket;
+    m_socket = nullptr;
+
+    if (m_ctx) {
+        SSL_CTX_free(m_ctx);
+        m_ctx = nullptr;
+    }
+    if (m_ssl) {
+        SSL_free(m_ssl);
+        m_ssl = nullptr;
+    }
+
+    m_read = nullptr;
+    m_write = nullptr;
+    m_handshake = true;
+    m_blocks = 0;
+    m_miniblocks = 0;
+    m_height = 0;
+    m_data.clear();
+    m_message.clear();
+}
+#endif
