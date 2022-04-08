@@ -34,37 +34,21 @@
 #include "3rdparty/rapidjson/istreamwrapper.h"
 #include "3rdparty/rapidjson/ostreamwrapper.h"
 #include "3rdparty/rapidjson/prettywriter.h"
+#include "base/tools/Cvt.h"
 
 
 namespace xmrig {
 
 
-#if defined(_MSC_VER) || defined (__GNUC__)
-static std::wstring toUtf16(const char *str)
-{
-    const int size = static_cast<int>(strlen(str));
-    std::wstring ret;
-
-    int len = MultiByteToWideChar(CP_UTF8, 0, str, size, nullptr, 0);
-    if (len > 0) {
-        ret.resize(static_cast<size_t>(len));
-        MultiByteToWideChar(CP_UTF8, 0, str, size, &ret[0], len);
-    }
-
-    return ret;
-}
-#endif
-
-
 #if defined(_MSC_VER)
 #   define OPEN_IFS(name)                                                               \
-    std::ifstream ifs(toUtf16(name), std::ios_base::in | std::ios_base::binary);        \
+    std::ifstream ifs(Cvt::toUtf16(name), std::ios_base::in | std::ios_base::binary);        \
     if (!ifs.is_open()) {                                                               \
         return false;                                                                   \
     }
 #elif defined(__GNUC__)
 #   define OPEN_IFS(name)                                                               \
-    const int fd = _wopen(toUtf16(name).c_str(), _O_RDONLY | _O_BINARY);                \
+    const int fd = _wopen(Cvt::toUtf16(name).c_str(), _O_RDONLY | _O_BINARY);                \
     if (fd == -1) {                                                                     \
         return false;                                                                   \
     }                                                                                   \
@@ -99,12 +83,12 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     constexpr const std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary | std::ios_base::trunc;
 
 #   if defined(_MSC_VER)
-    std::ofstream ofs(toUtf16(fileName), mode);
+    std::ofstream ofs(Cvt::toUtf16(fileName), mode);
     if (!ofs.is_open()) {
         return false;
     }
 #   elif defined(__GNUC__)
-    const int fd = _wopen(toUtf16(fileName).c_str(), _O_WRONLY | _O_BINARY | _O_CREAT | _O_TRUNC, _S_IWRITE);
+    const int fd = _wopen(Cvt::toUtf16(fileName).c_str(), _O_WRONLY | _O_BINARY | _O_CREAT | _O_TRUNC, _S_IWRITE);
     if (fd == -1) {
         return false;
     }

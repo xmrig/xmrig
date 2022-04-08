@@ -42,7 +42,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_DNSRECORDS_H */
+#endif // XMRIG_DNSRECORDS_H

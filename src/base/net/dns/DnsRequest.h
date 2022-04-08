@@ -23,9 +23,6 @@
 #include "base/tools/Object.h"
 
 
-#include <cstdint>
-
-
 namespace xmrig {
 
 
@@ -44,7 +41,7 @@ public:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_DNSREQUEST_H */
+#endif // XMRIG_DNSREQUEST_H

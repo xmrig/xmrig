@@ -26,7 +26,7 @@
 xmrig::String::String(const char *str, size_t size) :
     m_size(size)
 {
-    if (str == nullptr) {
+    if (str == nullptr || size == 0) {
         m_size = 0;
 
         return;

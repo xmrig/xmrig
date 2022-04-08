@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/net/http/HttpApiResponse.h"
 #include "3rdparty/rapidjson/prettywriter.h"
 #include "3rdparty/rapidjson/stringbuffer.h"

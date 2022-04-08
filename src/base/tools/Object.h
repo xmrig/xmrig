@@ -20,7 +20,9 @@
 #define XMRIG_OBJECT_H
 
 
-#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 
 
 namespace xmrig {
@@ -41,6 +43,10 @@ namespace xmrig {
     X &operator=(X &&other)      = delete;
 
 
-} /* namespace xmrig */
+#define XMRIG_DECL_PRIVATE() class Private; const std::shared_ptr<Private> d;
 
-#endif /* XMRIG_OBJECT_H */
+
+} // namespace xmrig
+
+
+#endif // XMRIG_OBJECT_H

@@ -54,7 +54,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_DNSRECORD_H */
+#endif // XMRIG_DNSRECORD_H

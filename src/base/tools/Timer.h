@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,9 +26,6 @@ using uv_timer_t = struct uv_timer_s;
 #include "base/tools/Object.h"
 
 
-#include <cstdint>
-
-
 namespace xmrig {
 
 
@@ -40,8 +37,9 @@ class Timer
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Timer);
 
-    Timer(ITimerListener *listener);
-    Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat);
+    Timer(ITimerListener *listener, uint64_t repeat) : m_listener(listener)                     { init(); start(repeat, repeat); }
+    Timer(ITimerListener *listener, uint64_t timeout, uint64_t repeat) : m_listener(listener)   { init(); start(timeout, repeat); }
+    Timer(ITimerListener *listener) : m_listener(listener)                                      { init(); }
     ~Timer();
 
     inline int id() const { return m_id; }
@@ -63,7 +61,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_TIMER_H */
+#endif // XMRIG_TIMER_H

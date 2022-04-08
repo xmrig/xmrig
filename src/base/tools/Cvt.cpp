@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2013-2020 Frank Denis <j at pureftpd dot org>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifdef XMRIG_OS_WIN
+#   include <windows.h>
+#endif
+
 #include "base/tools/Cvt.h"
 #include "3rdparty/rapidjson/document.h"
 
@@ -25,7 +29,7 @@
 #include <random>
 
 
-#ifdef XMRIG_SODIUM
+#if defined(XMRIG_FEATURE_SODIUM) || defined(XMRIG_SODIUM)
 #   include <sodium.h>
 #endif
 
@@ -63,7 +67,7 @@ static char *cvt_bin2hex(char *const hex, const size_t hex_maxlen, const unsigne
 }
 
 
-#ifndef XMRIG_SODIUM
+#if !defined(XMRIG_FEATURE_SODIUM) && !defined(XMRIG_SODIUM)
 static std::random_device randomDevice;
 static std::mt19937 randomEngine(randomDevice());
 
@@ -224,7 +228,7 @@ xmrig::Buffer xmrig::Cvt::randomBytes(const size_t size)
 {
     Buffer buf(size);
 
-#   ifndef XMRIG_SODIUM
+#   if !defined(XMRIG_FEATURE_SODIUM) && !defined(XMRIG_SODIUM)
     std::uniform_int_distribution<> dis(0, 255);
 
     for (size_t i = 0; i < size; ++i) {
@@ -284,7 +288,7 @@ xmrig::String xmrig::Cvt::toHex(const uint8_t *in, size_t size)
 
 void xmrig::Cvt::randomBytes(void *buf, size_t size)
 {
-#   ifndef XMRIG_SODIUM
+#   if !defined(XMRIG_FEATURE_SODIUM) && !defined(XMRIG_SODIUM)
     std::uniform_int_distribution<> dis(0, 255);
 
     for (size_t i = 0; i < size; ++i) {
@@ -294,3 +298,32 @@ void xmrig::Cvt::randomBytes(void *buf, size_t size)
     randombytes_buf(buf, size);
 #   endif
 }
+
+
+#ifdef XMRIG_OS_WIN
+std::string xmrig::Cvt::toUtf8(const wchar_t *str, int size)
+{
+    std::string ret;
+    const int len = WideCharToMultiByte(CP_UTF8, 0, str, size, nullptr, 0, nullptr, nullptr);
+    if (len > 0) {
+        ret.resize(static_cast<size_t>(len));
+        WideCharToMultiByte(CP_UTF8, 0, str, size, &ret[0], len, nullptr, nullptr);
+    }
+
+    return ret;
+}
+
+
+std::wstring xmrig::Cvt::toUtf16(const char *str, int size)
+{
+    std::wstring ret;
+
+    const int len = MultiByteToWideChar(CP_UTF8, 0, str, size, nullptr, 0);
+    if (len > 0) {
+        ret.resize(static_cast<size_t>(len));
+        MultiByteToWideChar(CP_UTF8, 0, str, size, &ret[0], len);
+    }
+
+    return ret;
+}
+#endif

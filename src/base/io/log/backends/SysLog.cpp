@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
+#include <algorithm>
 #include <syslog.h>
 
 
@@ -43,5 +43,5 @@ void xmrig::SysLog::print(uint64_t, int level, const char *line, size_t offset, 
         return;
     }
 
-    syslog(level == -1 ? LOG_INFO : level, "%s", line + offset);
+    syslog(level == -1 ? LOG_INFO : std::min(level, LOG_DEBUG), "%s", line + offset);
 }

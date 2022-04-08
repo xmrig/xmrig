@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,21 +19,17 @@
 #ifndef XMRIG_BSWAP_64_H
 #define XMRIG_BSWAP_64_H
 
+
 #ifdef _MSC_VER
-
-#include <stdlib.h>
-#define bswap_64(x) _byteswap_uint64(x)
-#define bswap_32(x) _byteswap_ulong(x)
-
+#   include <cstdlib>
+#   define bswap_64(x) _byteswap_uint64(x)
+#   define bswap_32(x) _byteswap_ulong(x)
 #elif defined __GNUC__
-
-#define bswap_64(x) __builtin_bswap64(x)
-#define bswap_32(x) __builtin_bswap32(x)
-
+#   define bswap_64(x) __builtin_bswap64(x)
+#   define bswap_32(x) __builtin_bswap32(x)
 #else
-
-#include <byteswap.h>
-
+#   include <byteswap.h>
 #endif
 
-#endif /* XMRIG_BSWAP_64_H */
+
+#endif // XMRIG_BSWAP_64_H
