@@ -436,10 +436,6 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
     out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    out.AddMember("astrobwt-max-size", cpu.astrobwtMaxSize(), allocator);
-#   endif
-
     out.AddMember("hugepages", d_ptr->hugePages(2, doc), allocator);
     out.AddMember("memory",    static_cast<uint64_t>(d_ptr->algo.isValid() ? (d_ptr->ways() * d_ptr->algo.l3()) : 0), allocator);
 

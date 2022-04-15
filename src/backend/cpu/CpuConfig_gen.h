@@ -164,7 +164,6 @@ size_t inline generate<Algorithm::ASTROBWT>(Threads<CpuThreads>& threads, uint32
         count += threads.move(Algorithm::kASTROBWT_DERO_2, std::move(v2));
     }
 
-    count += generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, limit);
     return count;
 }
 #endif

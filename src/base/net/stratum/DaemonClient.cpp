@@ -244,7 +244,7 @@ void xmrig::DaemonClient::connect()
     }
 
     const xmrig::Algorithm algo = m_pool.algorithm();
-    if ((algo == Algorithm::ASTROBWT_DERO) || (algo == Algorithm::ASTROBWT_DERO_2) || (m_coin == Coin::DERO) || (m_coin == Coin::DERO_HE)) {
+    if ((algo == Algorithm::ASTROBWT_DERO_2) || (m_coin == Coin::DERO) || (m_coin == Coin::DERO_HE)) {
         m_apiVersion = API_DERO;
     }
 
