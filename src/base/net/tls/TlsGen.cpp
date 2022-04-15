@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,8 @@
  */
 
 #include "base/net/tls/TlsGen.h"
+#include "base/io/log/Log.h"
+#include "version.h"
 
 
 #include <openssl/ssl.h>
@@ -29,6 +31,9 @@ namespace xmrig {
 
 
 static const char *kLocalhost = "localhost";
+
+
+extern const char *tls_tag();
 
 
 static EVP_PKEY *generate_pkey()
@@ -56,7 +61,7 @@ static EVP_PKEY *generate_pkey()
 }
 
 
-bool isFileExist(const char *fileName)
+static bool isFileExist(const char *fileName)
 {
     std::ifstream in(fileName);
 
@@ -74,28 +79,40 @@ xmrig::TlsGen::~TlsGen()
 }
 
 
+const char *xmrig::TlsGen::cn() const
+{
+    return m_cn.isEmpty() ? kLocalhost : m_cn.data();
+}
+
+
 void xmrig::TlsGen::generate(const char *commonName)
 {
     if (isFileExist(m_cert) && isFileExist(m_certKey)) {
         return;
     }
 
-    m_pkey = generate_pkey();
+    m_cn    = commonName;
+    m_pkey  = generate_pkey();
+
     if (!m_pkey) {
         throw std::runtime_error("RSA key generation failed.");
     }
 
-    if (!generate_x509(commonName == nullptr || strlen(commonName) == 0 ? kLocalhost : commonName)) {
+    if (!generate_x509()) {
         throw std::runtime_error("x509 certificate generation failed.");
     }
 
     if (!write()) {
         throw std::runtime_error("unable to write certificate to disk.");
     }
+
+#   if defined(XMRIG_BASE_VERSION)
+    LOG_NOTICE("%s " MAGENTA_BOLD("generated") WHITE_BOLD(" \"%s/%s\" ") "CN=" WHITE_BOLD("\"%s\""), tls_tag(), m_cert.data(), m_certKey.data(), cn());
+#   endif
 }
 
 
-bool xmrig::TlsGen::generate_x509(const char *commonName)
+bool xmrig::TlsGen::generate_x509()
 {
     m_x509 = X509_new();
     if (!m_x509) {
@@ -111,7 +128,7 @@ bool xmrig::TlsGen::generate_x509(const char *commonName)
     X509_gmtime_adj(X509_get_notAfter(m_x509), 315360000L);
 
     auto name = X509_get_subject_name(m_x509);
-    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const uint8_t *>(commonName), -1, -1, 0);
+    X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const uint8_t *>(cn()), -1, -1, 0);
 
     X509_set_issuer_name(m_x509, name);
 
