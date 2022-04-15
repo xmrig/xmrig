@@ -81,7 +81,6 @@ public:
         AR2_CHUKWA      = 0x61130000,   // "argon2/chukwa"    Argon2id (Chukwa).
         AR2_CHUKWA_V2   = 0x61140000,   // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_WRKZ        = 0x61120000,   // "argon2/wrkz"      Argon2id (WRKZ)
-        ASTROBWT_DERO   = 0x41000000,   // "astrobwt"         AstroBWT (Dero)
         ASTROBWT_DERO_2 = 0x41110000,   // "astrobwt/v2"      AstroBWT (Dero HE)
         KAWPOW_RVN      = 0x6b0f0000,   // "kawpow/rvn"       KawPow (RVN)
     };
@@ -194,14 +193,7 @@ public:
     inline uint32_t minIntensity() const                    { return ((m_id == GHOSTRIDER_RTM) ? 8 : 1); };
     inline uint32_t maxIntensity() const                    { return isCN() ? 5 : ((m_id == GHOSTRIDER_RTM) ? 8 : 1); };
 
-    inline size_t l3() const
-    {
-#       ifdef XMRIG_ALGO_ASTROBWT
-        return m_id != ASTROBWT_DERO ? l3(m_id) : 0x100000 * 20;
-#       else
-        return l3(m_id);
-#       endif
-    }
+    inline size_t l3() const                                { return l3(m_id); }
 
     inline bool operator!=(Algorithm::Id id) const          { return m_id != id; }
     inline bool operator!=(const Algorithm &other) const    { return !isEqual(other); }

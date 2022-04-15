@@ -318,13 +318,6 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     size_t scratchpad       = algorithm.l3();
     uint32_t intensity      = algorithm.maxIntensity() == 1 ? 0 : 1;
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm == Algorithm::ASTROBWT_DERO) {
-        // Use fake low value to force usage of all available cores for AstroBWT (taking 'limit' into account)
-        scratchpad = 16 * 1024;
-    }
-#   endif
-
     if (cache->attr->cache.depth == 3) {
         for (size_t i = 0; i < cache->arity; ++i) {
             hwloc_obj_t l2 = cache->children[i];
