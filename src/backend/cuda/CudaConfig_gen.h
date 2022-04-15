@@ -145,7 +145,6 @@ size_t inline generate<Algorithm::ASTROBWT>(Threads<CudaThreads> &threads, const
         count += threads.move(Algorithm::kASTROBWT_DERO_2, CudaThreads(devices, Algorithm::ASTROBWT_DERO_2));
     }
 
-    count += generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, devices);
     return count;
 }
 #endif
