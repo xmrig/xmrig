@@ -137,22 +137,22 @@ static int exportTopology(const Process &)
 xmrig::Entry::Id xmrig::Entry::get(const Process &process)
 {
     const Arguments &args = process.arguments();
-    if (args.hasArg("-h") || args.hasArg("--help")) {
+    if (args.contains("-h", "--help")) {
          return Usage;
     }
 
-    if (args.hasArg("-V") || args.hasArg("--version") || args.hasArg("--versions")) {
+    if (args.contains("-V", "--version", "--versions")) {
          return Version;
     }
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    if (args.hasArg("--export-topology")) {
+    if (args.contains("--export-topology")) {
         return Topo;
     }
 #   endif
 
 #   ifdef XMRIG_FEATURE_OPENCL
-    if (args.hasArg("--print-platforms")) {
+    if (args.contains("--print-platforms")) {
         return Platforms;
     }
 #   endif
