@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,7 @@
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
@@ -37,7 +37,7 @@ namespace xmrig {
 
 static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache, uint32_t startItem, uint32_t itemCount, int priority)
 {
-    Platform::setThreadPriority(priority);
+    OS::setThreadPriority(priority);
 
     if (Cpu::info()->hasAVX2() && (itemCount % 5)) {
         randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 5));

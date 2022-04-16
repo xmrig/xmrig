@@ -1,5 +1,5 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,42 +16,39 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include "base/kernel/Platform.h"
-
-
-#include <cstring>
-#include <uv.h>
+#ifndef XMRIG_LIB_H
+#define XMRIG_LIB_H
 
 
-#ifdef XMRIG_FEATURE_TLS
-#   include <openssl/ssl.h>
-#   include <openssl/err.h>
-#endif
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
 
-String Platform::m_userAgent;
+
+class Lib
+{
+public:
+    XMRIG_DISABLE_COPY_MOVE(Lib)
+
+    Lib();
+    inline ~Lib()   { close(); }
+
+    bool isOpen() const;
+    bool open(const char *filename);
+    bool sym(const char *name, void **ptr);
+    const char *lastError() const;
+    void close();
+
+    template<typename T>
+    inline bool sym(const char *name, T t) { return sym(name, reinterpret_cast<void **>(t)); }
+
+private:
+    XMRIG_DECL_PRIVATE()
+};
+
 
 } // namespace xmrig
 
 
-void xmrig::Platform::init(const char *userAgent)
-{
-#   ifdef XMRIG_FEATURE_TLS
-    SSL_library_init();
-    SSL_load_error_strings();
-    ERR_load_BIO_strings();
-    ERR_load_crypto_strings();
-    SSL_load_error_strings();
-    OpenSSL_add_all_digests();
-#   endif
-
-    if (userAgent) {
-        m_userAgent = userAgent;
-    }
-    else {
-        m_userAgent = createUserAgent();
-    }
-}
+#endif // XMRIG_LIB_H

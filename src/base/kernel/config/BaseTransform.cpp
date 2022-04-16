@@ -35,6 +35,7 @@
 #include "base/net/dns/DnsConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
+#include "base/tools/Arguments.h"
 #include "core/config/Config_platform.h"
 
 

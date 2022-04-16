@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,19 +22,20 @@
 
 
 #include "core/Miner.h"
-#include "core/Taskbar.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/common/Hashrate.h"
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
+#include "base/kernel/Process.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Taskbar.h"
 #include "crypto/common/Nonce.h"
 #include "version.h"
 
@@ -154,7 +155,7 @@ public:
 
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
-        reply.AddMember("ua",           Platform::userAgent().toJSON(), allocator);
+        reply.AddMember("ua",           Process::userAgent().toJSON(), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
         reply.AddMember("paused",       !enabled, allocator);
@@ -387,8 +388,8 @@ xmrig::Miner::Miner(Controller *controller)
 {
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
-        Platform::setProcessPriority(priority);
-        Platform::setThreadPriority(std::min(priority + 1, 5));
+        OS::setProcessPriority(priority);
+        OS::setThreadPriority(std::min(priority + 1, 5));
     }
 
 #   ifdef XMRIG_FEATURE_PROFILING
@@ -669,11 +670,11 @@ void xmrig::Miner::onTimer(const Timer *)
     };
 
     if (config->isPauseOnBattery()) {
-        autoPause(d_ptr->battery_power, Platform::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
+        autoPause(d_ptr->battery_power, OS::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
     }
 
     if (config->isPauseOnActive()) {
-        autoPause(d_ptr->user_active, Platform::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
+        autoPause(d_ptr->user_active, OS::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
 
     if (stopMiner) {

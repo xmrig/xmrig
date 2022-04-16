@@ -16,50 +16,43 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_PLATFORM_H
-#define XMRIG_PLATFORM_H
-
-
-#include <cstdint>
+#ifndef XMRIG_OS_H
+#define XMRIG_OS_H
 
 
 #include "base/tools/String.h"
 
 
+#include <string>
+
+
 namespace xmrig {
 
 
-class Platform
+class OS
 {
 public:
-    static inline bool trySetThreadAffinity(int64_t cpu_id)
-    {
-        if (cpu_id < 0) {
-            return false;
-        }
+    static const char *arch;
 
-        return setThreadAffinity(static_cast<uint64_t>(cpu_id));
-    }
-
-    static bool setThreadAffinity(uint64_t cpu_id);
-    static void init(const char *userAgent);
-    static void setProcessPriority(int priority);
-    static void setThreadPriority(int priority);
-
-    static inline bool isUserActive(uint64_t ms)    { return idleTime() < ms; }
-    static inline const String &userAgent()         { return m_userAgent; }
+    static inline bool isUserActive(uint64_t ms)            { return idleTime() < ms; }
+    static inline bool trySetThreadAffinity(int64_t cpu_id) { return cpu_id >= 0 && setThreadAffinity(static_cast<uint64_t>(cpu_id)); }
 
     static bool isOnBatteryPower();
+    static bool setThreadAffinity(uint64_t cpu_id);
+    static std::string name();
+    static std::string userAgent();
+    static String hostname();
+    static uint64_t freemem();
     static uint64_t idleTime();
-
-private:
-    static char *createUserAgent();
-
-    static String m_userAgent;
+    static uint64_t totalmem();
+    static void destroy();
+    static void init();
+    static void setProcessPriority(int priority);
+    static void setThreadPriority(int priority);
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_PLATFORM_H */
+#endif // XMRIG_OS_H

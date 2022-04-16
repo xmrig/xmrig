@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,8 +23,23 @@
 
 #include "base/kernel/Process.h"
 #include "3rdparty/fmt/core.h"
+#include "base/kernel/OS.h"
+#include "base/kernel/Versions.h"
+#include "base/tools/Arguments.h"
 #include "base/tools/Chrono.h"
 #include "version.h"
+
+
+#ifndef XMRIG_LEGACY
+#   include "base/kernel/Events.h"
+#   include "base/kernel/events/ExitEvent.h"
+#endif
+
+
+#ifdef XMRIG_FEATURE_TLS
+#   include <openssl/ssl.h>
+#   include <openssl/err.h>
+#endif
 
 
 #ifdef XMRIG_OS_WIN
@@ -42,99 +57,127 @@
 namespace xmrig {
 
 
-static char pathBuf[520];
-static std::string dataDir;
-
-
-static std::string getPath(Process::Location location)
+class Process::Private
 {
-    size_t size = sizeof(pathBuf);
-
-    if (location == Process::DataLocation) {
-        if (!dataDir.empty()) {
-            return dataDir;
-        }
-
-        location = Process::ExeLocation;
-    }
-
-    if (location == Process::HomeLocation) {
-#       if UV_VERSION_HEX >= 0x010600
-        return uv_os_homedir(pathBuf, &size) < 0 ? "" : std::string(pathBuf, size);
-#       else
-        location = Process::ExeLocation;
+public:
+    Private(int argc, char **argv) : arguments(argc, argv)
+    {
+#       ifdef XMRIG_FEATURE_TLS
+        SSL_library_init();
+        SSL_load_error_strings();
+        ERR_load_BIO_strings();
+        ERR_load_crypto_strings();
+        SSL_load_error_strings();
+        OpenSSL_add_all_digests();
 #       endif
     }
 
-    if (location == Process::TempLocation) {
-#       if UV_VERSION_HEX >= 0x010900
-        return uv_os_tmpdir(pathBuf, &size) < 0 ? "" : std::string(pathBuf, size);
-#       else
-        location = Process::ExeLocation;
-#       endif
-    }
-
-    if (location == Process::ExeLocation) {
-        if (uv_exepath(pathBuf, &size) < 0) {
-            return {};
+    void setDataDir(const char *path)
+    {
+        if (path == nullptr) {
+            return;
         }
 
-        auto path       = std::string(pathBuf, size);
-        const auto pos  = path.rfind(*XMRIG_DIR_SEPARATOR);
-
-        if (pos != std::string::npos) {
-            return path.substr(0, pos);
+        std::string dir = path;
+        if (!dir.empty() && (dir.back() == '/' || dir.back() == '\\')) {
+            dir.pop_back();
         }
 
-        return path;
+        if (!dir.empty() && uv_chdir(dir.c_str()) == 0) {
+            dataDir = { dir.data(), dir.size() };
+        }
     }
 
-    if (location == Process::CwdLocation) {
-        return uv_cwd(pathBuf, &size) < 0 ? "" : std::string(pathBuf, size);
-    }
+    Arguments arguments;
+    const char *version = APP_VERSION;
 
-    return {};
-}
+    int exitCode        = 0;
+    String dataDir;
+    String userAgent;
+    Versions versions;
+
+#   ifndef XMRIG_LEGACY
+    Events events;
+#   endif
+};
 
 
-static void setDataDir(const char *path)
-{
-    if (path == nullptr) {
-        return;
-    }
-
-    std::string dir = path;
-    if (!dir.empty() && (dir.back() == '/' || dir.back() == '\\')) {
-        dir.pop_back();
-    }
-
-    if (!dir.empty() && uv_chdir(dir.c_str()) == 0) {
-        dataDir = dir;
-    }
-}
+Process::Private *Process::d  = nullptr;
 
 
 } // namespace xmrig
 
 
-xmrig::Process::Process(int argc, char **argv) :
-    m_arguments(argc, argv)
+xmrig::Process::Process(int argc, char **argv)
 {
+    d = new Private(argc, argv);
+
+    OS::init();
     srand(static_cast<unsigned int>(Chrono::currentMSecsSinceEpoch() ^ reinterpret_cast<uintptr_t>(this)));
 
-    setDataDir(m_arguments.value("--data-dir", "-d"));
+    d_fn()->setDataDir(arguments().value("--data-dir", "-d"));
 
 #   ifdef XMRIG_SHARED_DATADIR
-    if (dataDir.empty()) {
-        dataDir = fmt::format("{}" XMRIG_DIR_SEPARATOR ".xmrig" XMRIG_DIR_SEPARATOR, location(HomeLocation));
+    if (d_fn()->dataDir.isEmpty()) {
+        auto dataDir = fmt::format("{}" XMRIG_DIR_SEPARATOR ".xmrig" XMRIG_DIR_SEPARATOR, locate(HomeLocation));
         MKDIR(dataDir);
 
         dataDir += APP_KIND;
         MKDIR(dataDir);
 
-        uv_chdir(dataDir.c_str());
+        if (uv_chdir(dataDir.c_str()) == 0) {
+            d_fn()->dataDir = { dataDir.c_str(), dataDir.size() };
+        }
     }
 #   endif
+
+    if (d_fn()->dataDir.isEmpty()) {
+        d_fn()->dataDir = locate(ExeLocation);
+    }
+}
+
+
+xmrig::Process::~Process()
+{
+    OS::destroy();
+
+    delete d;
+
+    d = nullptr;
+}
+
+
+const xmrig::Arguments &xmrig::Process::arguments()
+{
+    return d_fn()->arguments;
+}
+
+
+const char *xmrig::Process::version()
+{
+    return d_fn()->version;
+}
+
+
+const xmrig::String &xmrig::Process::userAgent()
+{
+    if (d_fn()->userAgent.isEmpty()) {
+        d_fn()->userAgent = OS::userAgent().c_str();
+    }
+
+    return d_fn()->userAgent;
+}
+
+
+const xmrig::Versions &xmrig::Process::versions()
+{
+    return d_fn()->versions;
+}
+
+
+int xmrig::Process::exitCode()
+{
+    return d_fn()->exitCode;
 }
 
 
@@ -148,20 +191,94 @@ int xmrig::Process::ppid()
 }
 
 
-xmrig::String xmrig::Process::exepath()
+xmrig::String xmrig::Process::locate(Location location, const char *fileName)
 {
-    size_t size = sizeof(pathBuf);
-
-    return uv_exepath(pathBuf, &size) < 0 ? String("") : String(pathBuf, size);
-}
-
-
-xmrig::String xmrig::Process::location(Location location, const char *fileName)
-{
-    auto path = getPath(location);
-    if (path.empty() || fileName == nullptr) {
-        return path.c_str();
+    auto path = locate(location);
+    if (path.isNull() || fileName == nullptr) {
+        return path;
     }
 
     return fmt::format("{}" XMRIG_DIR_SEPARATOR "{}", path, fileName).c_str();
+}
+
+
+xmrig::String xmrig::Process::locate(Location location)
+{
+    char buf[520]{};
+    size_t size = sizeof(buf);
+
+    if (location == ExePathLocation && uv_exepath(buf, &size) >= 0) {
+        return { buf, size };
+    }
+
+    if (location == Process::DataLocation && !d_fn()->dataDir.isEmpty()) {
+        return d_fn()->dataDir;
+    }
+
+#   if UV_VERSION_HEX >= 0x010600
+    if (location == Process::HomeLocation && uv_os_homedir(buf, &size) >= 0) {
+        return { buf, size };
+    }
+#   endif
+
+#   if UV_VERSION_HEX >= 0x010900
+    if (location == Process::TempLocation && uv_os_tmpdir(buf, &size) >= 0) {
+        return { buf, size };
+    }
+#   endif
+
+    if (location == Process::CwdLocation && uv_cwd(buf, &size) >= 0) {
+        return { buf, size };
+    }
+
+    if (location == Process::ExeLocation) {
+        if (uv_exepath(buf, &size) < 0) {
+            return {};
+        }
+
+        auto path       = std::string(buf, size);
+        const auto pos  = path.rfind(*XMRIG_DIR_SEPARATOR);
+
+        if (pos != std::string::npos) {
+            return path.substr(0, pos).c_str();
+        }
+
+        return { buf, size };
+    }
+
+    return location != ExeLocation ? locate(ExeLocation) : String();
+}
+
+
+void xmrig::Process::exit(int code)
+{
+    if (code != -1) {
+        d_fn()->exitCode = code;
+    }
+
+#   ifndef XMRIG_LEGACY
+    events().post<ExitEvent>(exitCode());
+#   endif
+}
+
+
+void xmrig::Process::setUserAgent(const String &userAgent)
+{
+    d_fn()->userAgent = userAgent;
+}
+
+
+#ifndef XMRIG_LEGACY
+xmrig::Events &xmrig::Process::events()
+{
+    return d_fn()->events;
+}
+#endif
+
+
+xmrig::Process::Private *xmrig::Process::d_fn()
+{
+    assert(d);
+
+    return d;
 }

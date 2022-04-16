@@ -20,7 +20,7 @@ VS_VERSION_INFO VERSIONINFO
     BEGIN
       BLOCK "000004b0"
       BEGIN
-        VALUE "CompanyName",      APP_SITE
+        VALUE "CompanyName",      APP_DOMAIN
         VALUE "FileDescription",  APP_DESC
         VALUE "FileVersion",      APP_VERSION
         VALUE "LegalCopyright",   APP_COPYRIGHT

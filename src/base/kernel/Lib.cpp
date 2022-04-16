@@ -1,5 +1,5 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
@@ -16,28 +16,63 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ENV_H
-#define XMRIG_ENV_H
+#include "base/kernel/Lib.h"
 
 
-#include "base/tools/String.h"
-
-
-#include <map>
+#include <cassert>
+#include <uv.h>
 
 
 namespace xmrig {
 
 
-class Env
+class Lib::Private
 {
 public:
-    static String expand(const char *in, const std::map<String, String> &extra = {});
-    static String get(const String &name, const std::map<String, String> &extra = {});
+    bool open   = false;
+    uv_lib_t lib{};
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_ENV_H */
+xmrig::Lib::Lib() :
+    d(std::make_shared<Private>())
+{
+}
+
+
+bool xmrig::Lib::isOpen() const
+{
+    return d->open;
+}
+
+
+bool xmrig::Lib::open(const char *filename)
+{
+    assert(!isOpen());
+
+    return (d->open = uv_dlopen(filename, &d->lib) == 0);
+}
+
+
+bool xmrig::Lib::sym(const char *name, void **ptr)
+{
+    return isOpen() && uv_dlsym(&d->lib, name, ptr);
+}
+
+
+const char *xmrig::Lib::lastError() const
+{
+    return uv_dlerror(&d->lib);
+}
+
+
+void xmrig::Lib::close()
+{
+    if (isOpen()) {
+        uv_dlclose(&d->lib);
+        d->open = false;
+    }
+}

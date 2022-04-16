@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,7 +20,8 @@
 #define XMRIG_PROCESS_H
 
 
-#include "base/tools/Arguments.h"
+#include "base/tools/Object.h"
+#include "base/tools/String.h"
 
 
 #ifdef WIN32
@@ -33,10 +34,18 @@
 namespace xmrig {
 
 
+class Arguments;
+class Events;
+class Versions;
+
+
 class Process
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Process)
+
     enum Location {
+        ExePathLocation,
         ExeLocation,
         CwdLocation,
         DataLocation,
@@ -45,20 +54,34 @@ public:
     };
 
     Process(int argc, char **argv);
+    ~Process();
 
+    static const Arguments &arguments();
+    static const char *version();
+    static const String &userAgent();
+    static const Versions &versions();
+    static int exitCode();
     static int pid();
     static int ppid();
-    static String exepath();
-    static String location(Location location, const char *fileName = nullptr);
+    static String locate(Location location, const char *fileName);
+    static String locate(Location location);
+    static void exit(int code = -1);
+    static void setUserAgent(const String &userAgent);
 
-    inline const Arguments &arguments() const { return m_arguments; }
+#   ifndef XMRIG_LEGACY
+    static Events &events();
+#   endif
 
 private:
-    Arguments m_arguments;
+    class Private;
+
+    static Private *d_fn();
+
+    static Private *d;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_PROCESS_H */
+#endif // XMRIG_PROCESS_H

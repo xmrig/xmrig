@@ -14,6 +14,13 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #ifndef XMRIG_VERSION_H
@@ -22,34 +29,12 @@
 #define APP_ID        "xmrig"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig miner"
-#define APP_VERSION   "6.17.1-dev"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2022 xmrig.com"
 #define APP_KIND      "miner"
 
 #define APP_VER_MAJOR  6
-#define APP_VER_MINOR  17
-#define APP_VER_PATCH  1
+#define APP_VER_MINOR  99
+#define APP_VER_PATCH  0
 
-#ifdef _MSC_VER
-#   if (_MSC_VER >= 1930)
-#       define MSVC_VERSION 2022
-#   elif (_MSC_VER >= 1920 && _MSC_VER < 1930)
-#       define MSVC_VERSION 2019
-#   elif (_MSC_VER >= 1910 && _MSC_VER < 1920)
-#       define MSVC_VERSION 2017
-#   elif _MSC_VER == 1900
-#       define MSVC_VERSION 2015
-#   elif _MSC_VER == 1800
-#       define MSVC_VERSION 2013
-#   elif _MSC_VER == 1700
-#       define MSVC_VERSION 2012
-#   elif _MSC_VER == 1600
-#       define MSVC_VERSION 2010
-#   else
-#       define MSVC_VERSION 0
-#   endif
-#endif
+#include "base/kernel/base-version.h"
 
 #endif /* XMRIG_VERSION_H */

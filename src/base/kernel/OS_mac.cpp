@@ -1,0 +1,114 @@
+/* XMRig
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ *
+ *   This program is free software: you can redistribute it and/or modify
+ *   it under the terms of the GNU General Public License as published by
+ *   the Free Software Foundation, either version 3 of the License, or
+ *   (at your option) any later version.
+ *
+ *   This program is distributed in the hope that it will be useful,
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ *   GNU General Public License for more details.
+ *
+ *   You should have received a copy of the GNU General Public License
+ *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ */
+
+#include <IOKit/IOKitLib.h>
+#include <IOKit/ps/IOPowerSources.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <sys/resource.h>
+#include <uv.h>
+#include <thread>
+#include <fstream>
+
+
+#include "base/kernel/OS.h"
+
+
+bool xmrig::OS::isOnBatteryPower()
+{
+    return IOPSGetTimeRemainingEstimate() != kIOPSTimeRemainingUnlimited;
+}
+
+
+bool xmrig::OS::setThreadAffinity(uint64_t /*cpu_id*/)
+{
+    return true;
+}
+
+
+std::string xmrig::OS::name()
+{
+    return "macOS";
+}
+
+
+uint64_t xmrig::OS::idleTime()
+{
+    uint64_t idle_time  = 0;
+    const auto service  = IOServiceGetMatchingService(kIOMasterPortDefault, IOServiceMatching("IOHIDSystem"));
+    const auto property = IORegistryEntryCreateCFProperty(service, CFSTR("HIDIdleTime"), kCFAllocatorDefault, 0);
+
+    CFNumberGetValue((CFNumberRef)property, kCFNumberSInt64Type, &idle_time);
+
+    CFRelease(property);
+    IOObjectRelease(service);
+
+    return idle_time / 1000000U;
+}
+
+
+void xmrig::OS::destroy()
+{
+}
+
+
+void xmrig::OS::init()
+{
+}
+
+
+void xmrig::OS::setProcessPriority(int)
+{
+}
+
+
+void xmrig::OS::setThreadPriority(int priority)
+{
+    if (priority == -1) {
+        return;
+    }
+
+    int prio = 19;
+    switch (priority)
+    {
+    case 1:
+        prio = 5;
+        break;
+
+    case 2:
+        prio = 0;
+        break;
+
+    case 3:
+        prio = -5;
+        break;
+
+    case 4:
+        prio = -10;
+        break;
+
+    case 5:
+        prio = -15;
+        break;
+
+    default:
+        break;
+    }
+
+    setpriority(PRIO_PROCESS, 0, prio);
+}

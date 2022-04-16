@@ -29,7 +29,7 @@
 #include "base/io/log/Tags.h"
 #include "base/io/Watcher.h"
 #include "base/kernel/interfaces/IBaseListener.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
 #include "base/kernel/Process.h"
 #include "base/net/tools/NetBuffer.h"
 #include "core/config/Config.h"
@@ -130,17 +130,17 @@ private:
             return config.release();
         }
 
-        chain.addFile(Process::location(Process::DataLocation, "config.json"));
+        chain.addFile(Process::locate(Process::DataLocation, "config.json"));
         if (read(chain, config)) {
             return config.release();
         }
 
-        chain.addFile(Process::location(Process::HomeLocation,  "." APP_ID ".json"));
+        chain.addFile(Process::locate(Process::HomeLocation,  "." APP_ID ".json"));
         if (read(chain, config)) {
             return config.release();
         }
 
-        chain.addFile(Process::location(Process::HomeLocation, ".config" XMRIG_DIR_SEPARATOR APP_ID ".json"));
+        chain.addFile(Process::locate(Process::HomeLocation, ".config" XMRIG_DIR_SEPARATOR APP_ID ".json"));
         if (read(chain, config)) {
             return config.release();
         }
@@ -187,7 +187,8 @@ int xmrig::Base::init()
     d_ptr->api->addListener(this);
 #   endif
 
-    Platform::init(config()->userAgent());
+    OS::init();
+    Process::setUserAgent(config()->userAgent());
 
     if (isBackground()) {
         Log::setBackground(true);

@@ -1,5 +1,4 @@
 /* XMRig
- * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
  * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -17,43 +16,34 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_RX_NUMASTORAGE_H
-#define XMRIG_RX_NUMASTORAGE_H
+#ifndef XMRIG_BASE_VERSION_H
+#define XMRIG_BASE_VERSION_H
 
+// The base version in the form major * 10000 + minor * 100 + patch.
+#define XMRIG_BASE_VERSION 70000
 
-#include "backend/common/interfaces/IRxStorage.h"
+#ifndef APP_DOMAIN
+#   define APP_DOMAIN    "xmrig.com"
+#endif
 
+#ifndef APP_COPYRIGHT
+#   define APP_COPYRIGHT "Copyright (C) 2016-2022 xmrig.com"
+#endif
 
-#include <vector>
+#define XMRIG_STRINGIFY(x) #x
+#define XMRIG_TOSTRING(x) XMRIG_STRINGIFY(x)
 
+#ifdef GIT_COMMIT_HASH
+#   define XMRIG_GIT_COMMIT_HASH XMRIG_TOSTRING(GIT_COMMIT_HASH)
+#else
+#   define XMRIG_GIT_COMMIT_HASH "0000000"
+#endif
 
-namespace xmrig
-{
+#ifdef GIT_BRANCH
+#   define XMRIG_GIT_BRANCH XMRIG_TOSTRING(GIT_BRANCH)
+#   define APP_VERSION XMRIG_TOSTRING(APP_VER_MAJOR.APP_VER_MINOR.APP_VER_PATCH) "-" XMRIG_GIT_BRANCH
+#else
+#   define APP_VERSION XMRIG_TOSTRING(APP_VER_MAJOR.APP_VER_MINOR.APP_VER_PATCH)
+#endif
 
-
-class RxNUMAStoragePrivate;
-
-
-class RxNUMAStorage : public IRxStorage
-{
-public:
-    XMRIG_DISABLE_COPY_MOVE(RxNUMAStorage);
-
-    RxNUMAStorage(const std::vector<uint32_t> &nodeset);
-    ~RxNUMAStorage() override;
-
-protected:
-    bool isAllocated() const override;
-    HugePagesInfo hugePages() const override;
-    RxDataset *dataset(const Job &job, uint32_t nodeId) const override;
-    void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority) override;
-
-private:
-    RxNUMAStoragePrivate *d_ptr;
-};
-
-
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_RX_NUMASTORAGE_H */
+#endif // XMRIG_BASE_VERSION_H

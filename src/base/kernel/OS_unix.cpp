@@ -37,8 +37,7 @@
 #include <limits>
 
 
-#include "base/kernel/Platform.h"
-#include "version.h"
+#include "base/kernel/OS.h"
 
 
 #ifdef __FreeBSD__
@@ -46,35 +45,24 @@ typedef cpuset_t cpu_set_t;
 #endif
 
 
-char *xmrig::Platform::createUserAgent()
+bool xmrig::OS::isOnBatteryPower()
 {
-    constexpr const size_t max = 256;
-
-    char *buf = new char[max]();
-    int length = snprintf(buf, max, "%s/%s (Linux ", APP_NAME, APP_VERSION);
-
-#   if defined(__x86_64__)
-    length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
-#   elif defined(__aarch64__)
-    length += snprintf(buf + length, max - length, "aarch64) libuv/%s", uv_version_string());
-#   elif defined(__arm__)
-    length += snprintf(buf + length, max - length, "arm) libuv/%s", uv_version_string());
-#   else
-    length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
-#   endif
-
-#   ifdef __clang__
-    length += snprintf(buf + length, max - length, " clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   elif defined(__GNUC__)
-    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   endif
-
-    return buf;
+    for (int i = 0; i <= 1; ++i) {
+        char buf[64];
+        snprintf(buf, 64, "/sys/class/power_supply/BAT%d/status", i);
+        std::ifstream f(buf);
+        if (f.is_open()) {
+            std::string status;
+            f >> status;
+            return (status == "Discharging");
+        }
+    }
+    return false;
 }
 
 
 #ifndef XMRIG_FEATURE_HWLOC
-bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
+bool xmrig::OS::setThreadAffinity(uint64_t cpu_id)
 {
     cpu_set_t mn;
     CPU_ZERO(&mn);
@@ -92,12 +80,38 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 #endif
 
 
-void xmrig::Platform::setProcessPriority(int)
+std::string xmrig::OS::name()
+{
+#   ifdef __FreeBSD__
+    return "FreeBSD";
+#   else
+    return "Linux";
+#   endif
+}
+
+
+uint64_t xmrig::OS::idleTime()
+{
+    return std::numeric_limits<uint64_t>::max();
+}
+
+
+void xmrig::OS::destroy()
 {
 }
 
 
-void xmrig::Platform::setThreadPriority(int priority)
+void xmrig::OS::init()
+{
+}
+
+
+void xmrig::OS::setProcessPriority(int)
+{
+}
+
+
+void xmrig::OS::setThreadPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -142,26 +156,4 @@ void xmrig::Platform::setThreadPriority(int priority)
         }
     }
 #   endif
-}
-
-
-bool xmrig::Platform::isOnBatteryPower()
-{
-    for (int i = 0; i <= 1; ++i) {
-        char buf[64];
-        snprintf(buf, 64, "/sys/class/power_supply/BAT%d/status", i);
-        std::ifstream f(buf);
-        if (f.is_open()) {
-            std::string status;
-            f >> status;
-            return (status == "Discharging");
-        }
-    }
-    return false;
-}
-
-
-uint64_t xmrig::Platform::idleTime()
-{
-    return std::numeric_limits<uint64_t>::max();
 }

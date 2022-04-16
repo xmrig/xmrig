@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +26,7 @@
 #include "base/io/Env.h"
 #include "base/io/json/Json.h"
 #include "base/kernel/Base.h"
+#include "base/kernel/OS.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Cvt.h"
 #include "core/config/Config.h"
@@ -232,6 +233,6 @@ void xmrig::Api::genWorkerId(const String &id)
 {
     m_workerId = Env::expand(id);
     if (m_workerId.isEmpty()) {
-        m_workerId = Env::hostname();
+        m_workerId = OS::hostname();
     }
 }

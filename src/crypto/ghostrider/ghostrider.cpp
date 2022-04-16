@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "ghostrider.h"
 #include "sph_blake.h"
@@ -48,7 +47,7 @@
 #include <uv.h>
 
 #ifdef XMRIG_FEATURE_HWLOC
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include <hwloc.h>
 #endif
@@ -241,7 +240,7 @@ struct HelperThread
             }
         }
 
-        Platform::setThreadPriority(m_priority);
+        OS::setThreadPriority(m_priority);
 
         uv_mutex_lock(&m_mutex);
         m_ready = true;
@@ -299,8 +298,8 @@ void benchmark()
             std::swap(thread_index1, thread_index2);
         }
 
-        Platform::setThreadAffinity(thread_index1);
-        Platform::setThreadPriority(3);
+        OS::setThreadAffinity(thread_index1);
+        OS::setThreadPriority(3);
 
         constexpr uint32_t N = 1U << 21;
 

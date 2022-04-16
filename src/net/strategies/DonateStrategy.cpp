@@ -24,7 +24,7 @@
 #include "net/strategies/DonateStrategy.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/crypto/keccak.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/Process.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
@@ -262,7 +262,7 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     pool.setAlgo(client->pool().algorithm());
     pool.setProxy(client->pool().proxy());
 
-    IClient *proxy = new Client(-1, Platform::userAgent(), this);
+    IClient *proxy = new Client(-1, Process::userAgent(), this);
     proxy->setPool(pool);
     proxy->setQuiet(true);
 

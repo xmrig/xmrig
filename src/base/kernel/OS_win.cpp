@@ -16,16 +16,28 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
-#include <algorithm>
-#include <winsock2.h>
-#include <windows.h>
 #include <uv.h>
-#include <limits>
 
 
-#include "base/kernel/Platform.h"
-#include "version.h"
+#include "base/kernel/OS.h"
+#include "3rdparty/fmt/core.h"
+#include "base/kernel/Lib.h"
+#include "base/tools/Cvt.h"
+
+
+#ifndef UV_MAXHOSTNAMESIZE
+#   define UV_MAXHOSTNAMESIZE 256
+#endif
+
+
+namespace xmrig {
+
+
+typedef int (WSAAPI *GetHostNameW_t)(PWSTR, int); // NOLINT(modernize-use-using)
+
+
+static Lib ws2_32;
+static GetHostNameW_t pGetHostNameW = nullptr;
 
 
 static inline OSVERSIONINFOEX winOsVersion()
@@ -46,32 +58,21 @@ static inline OSVERSIONINFOEX winOsVersion()
 }
 
 
-char *xmrig::Platform::createUserAgent()
+} // namespace xmrig
+
+
+bool xmrig::OS::isOnBatteryPower()
 {
-    const auto osver = winOsVersion();
-    constexpr const size_t max = 256;
-
-    char *buf = new char[max]();
-    int length = snprintf(buf, max, "%s/%s (Windows NT %lu.%lu", APP_NAME, APP_VERSION, osver.dwMajorVersion, osver.dwMinorVersion);
-
-#   if defined(__x86_64__) || defined(_M_AMD64)
-    length += snprintf(buf + length, max - length, "; Win64; x64) libuv/%s", uv_version_string());
-#   else
-    length += snprintf(buf + length, max - length, ") libuv/%s", uv_version_string());
-#   endif
-
-#   ifdef __GNUC__
-    snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif _MSC_VER
-    snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
-#   endif
-
-    return buf;
+    SYSTEM_POWER_STATUS st;
+    if (GetSystemPowerStatus(&st)) {
+        return (st.ACLineStatus == 0);
+    }
+    return false;
 }
 
 
 #ifndef XMRIG_FEATURE_HWLOC
-bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
+bool xmrig::OS::setThreadAffinity(uint64_t cpu_id)
 {
     const bool result = (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0);
     Sleep(1);
@@ -80,7 +81,70 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 #endif
 
 
-void xmrig::Platform::setProcessPriority(int priority)
+std::string xmrig::OS::name()
+{
+    const auto osver = winOsVersion();
+
+    return fmt::format("Windows {}.{}", osver.dwMajorVersion, osver.dwMinorVersion);
+}
+
+
+xmrig::String xmrig::OS::hostname()
+{
+    if (pGetHostNameW) {
+        WCHAR buf[UV_MAXHOSTNAMESIZE]{};
+
+        if (pGetHostNameW(buf, UV_MAXHOSTNAMESIZE) == 0) {
+            return Cvt::toUtf8(buf).c_str();
+        }
+    }
+
+    char buf[UV_MAXHOSTNAMESIZE]{};
+
+    if (gethostname(buf, sizeof(buf)) == 0) {
+        return static_cast<const char *>(buf);
+    }
+
+    return {};
+}
+
+
+uint64_t xmrig::OS::idleTime()
+{
+    LASTINPUTINFO info{};
+    info.cbSize = sizeof(LASTINPUTINFO);
+
+    if (!GetLastInputInfo(&info)) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    return static_cast<uint64_t>(GetTickCount() - info.dwTime);
+}
+
+
+void xmrig::OS::destroy()
+{
+#   ifdef XMRIG_FEATURE_COM
+    CoUninitialize();
+#   endif
+
+    ws2_32.close();
+}
+
+
+void xmrig::OS::init()
+{
+#   ifdef XMRIG_FEATURE_COM
+    CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+#   endif
+
+    if (ws2_32.open("Ws2_32.dll")) {
+        ws2_32.sym("GetHostNameW", &pGetHostNameW);
+    }
+}
+
+
+void xmrig::OS::setProcessPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -117,7 +181,7 @@ void xmrig::Platform::setProcessPriority(int priority)
 }
 
 
-void xmrig::Platform::setThreadPriority(int priority)
+void xmrig::OS::setThreadPriority(int priority)
 {
     if (priority == -1) {
         return;
@@ -151,27 +215,4 @@ void xmrig::Platform::setThreadPriority(int priority)
     }
 
     SetThreadPriority(GetCurrentThread(), prio);
-}
-
-
-bool xmrig::Platform::isOnBatteryPower()
-{
-    SYSTEM_POWER_STATUS st;
-    if (GetSystemPowerStatus(&st)) {
-        return (st.ACLineStatus == 0);
-    }
-    return false;
-}
-
-
-uint64_t xmrig::Platform::idleTime()
-{
-    LASTINPUTINFO info{};
-    info.cbSize = sizeof(LASTINPUTINFO);
-
-    if (!GetLastInputInfo(&info)) {
-        return std::numeric_limits<uint64_t>::max();
-    }
-
-    return static_cast<uint64_t>(GetTickCount() - info.dwTime);
 }
