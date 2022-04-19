@@ -319,16 +319,18 @@ void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, 
 #ifdef XMRIG_FEATURE_BENCHMARK
 void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int key, const char *arg)
 {
-    set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
-    set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
-    set(doc, CpuConfig::kField, CpuConfig::kYield, false);
-
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kAlgo, arg);
 
     case IConfig::BenchKey: /* --bench */
+    {
+        // CPU settings for the benchmark
+        set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
+        set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
+        set(doc, CpuConfig::kField, CpuConfig::kYield, false);
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kSize, arg);
+    }
 
     case IConfig::StressKey: /* --stress */
         return add(doc, Pools::kPools, Pool::kUser, BenchConfig::kBenchmark);
