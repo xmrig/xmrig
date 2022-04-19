@@ -58,8 +58,8 @@ protected:
 private:
     static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
 
+    std::shared_ptr<TlsContext> m_tls;
     std::weak_ptr<IHttpListener> m_listener;
-    TlsContext *m_tls   = nullptr;
 };
 
 

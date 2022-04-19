@@ -68,7 +68,7 @@ public:
     static void exit(int code = -1);
     static void setUserAgent(const String &userAgent);
 
-#   ifndef XMRIG_LEGACY
+#   ifdef XMRIG_FEATURE_EVENTS
     static Events &events();
 #   endif
 

@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,11 +21,13 @@
 #define XMRIG_TLSCONFIG_H
 
 
-#include "3rdparty/rapidjson/fwd.h"
 #include "base/tools/String.h"
 
 
 namespace xmrig {
+
+
+class Arguments;
 
 
 class TlsConfig
@@ -37,6 +39,7 @@ public:
     static const char *kCipherSuites;
     static const char *kDhparam;
     static const char *kEnabled;
+    static const char *kField;
     static const char *kGen;
     static const char *kProtocols;
 
@@ -48,39 +51,44 @@ public:
     };
 
     TlsConfig() = default;
-    TlsConfig(const rapidjson::Value &value);
+    TlsConfig(const Arguments &arguments);
 
-    inline bool isEnabled() const                    { return m_enabled && isValid(); }
-    inline bool isValid() const                      { return !m_cert.isEmpty() && !m_key.isEmpty(); }
-    inline const char *cert() const                  { return m_cert.data(); }
-    inline const char *ciphers() const               { return m_ciphers.isEmpty() ? nullptr : m_ciphers.data(); }
-    inline const char *cipherSuites() const          { return m_cipherSuites.isEmpty() ? nullptr : m_cipherSuites.data(); }
-    inline const char *dhparam() const               { return m_dhparam.isEmpty() ? nullptr : m_dhparam.data(); }
-    inline const char *key() const                   { return m_key.data(); }
-    inline uint32_t protocols() const                { return m_protocols; }
-    inline void setCert(const char *cert)            { m_cert = cert; }
-    inline void setCiphers(const char *ciphers)      { m_ciphers = ciphers; }
-    inline void setCipherSuites(const char *ciphers) { m_cipherSuites = ciphers; }
-    inline void setDH(const char *dhparam)           { m_dhparam = dhparam; }
-    inline void setKey(const char *key)              { m_key = key; }
-    inline void setProtocols(uint32_t protocols)     { m_protocols = protocols; }
+    inline TlsConfig(const rapidjson::Value &value, const TlsConfig &current)   { init(value, current); }
+    inline TlsConfig(const rapidjson::Value &value)                             { init(value, {}); }
+
+    inline bool isEnabled() const                           { return m_enabled; }
+    inline bool isValid() const                             { return !m_cert.isEmpty() && !m_key.isEmpty(); }
+    inline const String &cert() const                       { return m_cert; }
+    inline const String &ciphers() const                    { return m_ciphers; }
+    inline const String &ciphersuites() const               { return m_ciphersuites; }
+    inline const String &dhparam() const                    { return m_dhparam; }
+    inline const String &key() const                        { return m_key; }
+    inline uint32_t protocols() const                       { return m_protocols; }
+
+    inline bool operator!=(const TlsConfig &other) const    { return !isEqual(other); }
+    inline bool operator==(const TlsConfig &other) const    { return isEqual(other); }
 
     bool generate(const char *commonName = nullptr);
+    bool isEqual(const TlsConfig &other) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void print() const;
+
+private:
+    void init(const rapidjson::Value &value, const TlsConfig &current);
     void setProtocols(const char *protocols);
     void setProtocols(const rapidjson::Value &protocols);
 
-private:
-    bool m_enabled       = true;
+    bool m_enabled       = false;
     uint32_t m_protocols = 0;
     String m_cert;
     String m_ciphers;
-    String m_cipherSuites;
+    String m_ciphersuites;
     String m_dhparam;
     String m_key;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* XMRIG_TLSCONFIG_H */
+
+#endif // XMRIG_TLSCONFIG_H

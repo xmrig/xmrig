@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,8 +34,6 @@ xmrig::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) 
 xmrig::HttpsServer::~HttpsServer()
 {
     HttpContext::closeAll();
-
-    delete m_tls;
 }
 
 
@@ -49,7 +47,7 @@ bool xmrig::HttpsServer::setTls(const TlsConfig &config)
 
 void xmrig::HttpsServer::onConnection(uv_stream_t *stream, uint16_t)
 {
-    auto ctx = new HttpsContext(m_tls, m_listener);
+    auto ctx = new HttpsContext(m_tls.get(), m_listener);
     uv_accept(stream, ctx->stream());
 
     uv_read_start(ctx->stream(), NetBuffer::onAlloc, onRead); // NOLINT(clang-analyzer-cplusplus.NewDeleteLeaks)

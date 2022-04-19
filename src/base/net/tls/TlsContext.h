@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,9 +24,6 @@
 #include "base/tools/Object.h"
 
 
-#include <cstdint>
-
-
 using SSL_CTX = struct ssl_ctx_st;
 
 
@@ -43,23 +40,18 @@ public:
 
     ~TlsContext();
 
-    static TlsContext *create(const TlsConfig &config);
+    static std::shared_ptr<TlsContext> create(const TlsConfig &config);
 
-    inline SSL_CTX *ctx() const { return m_ctx; }
+    SSL_CTX *handle() const;
 
 private:
-    TlsContext() = default;
+    XMRIG_DECL_PRIVATE()
 
-    bool load(const TlsConfig &config);
-    bool setCiphers(const char *ciphers);
-    bool setCipherSuites(const char *ciphersuites);
-    bool setDH(const char *dhparam);
-    void setProtocols(uint32_t protocols);
-
-    SSL_CTX *m_ctx = nullptr;
+    TlsContext();
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* XMRIG_TLSCONTEXT_H */
+
+#endif // XMRIG_TLSCONTEXT_H

@@ -30,7 +30,7 @@
 #include "version.h"
 
 
-#ifndef XMRIG_LEGACY
+#ifdef XMRIG_FEATURE_EVENTS
 #   include "base/kernel/Events.h"
 #   include "base/kernel/events/ExitEvent.h"
 #endif
@@ -256,7 +256,7 @@ void xmrig::Process::exit(int code)
         d_fn()->exitCode = code;
     }
 
-#   ifndef XMRIG_LEGACY
+#   ifdef XMRIG_FEATURE_EVENTS
     events().post<ExitEvent>(exitCode());
 #   endif
 }
@@ -268,7 +268,7 @@ void xmrig::Process::setUserAgent(const String &userAgent)
 }
 
 
-#ifndef XMRIG_LEGACY
+#ifdef XMRIG_FEATURE_EVENTS
 xmrig::Events &xmrig::Process::events()
 {
     return d_fn()->events;

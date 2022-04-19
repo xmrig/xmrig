@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,13 +18,14 @@
  */
 
 #include "base/net/tls/TlsContext.h"
+#include "3rdparty/fmt/core.h"
 #include "base/io/Env.h"
-#include "base/io/log/Log.h"
 #include "base/net/tls/TlsConfig.h"
 
 
-#include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/ssl.h>
+#include <stdexcept>
 
 
 // https://wiki.openssl.org/index.php/OpenSSL_1.1.0_Changes#Compatibility_Layer
@@ -44,8 +45,106 @@ int DH_set0_pqg(DH *dh, BIGNUM *p, BIGNUM *q, BIGNUM *g)
 namespace xmrig {
 
 
+class TlsContext::Private
+{
+public:
+    void load(const TlsConfig &config);
+
+    SSL_CTX *ctx    = nullptr;
+
+private:
+    static inline const char *error()   { return ERR_reason_error_string(ERR_get_error()); }
+
+    static DH *get_dh2048();
+
+    void setDH(const String &dhparam) const;
+    void setProtocols(uint32_t protocols) const;
+};
+
+
+} // namespace xmrig
+
+
+xmrig::TlsContext::~TlsContext()
+{
+    SSL_CTX_free(d->ctx);
+}
+
+
+SSL_CTX *xmrig::TlsContext::handle() const
+{
+    return d->ctx;
+}
+
+
+xmrig::TlsContext::TlsContext() :
+    d(std::make_shared<Private>())
+{
+}
+
+
+std::shared_ptr<xmrig::TlsContext> xmrig::TlsContext::create(const TlsConfig &config)
+{
+    if (!config.isEnabled()) {
+        return nullptr;
+    }
+
+    auto tls = std::shared_ptr<TlsContext>(new TlsContext());
+    tls->d->load(config);
+
+    return tls;
+}
+
+
+void xmrig::TlsContext::Private::load(const TlsConfig &config)
+{
+    if ((ctx = SSL_CTX_new(SSLv23_server_method())) == nullptr) {
+        throw std::runtime_error("Unable to create SSL context");
+    }
+
+    const auto cert = Env::expand(config.cert());
+    if (cert.isNull()) {
+        throw std::runtime_error("Unable to load cert file");
+    }
+
+    if (SSL_CTX_use_certificate_chain_file(ctx, cert) <= 0) {
+        throw std::runtime_error(fmt::format("Unable to load cert file \"{}\": \"{}\"", cert.data(), error()));
+    }
+
+    const auto key = Env::expand(config.key());
+    if (key.isNull()) {
+        throw std::runtime_error("Unable to load key file");
+    }
+
+    if (SSL_CTX_use_PrivateKey_file(ctx, key, SSL_FILETYPE_PEM) <= 0) {
+        throw std::runtime_error(fmt::format("Unable to load key file \"{}\": \"{}\"", key.data(), error()));
+    }
+
+    SSL_CTX_set_options(ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
+    SSL_CTX_set_options(ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
+
+#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+    SSL_CTX_set_max_early_data(ctx, 0);
+#   endif
+
+    setProtocols(config.protocols());
+
+    if (!config.ciphers().isNull() && SSL_CTX_set_cipher_list(ctx, config.ciphers()) <= 0) {
+        throw std::runtime_error(fmt::format("Unable to set cipher list: \"{}\"", error()));
+    }
+
+#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+    if (!config.ciphersuites().isNull() && SSL_CTX_set_ciphersuites(ctx, config.ciphersuites()) <= 0) {
+        throw std::runtime_error(fmt::format("Unable to set ciphersuites: \"{}\"", error()));
+    }
+#   endif
+
+    setDH(Env::expand(config.dhparam()));
+}
+
+
 // https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
-static DH *get_dh2048()
+DH *xmrig::TlsContext::Private::get_dh2048()
 {
     static unsigned char dhp_2048[] = {
         0xB2, 0x91, 0xA7, 0x05, 0x31, 0xCE, 0x12, 0x9D, 0x03, 0x43,
@@ -78,6 +177,7 @@ static DH *get_dh2048()
 
     static unsigned char dhg_2048[] = { 0x02 };
 
+
     auto dh = DH_new();
     if (dh == nullptr) {
         return nullptr;
@@ -97,167 +197,63 @@ static DH *get_dh2048()
     return dh;
 }
 
-} // namespace xmrig
 
-
-xmrig::TlsContext::~TlsContext()
-{
-    SSL_CTX_free(m_ctx);
-}
-
-
-xmrig::TlsContext *xmrig::TlsContext::create(const TlsConfig &config)
-{
-    if (!config.isEnabled()) {
-        return nullptr;
-    }
-
-    auto tls = new TlsContext();
-    if (!tls->load(config)) {
-        delete tls;
-
-        return nullptr;
-    }
-
-    return tls;
-}
-
-
-bool xmrig::TlsContext::load(const TlsConfig &config)
-{
-    m_ctx = SSL_CTX_new(SSLv23_server_method());
-    if (m_ctx == nullptr) {
-        LOG_ERR("Unable to create SSL context");
-
-        return false;
-    }
-
-    const auto cert = Env::expand(config.cert());
-    if (SSL_CTX_use_certificate_chain_file(m_ctx, cert) <= 0) {
-        LOG_ERR("SSL_CTX_use_certificate_chain_file(\"%s\") failed.", config.cert());
-
-        return false;
-    }
-
-    const auto key = Env::expand(config.key());
-    if (SSL_CTX_use_PrivateKey_file(m_ctx, key, SSL_FILETYPE_PEM) <= 0) {
-        LOG_ERR("SSL_CTX_use_PrivateKey_file(\"%s\") failed.", config.key());
-
-        return false;
-    }
-
-    SSL_CTX_set_options(m_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
-    SSL_CTX_set_options(m_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
-
-#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
-    SSL_CTX_set_max_early_data(m_ctx, 0);
-#   endif
-
-    setProtocols(config.protocols());
-
-    return setCiphers(config.ciphers()) && setCipherSuites(config.cipherSuites()) && setDH(config.dhparam());
-}
-
-
-bool xmrig::TlsContext::setCiphers(const char *ciphers)
-{
-    if (ciphers == nullptr || SSL_CTX_set_cipher_list(m_ctx, ciphers) == 1) {
-        return true;
-    }
-
-    LOG_ERR("SSL_CTX_set_cipher_list(\"%s\") failed.", ciphers);
-
-    return true;
-}
-
-
-bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
-{
-    if (ciphersuites == nullptr) {
-        return true;
-    }
-
-#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
-    if (SSL_CTX_set_ciphersuites(m_ctx, ciphersuites) == 1) {
-        return true;
-    }
-#   endif
-
-    LOG_ERR("SSL_CTX_set_ciphersuites(\"%s\") failed.", ciphersuites);
-
-    return false;
-}
-
-
-bool xmrig::TlsContext::setDH(const char *dhparam)
+void xmrig::TlsContext::Private::setDH(const String &dhparam) const
 {
     DH *dh = nullptr;
 
-    if (dhparam != nullptr) {
-        BIO *bio = BIO_new_file(Env::expand(dhparam), "r");
-        if (bio == nullptr) {
-            LOG_ERR("BIO_new_file(\"%s\") failed.", dhparam);
-
-            return false;
-        }
-
-        dh = PEM_read_bio_DHparams(bio, nullptr, nullptr, nullptr);
-        if (dh == nullptr) {
-            LOG_ERR("PEM_read_bio_DHparams(\"%s\") failed.", dhparam);
-
+    if (!dhparam.isEmpty()) {
+        BIO *bio = BIO_new_file(dhparam, "r");
+        if (bio) {
+            dh = PEM_read_bio_DHparams(bio, nullptr, nullptr, nullptr);
             BIO_free(bio);
-
-            return false;
         }
 
-        BIO_free(bio);
+        if (!dh) {
+            throw std::runtime_error(fmt::format("Unable to load DH params \"{}\": \"{}\"", dhparam.data(), error()));
+        }
     }
     else {
         dh = get_dh2048();
     }
 
-    const int rc = SSL_CTX_set_tmp_dh(m_ctx, dh); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-
+    const int rc = SSL_CTX_set_tmp_dh(ctx, dh); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
     DH_free(dh);
 
-    if (rc == 0) {
-        LOG_ERR("SSL_CTX_set_tmp_dh(\"%s\") failed.", dhparam);
-
-        return false;
+    if (rc <= 0) {
+        throw std::runtime_error(fmt::format("Unable to set DH params: \"{}\"", error()));
     }
-
-    return true;
 }
 
 
-void xmrig::TlsContext::setProtocols(uint32_t protocols)
+void xmrig::TlsContext::Private::setProtocols(uint32_t protocols) const
 {
     if (protocols == 0) {
         return;
     }
 
     if (!(protocols & TlsConfig::TLSv1)) {
-        SSL_CTX_set_options(m_ctx, SSL_OP_NO_TLSv1);
+        SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1);
     }
 
 #   ifdef SSL_OP_NO_TLSv1_1
-    SSL_CTX_clear_options(m_ctx, SSL_OP_NO_TLSv1_1);
+    SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_1);
     if (!(protocols & TlsConfig::TLSv1_1)) {
-        SSL_CTX_set_options(m_ctx, SSL_OP_NO_TLSv1_1);
+        SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_1);
     }
 #   endif
 
 #   ifdef SSL_OP_NO_TLSv1_2
-    SSL_CTX_clear_options(m_ctx, SSL_OP_NO_TLSv1_2);
+    SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_2);
     if (!(protocols & TlsConfig::TLSv1_2)) {
-        SSL_CTX_set_options(m_ctx, SSL_OP_NO_TLSv1_2);
+        SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_2);
     }
 #   endif
 
 #   ifdef SSL_OP_NO_TLSv1_3
-    SSL_CTX_clear_options(m_ctx, SSL_OP_NO_TLSv1_3);
+    SSL_CTX_clear_options(ctx, SSL_OP_NO_TLSv1_3);
     if (!(protocols & TlsConfig::TLSv1_3)) {
-        SSL_CTX_set_options(m_ctx, SSL_OP_NO_TLSv1_3);
+        SSL_CTX_set_options(ctx, SSL_OP_NO_TLSv1_3);
     }
 #   endif
 }
