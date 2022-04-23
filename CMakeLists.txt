@@ -157,14 +157,12 @@ endif()
 if (XMRIG_OS_WIN)
     list(APPEND SOURCES_OS
         res/app.rc
-        src/App_win.cpp
         src/crypto/common/VirtualMemory_win.cpp
         )
 
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
 elseif (XMRIG_OS_APPLE)
     list(APPEND SOURCES_OS
-        src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 
@@ -173,7 +171,6 @@ elseif (XMRIG_OS_APPLE)
     set(EXTRA_LIBS ${IOKIT_LIBRARY} ${CORESERVICES_LIBRARY})
 else()
     list(APPEND SOURCES_OS
-        src/App_unix.cpp
         src/crypto/common/VirtualMemory_unix.cpp
         )
 

@@ -152,18 +152,21 @@ set(SOURCES_BASE
 if (WIN32)
     set(SOURCES_OS
         src/base/io/json/Json_win.cpp
+        src/base/kernel/Entry_win.cpp
         src/base/kernel/OS_win.cpp
         src/base/kernel/Process_win.cpp
         )
 elseif (APPLE)
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
+        src/base/kernel/Entry_unix.cpp
         src/base/kernel/OS_mac.cpp
         src/base/kernel/Process_unix.cpp
         )
 else()
     set(SOURCES_OS
         src/base/io/json/Json_unix.cpp
+        src/base/kernel/Entry_unix.cpp
         src/base/kernel/OS_unix.cpp
         src/base/kernel/Process_unix.cpp
         )

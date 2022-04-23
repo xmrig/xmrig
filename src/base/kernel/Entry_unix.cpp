@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2016-2022 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2016-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,42 +16,31 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_ENTRY_H
-#define XMRIG_ENTRY_H
+#include <cstdlib>
+#include <csignal>
+#include <cerrno>
+#include <unistd.h>
 
 
-#include "base/tools/Object.h"
+#include "base/kernel/Entry.h"
 
 
-#include <functional>
-#include <string>
-#include <vector>
-
-
-namespace xmrig {
-
-
-class Entry
+bool xmrig::Entry::background(int &rc)
 {
-public:
-    XMRIG_DISABLE_COPY_MOVE(Entry)
+    const int i = fork();
+    if (i < 0) {
+        rc = 1;
 
-    using Fn    = std::function<bool(int &rc)>;
-    using Usage = std::function<std::string()>;
+        return true;
+    }
 
-    Entry(const Usage &usage);
+    if (i > 0) {
+        return true;
+    }
 
-    bool exec(int &rc) const;
-    void add(Fn &&fn);
+    if (setsid() < 0) {
+        fprintf(stderr, "setsid() failed (errno = %d)\n", errno);
+    }
 
-private:
-    static bool background(int &rc);
-
-    std::vector<Fn> m_entries;
-};
-
-
-} // namespace xmrig
-
-
-#endif // XMRIG_ENTRY_H
+    return false;
+}

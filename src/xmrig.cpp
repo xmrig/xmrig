@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -14,11 +14,19 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #include "App.h"
 #include "base/kernel/Entry.h"
 #include "base/kernel/Process.h"
+#include "core/config/usage.h"
 
 
 int main(int argc, char **argv)
@@ -26,10 +34,16 @@ int main(int argc, char **argv)
     using namespace xmrig;
 
     Process process(argc, argv);
-    const Entry::Id entry = Entry::get(process);
-    if (entry) {
-        return Entry::exec(process, entry);
+
+    {
+        int rc = 0;
+        Entry entry(usage);
+
+        if (entry.exec(rc)) {
+            return rc;
+        }
     }
+
 
     App app(&process);
 

@@ -16,92 +16,93 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdio>
-#include <uv.h>
+#include "base/kernel/Entry.h"
+#include "base/io/log/Log.h"
+#include "base/kernel/OS.h"
+#include "base/kernel/Process.h"
+#include "base/kernel/Versions.h"
+#include "base/tools/Arguments.h"
+#include "version.h"
 
 
-#ifdef XMRIG_FEATURE_TLS
-#   include <openssl/opensslv.h>
-#endif
+#include <iostream>
 
-#ifdef XMRIG_FEATURE_HWLOC
-#   include <hwloc.h>
-#endif
 
 #ifdef XMRIG_FEATURE_OPENCL
 #   include "backend/opencl/wrappers/OclLib.h"
 #   include "backend/opencl/wrappers/OclPlatform.h"
 #endif
 
-#include "base/kernel/Entry.h"
-#include "base/kernel/Process.h"
-#include "base/tools/Arguments.h"
-#include "core/config/usage.h"
-#include "version.h"
+#ifdef XMRIG_FEATURE_HWLOC
+#   include <hwloc.h>
+#endif
 
 
 namespace xmrig {
 
 
-static int showVersion()
+static bool showVersion(int &/*rc*/)
 {
-    printf(APP_NAME " " APP_VERSION "\n built on " __DATE__
-
-#   if defined(__clang__)
-    " with clang " __clang_version__);
-#   elif defined(__GNUC__)
-    " with GCC");
-    printf(" %d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    " with MSVC");
-    printf(" %d", MSVC_VERSION);
-#   else
-    );
-#   endif
-
-    printf("\n features:"
-#   if defined(__i386__) || defined(_M_IX86)
-    " 32-bit"
-#   elif defined(__x86_64__) || defined(_M_AMD64)
-    " 64-bit"
-#   endif
-
-#   if defined(__AES__) || defined(_MSC_VER)
-    " AES"
-#   endif
-    "\n");
-
-    printf("\nlibuv/%s\n", uv_version_string());
-
-#   if defined(XMRIG_FEATURE_TLS)
-    {
-#       if defined(LIBRESSL_VERSION_TEXT)
-        printf("LibreSSL/%s\n", LIBRESSL_VERSION_TEXT + 9);
-#       elif defined(OPENSSL_VERSION_TEXT)
-        constexpr const char *v = &OPENSSL_VERSION_TEXT[8];
-        printf("OpenSSL/%.*s\n", static_cast<int>(strchr(v, ' ') - v), v);
-#       endif
+    if (!Process::arguments().contains("-V", "--version")) {
+        return false;
     }
+
+    std::cout << APP_NAME " v" << Process::version() << std::endl
+              << " built on " __DATE__ " with " << Versions::kCompiler << "/" << Process::versions().get(Versions::kCompiler)
+              << " (" << OS::arch << ")" << std::endl;
+
+#   ifdef XMRIG_LEGACY
+    std::cout << std::endl << "uv/" << Process::versions().get(Versions::kUv) << std::endl;
+
+#   ifdef XMRIG_FEATURE_TLS
+    std::cout << Versions::kTls << "/" << Process::versions().get(Versions::kTls) << std::endl;
 #   endif
 
-#   if defined(XMRIG_FEATURE_HWLOC)
-#   if defined(HWLOC_VERSION)
-    printf("hwloc/%s\n", HWLOC_VERSION);
-#   elif HWLOC_API_VERSION >= 0x20000
-    printf("hwloc/2\n");
-#   else
-    printf("hwloc/1\n");
+#   ifdef XMRIG_FEATURE_HWLOC
+    std::cout << "hwloc/" << Process::versions().get(Versions::kHwloc) << std::endl;
 #   endif
 #   endif
 
-    return 0;
+    return true;
+}
+
+
+static bool showVersions(int &/*rc*/)
+{
+    if (Process::arguments().contains("--versions")) {
+        for (const auto &kv : Process::versions().get()) {
+            std::cout << kv.first << "/" << kv.second << std::endl;;
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+
+static bool userAgent(int &/*rc*/)
+{
+    Process::setUserAgent(Process::arguments().value("--user-agent"));
+
+    if (Process::arguments().contains("--print-user-agent")) {
+        std::cout << Process::userAgent() << std::endl;
+
+        return true;
+    }
+
+    return false;
 }
 
 
 #ifdef XMRIG_FEATURE_HWLOC
-static int exportTopology(const Process &)
+static bool exportTopology(int &rc)
 {
-    const String path = Process::locate(Process::ExeLocation, "topology.xml");
+    if (!Process::arguments().contains("--export-topology")) {
+        return false;
+    }
+
+    const auto path = Process::locate(Process::DataLocation, "topology.xml");
 
     hwloc_topology_t topology = nullptr;
     hwloc_topology_init(&topology);
@@ -112,15 +113,16 @@ static int exportTopology(const Process &)
 #   else
     if (hwloc_topology_export_xml(topology, path) == -1) {
 #   endif
-        printf("failed to export hwloc topology.\n");
+        rc = 1;
+        std::cout << "failed to export hwloc topology" << std::endl;
     }
     else {
-        printf("hwloc topology successfully exported to \"%s\"\n", path.data());
+        std::cout << "hwloc topology successfully exported to \"" << path << '"' << std::endl;
     }
 
     hwloc_topology_destroy(topology);
 
-    return 0;
+    return true;
 }
 #endif
 
@@ -128,59 +130,97 @@ static int exportTopology(const Process &)
 } // namespace xmrig
 
 
-xmrig::Entry::Id xmrig::Entry::get(const Process &process)
+xmrig::Entry::Entry(const Usage &usage)
 {
-    const Arguments &args = process.arguments();
-    if (args.contains("-h", "--help")) {
-         return Usage;
-    }
-
-    if (args.contains("-V", "--version", "--versions")) {
-         return Version;
-    }
+    add(showVersion);
+    add(showVersions);
+    add(userAgent);
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    if (args.contains("--export-topology")) {
-        return Topo;
-    }
+    add(exportTopology);
 #   endif
+
+    add([usage](int &/*rc*/) {
+        if (!Process::arguments().contains("-h", "--help")) {
+            return false;
+        }
+
+        std::cout << "Usage: " APP_ID " [OPTIONS]\n";
+        std::cout << usage();
+
+#       ifndef XMRIG_LEGACY
+        std::cout << "\nBase:\n";
+        std::cout << "  -h, --help                    print this help and exit\n";
+        std::cout << "  -V, --version                 print " APP_ID " version and exit\n";
+        std::cout << "      --versions                print versions and exit\n";
+        std::cout << "  -d, --data-dir=<PATH>         alternative working directory\n";
+        std::cout << "  -c, --config=<FILE>           load a JSON-format configuration file\n";
+        std::cout << "  -B, --background              run " APP_ID " in the background\n";
+        std::cout << "      --no-color                disable colored output\n";
+        std::cout << "      --verbose=[LEVEL]         verbose level (0-5)\n";
+        std::cout << "      --print-time=<N>          print report every N seconds\n";
+        std::cout << "  -l, --log-file=<FILE>         log all output to a file\n";
+
+#       ifdef HAVE_SYSLOG_H
+        std::cout << "  -S, --syslog                  use system log for output messages\n";
+#       endif
+
+#       ifdef XMRIG_OS_WIN
+        std::cout << "      --title=[TITLE]           set custom console window title\n";
+#       endif
+
+        std::cout << "      --user-agent=<UA>         set custom user agent string\n";
+        std::cout << "      --print-user-agent        print current user agent and exit\n";
+        std::cout << "      --dns-ipv6                prefer IPv6 records from DNS responses\n";
+        std::cout << "      --dns-ttl=<N>             N seconds (default: 30) TTL for internal DNS cache\n";
+
+#       ifdef XMRIG_FEATURE_HWLOC
+        std::cout << "      --export-topology         export hwloc topology to a XML file and exit\n";
+#       endif
+#       endif
+
+        return true;
+    });
 
 #   ifdef XMRIG_FEATURE_OPENCL
-    if (args.contains("--print-platforms")) {
-        return Platforms;
-    }
+    add([](int &/*rc*/) {
+        if (Process::arguments().contains("--print-platforms")) {
+            if (OclLib::init()) {
+                OclPlatform::print();
+            }
+
+            return true;
+        }
+
+        return false;
+    });
 #   endif
 
-    return Default;
+    add([](int &rc) {
+        if (Process::arguments().contains("-B", "--background")) {
+            Log::setBackground(true);
+
+            return background(rc);
+        }
+
+        return false;
+    });
 }
 
 
-int xmrig::Entry::exec(const Process &process, Id id)
+bool xmrig::Entry::exec(int &rc) const
 {
-    switch (id) {
-    case Usage:
-        printf("%s\n", usage().c_str());
-        return 0;
-
-    case Version:
-        return showVersion();
-
-#   ifdef XMRIG_FEATURE_HWLOC
-    case Topo:
-        return exportTopology(process);
-#   endif
-
-#   ifdef XMRIG_FEATURE_OPENCL
-    case Platforms:
-        if (OclLib::init()) {
-            OclPlatform::print();
+    for (const auto &fn : m_entries) {
+        if (fn(rc)) {
+            return true;
         }
-        return 0;
-#   endif
-
-    default:
-        break;
     }
 
-    return 1;
+    return false;
+}
+
+
+void xmrig::Entry::add(Fn &&fn)
+{
+    m_entries.emplace_back(std::move(fn));
 }
