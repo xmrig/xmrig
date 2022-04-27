@@ -21,7 +21,7 @@ set(HEADERS_BASE
     src/base/kernel/Base.h
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
-    src/base/kernel/config/Title.h
+    src/base/kernel/private/Title.h
     src/base/kernel/constants.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IAsyncListener.h
@@ -111,7 +111,7 @@ set(SOURCES_BASE
     src/base/kernel/Base.cpp
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
-    src/base/kernel/config/Title.cpp
+    src/base/kernel/private/Title.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Lib.cpp
     src/base/kernel/OS.cpp

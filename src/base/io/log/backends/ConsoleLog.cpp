@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,11 +15,18 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/config/Title.h"
+#include "base/kernel/private/Title.h"
 #include "base/tools/Handle.h"
 
 

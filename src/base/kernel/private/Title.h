@@ -1,5 +1,4 @@
 /* XMRig
- * Copyright (c) 2019      Spudz76     <https://github.com/Spudz76>
  * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
@@ -24,49 +23,52 @@
   * of this Program grant you additional permission to convey the resulting work.
  */
 
-#ifndef XMRIG_CONSOLELOG_H
-#define XMRIG_CONSOLELOG_H
+#ifndef XMRIG_TITLE_H
+#define XMRIG_TITLE_H
 
 
-using uv_stream_t = struct uv_stream_s;
-using uv_tty_t    = struct uv_tty_s;
-
-
-#include "base/kernel/interfaces/ILogBackend.h"
-#include "base/tools/Object.h"
+#include "3rdparty/rapidjson/fwd.h"
+#include "base/tools/String.h"
 
 
 namespace xmrig {
 
 
-class Title;
+class Arguments;
+class IJsonReader;
 
 
-class ConsoleLog : public ILogBackend
+class Title
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE(ConsoleLog)
+    static const char *kField;
 
-    ConsoleLog(const Title &title);
-    ~ConsoleLog() override;
+    Title() = default;
+    Title(bool enabled) : m_enabled(enabled)            {}
+    Title(const Arguments &arguments);
+    Title(const IJsonReader &reader, const Title &current);
+    inline Title(const rapidjson::Value &value)         { parse(value); }
 
-protected:
-    void print(uint64_t timestamp, int level, const char *line, size_t offset, size_t size, bool colors) override;
+    inline bool isEnabled() const                       { return m_enabled; }
+    inline bool isEqual(const Title &other) const       { return (m_enabled == other.m_enabled && m_value == other.m_value); }
+
+    inline bool operator!=(const Title &other) const    { return !isEqual(other); }
+    inline bool operator==(const Title &other) const    { return isEqual(other); }
+
+    rapidjson::Value toJSON() const;
+    String value() const;
+    void print() const;
+    void save(rapidjson::Document &doc) const;
 
 private:
-    static bool isSupported();
+    bool parse(const rapidjson::Value &value);
 
-    uv_tty_t *m_tty = nullptr;
-
-#   ifdef XMRIG_OS_WIN
-    bool isWritable() const;
-
-    uv_stream_t *m_stream = nullptr;
-#   endif
+    bool m_enabled  = true;
+    String m_value;
 };
 
 
 } // namespace xmrig
 
 
-#endif // XMRIG_CONSOLELOG_H
+#endif // XMRIG_TITLE_H
