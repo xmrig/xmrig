@@ -515,7 +515,7 @@ void xmrig::Miner::setEnabled(bool enabled)
         return;
     }
 
-    if (d_ptr->battery_power && enabled) {
+    if (d_ptr->controller->config()->isPauseOnBattery() && d_ptr->battery_power && enabled) {
         LOG_INFO("%s " YELLOW_BOLD("can't resume while on battery power"), Tags::miner());
 
         return;
