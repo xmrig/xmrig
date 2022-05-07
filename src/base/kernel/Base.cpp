@@ -164,7 +164,6 @@ private:
 xmrig::Base::Base(Process *process)
     : d_ptr(new BasePrivate(process))
 {
-
 }
 
 
@@ -187,7 +186,6 @@ int xmrig::Base::init()
     d_ptr->api->addListener(this);
 #   endif
 
-    OS::init();
     Process::setUserAgent(config()->userAgent());
 
     if (isBackground()) {

@@ -27,42 +27,34 @@
 #include "base/io/log/backends/ConsoleLog.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/private/Title.h"
+#include "base/tools/Cvt.h"
 #include "base/tools/Handle.h"
 
 
 #include <cstdio>
 
 
-xmrig::ConsoleLog::ConsoleLog(const Title &title)
+xmrig::ConsoleLog::ConsoleLog()
 {
-    if (!isSupported()) {
-        Log::setColors(false);
+    if (!init()) {
         return;
     }
-
-    m_tty = new uv_tty_t;
-
-    if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
-        Log::setColors(false);
-        return;
-    }
-
-    uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
 
 #   ifdef XMRIG_OS_WIN
-    m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
+    SetConsoleOutputCP(65001);
+#   endif
+}
 
-    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
-    if (handle != INVALID_HANDLE_VALUE) { // NOLINT(cppcoreguidelines-pro-type-cstyle-cast, performance-no-int-to-ptr)
-        DWORD mode = 0;
-        if (GetConsoleMode(handle, &mode)) {
-           mode &= ~ENABLE_QUICK_EDIT_MODE;
-           SetConsoleMode(handle, mode | ENABLE_EXTENDED_FLAGS);
-        }
+
+xmrig::ConsoleLog::ConsoleLog(const Title &title)
+{
+    if (!init()) {
+        return;
     }
 
+#   ifdef XMRIG_OS_WIN
     if (title.isEnabled()) {
-        SetConsoleTitleA(title.value());
+        SetConsoleTitleW(Cvt::toUtf16(title.value().data()).c_str());
     }
 #   endif
 }
@@ -101,6 +93,37 @@ bool xmrig::ConsoleLog::isSupported()
 {
     const uv_handle_type type = uv_guess_handle(1);
     return type == UV_TTY || type == UV_NAMED_PIPE;
+}
+
+
+bool xmrig::ConsoleLog::init()
+{
+    if (!isSupported()) {
+        return false;
+    }
+
+    m_tty = new uv_tty_t;
+
+    if (uv_tty_init(uv_default_loop(), m_tty, 1, 0) < 0) {
+        return false;
+    }
+
+    uv_tty_set_mode(m_tty, UV_TTY_MODE_NORMAL);
+
+#   ifdef XMRIG_OS_WIN
+    m_stream = reinterpret_cast<uv_stream_t*>(m_tty);
+
+    HANDLE handle = GetStdHandle(STD_INPUT_HANDLE);
+    if (handle != INVALID_HANDLE_VALUE) { // NOLINT(cppcoreguidelines-pro-type-cstyle-cast, performance-no-int-to-ptr)
+        DWORD mode = 0;
+        if (GetConsoleMode(handle, &mode)) {
+           mode &= ~ENABLE_QUICK_EDIT_MODE;
+           SetConsoleMode(handle, mode | ENABLE_EXTENDED_FLAGS);
+        }
+    }
+#   endif
+
+    return true;
 }
 
 

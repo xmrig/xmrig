@@ -47,6 +47,7 @@ class ConsoleLog : public ILogBackend
 public:
     XMRIG_DISABLE_COPY_MOVE(ConsoleLog)
 
+    ConsoleLog();
     ConsoleLog(const Title &title);
     ~ConsoleLog() override;
 
@@ -55,6 +56,8 @@ protected:
 
 private:
     static bool isSupported();
+
+    bool init();
 
     uv_tty_t *m_tty = nullptr;
 

@@ -14,15 +14,32 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #include <uv.h>
 
 
 #include "base/net/https/HttpsServer.h"
+#include "base/io/log/Log.h"
 #include "base/net/https/HttpsContext.h"
 #include "base/net/tls/TlsContext.h"
 #include "base/net/tools/NetBuffer.h"
+
+
+namespace xmrig {
+
+
+extern const char *tls_tag();
+
+
+} // namespace xmrig
 
 
 xmrig::HttpsServer::HttpsServer(const std::shared_ptr<IHttpListener> &listener) :
@@ -39,7 +56,14 @@ xmrig::HttpsServer::~HttpsServer()
 
 bool xmrig::HttpsServer::setTls(const TlsConfig &config)
 {
-    m_tls = TlsContext::create(config);
+    m_tls = nullptr;
+
+
+    try {
+        m_tls = TlsContext::create(config);
+    } catch (std::exception &ex) {
+        LOG_ERR("%s " RED_BOLD("%s"), tls_tag(), ex.what());
+    }
 
     return m_tls != nullptr;
 }

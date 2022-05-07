@@ -24,11 +24,14 @@
  */
 
 #include "base/kernel/config/BaseConfig.h"
+#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IJsonReader.h"
+#include "base/kernel/Process.h"
+#include "base/kernel/Versions.h"
 #include "base/net/dns/Dns.h"
 #include "version.h"
 
@@ -38,7 +41,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
-#include <uv.h>
 
 
 #ifdef XMRIG_FEATURE_TLS
@@ -138,38 +140,21 @@ bool xmrig::BaseConfig::save()
 
 void xmrig::BaseConfig::printVersions()
 {
-    char buf[256] = { 0 };
+    const auto &versions = Process::versions();
 
-#   if defined(__clang__)
-    snprintf(buf, sizeof buf, "clang/%d.%d.%d", __clang_major__, __clang_minor__, __clang_patchlevel__);
-#   elif defined(__GNUC__)
-    snprintf(buf, sizeof buf, "gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
-#   elif defined(_MSC_VER)
-    snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
-#   endif
-
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s"), "ABOUT", APP_NAME, APP_VERSION, buf);
-
-    std::string libs;
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s/%s"), "ABOUT", APP_NAME, APP_VERSION, Versions::kCompiler, versions.get(Versions::kCompiler).data());
 
 #   if defined(XMRIG_FEATURE_TLS)
-    {
-#       if defined(LIBRESSL_VERSION_TEXT)
-        snprintf(buf, sizeof buf, "LibreSSL/%s ", LIBRESSL_VERSION_TEXT + 9);
-        libs += buf;
-#       elif defined(OPENSSL_VERSION_TEXT)
-        constexpr const char *v = &OPENSSL_VERSION_TEXT[8];
-        snprintf(buf, sizeof buf, "OpenSSL/%.*s ", static_cast<int>(strchr(v, ' ') - v), v);
-        libs += buf;
-#       endif
-    }
+    std::string libs = fmt::format("{}/{} ", Versions::kTls, versions.get(Versions::kTls));
+#   else
+    std::string libs;
 #   endif
 
 #   if defined(XMRIG_FEATURE_HWLOC)
     libs += Cpu::info()->backend();
 #   endif
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", uv_version_string(), libs.c_str());
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13slibuv/%s %s"), "LIBS", versions.get(Versions::kUv).data(), libs.c_str());
 }
 
 
