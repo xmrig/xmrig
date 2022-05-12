@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,37 +14,45 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
-
-#include <uv.h>
-
-
-#include "base/kernel/interfaces/IWatcherListener.h"
 #include "base/io/Watcher.h"
+#include "base/kernel/interfaces/IWatcherListener.h"
 #include "base/tools/Handle.h"
 #include "base/tools/Timer.h"
 
 
 xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
-    m_listener(listener),
-    m_path(path)
+    m_path(path),
+    m_listener(listener)
 {
-    m_timer = new Timer(this);
+    m_timer = std::make_shared<Timer>(this);
 
-    m_fsEvent = new uv_fs_event_t;
-    m_fsEvent->data = this;
-    uv_fs_event_init(uv_default_loop(), m_fsEvent);
-
-    start();
+    startTimer();
 }
 
 
 xmrig::Watcher::~Watcher()
 {
-    delete m_timer;
+    Handle::close(m_event);
+}
 
-    Handle::close(m_fsEvent);
+
+void xmrig::Watcher::onTimer(const Timer * /*timer*/)
+{
+    if (m_event) {
+        reload();
+    }
+    else {
+        start();
+    }
 }
 
 
@@ -60,14 +62,7 @@ void xmrig::Watcher::onFsEvent(uv_fs_event_t *handle, const char *filename, int,
         return;
     }
 
-    static_cast<Watcher *>(handle->data)->queueUpdate();
-}
-
-
-void xmrig::Watcher::queueUpdate()
-{
-    m_timer->stop();
-    m_timer->start(kDelay, 0);
+    static_cast<Watcher *>(handle->data)->startTimer();
 }
 
 
@@ -75,8 +70,8 @@ void xmrig::Watcher::reload()
 {
     m_listener->onFileChanged(m_path);
 
-#   ifndef _WIN32
-    uv_fs_event_stop(m_fsEvent);
+#   ifndef XMRIG_OS_WIN
+    stop();
     start();
 #   endif
 }
@@ -84,5 +79,23 @@ void xmrig::Watcher::reload()
 
 void xmrig::Watcher::start()
 {
-    uv_fs_event_start(m_fsEvent, xmrig::Watcher::onFsEvent, m_path, 0);
+    if (!m_event) {
+        m_event = new uv_fs_event_t;
+        m_event->data = this;
+        uv_fs_event_init(uv_default_loop(), m_event);
+    }
+
+    uv_fs_event_start(m_event, onFsEvent, m_path, 0);
+}
+
+
+void xmrig::Watcher::startTimer()
+{
+    m_timer->singleShot(kDelay);
+}
+
+
+void xmrig::Watcher::stop()
+{
+    uv_fs_event_stop(m_event);
 }

@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,6 +14,13 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #ifndef XMRIG_WATCHER_H
@@ -30,7 +31,10 @@
 #include "base/tools/String.h"
 
 
-typedef struct uv_fs_event_s uv_fs_event_t;
+#include <memory>
+
+
+using uv_fs_event_t = struct uv_fs_event_s;
 
 
 namespace xmrig {
@@ -43,29 +47,32 @@ class Timer;
 class Watcher : public ITimerListener
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Watcher)
+
     Watcher(const String &path, IWatcherListener *listener);
     ~Watcher() override;
 
 protected:
-    inline void onTimer(const Timer *) override { reload(); }
+    void onTimer(const Timer *timer) override;
 
 private:
     constexpr static int kDelay = 500;
 
     static void onFsEvent(uv_fs_event_t *handle, const char *filename, int events, int status);
 
-    void queueUpdate();
     void reload();
     void start();
+    void startTimer();
+    void stop();
 
+    const String m_path;
     IWatcherListener *m_listener;
-    String m_path;
-    Timer *m_timer;
-    uv_fs_event_t *m_fsEvent;
+    std::shared_ptr<Timer> m_timer;
+    uv_fs_event_t *m_event  = nullptr;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_WATCHER_H */
+#endif // XMRIG_WATCHER_H
