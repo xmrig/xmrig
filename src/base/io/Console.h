@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,13 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #ifndef XMRIG_CONSOLE_H
@@ -23,45 +30,32 @@
 #include "base/tools/Object.h"
 
 
-using uv_buf_t      = struct uv_buf_t;
-using uv_handle_t   = struct uv_handle_s;
-using uv_stream_t   = struct uv_stream_s;
-using uv_tty_t      = struct uv_tty_s;
-
-#ifdef XMRIG_OS_WIN
-using ssize_t = intptr_t;
-#else
-#   include <sys/types.h>
-#endif
-
-
 namespace xmrig {
 
 
+class Title;
 class IConsoleListener;
 
 
 class Console
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Console)
+    XMRIG_DISABLE_COPY_MOVE(Console)
 
-    Console(IConsoleListener *listener);
-    ~Console();
+    Console();
+    explicit Console(IConsoleListener *listener);
+    ~Console() = default;
+
+#   ifdef XMRIG_OS_WIN
+    void setTitle(const Title &title) const;
+#   endif
 
 private:
-    static bool isSupported();
-
-    static void onAllocBuffer(uv_handle_t *handle, size_t suggested_size, uv_buf_t *buf);
-    static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
-
-    char m_buf[1] = { 0 };
-    IConsoleListener *m_listener;
-    uv_tty_t *m_tty = nullptr;
+    XMRIG_DECL_PRIVATE()
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_CONSOLE_H */
+#endif // XMRIG_CONSOLE_H
