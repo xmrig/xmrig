@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -14,6 +14,13 @@
  *
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+  * Additional permission under GNU GPL version 3 section 7
+  *
+  * If you modify this Program, or any covered work, by linking or combining
+  * it with OpenSSL (or a modified version of that library), containing parts
+  * covered by the terms of OpenSSL License and SSLeay License, the licensors
+  * of this Program grant you additional permission to convey the resulting work.
  */
 
 #ifndef XMRIG_SIGNALS_H
@@ -21,13 +28,6 @@
 
 
 #include "base/tools/Object.h"
-
-
-#include <csignal>
-#include <cstddef>
-
-
-using uv_signal_t = struct uv_signal_s;
 
 
 namespace xmrig {
@@ -39,28 +39,20 @@ class ISignalListener;
 class Signals
 {
 public:
-    XMRIG_DISABLE_COPY_MOVE_DEFAULT(Signals)
+    XMRIG_DISABLE_COPY_MOVE(Signals)
 
-#   ifdef SIGUSR1
-    constexpr static const size_t kSignalsCount = 4;
-#   else
-    constexpr static const size_t kSignalsCount = 3;
-#   endif
+    Signals();
+    explicit Signals(ISignalListener *listener);
+    ~Signals() = default;
 
-    Signals(ISignalListener *listener);
-    ~Signals();
+    static const char *tag();
 
 private:
-    void close(int signum);
-
-    static void onSignal(uv_signal_t *handle, int signum);
-
-    ISignalListener *m_listener;
-    uv_signal_t *m_signals[kSignalsCount]{};
+    XMRIG_DECL_PRIVATE()
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_SIGNALS_H */
+#endif // XMRIG_SIGNALS_H
