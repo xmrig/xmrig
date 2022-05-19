@@ -24,6 +24,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include "base/tools/Alignment.h"
 
 
 namespace xmrig {
@@ -45,10 +46,10 @@ struct u64 {
 
 
 template<typename T>
-inline T dmi_get(const uint8_t *data)                   { return *reinterpret_cast<const T *>(data); }
+inline T dmi_get(const uint8_t *data)                   { return readUnaligned(reinterpret_cast<const T *>(data)); }
 
 template<typename T>
-inline T dmi_get(const dmi_header *h, size_t offset)    { return *reinterpret_cast<const T *>(h->data + offset); }
+inline T dmi_get(const dmi_header *h, size_t offset)    { return readUnaligned(reinterpret_cast<const T *>(h->data + offset)); }
 
 
 const char *dmi_string(dmi_header *dm, size_t offset);
