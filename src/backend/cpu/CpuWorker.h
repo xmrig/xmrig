@@ -83,7 +83,7 @@ private:
     void allocateCnCtx();
     void consumeJob();
 
-    alignas(16) uint8_t m_hash[N * 32]{ 0 };
+    alignas(8) uint8_t m_hash[N * 32]{ 0 };
     const Algorithm m_algorithm;
     const Assembly m_assembly;
     const bool m_hwAES;
