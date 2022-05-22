@@ -36,6 +36,9 @@
 #define RESTRICT
 #endif
 
+#ifndef __has_cpp_attribute
+#define __has_cpp_attribute(x) 0
+#endif
 
 #if __has_cpp_attribute(unlikely)
 #define UNLIKELY(X) (X) [[unlikely]]
