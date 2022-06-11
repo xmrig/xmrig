@@ -31,6 +31,7 @@
 #include <cstdint>
 
 
+#include "base/tools/bswap_64.h"
 #include "base/tools/String.h"
 #include "base/net/stratum/Job.h"
 
@@ -80,7 +81,12 @@ public:
     }
 
     inline const uint8_t *result() const     { return m_result; }
-    inline uint64_t actualDiff() const       { return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]); }
+    inline uint64_t actualDiff() const       {
+        if (algorithm.id() == Algorithm::RX_VEIL) {
+            return Job::toDiff(bswap_64(*reinterpret_cast<const uint64_t*>(m_result)));
+        }
+        return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]);
+    }
     inline uint8_t *result()                 { return m_result; }
     inline const uint8_t *headerHash() const { return m_headerHash; }
     inline const uint8_t *mixHash() const    { return m_mixHash; }

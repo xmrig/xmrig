@@ -76,11 +76,13 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
 #       ifdef XMRIG_ALGO_RANDOMX
-        if (data.thread.isAsm() && data.device.vendorId() == OCL_VENDOR_AMD) {
-            m_runner = new OclRxJitRunner(id, data);
-        }
-        else {
-            m_runner = new OclRxVmRunner(id, data);
+        if (m_algorithm.id() != Algorithm::RX_VEIL) {
+            if (data.thread.isAsm() && data.device.vendorId() == OCL_VENDOR_AMD) {
+                m_runner = new OclRxJitRunner(id, data);
+            }
+            else {
+                m_runner = new OclRxVmRunner(id, data);
+            }
         }
 #       endif
         break;

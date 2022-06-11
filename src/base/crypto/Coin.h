@@ -41,6 +41,7 @@ public:
         KEVA,
         RAVEN,
         WOWNERO,
+        VEIL,
         MAX
     };
 

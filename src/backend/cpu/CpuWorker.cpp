@@ -25,6 +25,7 @@
 #include "backend/cpu/CpuWorker.h"
 #include "base/tools/Alignment.h"
 #include "base/tools/Chrono.h"
+#include "base/tools/bswap_64.h"
 #include "core/config/Config.h"
 #include "core/Miner.h"
 #include "crypto/cn/CnCtx.h"
@@ -37,6 +38,10 @@
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
 #include "net/JobResults.h"
+
+extern "C" {
+#include "crypto/ghostrider/sph_sha2.h"
+}
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -260,6 +265,8 @@ void xmrig::CpuWorker<N>::start()
 #       ifdef XMRIG_ALGO_RANDOMX
         bool first = true;
         alignas(16) uint64_t tempHash[8] = {};
+        sph_sha256_context sha256_ctx_cache, sha256_ctx;
+        alignas(16) uint64_t dsha256[4] = {};
 #       endif
 
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
@@ -293,7 +300,32 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
-            if (job.algorithm().family() == Algorithm::RANDOM_X) {
+            if (job.algorithm().id() == Algorithm::RX_VEIL) {
+                if (first) {
+                    // Init sha256 context cache until nonceOffset
+                    sph_sha256_init(&sha256_ctx_cache);
+                    sph_sha256(&sha256_ctx_cache, job.blob(), m_job.nonceOffset());
+                    sha256d(dsha256, m_job.blob(), job.size());
+                }
+
+                if (first) {
+                    first = false;
+                    randomx_calculate_hash_first(m_vm, tempHash, dsha256, 32);
+                }
+
+                if (!nextRound()) {
+                    break;
+                }
+
+                // Compute header double-sha256
+                memcpy(&sha256_ctx, &sha256_ctx_cache, sizeof(sha256_ctx));
+                sph_sha256(&sha256_ctx, m_job.blob() + m_job.nonceOffset(), job.size() - m_job.nonceOffset());
+                sph_sha256_close(&sha256_ctx, dsha256);
+                sph_sha256_full(dsha256, dsha256, 32);
+
+                randomx_calculate_hash_next(m_vm, tempHash, dsha256, 32, m_hash);
+            }
+            else if (job.algorithm().family() == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
@@ -354,19 +386,35 @@ void xmrig::CpuWorker<N>::start()
             }
 
             if (valid) {
-                for (size_t i = 0; i < N; ++i) {
-                    const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+                if (job.algorithm().id() == Algorithm::RX_VEIL) {
+                    const uint64_t value = bswap_64(*reinterpret_cast<uint64_t*>(m_hash));
 
 #                   ifdef XMRIG_FEATURE_BENCHMARK
                     if (m_benchSize) {
-                        if (current_job_nonces[i] < m_benchSize) {
+                        if (current_job_nonces[0] < m_benchSize) {
                             BenchState::add(value);
                         }
                     }
                     else
 #                   endif
                     if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
+                        JobResults::submit(job, current_job_nonces[0], m_hash, nullptr);
+                    }
+                } else {
+                    for (size_t i = 0; i < N; ++i) {
+                        const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+
+#                       ifdef XMRIG_FEATURE_BENCHMARK
+                        if (m_benchSize) {
+                            if (current_job_nonces[i] < m_benchSize) {
+                                BenchState::add(value);
+                            }
+                        }
+                        else
+#                       endif
+                        if (value < job.target()) {
+                            JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
+                        }
                     }
                 }
                 m_count += N;

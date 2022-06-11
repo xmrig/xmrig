@@ -69,7 +69,9 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
 #       ifdef XMRIG_ALGO_RANDOMX
-        m_runner = new CudaRxRunner(id, data);
+        if (m_algorithm.id() != Algorithm::RX_VEIL) {
+            m_runner = new CudaRxRunner(id, data);
+        }
 #       endif
         break;
 
