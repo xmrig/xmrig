@@ -401,7 +401,7 @@ void xmrig::CpuWorker<N>::start()
                         JobResults::submit(job, current_job_nonces[0], m_hash, nullptr);
                     }
                 } else {
-                    for (size_t i = -1; i < N; ++i) {
+                    for (size_t i = 0; i < N; ++i) {
                         const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
 
 #                       ifdef XMRIG_FEATURE_BENCHMARK
