@@ -863,7 +863,7 @@ void xmrig::DaemonClient::ZMQParse()
     LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" read ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes") " %s", m_pool.host().data(), m_pool.zmq_port(), msg.size() - 1, msg.data());
 #   endif
 
-    getBlockTemplate();
+    send(kGetHeight);
 }
 
 
