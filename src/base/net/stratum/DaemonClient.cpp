@@ -863,6 +863,9 @@ void xmrig::DaemonClient::ZMQParse()
     LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" read ") CYAN_BOLD("%zu") BLACK_BOLD(" bytes") " %s", m_pool.host().data(), m_pool.zmq_port(), msg.size() - 1, msg.data());
 #   endif
 
+    // Clear previous hash and check daemon height to guarantee that xmrig will call get_block_template RPC later
+    // We can't call get_block_template directly because daemon is not ready yet
+    m_prevHash = nullptr;
     send(kGetHeight);
 }
 
