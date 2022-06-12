@@ -41,7 +41,6 @@ public:
     Url(const char *host, uint16_t port, bool tls = false, Scheme scheme = UNSPECIFIED);
 
     inline bool isTLS() const                           { return m_tls; }
-    inline bool isWSS() const                           { return m_wss; }
     inline bool isValid() const                         { return !m_host.isNull() && m_port > 0; }
     inline const String &host() const                   { return m_host; }
     inline const String &url() const                    { return m_url; }
@@ -58,7 +57,6 @@ protected:
     bool parseIPv6(const char *addr);
 
     bool m_tls      = false;
-    bool m_wss      = false;
     Scheme m_scheme = UNSPECIFIED;
     String m_host;
     String m_url;

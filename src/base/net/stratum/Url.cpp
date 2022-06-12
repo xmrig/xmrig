@@ -39,7 +39,6 @@ static const char kSOCKS5[]                = "socks5://";
 #ifdef XMRIG_FEATURE_HTTP
 static const char kDaemonHttp[]            = "daemon+http://";
 static const char kDaemonHttps[]           = "daemon+https://";
-static const char kDaemonWss[]             = "daemon+wss://";
 #endif
 
 } // namespace xmrig
@@ -103,11 +102,6 @@ bool xmrig::Url::parse(const char *url)
         else if (strncasecmp(url, kDaemonHttp, sizeof(kDaemonHttp) - 1) == 0) {
             m_scheme = DAEMON;
             m_tls    = false;
-        }
-        else if (strncasecmp(url, kDaemonWss, sizeof(kDaemonWss) - 1) == 0) {
-            m_scheme = DAEMON;
-            m_tls    = true;
-            m_wss    = true;
         }
 #       endif
         else {

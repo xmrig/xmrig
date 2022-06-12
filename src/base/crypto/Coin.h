@@ -35,8 +35,6 @@ public:
         MONERO,
         SUMO,
         ARQMA,
-        DERO,
-        DERO_HE,
         GRAFT,
         KEVA,
         RAVEN,
