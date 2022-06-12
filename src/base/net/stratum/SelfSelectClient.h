@@ -49,7 +49,6 @@ protected:
     inline bool hasExtension(Extension extension) const noexcept override           { return m_client->hasExtension(extension); }
     inline bool isEnabled() const override                                          { return m_client->isEnabled(); }
     inline bool isTLS() const override                                              { return m_client->isTLS(); }
-    inline bool isWSS() const override                                              { return m_client->isWSS(); }
     inline const char *mode() const override                                        { return m_client->mode(); }
     inline const char *tag() const override                                         { return m_client->tag(); }
     inline const char *tlsFingerprint() const override                              { return m_client->tlsFingerprint(); }

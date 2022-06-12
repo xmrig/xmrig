@@ -54,11 +54,6 @@ if (WITH_CUDA)
        list(APPEND SOURCES_BACKEND_CUDA src/backend/cuda/runners/CudaRxRunner.cpp)
    endif()
 
-   if (WITH_ASTROBWT)
-       list(APPEND HEADERS_BACKEND_CUDA src/backend/cuda/runners/CudaAstroBWTRunner.h)
-       list(APPEND SOURCES_BACKEND_CUDA src/backend/cuda/runners/CudaAstroBWTRunner.cpp)
-   endif()
-
    if (WITH_KAWPOW)
        list(APPEND HEADERS_BACKEND_CUDA src/backend/cuda/runners/CudaKawPowRunner.h)
        list(APPEND SOURCES_BACKEND_CUDA src/backend/cuda/runners/CudaKawPowRunner.cpp)

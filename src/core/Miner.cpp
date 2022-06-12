@@ -62,11 +62,6 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "crypto/astrobwt/AstroBWT.h"
-#endif
-
-
 #ifdef XMRIG_ALGO_GHOSTRIDER
 #   include "crypto/ghostrider/ghostrider.h"
 #endif
@@ -397,10 +392,6 @@ xmrig::Miner::Miner(Controller *controller)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     Rx::init(this);
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    astrobwt::init();
 #   endif
 
     controller->addListener(this);

@@ -217,12 +217,6 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x1742ca, { Coin::ARQMA,      STAGENET,   INTEGRATED,     39994,  39995 } },
         { 0x1d84ca, { Coin::ARQMA,      STAGENET,   SUBADDRESS,     39994,  39995 } },
 
-        { 0xc8ed8,  { Coin::DERO,       MAINNET,    PUBLIC,         20206,  0     } },
-        { 0xa0ed8,  { Coin::DERO,       MAINNET,    INTEGRATED,     20206,  0     } },
-
-        { 0x6cf58,  { Coin::DERO,       TESTNET,    PUBLIC,         30306,  0     } },
-        { 0x44f58,  { Coin::DERO,       TESTNET,    INTEGRATED,     30306,  0     } },
-
         { 0x1032,   { Coin::WOWNERO,    MAINNET,    PUBLIC,         34568,  34569 } },
         { 0x1a9a,   { Coin::WOWNERO,    MAINNET,    INTEGRATED,     34568,  34569 } },
         { 0x2fb0,   { Coin::WOWNERO,    MAINNET,    SUBADDRESS,     34568,  34569 } },

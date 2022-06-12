@@ -29,7 +29,6 @@
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclWorker.h"
-#include "backend/opencl/runners/OclAstroBWTRunner.h"
 #include "backend/opencl/runners/tools/OclSharedState.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
