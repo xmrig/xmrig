@@ -140,6 +140,7 @@ private:
     uint64_t m_amount       = 0;
     uint8_t m_outputType    = 0;
     Span m_ephPublicKey;
+    uint8_t m_viewTag       = 0;
     uint64_t m_extraSize    = 0;
     Span m_txExtraNonce;
     Span m_txMergeMiningTag = 0;
