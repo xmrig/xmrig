@@ -63,11 +63,6 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "crypto/astrobwt/AstroBWT.h"
-#endif
-
-
 #ifdef XMRIG_ALGO_GHOSTRIDER
 #   include "crypto/ghostrider/ghostrider.h"
 #endif
@@ -400,10 +395,6 @@ xmrig::Miner::Miner(Controller *controller)
     Rx::init(this);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    astrobwt::init();
-#   endif
-
     controller->addListener(this);
 
 #   ifdef XMRIG_FEATURE_API
@@ -516,7 +507,7 @@ void xmrig::Miner::setEnabled(bool enabled)
         return;
     }
 
-    if (d_ptr->battery_power && enabled) {
+    if (d_ptr->controller->config()->isPauseOnBattery() && d_ptr->battery_power && enabled) {
         LOG_INFO("%s " YELLOW_BOLD("can't resume while on battery power"), Tags::miner());
 
         return;

@@ -110,45 +110,6 @@ if (WITH_OPENCL)
              )
     endif()
 
-    if (WITH_ASTROBWT)
-        list(APPEND HEADERS_BACKEND_OPENCL
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FilterKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FindSharesKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_MainKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_PrepareBatch2Kernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_Salsa20Kernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3InitialKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3Kernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_BWT_FixOrderKernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_BWT_PreprocessKernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_FindSharesKernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_Salsa20Kernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_SHA3InitialKernel.h
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_SHA3Kernel.h
-             src/backend/opencl/runners/OclAstroBWTRunner.h
-             src/backend/opencl/runners/OclAstroBWT_v2_Runner.h
-             )
-
-        list(APPEND SOURCES_BACKEND_OPENCL
-             src/backend/opencl/generators/ocl_generic_astrobwt_generator.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FilterKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FindSharesKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_MainKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_PrepareBatch2Kernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_Salsa20Kernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3InitialKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3Kernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_BWT_FixOrderKernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_BWT_PreprocessKernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_FindSharesKernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_Salsa20Kernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_SHA3InitialKernel.cpp
-             src/backend/opencl/kernels/astrobwt_v2/AstroBWT_v2_SHA3Kernel.cpp
-             src/backend/opencl/runners/OclAstroBWTRunner.cpp
-             src/backend/opencl/runners/OclAstroBWT_v2_Runner.cpp
-             )
-    endif()
-
     if (WITH_KAWPOW)
         list(APPEND HEADERS_BACKEND_OPENCL
              src/backend/opencl/kernels/kawpow/KawPow_CalculateDAGKernel.h

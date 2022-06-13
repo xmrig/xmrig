@@ -214,7 +214,6 @@ void xmrig::OclConfig::generate()
     count += xmrig::generate<Algorithm::CN_PICO>(m_threads, devices);
     count += xmrig::generate<Algorithm::CN_FEMTO>(m_threads, devices);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
-    count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, devices);
     count += xmrig::generate<Algorithm::KAWPOW>(m_threads, devices);
 
     m_shouldSave = count > 0;

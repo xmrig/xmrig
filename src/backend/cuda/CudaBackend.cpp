@@ -40,11 +40,6 @@
 #include "core/Controller.h"
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
-#endif
-
-
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "crypto/kawpow/KPCache.h"
 #   include "crypto/kawpow/KPHash.h"

@@ -178,7 +178,6 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::CN_FEMTO>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
-    count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::GHOSTRIDER>(m_threads, m_limit);
 
     m_shouldSave |= count > 0;
