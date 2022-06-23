@@ -83,14 +83,12 @@ private:
     void allocateCnCtx();
     void consumeJob();
 
-    alignas(16) uint8_t m_hash[N * 32]{ 0 };
+    alignas(8) uint8_t m_hash[N * 32]{ 0 };
     const Algorithm m_algorithm;
     const Assembly m_assembly;
-    const bool m_astrobwtAVX2;
     const bool m_hwAES;
     const bool m_yield;
     const CnHash::AlgoVariant m_av;
-    const int m_astrobwtMaxSize;
     const Miner *m_miner;
     const size_t m_threads;
     cryptonight_ctx *m_ctx[N];

@@ -76,7 +76,6 @@ const char *Pool::kSelfSelect             = "self-select";
 const char *Pool::kSOCKS5                 = "socks5";
 const char *Pool::kSubmitToOrigin         = "submit-to-origin";
 const char *Pool::kTls                    = "tls";
-const char *Pool::kWSS                    = "wss";
 const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
 const char *Pool::kSpendSecretKey         = "spend-secret-key";
@@ -94,7 +93,7 @@ xmrig::Pool::Pool(const char *url) :
 }
 
 
-xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, const char* spendSecretKey, int keepAlive, bool nicehash, bool tls, bool wss, Mode mode) :
+xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char *password, const char* spendSecretKey, int keepAlive, bool nicehash, bool tls, Mode mode) :
     m_keepAlive(keepAlive),
     m_mode(mode),
     m_flags(1 << FLAG_ENABLED),
@@ -106,7 +105,6 @@ xmrig::Pool::Pool(const char *host, uint16_t port, const char *user, const char 
 {
     m_flags.set(FLAG_NICEHASH, nicehash || strstr(host, kNicehashHost));
     m_flags.set(FLAG_TLS,      tls);
-    m_flags.set(FLAG_WSS,      wss);
 }
 
 
@@ -134,7 +132,6 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_flags.set(FLAG_ENABLED,  Json::getBool(object, kEnabled, true));
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
-    m_flags.set(FLAG_WSS,      Json::getBool(object, kWSS) || m_url.isWSS());
 
     setKeepAlive(Json::getValue(object, kKeepalive));
 
@@ -296,7 +293,6 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
 
     obj.AddMember(StringRef(kEnabled),      m_flags.test(FLAG_ENABLED), allocator);
     obj.AddMember(StringRef(kTls),          isTLS(), allocator);
-    obj.AddMember(StringRef(kWSS),          isWSS(), allocator);
     obj.AddMember(StringRef(kFingerprint),  m_fingerprint.toJSON(), allocator);
     obj.AddMember(StringRef(kDaemon),       m_mode == MODE_DAEMON, allocator);
     obj.AddMember(StringRef(kSOCKS5),       m_proxy.toJSON(doc), allocator);

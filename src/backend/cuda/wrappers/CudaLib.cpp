@@ -50,8 +50,6 @@ static String defaultLoader = "libxmrig-cuda.so";
 
 
 static const char *kAlloc                               = "alloc";
-static const char *kAstroBWTHash                        = "astroBWTHash";
-static const char *kAstroBWTPrepare                     = "astroBWTPrepare";
 static const char *kCnHash                              = "cnHash";
 static const char *kDeviceCount                         = "deviceCount";
 static const char *kDeviceInfo                          = "deviceInfo";
@@ -76,8 +74,6 @@ static const char *kVersion                             = "version";
 
 
 using alloc_t                                           = nvid_ctx * (*)(uint32_t, int32_t, int32_t);
-using astroBWTHash_t                                    = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
-using astroBWTPrepare_t                                 = bool (*)(nvid_ctx *, uint32_t);
 using cnHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint64_t, uint32_t *, uint32_t *);
 using deviceCount_t                                     = uint32_t (*)();
 using deviceInfo_t                                      = bool (*)(nvid_ctx *, int32_t, int32_t, uint32_t, int32_t);
@@ -102,8 +98,6 @@ using version_t                                         = uint32_t (*)(Version);
 
 
 static alloc_t pAlloc                                   = nullptr;
-static astroBWTHash_t pAstroBWTHash                     = nullptr;
-static astroBWTPrepare_t pAstroBWTPrepare               = nullptr;
 static cnHash_t pCnHash                                 = nullptr;
 static deviceCount_t pDeviceCount                       = nullptr;
 static deviceInfo_t pDeviceInfo                         = nullptr;
@@ -173,18 +167,6 @@ const char *xmrig::CudaLib::lastError() noexcept
 void xmrig::CudaLib::close()
 {
     uv_dlclose(&cudaLib);
-}
-
-
-bool xmrig::CudaLib::astroBWTHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target, uint32_t *rescount, uint32_t *resnonce) noexcept
-{
-    return pAstroBWTHash(ctx, startNonce, target, rescount, resnonce);
-}
-
-
-bool xmrig::CudaLib::astroBWTPrepare(nvid_ctx *ctx, uint32_t batchSize) noexcept
-{
-    return pAstroBWTPrepare(ctx, batchSize);
 }
 
 
@@ -410,8 +392,6 @@ void xmrig::CudaLib::load()
     DLSYM(Release);
     DLSYM(RxHash);
     DLSYM(RxPrepare);
-    DLSYM(AstroBWTHash);
-    DLSYM(AstroBWTPrepare);
     DLSYM(KawPowHash);
     DLSYM(KawPowPrepare_v2);
     DLSYM(KawPowStopHash);

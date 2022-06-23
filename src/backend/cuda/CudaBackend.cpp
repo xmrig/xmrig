@@ -40,11 +40,6 @@
 #include "core/Controller.h"
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
-#endif
-
-
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "crypto/kawpow/KPCache.h"
 #   include "crypto/kawpow/KPHash.h"
@@ -219,12 +214,6 @@ public:
         Log::print(WHITE_BOLD("|  # | GPU |  BUS ID | INTENSITY | THREADS | BLOCKS | BF |  BS | MEMORY | NAME"));
 
         size_t algo_l3 = algo.l3();
-
-#       ifdef XMRIG_ALGO_ASTROBWT
-        if (algo.id() == Algorithm::ASTROBWT_DERO) {
-            algo_l3 = CudaAstroBWTRunner::BWT_DATA_STRIDE * 17 + 1024;
-        }
-#       endif
 
         size_t i = 0;
         for (const auto &data : threads) {

@@ -29,7 +29,6 @@
 #include "backend/opencl/OclConfig.h"
 #include "backend/opencl/OclLaunchData.h"
 #include "backend/opencl/OclWorker.h"
-#include "backend/opencl/runners/OclAstroBWTRunner.h"
 #include "backend/opencl/runners/tools/OclSharedState.h"
 #include "backend/opencl/wrappers/OclContext.h"
 #include "backend/opencl/wrappers/OclLib.h"
@@ -203,12 +202,6 @@ public:
         Log::print(WHITE_BOLD("|  # | GPU |  BUS ID | INTENSITY | WSIZE | MEMORY | NAME"));
 
         size_t algo_l3 = algo.l3();
-
-#       ifdef XMRIG_ALGO_ASTROBWT
-        if (algo.id() == Algorithm::ASTROBWT_DERO) {
-            algo_l3 = OclAstroBWTRunner::BWT_DATA_STRIDE * 17 + 324;
-        }
-#       endif
 
         size_t i = 0;
         for (const auto &data : threads) {

@@ -108,11 +108,6 @@ static inline const std::string &usage()
     u += "      --randomx-cache-qos       enable Cache QoS\n";
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    u += "      --astrobwt-max-size=N     skip hashes with large stage 2 size, default: 550, min: 400, max: 1200\n";
-    u += "      --astrobwt-avx2           enable AVX2 optimizations for AstroBWT algorithm";
-#   endif
-
 #   ifdef XMRIG_FEATURE_OPENCL
     u += "\nOpenCL backend:\n";
     u += "      --opencl                  enable OpenCL mining backend\n";

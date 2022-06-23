@@ -163,14 +163,6 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
         return set(doc, CpuConfig::kField, CpuConfig::kAsm, arg);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    case IConfig::AstroBWTMaxSizeKey: /* --astrobwt-max-size */
-        return set(doc, CpuConfig::kField, CpuConfig::kAstroBWTMaxSize, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
-
-    case IConfig::AstroBWTAVX2Key: /* --astrobwt-avx2 */
-        return set(doc, CpuConfig::kField, CpuConfig::kAstroBWTAVX2, true);
-#   endif
-
 #   ifdef XMRIG_ALGO_RANDOMX
     case IConfig::RandomXInitKey: /* --randomx-init */
         return set(doc, RxConfig::kField, RxConfig::kInit, static_cast<int64_t>(strtol(arg, nullptr, 10)));
@@ -327,16 +319,18 @@ void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, 
 #ifdef XMRIG_FEATURE_BENCHMARK
 void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int key, const char *arg)
 {
-    set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
-    set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
-    set(doc, CpuConfig::kField, CpuConfig::kYield, false);
-
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kAlgo, arg);
 
     case IConfig::BenchKey: /* --bench */
+    {
+        // CPU settings for the benchmark
+        set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
+        set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
+        set(doc, CpuConfig::kField, CpuConfig::kYield, false);
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kSize, arg);
+    }
 
     case IConfig::StressKey: /* --stress */
         return add(doc, Pools::kPools, Pool::kUser, BenchConfig::kBenchmark);

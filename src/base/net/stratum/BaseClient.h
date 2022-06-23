@@ -59,8 +59,6 @@ protected:
     void setPool(const Pool &pool) override;
 
 protected:
-    bool isWSS() const override { return false; }
-
     enum SocketState {
         UnconnectedState,
         HostLookupState,

@@ -58,11 +58,9 @@ public:
 
     const Algorithm algorithm;
     const Assembly assembly;
-    const bool astrobwtAVX2;
     const bool hugePages;
     const bool hwAES;
     const bool yield;
-    const int astrobwtMaxSize;
     const int priority;
     const int64_t affinity;
     const Miner *miner;
