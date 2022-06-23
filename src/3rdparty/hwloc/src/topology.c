@@ -3,6 +3,7 @@
  * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
+ * Copyright © 2022 IBM Corporation.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -52,29 +53,41 @@
 #include <windows.h>
 #endif
 
+
+#ifdef HWLOC_HAVE_LEVELZERO
 /*
  * Define ZES_ENABLE_SYSMAN=1 early so that the LevelZero backend gets Sysman enabled.
+ *
+ * Only if the levelzero was enabled in this build so that we don't enable sysman
+ * for external levelzero users when hwloc doesn't need it. If somebody ever loads
+ * an external levelzero plugin in a hwloc library built without levelzero (unlikely),
+ * he may have to manually set ZES_ENABLE_SYSMAN=1.
+ *
  * Use the constructor if supported and/or the Windows DllMain callback.
  * Do it in the main hwloc library instead of the levelzero component because
  * the latter could be loaded later as a plugin.
  *
  * L0 seems to be using getenv() to check this variable on Windows
  * (at least in the Intel Compute-Runtime of March 2021),
- * so use putenv() to set the variable.
+ * but setenv() doesn't seem to exist on Windows, hence use putenv() to set the variable.
  *
  * For the record, Get/SetEnvironmentVariable() is not exactly the same as getenv/putenv():
  * - getenv() doesn't see what was set with SetEnvironmentVariable()
  * - GetEnvironmentVariable() doesn't see putenv() in cygwin (while it does in MSVC and MinGW).
  * Hence, if L0 ever switches from getenv() to GetEnvironmentVariable(),
  * it will break in cygwin, we'll have to use both putenv() and SetEnvironmentVariable().
- * Hopefully L0 will be provide a way to enable Sysman without env vars before it happens.
+ * Hopefully L0 will provide a way to enable Sysman without env vars before it happens.
  */
 #if HWLOC_HAVE_ATTRIBUTE_CONSTRUCTOR
 static void hwloc_constructor(void) __attribute__((constructor));
 static void hwloc_constructor(void)
 {
   if (!getenv("ZES_ENABLE_SYSMAN"))
-    putenv((char *) "ZES_ENABLE_SYSMAN=1");
+#ifdef HWLOC_WIN_SYS
+    putenv("ZES_ENABLE_SYSMAN=1");
+#else
+    setenv("ZES_ENABLE_SYSMAN", "1", 1);
+#endif
 }
 #endif
 #ifdef HWLOC_WIN_SYS
@@ -82,11 +95,14 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
 {
   if (fdwReason == DLL_PROCESS_ATTACH) {
     if (!getenv("ZES_ENABLE_SYSMAN"))
+      /* Windows does not have a setenv, so use putenv. */
       putenv((char *) "ZES_ENABLE_SYSMAN=1");
   }
   return TRUE;
 }
 #endif
+#endif /* HWLOC_HAVE_LEVELZERO */
+
 
 unsigned hwloc_get_api_version(void)
 {
