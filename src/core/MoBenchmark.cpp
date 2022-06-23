@@ -132,7 +132,6 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_PICO_TLO:     return m_bench_algo_perf[BenchAlgo::CN_PICO_0];
         case Algorithm::CN_GPU:          return m_bench_algo_perf[BenchAlgo::CN_GPU];
         case Algorithm::AR2_CHUKWA_V2:   return m_bench_algo_perf[BenchAlgo::AR2_CHUKWA_V2];
-        case Algorithm::ASTROBWT_DERO_2: return m_bench_algo_perf[BenchAlgo::ASTROBWT_DERO_2];
         case Algorithm::KAWPOW_RVN:      return m_bench_algo_perf[BenchAlgo::KAWPOW_RVN];
         case Algorithm::RX_0:            return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_SFX:          return m_bench_algo_perf[BenchAlgo::RX_0];

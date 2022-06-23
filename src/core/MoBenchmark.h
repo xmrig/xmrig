@@ -43,7 +43,6 @@ class MoBenchmark : public IJobResultListener {
             CN_GPU,          // "cn/gpu"           CryptoNight-GPU (Ryo).
             AR2_CHUKWA_V2,   // "argon2/chukwav2"  Argon2id (Chukwa v2).
             KAWPOW_RVN,      // "kawpow/rvn"       KawPow (RVN)
-            ASTROBWT_DERO_2, // "astrobwt/v2"      AstroBWT (Dero HE).
             RX_0,            // "rx/0"             RandomX (Monero).
             RX_GRAFT,        // "rx/graft"         RandomGraft (Graft).
             RX_ARQ,          // "rx/arq"           RandomARQ (Arqma).
@@ -63,7 +62,6 @@ class MoBenchmark : public IJobResultListener {
             Algorithm::CN_GPU,
             Algorithm::AR2_CHUKWA_V2,
             Algorithm::KAWPOW_RVN,
-            Algorithm::ASTROBWT_DERO_2,
             Algorithm::RX_0,
             Algorithm::RX_GRAFT,
             Algorithm::RX_ARQ,
