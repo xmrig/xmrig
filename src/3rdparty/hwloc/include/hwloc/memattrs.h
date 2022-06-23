@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2020 Inria.  All rights reserved.
+ * Copyright © 2019-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -354,7 +354,7 @@ hwloc_memattr_register(hwloc_topology_t topology,
  * \p flags must be \c 0 for now.
  *
  * \note The initiator \p initiator should be of type ::HWLOC_LOCATION_TYPE_CPUSET
- * when refering to accesses performed by CPU cores.
+ * when referring to accesses performed by CPU cores.
  * ::HWLOC_LOCATION_TYPE_OBJECT is currently unused internally by hwloc,
  * but users may for instance use it to provide custom information about
  * host memory accesses performed by GPUs.
@@ -398,7 +398,7 @@ hwloc_memattr_set_value(hwloc_topology_t topology,
  * values.
  *
  * \note The initiator \p initiator should be of type ::HWLOC_LOCATION_TYPE_CPUSET
- * when refering to accesses performed by CPU cores.
+ * when referring to accesses performed by CPU cores.
  * ::HWLOC_LOCATION_TYPE_OBJECT is currently unused internally by hwloc,
  * but users may for instance use it to provide custom information about
  * host memory accesses performed by GPUs.
@@ -408,7 +408,7 @@ hwloc_memattr_get_targets(hwloc_topology_t topology,
                           hwloc_memattr_id_t attribute,
                           struct hwloc_location *initiator,
                           unsigned long flags,
-                          unsigned *nrp, hwloc_obj_t *targets, hwloc_uint64_t *values);
+                          unsigned *nr, hwloc_obj_t *targets, hwloc_uint64_t *values);
 
 /** \brief Return the initiators that have values for a given attribute for a specific target NUMA node.
  *

@@ -34,11 +34,6 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
-#endif
-
-
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "backend/cuda/runners/CudaKawPowRunner.h"
 #endif
@@ -74,12 +69,6 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
         break;
 
     case Algorithm::ARGON2:
-        break;
-
-    case Algorithm::ASTROBWT:
-#       ifdef XMRIG_ALGO_ASTROBWT
-        m_runner = new CudaAstroBWTRunner(id, data);
-#       endif
         break;
 
     case Algorithm::KAWPOW:

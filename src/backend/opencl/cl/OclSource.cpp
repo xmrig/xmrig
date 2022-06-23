@@ -36,11 +36,6 @@
 #   include "backend/opencl/cl/rx/randomx_cl.h"
 #endif
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/opencl/cl/astrobwt/astrobwt_cl.h"
-#   include "backend/opencl/cl/astrobwt_v2/astrobwt_v2_cl.h"
-#endif
-
 #ifdef XMRIG_ALGO_KAWPOW
 #   include "backend/opencl/cl/kawpow/kawpow_cl.h"
 #   include "backend/opencl/cl/kawpow/kawpow_dag_cl.h"
@@ -58,12 +53,6 @@ const char *xmrig::OclSource::get(const Algorithm &algorithm)
 #   ifdef XMRIG_ALGO_RANDOMX
     if (algorithm.family() == Algorithm::RANDOM_X) {
         return randomx_cl;
-    }
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (algorithm.family() == Algorithm::ASTROBWT) {
-        return (algorithm.id() == Algorithm::ASTROBWT_DERO_2) ? astrobwt_v2_cl : astrobwt_cl;
     }
 #   endif
 

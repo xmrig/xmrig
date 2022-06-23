@@ -614,10 +614,13 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
   eax = 0x01;
   cpuid_or_from_dump(&eax, &ebx, &ecx, &edx, src_cpuiddump);
   infos->apicid = ebx >> 24;
-  if (edx & (1 << 28))
+  if (edx & (1 << 28)) {
     legacy_max_log_proc = 1 << hwloc_flsl(((ebx >> 16) & 0xff) - 1);
-  else
+  } else {
+    hwloc_debug("HTT bit not set in CPUID 0x01.edx, assuming legacy_max_log_proc = 1\n");
     legacy_max_log_proc = 1;
+  }
+
   hwloc_debug("APIC ID 0x%02x legacy_max_log_proc %u\n", infos->apicid, legacy_max_log_proc);
   infos->ids[PKG] = infos->apicid / legacy_max_log_proc;
   legacy_log_proc_id = infos->apicid % legacy_max_log_proc;
@@ -680,12 +683,23 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
       unsigned max_nbcores;
       unsigned max_nbthreads;
       unsigned threadid __hwloc_attribute_unused;
+      hwloc_debug("Trying to get core/thread IDs from 0x04...\n");
       max_nbcores = ((eax >> 26) & 0x3f) + 1;
-      max_nbthreads = legacy_max_log_proc / max_nbcores;
-      hwloc_debug("thus %u threads\n", max_nbthreads);
-      threadid = legacy_log_proc_id % max_nbthreads;
-      infos->ids[CORE] = legacy_log_proc_id / max_nbthreads;
-      hwloc_debug("this is thread %u of core %u\n", threadid, infos->ids[CORE]);
+      hwloc_debug("found %u cores max\n", max_nbcores);
+      /* some VMs (e.g. issue#525) don't report valid information, check things before dividing by 0. */
+      if (!max_nbcores) {
+        hwloc_debug("cannot detect core/thread IDs from 0x04 without a valid max of cores\n");
+      } else {
+        max_nbthreads = legacy_max_log_proc / max_nbcores;
+        hwloc_debug("found %u threads max\n", max_nbthreads);
+        if (!max_nbthreads) {
+          hwloc_debug("cannot detect core/thread IDs from 0x04 without a valid max of threads\n");
+        } else {
+          threadid = legacy_log_proc_id % max_nbthreads;
+          infos->ids[CORE] = legacy_log_proc_id / max_nbthreads;
+          hwloc_debug("this is thread %u of core %u\n", threadid, infos->ids[CORE]);
+        }
+      }
     }
   }
 

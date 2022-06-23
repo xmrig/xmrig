@@ -47,10 +47,6 @@ namespace xmrig {
 extern bool ocl_generic_rx_generator(const OclDevice &device, const Algorithm &algorithm, OclThreads &threads);
 #endif
 
-#ifdef XMRIG_ALGO_ASTROBWT
-extern bool ocl_generic_astrobwt_generator(const OclDevice& device, const Algorithm& algorithm, OclThreads& threads);
-#endif
-
 #ifdef XMRIG_ALGO_KAWPOW
 extern bool ocl_generic_kawpow_generator(const OclDevice& device, const Algorithm& algorithm, OclThreads& threads);
 #endif
@@ -66,9 +62,6 @@ extern bool ocl_generic_cn_gpu_generator(const OclDevice &device, const Algorith
 static ocl_gen_config_fun generators[] = {
 #   ifdef XMRIG_ALGO_RANDOMX
     ocl_generic_rx_generator,
-#   endif
-#   ifdef XMRIG_ALGO_ASTROBWT
-    ocl_generic_astrobwt_generator,
 #   endif
 #   ifdef XMRIG_ALGO_KAWPOW
     ocl_generic_kawpow_generator,

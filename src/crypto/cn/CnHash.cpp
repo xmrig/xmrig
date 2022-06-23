@@ -35,11 +35,6 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "crypto/astrobwt/AstroBWT.h"
-#endif
-
-
 #define ADD_FN(algo) do {                                                                            \
         m_map[algo] = new cn_hash_fun_array{};                                                       \
         m_map[algo]->data[AV_SINGLE][Assembly::NONE]      = cryptonight_single_hash<algo, false, 0>; \
@@ -379,16 +374,6 @@ xmrig::CnHash::CnHash()
     m_map[Algorithm::AR2_WRKZ] = new cn_hash_fun_array{};
     m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE][Assembly::NONE]           = argon2::single_hash<Algorithm::AR2_WRKZ>;
     m_map[Algorithm::AR2_WRKZ]->data[AV_SINGLE_SOFT][Assembly::NONE]      = argon2::single_hash<Algorithm::AR2_WRKZ>;
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    m_map[Algorithm::ASTROBWT_DERO] = new cn_hash_fun_array{};
-    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
-    m_map[Algorithm::ASTROBWT_DERO]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO>;
-
-    m_map[Algorithm::ASTROBWT_DERO_2] = new cn_hash_fun_array{};
-    m_map[Algorithm::ASTROBWT_DERO_2]->data[AV_SINGLE][Assembly::NONE]      = astrobwt::single_hash<Algorithm::ASTROBWT_DERO_2>;
-    m_map[Algorithm::ASTROBWT_DERO_2]->data[AV_SINGLE_SOFT][Assembly::NONE] = astrobwt::single_hash<Algorithm::ASTROBWT_DERO_2>;
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER

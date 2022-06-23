@@ -44,11 +44,6 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "crypto/astrobwt/AstroBWT.h"
-#endif
-
-
 #ifdef XMRIG_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/BenchState.h"
 #endif
@@ -73,11 +68,9 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
     m_algorithm(data.algorithm),
     m_assembly(data.assembly),
-    m_astrobwtAVX2(data.astrobwtAVX2),
     m_hwAES(data.hwAES),
     m_yield(data.yield),
     m_av(data.av()),
-    m_astrobwtMaxSize(data.astrobwtMaxSize * 1000),
     m_miner(data.miner),
     m_threads(data.threads),
     m_ctx()
@@ -233,11 +226,6 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    if (m_algorithm.id() == Algorithm::ASTROBWT_DERO)   return verify(Algorithm::ASTROBWT_DERO,   astrobwt_dero_test_out);
-    if (m_algorithm.id() == Algorithm::ASTROBWT_DERO_2) return verify(Algorithm::ASTROBWT_DERO_2, astrobwt_dero_2_test_out);
-#   endif
-
     return false;
 }
 
@@ -327,21 +315,6 @@ void xmrig::CpuWorker<N>::start()
 #           endif
             {
                 switch (job.algorithm().family()) {
-
-#               ifdef XMRIG_ALGO_ASTROBWT
-                case Algorithm::ASTROBWT:
-                    if (job.algorithm().id() == Algorithm::ASTROBWT_DERO) {
-                        if (!astrobwt::astrobwt_dero(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash, m_astrobwtMaxSize, m_astrobwtAVX2)) {
-                            valid = false;
-                        }
-                    }
-                    else {
-                        if (!astrobwt::astrobwt_dero_v2(m_job.blob(), job.size(), m_ctx[0]->memory, m_hash)) {
-                            valid = false;
-                        }
-                    }
-                    break;
-#               endif
 
 #               ifdef XMRIG_ALGO_GHOSTRIDER
                 case Algorithm::GHOSTRIDER:
