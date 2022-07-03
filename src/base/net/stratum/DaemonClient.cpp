@@ -66,7 +66,6 @@ Storage<DaemonClient> DaemonClient::m_storage;
 
 static const char* kBlocktemplateBlob       = "blocktemplate_blob";
 static const char* kBlockhashingBlob        = "blockhashing_blob";
-static const char* kLastError               = "lasterror";
 static const char *kGetHeight               = "/getheight";
 static const char *kGetInfo                 = "/getinfo";
 static const char *kHash                    = "hash";
