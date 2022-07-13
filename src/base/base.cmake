@@ -21,7 +21,6 @@ set(HEADERS_BASE
     src/base/kernel/Base.h
     src/base/kernel/config/BaseConfig.h
     src/base/kernel/config/BaseTransform.h
-    src/base/kernel/private/Title.h
     src/base/kernel/constants.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IAsyncListener.h
@@ -43,10 +42,11 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IWatcherListener.h
     src/base/kernel/Lib.h
     src/base/kernel/OS.h
+    src/base/kernel/private/DnsConfig.h
+    src/base/kernel/private/Title.h
     src/base/kernel/Process.h
     src/base/kernel/Versions.h
     src/base/net/dns/Dns.h
-    src/base/net/dns/DnsConfig.h
     src/base/net/dns/DnsRecord.h
     src/base/net/dns/DnsRecords.h
     src/base/net/dns/DnsRequest.h
@@ -111,14 +111,14 @@ set(SOURCES_BASE
     src/base/kernel/Base.cpp
     src/base/kernel/config/BaseConfig.cpp
     src/base/kernel/config/BaseTransform.cpp
-    src/base/kernel/private/Title.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Lib.cpp
     src/base/kernel/OS.cpp
+    src/base/kernel/private/DnsConfig.cpp
+    src/base/kernel/private/Title.cpp
     src/base/kernel/Process.cpp
     src/base/kernel/Versions.cpp
     src/base/net/dns/Dns.cpp
-    src/base/net/dns/DnsConfig.cpp
     src/base/net/dns/DnsRecord.cpp
     src/base/net/dns/DnsRecords.cpp
     src/base/net/dns/DnsUvBackend.cpp

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,6 +26,9 @@
 namespace xmrig {
 
 
+class Arguments;
+
+
 class DnsConfig
 {
 public:
@@ -33,22 +36,35 @@ public:
     static const char *kIPv6;
     static const char *kTTL;
 
+    static constexpr uint32_t kDefaultTTL   = 30U;
+
     DnsConfig() = default;
-    DnsConfig(const rapidjson::Value &value);
+    DnsConfig(const Arguments &arguments);
+    DnsConfig(const rapidjson::Value &value, const DnsConfig &current);
 
-    inline bool isIPv6() const  { return m_ipv6; }
-    inline uint32_t ttl() const { return m_ttl * 1000U; }
+    inline bool isIPv6() const                              { return m_ipv6; }
+    inline uint32_t ttl() const                             { return m_ttl * 1000U; }
 
+    inline bool operator!=(const DnsConfig &other) const    { return !isEqual(other); }
+    inline bool operator==(const DnsConfig &other) const    { return isEqual(other); }
+
+    bool isEqual(const DnsConfig &other) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
+    void print() const;
 
+    static const DnsConfig &current();
+
+#   ifndef XMRIG_FEATURE_EVENTS
+    static void set(const rapidjson::Value &value);
+#   endif
 
 private:
     bool m_ipv6     = false;
-    uint32_t m_ttl  = 30U;
+    uint32_t m_ttl  = kDefaultTTL;
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_DNSCONFIG_H */
+#endif // XMRIG_DNSCONFIG_H
