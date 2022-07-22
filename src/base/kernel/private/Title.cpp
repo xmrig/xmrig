@@ -31,7 +31,7 @@
 #include "version.h"
 
 
-#ifdef APP_DEBUG
+#if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
 #   include "base/io/log/Log.h"
 #   include "base/kernel/Config.h"
 #endif
@@ -89,7 +89,7 @@ xmrig::String xmrig::Title::value() const
 
 void xmrig::Title::print() const
 {
-#   ifdef APP_DEBUG
+#   if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
     LOG_DEBUG("%s " MAGENTA_BOLD("TITLE")
               MAGENTA("<enabled=") CYAN("%d")
               MAGENTA(", value=") "\"%s\""

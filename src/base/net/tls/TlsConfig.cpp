@@ -24,7 +24,7 @@
 #include "base/net/tls/TlsGen.h"
 
 
-#ifdef APP_DEBUG
+#if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
 #   include "base/io/log/Log.h"
 #   include "base/kernel/Config.h"
 #endif
@@ -148,7 +148,7 @@ rapidjson::Value xmrig::TlsConfig::toJSON(rapidjson::Document &doc) const
 
 void xmrig::TlsConfig::print() const
 {
-#   ifdef APP_DEBUG
+#   if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
     LOG_DEBUG("%s " MAGENTA_BOLD("TLS")
               MAGENTA("<enabled=") CYAN("%d")
               MAGENTA(", protocols=") CYAN("%u")

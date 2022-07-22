@@ -22,7 +22,7 @@
 #include "base/tools/Arguments.h"
 
 
-#ifdef APP_DEBUG
+#if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
 #   include "base/io/log/Log.h"
 #   include "base/kernel/Config.h"
 #endif
@@ -83,7 +83,7 @@ rapidjson::Value xmrig::DnsConfig::toJSON(rapidjson::Document &doc) const
 
 void xmrig::DnsConfig::print() const
 {
-#   ifdef APP_DEBUG
+#if defined(APP_DEBUG) && defined(XMRIG_FEATURE_EVENTS)
     LOG_DEBUG("%s " MAGENTA_BOLD("DNS")
               MAGENTA("<ipv6=") CYAN("%d")
               MAGENTA(", ttl=") CYAN("%u")
