@@ -161,6 +161,13 @@ size_t inline generate<Algorithm::GHOSTRIDER>(Threads<CpuThreads>& threads, uint
 }
 #endif
 
+#ifdef XMRIG_ALGO_SHA256CSM
+template<>
+size_t inline generate<Algorithm::SHA256>(Threads<CpuThreads>& threads, uint32_t limit)
+{
+    return generate(Algorithm::kSHA256CSM, threads, Algorithm::SHA256CSM, limit);
+}
+#endif
 
 } /* namespace xmrig */
 

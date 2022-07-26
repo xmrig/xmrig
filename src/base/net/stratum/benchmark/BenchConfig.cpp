@@ -70,6 +70,9 @@ xmrig::BenchConfig::BenchConfig(uint32_t size, const String &id, const rapidjson
 #       ifdef XMRIG_ALGO_GHOSTRIDER
         && f != Algorithm::GHOSTRIDER
 #       endif
+#       ifdef XMRIG_ALGO_SHA256CSM
+        && f != Algorithm::SHA256
+#       endif
         )) {
         m_algorithm = Algorithm::RX_0;
     }

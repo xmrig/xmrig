@@ -783,6 +783,22 @@ void sha256d(void* hash, const void* data, int len)
     sph_sha256_full(hash, hash, 32);
 }
 
+void sha256csm(void* hash, const void* data, int len)
+{
+    char emptybuffer[112];
+    memset(emptybuffer, 0, sizeof(emptybuffer));
+    memcpy(emptybuffer, data, 80);
+
+    sph_sha256_context cc;
+   	sph_sha256_init( &cc );
+   	sph_sha256( &cc, emptybuffer, 112 );
+   	sph_sha256_close( &cc, hash );
+
+    sph_sha256_init( &cc );
+   	sph_sha256( &cc, hash, 32 );
+   	sph_sha256_close( &cc, hash );
+}
+
 /* see sph_sha2.h */
 //void
 //sph_sha224_comp(const sph_u32 msg[16], sph_u32 val[8])

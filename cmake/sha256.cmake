@@ -1,0 +1,8 @@
+if (WITH_SHA256CSM)
+    add_definitions(/DXMRIG_ALGO_SHA256CSM)
+#    add_subdirectory(src/crypto/sha256)
+#    set(SHA256_LIBRARY sha256)
+else()
+    remove_definitions(/DXMRIG_ALGO_SHA256CSM)
+#    set(SHA256_LIBRARY "")
+endif()

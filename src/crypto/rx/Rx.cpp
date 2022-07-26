@@ -95,6 +95,9 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 #       ifdef XMRIG_ALGO_GHOSTRIDER
         && (f != Algorithm::GHOSTRIDER)
 #       endif
+#       ifdef XMRIG_ALGO_SHA256CSM
+        && (f != Algorithm::SHA256CSM)
+#       endif
         ) {
 #       ifdef XMRIG_FEATURE_MSR
         RxMsr::destroy();
@@ -117,6 +120,12 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (f == Algorithm::GHOSTRIDER) {
+        return true;
+    }
+#   endif
+
+#   ifdef XMRIG_ALGO_SHA256CSM
+    if (f == Algorithm::SHA256CSM) {
         return true;
     }
 #   endif

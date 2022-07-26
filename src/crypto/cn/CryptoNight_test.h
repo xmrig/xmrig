@@ -454,6 +454,12 @@ const static uint8_t test_output_gr[256] = {
 };
 #endif
 
+#ifdef XMRIG_ALGO_SHA256CSM
+// "SHA256CSM"
+const static uint8_t test_output_sha256csm[32] = {
+};
+#endif
+
 
 } // namespace xmrig
 

@@ -20,6 +20,16 @@
 #include <thread>
 #include <mutex>
 
+#include <iostream>
+#include <cinttypes>
+#include <iomanip>
+#include <sstream>
+#include <stdexcept>
+
+extern "C" {
+#include "crypto/ghostrider/sph_sha2.h"
+}
+
 
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuWorker.h"
@@ -216,6 +226,10 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_SHA256CSM
+    if (m_algorithm.id() == Algorithm::SHA256CSM) return verify(Algorithm::SHA256CSM, test_output_sha256csm);
+#   endif
+
     return false;
 }
 
@@ -316,6 +330,12 @@ void xmrig::CpuWorker<N>::start()
                     break;
 #               endif
 
+#               ifdef XMRIG_ALGO_SHA256CSM
+                case Algorithm::SHA256:
+                    sha256csm(m_hash, m_job.blob(), 0);
+                    break;
+#               endif
+
                 default:
                     fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
                     break;
@@ -407,6 +427,35 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
         return true;
     }
 #   endif
+
+#   ifdef XMRIG_ALGO_SHA256CSM
+    if (algorithm == Algorithm::SHA256CSM) {
+        uint8_t blob[80] = {
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80,
+            0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80, 0x80
+        };
+        
+        // 62ddda4d -> e7412af4
+
+        uint8_t hash1[32] = {};
+        sha256csm(hash1, blob, 0);
+
+        // for(int i = 0; i < 32; i++) {
+        //     printf("%02x", hash1[i]);
+        // }
+
+        std::stringstream ss;
+        ss << std::hex << std::setfill('0');
+        for (int i = 0; i < 32; i++) {
+            ss << std::hex << std::setw(2) << static_cast<int>(hash1[i]);
+        }
+
+        return ss.str() == "e537f42caaeadfc2f022eff26f6e4b16c78ce86f5eda63b347d4466806e07821";
+    }
+# endif
 
     cn_hash_fun func = fn(algorithm);
     if (!func) {

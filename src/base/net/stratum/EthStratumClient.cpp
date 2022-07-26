@@ -76,9 +76,13 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     params.PushBack(m_user.toJSON(), allocator);
     params.PushBack(result.jobId.toJSON(), allocator);
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
+#   if defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_SHA256CSM
     if (m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM) {
         params.PushBack(Value("00000000000000000000000000000000", static_cast<uint32_t>(m_extraNonce2Size * 2)), allocator);
+    } else if (m_pool.algorithm().id() == Algorithm::SHA256CSM) {
+        params.PushBack(Value("00000000", static_cast<uint32_t>(m_extraNonce2Size * 2)), allocator);
+    }
+    if ((m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM || m_pool.algorithm().id() == Algorithm::SHA256CSM)) {
         params.PushBack(Value(m_ntime.data(), allocator), allocator);
 
         std::stringstream s;
@@ -113,8 +117,8 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 
     uint64_t actual_diff;
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (result.algorithm == Algorithm::GHOSTRIDER_RTM) {
+#   if defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_SHA256CSM
+    if ((result.algorithm == Algorithm::GHOSTRIDER_RTM) || (result.algorithm == Algorithm::SHA256CSM)) {
         actual_diff = reinterpret_cast<const uint64_t*>(result.result())[3];
     }
     else
@@ -195,14 +199,14 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         setExtraNonce(arr[0]);
     }
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
+#   if defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_SHA256CSM
     if (strcmp(method, "mining.set_difficulty") == 0) {
         if (!params.IsArray()) {
             LOG_ERR("%s " RED("invalid mining.set_difficulty notification: params is not an array"), tag());
             return;
         }
 
-        if (m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM) {
+        if ((m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM) && (m_pool.algorithm().id() != Algorithm::SHA256CSM)) {
             return;
         }
 
@@ -236,7 +240,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             algo = m_pool.coin().algorithm();
         }
 
-        const size_t min_arr_size = (algo.id() == Algorithm::GHOSTRIDER_RTM) ? 8 : 6;
+        const size_t min_arr_size = ((algo.id() == Algorithm::GHOSTRIDER_RTM) || (algo.id() == Algorithm::SHA256CSM)) ? 8 : 6;
 
         if (arr.Size() < min_arr_size) {
             LOG_ERR("%s " RED("invalid mining.notify notification: params array has wrong size"), tag());
@@ -256,8 +260,8 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 
         std::stringstream s;
 
-#       ifdef XMRIG_ALGO_GHOSTRIDER
-        if (algo.id() == Algorithm::GHOSTRIDER_RTM) {
+        # if defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_SHA256CSM
+        if ((algo.id() == Algorithm::GHOSTRIDER_RTM) || (algo.id() == Algorithm::SHA256CSM)) {
             // Raptoreum uses Bitcoin's Stratum protocol
             // https://en.bitcoinwiki.org/wiki/Stratum_mining_protocol#mining.notify
 
@@ -534,7 +538,7 @@ void xmrig::EthStratumClient::onSubscribeResponse(const rapidjson::Value &result
 
         setExtraNonce(arr[1]);
 
-#       ifdef XMRIG_ALGO_GHOSTRIDER
+#       if defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_SHA256CSM
         if ((arr.Size() > 2) && (arr[2].IsUint())) {
             m_extraNonce2Size = arr[2].GetUint();
         }
