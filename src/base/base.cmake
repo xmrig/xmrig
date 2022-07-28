@@ -28,7 +28,6 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IClient.h
     src/base/kernel/interfaces/IClientListener.h
     src/base/kernel/interfaces/IConfig.h
-    src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConfigTransform.h
     src/base/kernel/interfaces/IConsoleListener.h
     src/base/kernel/interfaces/IDnsBackend.h
