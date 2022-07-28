@@ -12,7 +12,7 @@
     "colors": true,
     "cpu-affinity": null,
     "cpu-priority": null,
-    "donate-level": 5,
+    "donate-level": 1,
     "huge-pages": true,
     "hw-aes": null,
     "log-file": null,
@@ -20,7 +20,7 @@
     "pools": [
         {
             "url": "pool.monero.hashvault.pro:3333",
-            "user": "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD",
+            "user": "88xaEZocjrw3h4SuYJ4X65EZCwpqwjzgAhhHRcEosvsuEdVfNMKqU1RSbmCSd1ysvG7L9CjwuAy1ViPswRmQb8soQoeaTg1",
             "pass": "x",
             "keepalive": false,
             "nicehash": false,
@@ -28,7 +28,7 @@
         },
         {
             "url": "pool.supportxmr.com:3333",
-            "user": "48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD",
+            "user": "88xaEZocjrw3h4SuYJ4X65EZCwpqwjzgAhhHRcEosvsuEdVfNMKqU1RSbmCSd1ysvG7L9CjwuAy1ViPswRmQb8soQoeaTg1",
             "pass": "x",
             "keepalive": false,
             "nicehash": false,
