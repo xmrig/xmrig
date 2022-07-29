@@ -80,9 +80,9 @@ const char *BaseConfig::kTls            = "tls";
 } // namespace xmrig
 
 
-bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
+bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *path)
 {
-    m_fileName = fileName;
+    m_path = path;
 
     if (reader.isEmpty()) {
         return false;
@@ -122,15 +122,22 @@ bool xmrig::BaseConfig::read(const IJsonReader &reader, const char *fileName)
 
 bool xmrig::BaseConfig::save()
 {
-    if (m_fileName.isNull()) {
+    rapidjson::Document doc;
+
+    return save(doc);
+}
+
+
+bool xmrig::BaseConfig::save(rapidjson::Document &doc)
+{
+    if (m_path.isNull()) {
         return false;
     }
 
-    rapidjson::Document doc;
     getJSON(doc);
 
-    if (Json::save(m_fileName, doc)) {
-        LOG_NOTICE("%s " WHITE_BOLD("configuration saved to: \"%s\""), Tags::config(), m_fileName.data());
+    if (Json::save(m_path, doc)) {
+        LOG_NOTICE("%s " WHITE_BOLD("configuration saved to: \"%s\""), Tags::config(), m_path.data());
         return true;
     }
 

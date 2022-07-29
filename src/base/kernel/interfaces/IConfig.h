@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,6 +21,7 @@
 
 
 #include "3rdparty/rapidjson/fwd.h"
+#include "base/tools/Object.h"
 
 
 namespace xmrig {
@@ -33,6 +34,9 @@ class String;
 class IConfig
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(IConfig)
+
+#   ifndef XMRIG_FEATURE_EVENTS
     enum Keys {
         // common
         AlgorithmKey         = 'a',
@@ -164,19 +168,28 @@ public:
         NvmlKey              = 1209,
         HealthPrintTimeKey   = 1210,
     };
+#   endif
 
-    virtual ~IConfig() = default;
+    IConfig()           = default;
+    virtual ~IConfig()  = default;
 
-    virtual bool isWatch() const                                       = 0;
-    virtual bool read(const IJsonReader &reader, const char *fileName) = 0;
-    virtual bool save()                                                = 0;
-    virtual const String &fileName() const                             = 0;
-    virtual void getJSON(rapidjson::Document &doc) const               = 0;
-    virtual void setFileName(const char *fileName)                     = 0;
+    virtual bool save(rapidjson::Document &doc)                         = 0;
+    virtual const String &path() const                                  = 0;
+    virtual uint32_t id() const                                         = 0;
+
+#   ifdef XMRIG_FEATURE_EVENTS
+    virtual bool isValid() const                                        = 0;
+    virtual const String &name() const                                  = 0;
+#   else
+    virtual bool isWatch() const                                        = 0;
+    virtual bool read(const IJsonReader &reader, const char *path)      = 0;
+    virtual void getJSON(rapidjson::Document &doc) const                = 0;
+    virtual void setPath(const char *path)                              = 0;
+#   endif
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
 #endif // XMRIG_ICONFIG_H

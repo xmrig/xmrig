@@ -86,12 +86,14 @@ public:
     inline const TlsConfig &tls() const                     { return m_tls; }
 #   endif
 
-    inline bool isWatch() const override                    { return m_watch && !m_fileName.isNull(); }
-    inline const String &fileName() const override          { return m_fileName; }
-    inline void setFileName(const char *fileName) override  { m_fileName = fileName; }
+    inline bool isWatch() const override                    { return m_watch && !m_path.isNull(); }
+    inline const String &path() const override              { return m_path; }
+    inline uint32_t id() const override                     { return 0; }
+    inline void setPath(const char *path) override          { m_path = path; }
 
-    bool read(const IJsonReader &reader, const char *fileName) override;
-    bool save() override;
+    bool read(const IJsonReader &reader, const char *path) override;
+    bool save();
+    bool save(rapidjson::Document &doc) override;
 
     static void printVersions();
 
@@ -106,8 +108,8 @@ protected:
     Pools m_pools;
     String m_apiId;
     String m_apiWorkerId;
-    String m_fileName;
     String m_logFile;
+    String m_path;
     String m_userAgent;
     Title m_title;
     uint32_t m_printTime    = 60;

@@ -220,7 +220,7 @@ void xmrig::Base::start()
     }
 
     if (config()->isWatch()) {
-        d_ptr->watcher = new Watcher(config()->fileName(), this);
+        d_ptr->watcher = new Watcher(config()->path(), this);
     }
 }
 
@@ -258,7 +258,7 @@ bool xmrig::Base::reload(const rapidjson::Value &json)
     }
 
     auto config = new Config();
-    if (!config->read(reader, d_ptr->config->fileName())) {
+    if (!config->read(reader, d_ptr->config->path())) {
         delete config;
 
         return false;
