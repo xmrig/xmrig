@@ -18,9 +18,9 @@ set(HEADERS_BASE
     src/base/io/log/Tags.h
     src/base/io/Signals.h
     src/base/io/Watcher.h
-    src/base/kernel/Base.h
-    src/base/kernel/config/BaseConfig.h
-    src/base/kernel/config/BaseTransform.h
+    src/base/kernel/v6/Base.h
+    src/base/kernel/v6/config/BaseConfig.h
+    src/base/kernel/v6/config/BaseTransform.h
     src/base/kernel/constants.h
     src/base/kernel/Entry.h
     src/base/kernel/interfaces/IAsyncListener.h
@@ -107,9 +107,9 @@ set(SOURCES_BASE
     src/base/io/log/Tags.cpp
     src/base/io/Signals.cpp
     src/base/io/Watcher.cpp
-    src/base/kernel/Base.cpp
-    src/base/kernel/config/BaseConfig.cpp
-    src/base/kernel/config/BaseTransform.cpp
+    src/base/kernel/v6/Base.cpp
+    src/base/kernel/v6/config/BaseConfig.cpp
+    src/base/kernel/v6/config/BaseTransform.cpp
     src/base/kernel/Entry.cpp
     src/base/kernel/Lib.cpp
     src/base/kernel/OS.cpp

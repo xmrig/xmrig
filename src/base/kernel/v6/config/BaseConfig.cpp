@@ -23,7 +23,7 @@
   * of this Program grant you additional permission to convey the resulting work.
  */
 
-#include "base/kernel/config/BaseConfig.h"
+#include "base/kernel/v6/config/BaseConfig.h"
 #include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"

@@ -26,13 +26,13 @@
 #endif
 
 
-#include "base/kernel/config/BaseTransform.h"
+#include "base/kernel/v6/config/BaseTransform.h"
 #include "base/io/json/JsonChain.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/config/BaseConfig.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/kernel/private/DnsConfig.h"
 #include "base/kernel/Process.h"
+#include "base/kernel/v6/config/BaseConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
 #include "base/tools/Arguments.h"
