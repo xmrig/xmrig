@@ -1,0 +1,4 @@
+[submodule "src/base"]
+	path = src/base
+	url = https://github.com/xmrig/base.git
+	branch = master
