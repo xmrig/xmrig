@@ -23,8 +23,8 @@ set(SOURCES_BACKEND_CPU
 
 if (WITH_HWLOC)
     if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-        add_subdirectory(src/3rdparty/hwloc)
-        include_directories(src/3rdparty/hwloc/include)
+        add_subdirectory(src/base/3rdparty/hwloc)
+        include_directories(src/base/3rdparty/hwloc/include)
         set(CPUID_LIB hwloc)
     else()
         find_package(HWLOC REQUIRED)

@@ -192,6 +192,11 @@ add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE -D_FILE_OFFSET_BITS=64)
 
 find_package(UV REQUIRED)
 
+include_directories(src)
+include_directories(src/3rdparty)
+include_directories(src/base)
+include_directories(${UV_INCLUDE_DIR})
+
 include(cmake/flags.cmake)
 include(cmake/randomx.cmake)
 include(cmake/argon2.cmake)
@@ -222,10 +227,6 @@ endif()
 
 include(src/hw/api/api.cmake)
 include(src/hw/dmi/dmi.cmake)
-
-include_directories(src)
-include_directories(src/3rdparty)
-include_directories(${UV_INCLUDE_DIR})
 
 if (WITH_DEBUG_LOG)
     add_definitions(/DAPP_DEBUG)

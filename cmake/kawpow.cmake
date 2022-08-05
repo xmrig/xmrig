@@ -11,7 +11,7 @@ if (WITH_KAWPOW)
         src/crypto/kawpow/KPHash.cpp
     )
 
-    add_subdirectory(src/3rdparty/libethash)
+    add_subdirectory(src/base/3rdparty/libethash)
     set(ETHASH_LIBRARY ethash)
 else()
     remove_definitions(/DXMRIG_ALGO_KAWPOW)

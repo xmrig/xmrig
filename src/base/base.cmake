@@ -1,5 +1,5 @@
 set(HEADERS_BASE
-    src/3rdparty/epee/span.h
+    src/base/3rdparty/epee/span.h
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
@@ -77,7 +77,7 @@ set(HEADERS_BASE
     src/base/tools/Chrono.h
     src/base/tools/cryptonote/BlobReader.h
     src/base/tools/cryptonote/BlockTemplate.h
-    src/base/tools/cryptonote/crypto-ops.h
+    src/base/3rdparty/cryptonote/crypto-ops.h
     src/base/tools/cryptonote/Signatures.h
     src/base/tools/cryptonote/umul128.h
     src/base/tools/cryptonote/WalletAddress.h
@@ -89,7 +89,7 @@ set(HEADERS_BASE
    )
 
 set(SOURCES_BASE
-    src/3rdparty/fmt/format.cc
+    src/base/3rdparty/fmt/format.cc
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
@@ -138,8 +138,8 @@ set(SOURCES_BASE
     src/base/tools/Arguments.cpp
     src/base/tools/Chrono.cpp
     src/base/tools/cryptonote/BlockTemplate.cpp
-    src/base/tools/cryptonote/crypto-ops-data.c
-    src/base/tools/cryptonote/crypto-ops.c
+    src/base/3rdparty/cryptonote/crypto-ops-data.c
+    src/base/3rdparty/cryptonote/crypto-ops.c
     src/base/tools/cryptonote/Signatures.cpp
     src/base/tools/cryptonote/WalletAddress.cpp
     src/base/tools/Cvt.cpp
@@ -190,7 +190,7 @@ endif()
 
 if (WITH_HTTP)
     set(HEADERS_BASE_HTTP
-        src/3rdparty/llhttp/llhttp.h
+        src/base/3rdparty/llhttp/llhttp.h
         src/base/api/Api.h
         src/base/api/Httpd.h
         src/base/api/interfaces/IApiRequest.h
@@ -211,9 +211,9 @@ if (WITH_HTTP)
         )
 
     set(SOURCES_BASE_HTTP
-        src/3rdparty/llhttp/llhttp.c
-        src/3rdparty/llhttp/api.c
-        src/3rdparty/llhttp/http.c
+        src/base/3rdparty/llhttp/llhttp.c
+        src/base/3rdparty/llhttp/api.c
+        src/base/3rdparty/llhttp/http.c
         src/base/api/Api.cpp
         src/base/api/Httpd.cpp
         src/base/api/requests/ApiRequest.cpp

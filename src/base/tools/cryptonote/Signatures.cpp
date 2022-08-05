@@ -24,11 +24,7 @@
 
 extern "C" {
 
-#ifdef XMRIG_LEGACY
-#   include "base/tools/cryptonote/crypto-ops.h"
-#else
-#   include "3rdparty/cryptonote/crypto-ops.h"
-#endif
+#include "3rdparty/cryptonote/crypto-ops.h"
 
 }
 
