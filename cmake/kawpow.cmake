@@ -10,5 +10,5 @@ if (WITH_KAWPOW)
     )
 
     add_subdirectory(src/base/3rdparty/libethash)
-    list(APPEND LIBS ethash)
+    list(INSERT LIBS 0 ethash)
 endif()
