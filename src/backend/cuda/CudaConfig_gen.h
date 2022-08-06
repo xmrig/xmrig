@@ -135,15 +135,6 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CudaThreads> &threads, const
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-template<>
-size_t inline generate<Algorithm::ASTROBWT>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
-{
-    return generate(Algorithm::kASTROBWT, threads, Algorithm::ASTROBWT_DERO, devices);
-}
-#endif
-
-
 #ifdef XMRIG_ALGO_KAWPOW
 template<>
 size_t inline generate<Algorithm::KAWPOW>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)

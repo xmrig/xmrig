@@ -44,6 +44,7 @@ protected:
     inline Assembly::Id assembly() const override               { return m_assembly; }
     inline bool has(Flag flag) const override                   { return m_flags.test(flag); }
     inline bool hasAES() const override                         { return has(FLAG_AES); }
+    inline bool hasVAES() const override                        { return has(FLAG_VAES); }
     inline bool hasAVX() const override                         { return has(FLAG_AVX); }
     inline bool hasAVX2() const override                        { return has(FLAG_AVX2); }
     inline bool hasBMI2() const override                        { return has(FLAG_BMI2); }
@@ -62,6 +63,14 @@ protected:
     inline size_t packages() const override                     { return 1; }
     inline size_t threads() const override                      { return m_threads; }
     inline Vendor vendor() const override                       { return m_vendor; }
+    inline uint32_t model() const override
+    {
+#   ifndef XMRIG_ARM
+        return m_model;
+#   else
+        return 0;
+#   endif
+    }
 
 protected:
     Arch m_arch             = ARCH_UNKNOWN;

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,7 +28,9 @@
 #include "backend/cpu/CpuBackend.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
+#include "base/kernel/Process.h"
+#include "base/kernel/Taskbar.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
 #include "base/tools/Timer.h"
@@ -61,8 +63,8 @@
 #endif
 
 
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "crypto/astrobwt/AstroBWT.h"
+#ifdef XMRIG_ALGO_GHOSTRIDER
+#   include "crypto/ghostrider/ghostrider.h"
 #endif
 
 
@@ -148,7 +150,7 @@ public:
 
         reply.AddMember("version",      APP_VERSION, allocator);
         reply.AddMember("kind",         APP_KIND, allocator);
-        reply.AddMember("ua",           Platform::userAgent().toJSON(), allocator);
+        reply.AddMember("ua",           Process::userAgent().toJSON(), allocator);
         reply.AddMember("cpu",          Cpu::toJSON(doc), allocator);
         reply.AddMember("donate_level", controller->config()->pools().donateLevel(), allocator);
         reply.AddMember("paused",       !enabled, allocator);
@@ -281,9 +283,11 @@ public:
 
     void printHashrate(bool details)
     {
-        char num[16 * 4] = { 0 };
+        char num[16 * 5] = { 0 };
         double speed[3]  = { 0.0 };
         uint32_t count   = 0;
+
+        double avg_hashrate = 0.0;
 
         for (auto backend : backends) {
             const auto hashrate = backend->hashrate();
@@ -293,6 +297,8 @@ public:
                 speed[0] += hashrate->calc(Hashrate::ShortInterval);
                 speed[1] += hashrate->calc(Hashrate::MediumInterval);
                 speed[2] += hashrate->calc(Hashrate::LargeInterval);
+
+                avg_hashrate += hashrate->average();
             }
 
             backend->printHashrate(details);
@@ -312,12 +318,22 @@ public:
             h = "MH/s";
         }
 
-        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s"),
+        char avg_hashrate_buf[64];
+        avg_hashrate_buf[0] = '\0';
+
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        if (algorithm.family() == Algorithm::GHOSTRIDER) {
+            snprintf(avg_hashrate_buf, sizeof(avg_hashrate_buf), " avg " CYAN_BOLD("%s %s"), Hashrate::format(avg_hashrate * scale, num + 16 * 4, 16), h);
+        }
+#       endif
+
+        LOG_INFO("%s " WHITE_BOLD("speed") " 10s/60s/15m " CYAN_BOLD("%s") CYAN(" %s %s ") CYAN_BOLD("%s") " max " CYAN_BOLD("%s %s") "%s",
                  Tags::miner(),
-                 Hashrate::format(speed[0] * scale,                 num,          sizeof(num) / 4),
-                 Hashrate::format(speed[1] * scale,                 num + 16,     sizeof(num) / 4),
-                 Hashrate::format(speed[2] * scale,                 num + 16 * 2, sizeof(num) / 4), h,
-                 Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, sizeof(num) / 4), h
+                 Hashrate::format(speed[0] * scale,                 num,          16),
+                 Hashrate::format(speed[1] * scale,                 num + 16,     16),
+                 Hashrate::format(speed[2] * scale,                 num + 16 * 2, 16), h,
+                 Hashrate::format(maxHashrate[algorithm] * scale,   num + 16 * 3, 16), h,
+                 avg_hashrate_buf
                  );
 
 #       ifdef XMRIG_FEATURE_BENCHMARK
@@ -330,6 +346,11 @@ public:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     inline bool initRX() const { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
+#   endif
+
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    inline void initGhostRider() const { ghostrider::benchmark(); }
 #   endif
 
 
@@ -348,6 +369,8 @@ public:
     String userJobId;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
+
+    Taskbar m_taskbar;
 };
 
 
@@ -360,8 +383,8 @@ xmrig::Miner::Miner(Controller *controller)
 {
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
-        Platform::setProcessPriority(priority);
-        Platform::setThreadPriority(std::min(priority + 1, 5));
+        OS::setProcessPriority(priority);
+        OS::setThreadPriority(std::min(priority + 1, 5));
     }
 
 #   ifdef XMRIG_FEATURE_PROFILING
@@ -370,10 +393,6 @@ xmrig::Miner::Miner(Controller *controller)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     Rx::init(this);
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    astrobwt::init();
 #   endif
 
     controller->addListener(this);
@@ -475,6 +494,7 @@ void xmrig::Miner::execCommand(char command)
 void xmrig::Miner::pause()
 {
     d_ptr->active = false;
+//    d_ptr->m_taskbar.setActive(false); // FIXME
 
     Nonce::pause(true);
     Nonce::touch();
@@ -487,13 +507,14 @@ void xmrig::Miner::setEnabled(bool enabled)
         return;
     }
 
-    if (d_ptr->battery_power && enabled) {
+    if (d_ptr->controller->config()->isPauseOnBattery() && d_ptr->battery_power && enabled) {
         LOG_INFO("%s " YELLOW_BOLD("can't resume while on battery power"), Tags::miner());
 
         return;
     }
 
     d_ptr->enabled = enabled;
+//    d_ptr->m_taskbar.setEnabled(enabled); // FIXME
 
     if (enabled) {
         LOG_INFO("%s " GREEN_BOLD("resumed"), Tags::miner());
@@ -524,7 +545,13 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     if (job.algorithm().family() == Algorithm::RANDOM_X && !Rx::isReady(job)) {
-        stop();
+        if (d_ptr->algorithm != job.algorithm()) {
+            stop();
+        }
+        else {
+            Nonce::pause(true);
+            Nonce::touch();
+        }
     }
 #   endif
 
@@ -548,9 +575,16 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     constexpr const bool ready = true;
 #   endif
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (job.algorithm().family() == Algorithm::GHOSTRIDER) {
+        d_ptr->initGhostRider();
+    }
+#   endif
+
     mutex.unlock();
 
     d_ptr->active = true;
+//    d_ptr->m_taskbar.setActive(true); // FIXME
 
     if (ready) {
         d_ptr->handleJobChange();
@@ -627,11 +661,11 @@ void xmrig::Miner::onTimer(const Timer *)
     };
 
     if (config->isPauseOnBattery()) {
-        autoPause(d_ptr->battery_power, Platform::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
+        autoPause(d_ptr->battery_power, OS::isOnBatteryPower(), YELLOW_BOLD("on battery power"), GREEN_BOLD("on AC power"));
     }
 
     if (config->isPauseOnActive()) {
-        autoPause(d_ptr->user_active, Platform::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
+        autoPause(d_ptr->user_active, OS::isUserActive(config->idleTime()), YELLOW_BOLD("user active"), GREEN_BOLD("user inactive"));
     }
 
     if (stopMiner) {

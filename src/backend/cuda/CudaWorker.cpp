@@ -22,6 +22,7 @@
 #include "backend/cuda/runners/CudaCnRunner.h"
 #include "backend/cuda/wrappers/CudaDevice.h"
 #include "base/io/log/Log.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/Chrono.h"
 #include "core/Miner.h"
 #include "crypto/common/Nonce.h"
@@ -30,11 +31,6 @@
 
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/cuda/runners/CudaRxRunner.h"
-#endif
-
-
-#ifdef XMRIG_ALGO_ASTROBWT
-#   include "backend/cuda/runners/CudaAstroBWTRunner.h"
 #endif
 
 
@@ -73,12 +69,6 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
         break;
 
     case Algorithm::ARGON2:
-        break;
-
-    case Algorithm::ASTROBWT:
-#       ifdef XMRIG_ALGO_ASTROBWT
-        m_runner = new CudaAstroBWTRunner(id, data);
-#       endif
         break;
 
     case Algorithm::KAWPOW:
@@ -152,7 +142,7 @@ void xmrig::CudaWorker::start()
             uint32_t foundNonce[16] = { 0 };
             uint32_t foundCount     = 0;
 
-            if (!m_runner->run(*m_job.nonce(), &foundCount, foundNonce)) {
+            if (!m_runner->run(readUnaligned(m_job.nonce()), &foundCount, foundNonce)) {
                 return;
             }
 

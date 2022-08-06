@@ -204,4 +204,7 @@
     v4_random_math(code##part, r##part); \
   }
 
+extern bool cn_sse41_enabled;
+extern bool cn_vaes_enabled;
+
 #endif /* XMRIG_CRYPTONIGHT_MONERO_H */

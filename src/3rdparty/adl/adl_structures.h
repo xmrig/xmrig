@@ -1753,7 +1753,7 @@ typedef struct ADLPXConfigCaps
 ///\brief Enum containing PX or HG type
 ///
 /// This enum is used to get PX or hG type
-/// 
+///
 /// \nosubgrouping
 //////////////////////////////////////////////////////////////////////////////////////////
 enum ADLPxType

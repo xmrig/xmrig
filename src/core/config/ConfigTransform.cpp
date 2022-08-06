@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,6 +17,7 @@
  */
 
 #include "core/config/ConfigTransform.h"
+#include "base/crypto/Algorithm.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
@@ -102,6 +103,9 @@ void xmrig::ConfigTransform::finalize(rapidjson::Document &doc)
         profile.AddMember(StringRef(kThreads),   m_threads, allocator);
         profile.AddMember(StringRef(kAffinity),  m_affinity, allocator);
 
+#       ifdef XMRIG_ALGO_KAWPOW
+        doc[CpuConfig::kField].AddMember(StringRef(Algorithm::kKAWPOW), false, doc.GetAllocator());
+#       endif
         doc[CpuConfig::kField].AddMember(StringRef(kAsterisk), profile, doc.GetAllocator());
     }
 
@@ -157,14 +161,6 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
 #   ifdef XMRIG_FEATURE_ASM
     case IConfig::AssemblyKey: /* --asm */
         return set(doc, CpuConfig::kField, CpuConfig::kAsm, arg);
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    case IConfig::AstroBWTMaxSizeKey: /* --astrobwt-max-size */
-        return set(doc, CpuConfig::kField, CpuConfig::kAstroBWTMaxSize, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
-
-    case IConfig::AstroBWTAVX2Key: /* --astrobwt-avx2 */
-        return set(doc, CpuConfig::kField, CpuConfig::kAstroBWTAVX2, true);
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
@@ -265,6 +261,7 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::BenchSeedKey:     /* --seed */
     case IConfig::BenchHashKey:     /* --hash */
     case IConfig::UserKey:          /* --user */
+    case IConfig::RotationKey:      /* --rotation */
         return transformBenchmark(doc, key, arg);
 #   endif
 
@@ -322,16 +319,18 @@ void xmrig::ConfigTransform::transformUint64(rapidjson::Document &doc, int key, 
 #ifdef XMRIG_FEATURE_BENCHMARK
 void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int key, const char *arg)
 {
-    set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
-    set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
-    set(doc, CpuConfig::kField, CpuConfig::kYield, false);
-
     switch (key) {
     case IConfig::AlgorithmKey: /* --algo */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kAlgo, arg);
 
     case IConfig::BenchKey: /* --bench */
+    {
+        // CPU settings for the benchmark
+        set(doc, CpuConfig::kField, CpuConfig::kHugePagesJit, true);
+        set(doc, CpuConfig::kField, CpuConfig::kPriority, 2);
+        set(doc, CpuConfig::kField, CpuConfig::kYield, false);
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kSize, arg);
+    }
 
     case IConfig::StressKey: /* --stress */
         return add(doc, Pools::kPools, Pool::kUser, BenchConfig::kBenchmark);
@@ -353,6 +352,9 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
 
     case IConfig::UserKey: /* --user */
         return set(doc, BenchConfig::kBenchmark, BenchConfig::kUser, arg);
+
+    case IConfig::RotationKey: /* --rotation */
+        return set(doc, BenchConfig::kBenchmark, BenchConfig::kRotation, arg);
 
     default:
         break;

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,11 +16,10 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "hw/msr/Msr.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
 
 
 #include <string>
@@ -153,6 +152,13 @@ xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
         }
     }
 
+    d_ptr->driver = CreateFileW(L"\\\\.\\" SERVICE_NAME, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (d_ptr->driver != INVALID_HANDLE_VALUE) {
+        LOG_WARN("%s " YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" already exists, but with a different service name"), tag());
+        d_ptr->reuse = true;
+        return;
+    }
+
     if (!d_ptr->reuse) {
         d_ptr->service = CreateServiceW(d_ptr->manager, kServiceName, kServiceName, SERVICE_ALL_ACCESS, SERVICE_KERNEL_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path.c_str(), nullptr, nullptr, nullptr, nullptr, nullptr);
         if (!d_ptr->service) {
@@ -206,7 +212,7 @@ bool xmrig::Msr::write(Callback &&callback)
 
     std::thread thread([&callback, &units, &success]() {
         for (int32_t pu : units) {
-            if (!Platform::setThreadAffinity(pu)) {
+            if (!OS::setThreadAffinity(pu)) {
                 continue;
             }
 

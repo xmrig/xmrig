@@ -1,6 +1,10 @@
 #!/bin/bash -e
 
-HWLOC_VERSION="2.5.0"
+HWLOC_VERSION_MAJOR="2"
+HWLOC_VERSION_MINOR="7"
+HWLOC_VERSION_PATCH="1"
+
+HWLOC_VERSION="${HWLOC_VERSION_MAJOR}.${HWLOC_VERSION_MINOR}.${HWLOC_VERSION_PATCH}"
 
 mkdir -p deps
 mkdir -p deps/include
@@ -8,7 +12,7 @@ mkdir -p deps/lib
 
 mkdir -p build && cd build
 
-wget https://download.open-mpi.org/release/hwloc/v2.5/hwloc-${HWLOC_VERSION}.tar.gz -O hwloc-${HWLOC_VERSION}.tar.gz
+wget https://download.open-mpi.org/release/hwloc/v${HWLOC_VERSION_MAJOR}.${HWLOC_VERSION_MINOR}/hwloc-${HWLOC_VERSION}.tar.gz -O hwloc-${HWLOC_VERSION}.tar.gz
 tar -xzf hwloc-${HWLOC_VERSION}.tar.gz
 
 cd hwloc-${HWLOC_VERSION}

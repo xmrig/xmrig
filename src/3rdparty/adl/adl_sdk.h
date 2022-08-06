@@ -37,7 +37,7 @@
 #define __stdcall
 #endif /* (LINUX) */
 
-/// Memory Allocation Call back 
+/// Memory Allocation Call back
 typedef void* ( __stdcall *ADL_MAIN_MALLOC_CALLBACK )( int );
 
 

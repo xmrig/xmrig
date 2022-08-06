@@ -124,9 +124,9 @@ static inline __m128i soft_aesenc(__m128i in, __m128i key)
 
 static inline uint32_t sub_word(uint32_t key)
 {
-    return (saes_sbox[key >> 24 ] << 24)   | 
-        (saes_sbox[(key >> 16) & 0xff] << 16 ) | 
-        (saes_sbox[(key >> 8)  & 0xff] << 8  ) | 
+    return (saes_sbox[key >> 24 ] << 24)   |
+        (saes_sbox[(key >> 16) & 0xff] << 16 ) |
+        (saes_sbox[(key >> 8)  & 0xff] << 8  ) |
          saes_sbox[key & 0xff];
 }
 

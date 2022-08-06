@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
-#include "base/kernel/Platform.h"
+#include "base/kernel/OS.h"
 #include "base/tools/Chrono.h"
 #include "crypto/rx/RxAlgo.h"
 #include "crypto/rx/RxCache.h"
@@ -52,7 +52,7 @@ static bool bindToNUMANode(uint32_t nodeId)
     }
 
     if (cpu->membind(node->nodeset)) {
-        Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
+        OS::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
 
         return true;
     }

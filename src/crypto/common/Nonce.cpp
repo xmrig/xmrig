@@ -16,6 +16,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "base/tools/Alignment.h"
 #include "crypto/common/Nonce.h"
 
 
@@ -53,10 +54,10 @@ bool xmrig::Nonce::next(uint8_t index, uint32_t *nonce, uint32_t reserveCount, u
             continue;
         }
 
-        *nonce = (nonce[0] & ~mask) | counter;
+        writeUnaligned(nonce, static_cast<uint32_t>((readUnaligned(nonce) & ~mask) | counter));
 
         if (mask > 0xFFFFFFFFULL) {
-            nonce[1] = (nonce[1] & (~mask >> 32)) | (counter >> 32);
+            writeUnaligned(nonce + 1, static_cast<uint32_t>((readUnaligned(nonce + 1) & (~mask >> 32)) | (counter >> 32)));
         }
 
         return true;

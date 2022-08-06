@@ -75,18 +75,20 @@ public:
     {
         m_workersMemory.clear();
         m_hugePages.reset();
-        m_memory    = memory;
-        m_started   = 0;
-        m_errors    = 0;
-        m_threads   = threads.size();
-        m_ways      = 0;
-        m_ts        = Chrono::steadyMSecs();
+        m_memory       = memory;
+        m_started      = 0;
+        m_totalStarted = 0;
+        m_errors       = 0;
+        m_threads      = threads.size();
+        m_ways         = 0;
+        m_ts           = Chrono::steadyMSecs();
     }
 
     inline bool started(IWorker *worker, bool ready)
     {
         if (ready) {
             m_started++;
+            m_totalStarted += worker->threads();
 
             if (m_workersMemory.insert(worker->memory()).second) {
                 m_hugePages += worker->memory()->hugePages();
@@ -111,7 +113,7 @@ public:
         LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%1.0f%% %zu/%zu" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
                  cpu_tag(),
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
-                 m_started, m_threads, m_ways,
+                 m_totalStarted, std::max(m_totalStarted, m_threads), m_ways,
                  (m_hugePages.isFullyAllocated() ? GREEN_BOLD_S : (m_hugePages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
                  m_hugePages.percent(),
                  m_hugePages.allocated, m_hugePages.total,
@@ -126,6 +128,7 @@ private:
     size_t m_errors       = 0;
     size_t m_memory       = 0;
     size_t m_started      = 0;
+    size_t m_totalStarted = 0;
     size_t m_threads      = 0;
     size_t m_ways         = 0;
     uint64_t m_ts         = 0;
@@ -432,10 +435,6 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ARGON2
     out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    out.AddMember("astrobwt-max-size", cpu.astrobwtMaxSize(), allocator);
 #   endif
 
     out.AddMember("hugepages", d_ptr->hugePages(2, doc), allocator);

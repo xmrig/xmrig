@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,8 +25,7 @@
 
 #include "3rdparty/rapidjson/fwd.h"
 #include "backend/cpu/CpuConfig.h"
-#include "base/kernel/config/BaseConfig.h"
-#include "base/tools/Object.h"
+#include "base/kernel/v6/config/BaseConfig.h"
 
 
 namespace xmrig {

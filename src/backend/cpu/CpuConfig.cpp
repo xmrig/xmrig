@@ -45,11 +45,6 @@ const char *CpuConfig::kAsm                 = "asm";
 const char *CpuConfig::kArgon2Impl          = "argon2-impl";
 #endif
 
-#ifdef XMRIG_ALGO_ASTROBWT
-const char *CpuConfig::kAstroBWTMaxSize     = "astrobwt-max-size";
-const char *CpuConfig::kAstroBWTAVX2        = "astrobwt-avx2";
-#endif
-
 
 extern template class Threads<CpuThreads>;
 
@@ -89,11 +84,6 @@ rapidjson::Value xmrig::CpuConfig::toJSON(rapidjson::Document &doc) const
     obj.AddMember(StringRef(kArgon2Impl), m_argon2Impl.toJSON(), allocator);
 #   endif
 
-#   ifdef XMRIG_ALGO_ASTROBWT
-    obj.AddMember(StringRef(kAstroBWTMaxSize),  m_astrobwtMaxSize, allocator);
-    obj.AddMember(StringRef(kAstroBWTAVX2),     m_astrobwtAVX2, allocator);
-#   endif
-
     m_threads.toJSON(obj, doc);
 
     return obj;
@@ -122,8 +112,15 @@ std::vector<xmrig::CpuLaunchData> xmrig::CpuConfig::get(const Miner *miner, cons
     const size_t count = threads.count();
     out.reserve(count);
 
+    std::vector<int64_t> affinities;
+    affinities.reserve(count);
+
+    for (const auto& thread : threads.data()) {
+        affinities.emplace_back(thread.affinity());
+    }
+
     for (const auto &thread : threads.data()) {
-        out.emplace_back(miner, algorithm, *this, thread, count);
+        out.emplace_back(miner, algorithm, *this, thread, count, affinities);
     }
 
     return out;
@@ -149,24 +146,6 @@ void xmrig::CpuConfig::read(const rapidjson::Value &value)
 
 #       ifdef XMRIG_ALGO_ARGON2
         m_argon2Impl = Json::getString(value, kArgon2Impl);
-#       endif
-
-#       ifdef XMRIG_ALGO_ASTROBWT
-        const auto& astroBWTMaxSize = Json::getValue(value, kAstroBWTMaxSize);
-        if (astroBWTMaxSize.IsNull() || !astroBWTMaxSize.IsInt()) {
-            m_shouldSave = true;
-        }
-        else {
-            m_astrobwtMaxSize = std::min(std::max(astroBWTMaxSize.GetInt(), 400), 1200);
-        }
-
-        const auto& astroBWTAVX2 = Json::getValue(value, kAstroBWTAVX2);
-        if (astroBWTAVX2.IsNull() || !astroBWTAVX2.IsBool()) {
-            m_shouldSave = true;
-        }
-        else {
-            m_astrobwtAVX2 = astroBWTAVX2.GetBool();
-        }
 #       endif
 
         m_threads.read(value);
@@ -199,7 +178,7 @@ void xmrig::CpuConfig::generate()
     count += xmrig::generate<Algorithm::CN_FEMTO>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, m_limit);
     count += xmrig::generate<Algorithm::ARGON2>(m_threads, m_limit);
-    count += xmrig::generate<Algorithm::ASTROBWT>(m_threads, m_limit);
+    count += xmrig::generate<Algorithm::GHOSTRIDER>(m_threads, m_limit);
 
     m_shouldSave |= count > 0;
 }
