@@ -42,6 +42,8 @@ set(WITH_SODIUM     OFF)
 set(WITH_CRYPTONOTE ON)
 set(WITH_CRYPTO_OPS ON)
 set(WITH_COM        ON)
+set(WITH_EVENTS     OFF)
+set(WITH_GHOSTRIDER OFF)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/src/base/cmake" "${CMAKE_SOURCE_DIR}/cmake")
 set(LIBS base)
