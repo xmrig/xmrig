@@ -370,7 +370,7 @@ public:
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
 
-#   ifndef XMRIG_FEATURE_COM
+#   ifdef XMRIG_FEATURE_COM
     Taskbar m_taskbar;
 #   endif
 };
