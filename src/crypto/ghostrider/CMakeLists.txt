@@ -82,5 +82,6 @@ include_directories(.)
 include_directories(../..)
 include_directories(../../base)
 include_directories(${UV_INCLUDE_DIR})
+include_directories(${HWLOC_INCLUDE_DIR})
 
 add_library(ghostrider STATIC ${HEADERS} ${SOURCES})
