@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.12)
+cmake_minimum_required(VERSION 3.1)
 project(GhostRider)
 
 set(HEADERS
@@ -80,6 +80,7 @@ endif()
 
 include_directories(.)
 include_directories(../..)
+include_directories(../../base)
 include_directories(${UV_INCLUDE_DIR})
 
 add_library(ghostrider STATIC ${HEADERS} ${SOURCES})
