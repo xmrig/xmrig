@@ -30,12 +30,12 @@
 #include "base/io/log/Tags.h"
 #include "base/kernel/OS.h"
 #include "base/kernel/Process.h"
-#include "base/kernel/Taskbar.h"
 #include "base/net/stratum/Job.h"
 #include "base/tools/Object.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
+#include "core/Taskbar.h"
 #include "crypto/common/Nonce.h"
 #include "version.h"
 
@@ -358,21 +358,18 @@ public:
     Algorithms algorithms;
     bool active         = false;
     bool battery_power  = false;
-    bool user_active    = false;
     bool enabled        = true;
-    int32_t auto_pause = 0;
     bool reset          = true;
+    bool user_active    = false;
     Controller *controller;
+    int32_t auto_pause  = 0;
     Job job;
     mutable std::map<Algorithm::Id, double> maxHashrate;
     std::vector<IBackend *> backends;
     String userJobId;
+    Taskbar taskbar;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
-
-#   ifdef XMRIG_FEATURE_COM
-    Taskbar m_taskbar;
-#   endif
 };
 
 
@@ -496,7 +493,7 @@ void xmrig::Miner::execCommand(char command)
 void xmrig::Miner::pause()
 {
     d_ptr->active = false;
-//    d_ptr->m_taskbar.setActive(false); // FIXME
+    d_ptr->taskbar.setActive(false);
 
     Nonce::pause(true);
     Nonce::touch();
@@ -516,7 +513,7 @@ void xmrig::Miner::setEnabled(bool enabled)
     }
 
     d_ptr->enabled = enabled;
-//    d_ptr->m_taskbar.setEnabled(enabled); // FIXME
+    d_ptr->taskbar.setEnabled(enabled);
 
     if (enabled) {
         LOG_INFO("%s " GREEN_BOLD("resumed"), Tags::miner());
@@ -586,7 +583,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     mutex.unlock();
 
     d_ptr->active = true;
-//    d_ptr->m_taskbar.setActive(true); // FIXME
+    d_ptr->taskbar.setActive(true);
 
     if (ready) {
         d_ptr->handleJobChange();

@@ -41,7 +41,7 @@ add_definitions(-DXMRIG_MINER_PROJECT)
 set(WITH_SODIUM     OFF)
 set(WITH_CRYPTONOTE ON)
 set(WITH_CRYPTO_OPS ON)
-set(WITH_COM        ON)
+set(WITH_COM        OFF)
 set(WITH_EVENTS     OFF)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/src/base/cmake" "${CMAKE_SOURCE_DIR}/cmake")
@@ -63,6 +63,7 @@ set(HEADERS
     src/core/config/usage.h
     src/core/Controller.h
     src/core/Miner.h
+    src/core/Taskbar.h
     src/crypto/cn/asm/CryptonightR_template.h
     src/crypto/cn/c_blake256.h
     src/crypto/cn/c_groestl.h
@@ -105,6 +106,7 @@ set(SOURCES
     src/core/config/ConfigTransform.cpp
     src/core/Controller.cpp
     src/core/Miner.cpp
+    src/core/Taskbar.cpp
     src/crypto/cn/c_blake256.c
     src/crypto/cn/c_groestl.c
     src/crypto/cn/c_jh.c
