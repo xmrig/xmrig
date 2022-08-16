@@ -28,80 +28,80 @@
 namespace xmrig {
 
 
-struct TaskbarPrivate
+class Taskbar::Private
 {
-    TaskbarPrivate()
+public:
+    XMRIG_DISABLE_COPY_MOVE(Private)
+
+    Private()
     {
         HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
         if (hr < 0) {
             return;
         }
 
-        hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&m_taskbar));
+        hr = CoCreateInstance(CLSID_TaskbarList, NULL, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&taskbar));
         if (hr < 0) {
             return;
         }
 
-        hr = m_taskbar->HrInit();
+        hr = taskbar->HrInit();
         if (hr < 0) {
-            m_taskbar->Release();
-            m_taskbar = nullptr;
+            taskbar->Release();
+            taskbar = nullptr;
             return;
         }
 
-        m_consoleWnd = GetConsoleWindow();
+        console = GetConsoleWindow();
     }
 
-    ~TaskbarPrivate()
+    ~Private()
     {
-        if (m_taskbar) {
-            m_taskbar->Release();
+        if (taskbar) {
+            taskbar->Release();
         }
+
         CoUninitialize();
     }
 
-    ITaskbarList3* m_taskbar = nullptr;
-    HWND m_consoleWnd = nullptr;
+    void update()
+    {
+        if (taskbar) {
+            if (active) {
+                taskbar->SetProgressState(console, enabled ? TBPF_NOPROGRESS : TBPF_PAUSED);
+                taskbar->SetProgressValue(console, enabled ? 0 : 1, 1);
+            }
+            else {
+                taskbar->SetProgressState(console, TBPF_ERROR);
+                taskbar->SetProgressValue(console, 1, 1);
+            }
+        }
+    }
+
+    bool active             = false;
+    bool enabled            = true;
+    HWND console            = nullptr;
+    ITaskbarList3 *taskbar  = nullptr;
 };
 
 
-Taskbar::Taskbar() : d_ptr(new TaskbarPrivate())
+Taskbar::Taskbar() :
+    d(std::make_shared<Private>())
 {
-}
-
-
-Taskbar::~Taskbar()
-{
-    delete d_ptr;
 }
 
 
 void Taskbar::setActive(bool active)
 {
-    m_active = active;
-    updateTaskbarColor();
+    d->active = active;
+    d->update();
 }
 
 
 void Taskbar::setEnabled(bool enabled)
 {
-    m_enabled = enabled;
-    updateTaskbarColor();
-}
-
-
-void Taskbar::updateTaskbarColor()
-{
-    if (d_ptr->m_taskbar) {
-        if (m_active) {
-            d_ptr->m_taskbar->SetProgressState(d_ptr->m_consoleWnd, m_enabled ? TBPF_NOPROGRESS : TBPF_PAUSED);
-            d_ptr->m_taskbar->SetProgressValue(d_ptr->m_consoleWnd, m_enabled ? 0 : 1, 1);
-        }
-        else {
-            d_ptr->m_taskbar->SetProgressState(d_ptr->m_consoleWnd, TBPF_ERROR);
-            d_ptr->m_taskbar->SetProgressValue(d_ptr->m_consoleWnd, 1, 1);
-        }
-    }
+    d->enabled = enabled;
+    d->update();
 }
 
 
@@ -114,10 +114,9 @@ void Taskbar::updateTaskbarColor()
 namespace xmrig {
 
 
-Taskbar::Taskbar() {}
-Taskbar::~Taskbar() {}
-void Taskbar::setActive(bool) {}
-void Taskbar::setEnabled(bool) {}
+Taskbar::Taskbar()              = default;
+void Taskbar::setActive(bool)   {}
+void Taskbar::setEnabled(bool)  {}
 
 
 } // namespace xmrig

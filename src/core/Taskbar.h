@@ -20,32 +20,31 @@
 #define XMRIG_TASKBAR_H
 
 
+#include "base/tools/Object.h"
+
+
 namespace xmrig {
-
-
-struct TaskbarPrivate;
 
 
 class Taskbar
 {
 public:
+    XMRIG_DISABLE_COPY_MOVE(Taskbar)
+
     Taskbar();
-    ~Taskbar();
+    ~Taskbar() = default;
 
     void setActive(bool active);
     void setEnabled(bool enabled);
 
 private:
-    bool m_active = false;
-    bool m_enabled = true;
-
-    TaskbarPrivate* d_ptr = nullptr;
-
-    void updateTaskbarColor();
+#   ifdef _WIN32
+    XMRIG_DECL_PRIVATE()
+#   endif
 };
 
 
 } // namespace xmrig
 
 
-#endif /* XMRIG_TASKBAR_H */
+#endif // XMRIG_TASKBAR_H
