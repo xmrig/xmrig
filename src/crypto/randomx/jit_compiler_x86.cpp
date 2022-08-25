@@ -407,7 +407,7 @@ namespace randomx {
 		*(uint32_t*)(code + codePos + 14) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
 		if (hasAVX) {
 			uint32_t* p = (uint32_t*)(code + codePos + 61);
-			*p = (*p & 0xFF000000U) | 0x0077F8C5U;
+			*p = (*p & 0xFF000000U) | 0x0077F8C5U; // vzeroupper
 		}
 
 #		ifdef XMRIG_FIX_RYZEN

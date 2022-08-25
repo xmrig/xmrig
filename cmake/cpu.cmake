@@ -25,6 +25,7 @@ if (XMRIG_64_BIT AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
     add_definitions(-DRAPIDJSON_SSE2)
 else()
     set(WITH_SSE4_1 OFF)
+    set(WITH_AVX2 OFF)
     set(WITH_VAES OFF)
 endif()
 
@@ -56,4 +57,8 @@ endif()
 
 if (WITH_SSE4_1)
     add_definitions(-DXMRIG_FEATURE_SSE4_1)
+endif()
+
+if (WITH_AVX2)
+    add_definitions(-DXMRIG_FEATURE_AVX2)
 endif()
