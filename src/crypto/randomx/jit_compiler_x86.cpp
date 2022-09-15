@@ -167,6 +167,11 @@ namespace randomx {
 
 	static const uint8_t* NOPX[] = { NOP1, NOP2, NOP3, NOP4, NOP5, NOP6, NOP7, NOP8, NOP9 };
 
+	static const uint8_t NOP13[] = { 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x44, 0x00, 0x00 };
+	static const uint8_t NOP14[] = { 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x80, 0x00, 0x00, 0x00, 0x00 };
+	static const uint8_t NOP25[] = { 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+	static const uint8_t NOP26[] = { 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x66, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0F, 0x1F, 0x84, 0x00, 0x00, 0x00, 0x00, 0x00 };
+
 	static const uint8_t JMP_ALIGN_PREFIX[14][16] = {
 		{},
 		{0x2E},
@@ -1287,13 +1292,10 @@ namespace randomx {
 
 		if (pos) {
 			if (vm_flags & RANDOMX_FLAG_AMD) {
-				memcpy(p + pos + 0, NOP9, 9);
-				memcpy(p + pos + 9, NOP9, 9);
-				memcpy(p + pos + 18, NOP8, 8);
+				memcpy(p + pos, NOP26, 26);
 			}
 			else {
-				memcpy(p + pos + 0, NOP8, 8);
-				memcpy(p + pos + 8, NOP6, 6);
+				memcpy(p + pos, NOP14, 14);
 			}
 		}
 
@@ -1326,13 +1328,10 @@ namespace randomx {
 
 		if (pos) {
 			if (vm_flags & RANDOMX_FLAG_AMD) {
-				memcpy(p + pos + 0, NOP9, 9);
-				memcpy(p + pos + 9, NOP9, 9);
-				memcpy(p + pos + 18, NOP7, 7);
+				memcpy(p + pos, NOP25, 25);
 			}
 			else {
-				memcpy(p + pos + 0, NOP8, 8);
-				memcpy(p + pos + 8, NOP5, 5);
+				memcpy(p + pos, NOP13, 13);
 			}
 		}
 
@@ -1363,10 +1362,16 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
-
 		const int reg = instr.dst % RegistersCount;
-		int32_t jmp_offset = registerUsage[reg] - (pos + 16);
+		int32_t jmp_offset = registerUsage[reg];
+
+		// if it jumps over the previous CFROUND, it can't be safely eliminated
+		const uint32_t t = prevCFROUND;
+		if (t && (jmp_offset < t)) {
+			prevCFROUND = 0;
+		}
+
+		jmp_offset -= pos + 16;
 
 		if (jccErratum) {
 			const uint32_t branch_begin = static_cast<uint32_t>(pos + 7);
