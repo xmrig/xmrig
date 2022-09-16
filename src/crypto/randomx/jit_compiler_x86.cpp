@@ -424,7 +424,8 @@ namespace randomx {
 
 		memcpy(imul_rcp_storage - 34, &pcfg.eMask, sizeof(pcfg.eMask));
 		codePos = codePosFirst;
-		prevCFROUND = 0;
+		prevCFROUND = -1;
+		prevFPOperation = -1;
 
 		//mark all registers as used
 		uint64_t* r = (uint64_t*)registerUsage;
@@ -1160,7 +1161,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint64_t dst = instr.dst % RegisterCountFlt;
 		const uint64_t src = instr.src % RegisterCountFlt;
@@ -1175,7 +1176,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint32_t src = instr.src % RegistersCount;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
@@ -1192,7 +1193,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint64_t dst = instr.dst % RegisterCountFlt;
 		const uint64_t src = instr.src % RegisterCountFlt;
@@ -1207,7 +1208,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint32_t src = instr.src % RegistersCount;
 		const uint32_t dst = instr.dst % RegisterCountFlt;
@@ -1235,7 +1236,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint64_t dst = instr.dst % RegisterCountFlt;
 		const uint64_t src = instr.src % RegisterCountFlt;
@@ -1250,7 +1251,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint32_t src = instr.src % RegistersCount;
 		const uint64_t dst = instr.dst % RegisterCountFlt;
@@ -1277,7 +1278,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		uint32_t pos = codePos;
 
-		prevCFROUND = 0;
+		prevFPOperation = pos;
 
 		const uint32_t dst = instr.dst % RegisterCountFlt;
 
@@ -1288,18 +1289,18 @@ namespace randomx {
 
 	void JitCompilerX86::h_CFROUND(const Instruction& instr) {
 		uint8_t* const p = code;
-		uint32_t pos = prevCFROUND;
+		int32_t t = prevCFROUND;
 
-		if (pos) {
+		if (t > prevFPOperation) {
 			if (vm_flags & RANDOMX_FLAG_AMD) {
-				memcpy(p + pos, NOP26, 26);
+				memcpy(p + t, NOP26, 26);
 			}
 			else {
-				memcpy(p + pos, NOP14, 14);
+				memcpy(p + t, NOP14, 14);
 			}
 		}
 
-		pos = codePos;
+		uint32_t pos = codePos;
 		prevCFROUND = pos;
 
 		const uint32_t src = instr.src % RegistersCount;
@@ -1324,18 +1325,18 @@ namespace randomx {
 
 	void JitCompilerX86::h_CFROUND_BMI2(const Instruction& instr) {
 		uint8_t* const p = code;
-		uint32_t pos = prevCFROUND;
+		int32_t t = prevCFROUND;
 
-		if (pos) {
+		if (t > prevFPOperation) {
 			if (vm_flags & RANDOMX_FLAG_AMD) {
-				memcpy(p + pos, NOP25, 25);
+				memcpy(p + t, NOP25, 25);
 			}
 			else {
-				memcpy(p + pos, NOP13, 13);
+				memcpy(p + t, NOP13, 13);
 			}
 		}
 
-		pos = codePos;
+		uint32_t pos = codePos;
 		prevCFROUND = pos;
 
 		const uint64_t src = instr.src % RegistersCount;
@@ -1365,10 +1366,9 @@ namespace randomx {
 		const int reg = instr.dst % RegistersCount;
 		int32_t jmp_offset = registerUsage[reg];
 
-		// if it jumps over the previous CFROUND, it can't be safely eliminated
-		const uint32_t t = prevCFROUND;
-		if (t && (jmp_offset < t)) {
-			prevCFROUND = 0;
+		// if it jumps over the previous FP instruction that uses rounding, treat it as if FP instruction happened now
+		if (jmp_offset <= prevFPOperation) {
+			prevFPOperation = pos;
 		}
 
 		jmp_offset -= pos + 16;
