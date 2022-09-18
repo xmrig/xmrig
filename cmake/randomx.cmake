@@ -76,7 +76,7 @@ if (WITH_RANDOMX)
     endif()
 
     if (WITH_AVX2)
-        list(APPEND SOURCES_CRYPTO src/crypto/randomx/blake2/avx2/blake2b_avx2.c)
+        list(APPEND SOURCES src/crypto/randomx/blake2/avx2/blake2b_avx2.c)
 
         if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
             set_source_files_properties(src/crypto/randomx/blake2/avx2/blake2b_avx2.c PROPERTIES COMPILE_FLAGS "-Ofast -mavx2")
