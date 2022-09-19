@@ -48,7 +48,13 @@ xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientI
 
 bool xmrig::Job::isEqual(const Job &other) const
 {
-    return m_id == other.m_id && m_clientId == other.m_clientId && memcmp(m_blob, other.m_blob, sizeof(m_blob)) == 0 && m_target == other.m_target;
+    return m_id == other.m_id && m_clientId == other.m_clientId && isEqualBlob(other) && m_target == other.m_target;
+}
+
+
+bool xmrig::Job::isEqualBlob(const Job &other) const
+{
+    return (m_size == other.m_size) && (memcmp(m_blob, other.m_blob, m_size) == 0);
 }
 
 
