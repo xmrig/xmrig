@@ -561,6 +561,12 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     const uint8_t index = donate ? 1 : 0;
 
     d_ptr->reset = !(d_ptr->job.index() == 1 && index == 0 && d_ptr->userJobId == job.id());
+
+    // Don't reset nonce if pool sends the same hashing blob again, but with different difficulty (for example)
+    if (d_ptr->job.isEqualBlob(job)) {
+        d_ptr->reset = false;
+    }
+
     d_ptr->job   = job;
     d_ptr->job.setIndex(index);
 
