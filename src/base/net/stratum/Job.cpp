@@ -64,19 +64,19 @@ bool xmrig::Job::setBlob(const char *blob)
         return false;
     }
 
-    m_size = strlen(blob);
-    if (m_size % 2 != 0) {
+    size_t size = strlen(blob);
+    if (size % 2 != 0) {
         return false;
     }
 
-    m_size /= 2;
+    size /= 2;
 
     const size_t minSize = nonceOffset() + nonceSize();
-    if (m_size < minSize || m_size >= sizeof(m_blob)) {
+    if (size < minSize || size >= sizeof(m_blob)) {
         return false;
     }
 
-    if (!Cvt::fromHex(m_blob, sizeof(m_blob), blob, m_size * 2)) {
+    if (!Cvt::fromHex(m_blob, sizeof(m_blob), blob, size * 2)) {
         return false;
     }
 
@@ -86,9 +86,10 @@ bool xmrig::Job::setBlob(const char *blob)
 
 #   ifdef XMRIG_PROXY_PROJECT
     memset(m_rawBlob, 0, sizeof(m_rawBlob));
-    memcpy(m_rawBlob, blob, m_size * 2);
+    memcpy(m_rawBlob, blob, size * 2);
 #   endif
 
+    m_size = size;
     return true;
 }
 
