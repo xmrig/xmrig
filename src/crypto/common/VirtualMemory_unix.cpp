@@ -112,13 +112,19 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 
 bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 {
+    bool result = true;
+
 #   if defined(XMRIG_OS_APPLE) && defined(XMRIG_ARM)
     pthread_jit_write_protect_np(true);
-    flushInstructionCache(p, size);
-    return true;
 #   else
-    return mprotect(p, size, PROT_READ | PROT_EXEC) == 0;
+    result = (mprotect(p, size, PROT_READ | PROT_EXEC) == 0);
 #   endif
+
+#   if defined(XMRIG_ARM)
+    flushInstructionCache(p, size);
+#   endif
+
+    return result;
 }
 
 
