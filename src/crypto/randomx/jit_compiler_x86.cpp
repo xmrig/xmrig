@@ -262,6 +262,10 @@ namespace randomx {
 						// AVX2 init is faster on Zen3
 						initDatasetAVX2 = true;
 						break;
+					case xmrig::ICpuInfo::ARCH_ZEN4:
+						// AVX2 init is slower on Zen4
+						initDatasetAVX2 = false;
+						break;
 					}
 				}
 			}
