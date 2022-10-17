@@ -104,8 +104,13 @@ if (WITH_RANDOMX)
 
     if (WITH_MSR AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_MSR)
-        add_definitions(/DXMRIG_FIX_RYZEN)
-        message("-- WITH_MSR=ON")
+        if (WITH_MSR_ZEN)
+            add_definitions(/DXMRIG_FIX_RYZEN)
+            message("-- WITH_MSR=ON (+zen)")
+        else()
+            remove_definitions(/DXMRIG_FIX_RYZEN)
+            message("-- WITH_MSR=ON (-zen)")
+        endif()
 
         if (XMRIG_OS_WIN)
             list(APPEND SOURCES_CRYPTO
