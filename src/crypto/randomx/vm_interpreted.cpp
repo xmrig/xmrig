@@ -104,6 +104,8 @@ namespace randomx {
 
 		for (unsigned i = 0; i < RegisterCountFlt; ++i)
 			rx_store_vec_f128(&reg.e[i].lo, nreg.e[i]);
+
+		cleanup();
 	}
 
 	template<int softAes>

@@ -18,6 +18,7 @@
  */
 
 #include "crypto/rx/Rx.h"
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuConfig.h"
 #include "backend/cpu/CpuThreads.h"
 #include "crypto/rx/RxConfig.h"
@@ -84,6 +85,16 @@ void xmrig::Rx::init(IRxListener *listener)
 }
 
 
+#include "crypto/randomx/blake2/blake2.h"
+#if defined(XMRIG_FEATURE_AVX2)
+#include "crypto/randomx/blake2/avx2/blake2b.h"
+#endif
+
+
+void (*rx_blake2b_compress)(blake2b_state* S, const uint8_t * block) = rx_blake2b_compress_integer;
+int (*rx_blake2b)(void* out, size_t outlen, const void* in, size_t inlen) = rx_blake2b_default;
+
+
 template<typename T>
 bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
@@ -133,6 +144,19 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
         if (!cpu.isHwAES()) {
             SelectSoftAESImpl(cpu.threads().get(seed.algorithm()).count());
         }
+
+#       if defined(XMRIG_FEATURE_SSE4_1)
+        if (Cpu::info()->has(ICpuInfo::FLAG_SSE41)) {
+            rx_blake2b_compress = rx_blake2b_compress_sse41;
+        }
+#       endif
+
+#if     defined(XMRIG_FEATURE_AVX2)
+        if (Cpu::info()->has(ICpuInfo::FLAG_AVX2)) {
+            rx_blake2b = blake2b_avx2;
+        }
+#       endif
+
         osInitialized = true;
     }
 
