@@ -10,14 +10,24 @@ fi
 
 if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
 	then
-	if grep "cpu family[[:space:]]:[[:space:]]25" /proc/cpuinfo > /dev/null;
+	if grep "cpu family[[:space:]]\{1,\}:[[:space:]]25" /proc/cpuinfo > /dev/null;
 		then
-			echo "Detected Zen3 CPU"
-			wrmsr -a 0xc0011020 0x4480000000000
-			wrmsr -a 0xc0011021 0x1c000200000040
-			wrmsr -a 0xc0011022 0xc000000401500000
-			wrmsr -a 0xc001102b 0x2000cc14
-			echo "MSR register values for Zen3 applied"
+			if grep "model[[:space:]]\{1,\}:[[:space:]]97" /proc/cpuinfo > /dev/null;
+				then
+					echo "Detected Zen4 CPU"
+					wrmsr -a 0xc0011020 0x4400000000000
+					wrmsr -a 0xc0011021 0x4000000000040
+					wrmsr -a 0xc0011022 0x8680000401570000
+					wrmsr -a 0xc001102b 0x2040cc10
+					echo "MSR register values for Zen4 applied"
+				else
+					echo "Detected Zen3 CPU"
+					wrmsr -a 0xc0011020 0x4480000000000
+					wrmsr -a 0xc0011021 0x1c000200000040
+					wrmsr -a 0xc0011022 0xc000000401500000
+					wrmsr -a 0xc001102b 0x2000cc14
+					echo "MSR register values for Zen3 applied"
+				fi
 		else
 			echo "Detected Zen1/Zen2 CPU"
 			wrmsr -a 0xc0011020 0

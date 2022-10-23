@@ -240,10 +240,17 @@ namespace randomx {
 			return x;
 		}
 
+		void cleanup() {
+			for (unsigned i = 0; i < RegistersCount; ++i) {
+				registerUsage[i] = -1;
+			}
+			nreg = nullptr;
+		}
+
 	private:
 		static const int_reg_t zero;
-		int registerUsage[RegistersCount];
-		NativeRegisterFile* nreg;
+		int registerUsage[RegistersCount] = {};
+		NativeRegisterFile* nreg = nullptr;
 
 		static void* getScratchpadAddress(InstructionByteCode& ibc, uint8_t* scratchpad) {
 			uint32_t addr = (*ibc.isrc + ibc.imm) & ibc.memMask;

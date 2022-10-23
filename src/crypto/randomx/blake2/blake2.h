@@ -92,7 +92,12 @@ extern "C" {
     int rx_blake2b_final(blake2b_state *S, void *out, size_t outlen);
 
 	/* Simple API */
-    int rx_blake2b(void *out, size_t outlen, const void *in, size_t inlen);
+    void rx_blake2b_compress_integer(blake2b_state * S, const uint8_t * block);
+    void rx_blake2b_compress_sse41(blake2b_state * S, const uint8_t * block);
+    int rx_blake2b_default(void* out, size_t outlen, const void* in, size_t inlen);
+
+    extern void (*rx_blake2b_compress)(blake2b_state * S, const uint8_t * block);
+    extern int (*rx_blake2b)(void* out, size_t outlen, const void* in, size_t inlen);
 
 	/* Argon2 Team - Begin Code */
 	int rxa2_blake2b_long(void *out, size_t outlen, const void *in, size_t inlen);

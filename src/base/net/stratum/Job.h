@@ -59,6 +59,7 @@ public:
     ~Job() = default;
 
     bool isEqual(const Job &other) const;
+    bool isEqualBlob(const Job &other) const;
     bool setBlob(const char *blob);
     bool setSeedHash(const char *hash);
     bool setTarget(const char *target);
