@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,22 +23,22 @@
 /*
  * Dev donation.
  *
- * Percentage of your hashing power that you want to donate to the developer, can be 0 if you don't want to do that.
+ * Percentage of your hashing power that you want to donate to the developer can be 0% but supports XMRig Development.
  *
  * Example of how it works for the setting of 1%:
- * You miner will mine into your usual pool for random time (in range from 49.5 to 148.5 minutes),
+ * Your miner will mine into your usual pool for a random time (in a range from 49.5 to 148.5 minutes),
  * then switch to the developer's pool for 1 minute, then switch again to your pool for 99 minutes
- * and then switch again to developer's pool for 1 minute, these rounds will continue until miner working.
+ * and then switch again to developer's pool for 1 minute; these rounds will continue until the miner stops.
  *
- * Randomised only first round, to prevent waves on the donation pool.
+ * Randomised only on the first round to prevent waves on the donation pool.
  *
- * Switching is instant, and only happens after a successful connection, so you never loose any hashes.
+ * Switching is instant and only happens after a successful connection, so you never lose any hashes.
  *
- * If you plan on changing this setting to 0 please consider making a one off donation to my wallet:
+ * If you plan on changing donations to 0%, please consider making a one-off donation to my wallet:
  * XMR: 48edfHu7V9Z84YzzMa6fUueoELZ9ZRXq9VetWzYGzKt52XU5xvqgzYnDK9URnRoJMk1j8nLwEVsaSWJ4fhdUyZijBGUicoD
  */
 constexpr const int kDefaultDonateLevel = 1;
 constexpr const int kMinimumDonateLevel = 1;
 
 
-#endif /* XMRIG_DONATE_H */
+#endif // XMRIG_DONATE_H
