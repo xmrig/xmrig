@@ -24,8 +24,8 @@ if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
 					echo "Detected Zen3 CPU"
 					wrmsr -a 0xc0011020 0x4480000000000
 					wrmsr -a 0xc0011021 0x1c000200000040
-					wrmsr -a 0xc0011022 0xc000000401500000
-					wrmsr -a 0xc001102b 0x2000cc14
+					wrmsr -a 0xc0011022 0xc000000401570000
+					wrmsr -a 0xc001102b 0x2000cc10
 					echo "MSR register values for Zen3 applied"
 				fi
 		else
