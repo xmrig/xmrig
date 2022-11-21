@@ -1,7 +1,7 @@
 {
   "name": "xmrig",
   "version": "3.0.0",
-  "description": "RandomX, CryptoNight and Argon2 miner",
+  "description": "RandomX, CryptoNight , kawpow and Argon2 miner",
   "main": "index.js",
   "directories": {
     "doc": "doc"
