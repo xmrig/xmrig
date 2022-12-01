@@ -1,6 +1,6 @@
 if (WITH_VERUSHASH)
     add_definitions(/DXMRIG_ALGO_VERUSHASH)
-    set(GHOSTRIDER_LIBRARY verushash)
+    set(VERUSHASH_LIBRARY verushash)
 
     list(APPEND HEADERS_CRYPTO
         src/crypto/verus/haraka.h
