@@ -65,7 +65,7 @@
 #endif
 
 
-#if defined(XMRIG_OS_LINUX) || (!defined(XMRIG_OS_APPLE) && !defined(__FreeBSD__))
+#if defined(XMRIG_OS_LINUX) || (!defined(XMRIG_OS_APPLE) && !defined(__FreeBSD__) && !defined(__DragonFly__))
 static inline int hugePagesFlag(size_t size)
 {
     return (static_cast<int>(log2(size)) & MAP_HUGE_MASK) << MAP_HUGE_SHIFT;
@@ -135,7 +135,7 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
 #   ifdef XMRIG_ARM
     pthread_jit_write_protect_np(false);
 #   endif
-#   elif defined(__FreeBSD__)
+#   elif defined(__FreeBSD__) || defined(__DragonFly__)
     void *mem = nullptr;
 
     if (hugePages) {
@@ -168,7 +168,7 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
 {
 #   if defined(XMRIG_OS_APPLE)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
-#   elif defined(__FreeBSD__)
+#   elif defined(__FreeBSD__) || defined(__DragonFly__)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
 #   else
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | hugePagesFlag(hugePageSize()), 0, 0);
