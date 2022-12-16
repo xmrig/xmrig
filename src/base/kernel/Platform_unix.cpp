@@ -16,7 +16,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__DragonFly__)
 #   include <sys/types.h>
 #   include <sys/param.h>
 #   include <sys/cpuset.h>
@@ -41,7 +41,7 @@
 #include "version.h"
 
 
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__DragonFly__)
 typedef cpuset_t cpu_set_t;
 #endif
 
