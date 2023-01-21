@@ -97,6 +97,7 @@ private:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     randomx_vm *m_vm        = nullptr;
+    Buffer m_seed;
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
