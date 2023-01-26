@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -55,7 +55,7 @@ hwloc_topology_insert_misc_object_by_parent(hwloc_topology_t topology, hwloc_obj
  *
  * If \p size is 0, \p string may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 static __hwloc_inline int

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009      CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  *
@@ -259,6 +259,7 @@ struct hwloc_topology {
     unsigned bus_first, bus_last;
     hwloc_bitmap_t cpuset;
   } * pci_forced_locality;
+  hwloc_uint64_t pci_locality_quirks;
 
   /* component blacklisting */
   unsigned nr_blacklisted_components;
@@ -419,6 +420,7 @@ extern void hwloc_internal_memattrs_need_refresh(hwloc_topology_t topology);
 extern void hwloc_internal_memattrs_refresh(hwloc_topology_t topology);
 extern int hwloc_internal_memattrs_dup(hwloc_topology_t new, hwloc_topology_t old);
 extern int hwloc_internal_memattr_set_value(hwloc_topology_t topology, hwloc_memattr_id_t id, hwloc_obj_type_t target_type, hwloc_uint64_t target_gp_index, unsigned target_os_index, struct hwloc_internal_location_s *initiator, hwloc_uint64_t value);
+extern int hwloc_internal_memattrs_guess_memory_tiers(hwloc_topology_t topology);
 
 extern void hwloc_internal_cpukinds_init(hwloc_topology_t topology);
 extern int hwloc_internal_cpukinds_rank(hwloc_topology_t topology);

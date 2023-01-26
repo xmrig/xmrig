@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
- * Copyright © 2010-2021 Inria.  All rights reserved.
+ * Copyright © 2010-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -123,6 +123,9 @@ extern "C" {
 #define HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING)
 #define HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_RESTRICT_TO_MEMBINDING)
 #define HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING HWLOC_NAME_CAPS(TOPOLOGY_FLAG_DONT_CHANGE_BINDING)
+#define HWLOC_TOPOLOGY_FLAG_NO_DISTANCES HWLOC_NAME_CAPS(TOPOLOGY_FLAG_NO_DISTANCES)
+#define HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS HWLOC_NAME_CAPS(TOPOLOGY_FLAG_NO_MEMATTRS)
+#define HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS HWLOC_NAME_CAPS(TOPOLOGY_FLAG_NO_CPUKINDS)
 
 #define hwloc_topology_set_pid HWLOC_NAME(topology_set_pid)
 #define hwloc_topology_set_synthetic HWLOC_NAME(topology_set_synthetic)
@@ -381,6 +384,11 @@ extern "C" {
 #define HWLOC_MEMATTR_ID_LOCALITY HWLOC_NAME_CAPS(MEMATTR_ID_LOCALITY)
 #define HWLOC_MEMATTR_ID_BANDWIDTH HWLOC_NAME_CAPS(MEMATTR_ID_BANDWIDTH)
 #define HWLOC_MEMATTR_ID_LATENCY HWLOC_NAME_CAPS(MEMATTR_ID_LATENCY)
+#define HWLOC_MEMATTR_ID_READ_BANDWIDTH HWLOC_NAME_CAPS(MEMATTR_ID_READ_BANDWIDTH)
+#define HWLOC_MEMATTR_ID_WRITE_BANDWIDTH HWLOC_NAME_CAPS(MEMATTR_ID_WRITE_BANDWIDTH)
+#define HWLOC_MEMATTR_ID_READ_LATENCY HWLOC_NAME_CAPS(MEMATTR_ID_READ_LATENCY)
+#define HWLOC_MEMATTR_ID_WRITE_LATENCY HWLOC_NAME_CAPS(MEMATTR_ID_WRITE_LATENCY)
+#define HWLOC_MEMATTR_ID_MAX HWLOC_NAME_CAPS(MEMATTR_ID_MAX)
 
 #define hwloc_memattr_id_t HWLOC_NAME(memattr_id_t)
 #define hwloc_memattr_get_by_name HWLOC_NAME(memattr_get_by_name)
@@ -862,6 +870,7 @@ extern "C" {
 #define hwloc_internal_memattrs_destroy HWLOC_NAME(internal_memattrs_destroy)
 #define hwloc_internal_memattrs_need_refresh HWLOC_NAME(internal_memattrs_need_refresh)
 #define hwloc_internal_memattrs_refresh HWLOC_NAME(internal_memattrs_refresh)
+#define hwloc_internal_memattrs_guess_memory_tiers HWLOC_NAME(internal_memattrs_guess_memory_tiers)
 
 #define hwloc_internal_cpukind_s HWLOC_NAME(internal_cpukind_s)
 #define hwloc_internal_cpukinds_init HWLOC_NAME(internal_cpukinds_init)

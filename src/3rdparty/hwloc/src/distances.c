@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Inria.  All rights reserved.
+ * Copyright © 2010-2022 Inria.  All rights reserved.
  * Copyright © 2011-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -860,7 +860,7 @@ struct hwloc_distances_container_s {
   struct hwloc_distances_s distances;
 };
 
-#define HWLOC_DISTANCES_CONTAINER_OFFSET ((char*)&((struct hwloc_distances_container_s*)NULL)->distances - (char*)NULL)
+#define HWLOC_DISTANCES_CONTAINER_OFFSET ((uintptr_t)(&((struct hwloc_distances_container_s*)NULL)->distances) - (uintptr_t)NULL)
 #define HWLOC_DISTANCES_CONTAINER(_d) (struct hwloc_distances_container_s *) ( ((char*)_d) - HWLOC_DISTANCES_CONTAINER_OFFSET )
 
 static struct hwloc_internal_distances_s *

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2012 Université Bordeaux
  * See COPYING in top-level directory.
  */
@@ -386,7 +386,7 @@ hwloc_disc_component_register(struct hwloc_disc_component *component,
 				   |HWLOC_DISC_PHASE_MISC
 				   |HWLOC_DISC_PHASE_ANNOTATE
 				   |HWLOC_DISC_PHASE_TWEAK))) {
-    if (hwloc_hide_errors() < 2)
+    if (HWLOC_SHOW_CRITICAL_ERRORS())
       fprintf(stderr, "hwloc: Cannot register discovery component `%s' with invalid phases 0x%x\n",
               component->name, component->phases);
     return -1;
@@ -476,7 +476,7 @@ hwloc_components_init(void)
   /* hwloc_static_components is created by configure in static-components.h */
   for(i=0; NULL != hwloc_static_components[i]; i++) {
     if (hwloc_static_components[i]->flags) {
-      if (hwloc_hide_errors() < 2)
+      if (HWLOC_SHOW_CRITICAL_ERRORS())
         fprintf(stderr, "hwloc: Ignoring static component with invalid flags %lx\n",
                 hwloc_static_components[i]->flags);
       continue;
@@ -505,7 +505,7 @@ hwloc_components_init(void)
 #ifdef HWLOC_HAVE_PLUGINS
   for(desc = hwloc_plugins; NULL != desc; desc = desc->next) {
     if (desc->component->flags) {
-      if (hwloc_hide_errors() < 2)
+      if (HWLOC_SHOW_CRITICAL_ERRORS())
         fprintf(stderr, "hwloc: Ignoring plugin `%s' component with invalid flags %lx\n",
                 desc->name, desc->component->flags);
       continue;
@@ -738,7 +738,7 @@ hwloc_disc_component_try_enable(struct hwloc_topology *topology,
   backend = comp->instantiate(topology, comp, topology->backend_excluded_phases | blacklisted_phases,
 			      NULL, NULL, NULL);
   if (!backend) {
-    if (hwloc_components_verbose || (envvar_forced && hwloc_hide_errors() < 2))
+    if (hwloc_components_verbose || (envvar_forced && HWLOC_SHOW_CRITICAL_ERRORS()))
       fprintf(stderr, "hwloc: Failed to instantiate discovery component `%s'\n", comp->name);
     return -1;
   }
@@ -835,7 +835,7 @@ hwloc_disc_components_enable_others(struct hwloc_topology *topology)
 	  if (comp->phases & ~blacklisted_phases)
 	    hwloc_disc_component_try_enable(topology, comp, 1 /* envvar forced */, blacklisted_phases);
 	} else {
-          if (hwloc_hide_errors() < 2)
+          if (HWLOC_SHOW_CRITICAL_ERRORS())
             fprintf(stderr, "hwloc: Cannot find discovery component `%s'\n", name);
 	}
 
@@ -967,7 +967,7 @@ hwloc_backend_enable(struct hwloc_backend *backend)
 
   /* check backend flags */
   if (backend->flags) {
-    if (hwloc_hide_errors() < 2)
+    if (HWLOC_SHOW_CRITICAL_ERRORS())
       fprintf(stderr, "hwloc: Cannot enable discovery component `%s' phases 0x%x with unknown flags %lx\n",
               backend->component->name, backend->component->phases, backend->flags);
     return -1;

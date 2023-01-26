@@ -1,5 +1,5 @@
 /*
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -119,6 +119,13 @@ hwloc_pci_discovery_init(struct hwloc_topology *topology)
   topology->pci_forced_locality = NULL;
 
   topology->first_pci_locality = topology->last_pci_locality = NULL;
+
+#define HWLOC_PCI_LOCALITY_QUIRK_CRAY_EX235A (1ULL<<0)
+#define HWLOC_PCI_LOCALITY_QUIRK_FAKE (1ULL<<62)
+  topology->pci_locality_quirks = (uint64_t) -1;
+  /* -1 is unknown, 0 is disabled, >0 is bitmask of enabled quirks.
+   * bit 63 should remain unused so that -1 is unaccessible as a bitmask.
+   */
 }
 
 void
@@ -146,7 +153,7 @@ hwloc_pci_discovery_prepare(struct hwloc_topology *topology)
 	  }
 	  free(buffer);
 	} else {
-          if (hwloc_hide_errors() < 2)
+          if (HWLOC_SHOW_CRITICAL_ERRORS())
             fprintf(stderr, "hwloc/pci: Ignoring HWLOC_PCI_LOCALITY file `%s' too large (%lu bytes)\n",
                     env, (unsigned long) st.st_size);
 	}
@@ -333,7 +340,7 @@ hwloc_pci_add_object(struct hwloc_obj *parent, struct hwloc_obj **parent_io_firs
     }
     case HWLOC_PCI_BUSID_EQUAL: {
       static int reported = 0;
-      if (!reported && hwloc_hide_errors() < 2) {
+      if (!reported && HWLOC_SHOW_CRITICAL_ERRORS()) {
         fprintf(stderr, "*********************************************************\n");
         fprintf(stderr, "* hwloc %s received invalid PCI information.\n", HWLOC_VERSION);
         fprintf(stderr, "*\n");
@@ -442,13 +449,90 @@ hwloc_pcidisc_add_hostbridges(struct hwloc_topology *topology,
   return new;
 }
 
-static struct hwloc_obj *
-hwloc_pci_fixup_busid_parent(struct hwloc_topology *topology __hwloc_attribute_unused,
-			     struct hwloc_pcidev_attr_s *busid __hwloc_attribute_unused,
-			     struct hwloc_obj *parent __hwloc_attribute_unused)
+/* return 1 if a quirk was applied */
+static int
+hwloc__pci_find_busid_parent_quirk(struct hwloc_topology *topology,
+                                   struct hwloc_pcidev_attr_s *busid,
+                                   hwloc_cpuset_t cpuset)
 {
-  /* no quirk for now */
-  return parent;
+  if (topology->pci_locality_quirks == (uint64_t)-1 /* unknown */) {
+    const char *dmi_board_name, *env;
+
+    /* first invokation, detect which quirks are needed */
+    topology->pci_locality_quirks = 0; /* no quirk yet */
+
+    dmi_board_name = hwloc_obj_get_info_by_name(hwloc_get_root_obj(topology), "DMIBoardName");
+    if (dmi_board_name && !strcmp(dmi_board_name, "HPE CRAY EX235A")) {
+      hwloc_debug("enabling for PCI locality quirk for HPE Cray EX235A\n");
+      topology->pci_locality_quirks |= HWLOC_PCI_LOCALITY_QUIRK_CRAY_EX235A;
+    }
+
+    env = getenv("HWLOC_PCI_LOCALITY_QUIRK_FAKE");
+    if (env && atoi(env)) {
+      hwloc_debug("enabling for PCI locality fake quirk (attaching everything to last PU)\n");
+      topology->pci_locality_quirks |= HWLOC_PCI_LOCALITY_QUIRK_FAKE;
+    }
+  }
+
+  if (topology->pci_locality_quirks & HWLOC_PCI_LOCALITY_QUIRK_FAKE) {
+    unsigned last = hwloc_bitmap_last(hwloc_topology_get_topology_cpuset(topology));
+    hwloc_bitmap_set(cpuset, last);
+    return 1;
+  }
+
+  if (topology->pci_locality_quirks & HWLOC_PCI_LOCALITY_QUIRK_CRAY_EX235A) {
+    /* AMD Trento has xGMI ports connected to individual CCDs (8 cores + L3)
+     * instead of NUMA nodes (pairs of CCDs within Trento) as is usual in AMD EPYC CPUs.
+     * This is not described by the ACPI tables, hence we need to manually hardwire
+     * the xGMI locality for the (currently single) server that currently uses that CPU.
+     * It's not clear if ACPI tables can/will ever be fixed (would require one initiator
+     * proximity domain per CCD), or if Linux can/will work around the issue.
+     */
+    if (busid->domain == 0) {
+      if (busid->bus >= 0xd0 && busid->bus <= 0xd1) {
+        hwloc_bitmap_set_range(cpuset, 0, 7);
+        hwloc_bitmap_set_range(cpuset, 64, 71);
+        return 1;
+      }
+      if (busid->bus >= 0xd4 && busid->bus <= 0xd6) {
+        hwloc_bitmap_set_range(cpuset, 8, 15);
+        hwloc_bitmap_set_range(cpuset, 72, 79);
+        return 1;
+      }
+      if (busid->bus >= 0xc8 && busid->bus <= 0xc9) {
+        hwloc_bitmap_set_range(cpuset, 16, 23);
+        hwloc_bitmap_set_range(cpuset, 80, 87);
+        return 1;
+      }
+      if (busid->bus >= 0xcc && busid->bus <= 0xce) {
+        hwloc_bitmap_set_range(cpuset, 24, 31);
+        hwloc_bitmap_set_range(cpuset, 88, 95);
+        return 1;
+      }
+      if (busid->bus >= 0xd8 && busid->bus <= 0xd9) {
+        hwloc_bitmap_set_range(cpuset, 32, 39);
+        hwloc_bitmap_set_range(cpuset, 96, 103);
+        return 1;
+      }
+      if (busid->bus >= 0xdc && busid->bus <= 0xde) {
+        hwloc_bitmap_set_range(cpuset, 40, 47);
+        hwloc_bitmap_set_range(cpuset, 104, 111);
+        return 1;
+      }
+      if (busid->bus >= 0xc0 && busid->bus <= 0xc1) {
+        hwloc_bitmap_set_range(cpuset, 48, 55);
+        hwloc_bitmap_set_range(cpuset, 112, 119);
+        return 1;
+      }
+      if (busid->bus >= 0xc4 && busid->bus <= 0xc6) {
+        hwloc_bitmap_set_range(cpuset, 56, 63);
+        hwloc_bitmap_set_range(cpuset, 120, 127);
+        return 1;
+      }
+    }
+  }
+
+  return 0;
 }
 
 static struct hwloc_obj *
@@ -457,7 +541,7 @@ hwloc__pci_find_busid_parent(struct hwloc_topology *topology, struct hwloc_pcide
   hwloc_bitmap_t cpuset = hwloc_bitmap_alloc();
   hwloc_obj_t parent;
   int forced = 0;
-  int noquirks = 0;
+  int noquirks = 0, got_quirked = 0;
   unsigned i;
   int err;
 
@@ -490,7 +574,7 @@ hwloc__pci_find_busid_parent(struct hwloc_topology *topology, struct hwloc_pcide
     if (env) {
       static int reported = 0;
       if (!topology->pci_has_forced_locality && !reported) {
-        if (!hwloc_hide_errors())
+        if (HWLOC_SHOW_ALL_ERRORS())
           fprintf(stderr, "hwloc/pci: Environment variable %s is deprecated, please use HWLOC_PCI_LOCALITY instead.\n", env);
 	reported = 1;
       }
@@ -505,7 +589,13 @@ hwloc__pci_find_busid_parent(struct hwloc_topology *topology, struct hwloc_pcide
     }
   }
 
-  if (!forced) {
+  if (!forced && !noquirks && topology->pci_locality_quirks /* either quirks are unknown yet, or some are enabled */) {
+    err = hwloc__pci_find_busid_parent_quirk(topology, busid, cpuset);
+    if (err > 0)
+      got_quirked = 1;
+  }
+
+  if (!forced && !got_quirked) {
     /* get the cpuset by asking the backend that provides the relevant hook, if any. */
     struct hwloc_backend *backend = topology->get_pci_busid_cpuset_backend;
     if (backend)
@@ -520,11 +610,7 @@ hwloc__pci_find_busid_parent(struct hwloc_topology *topology, struct hwloc_pcide
   hwloc_debug_bitmap("  will attach PCI bus to cpuset %s\n", cpuset);
 
   parent = hwloc_find_insert_io_parent_by_complete_cpuset(topology, cpuset);
-  if (parent) {
-    if (!noquirks)
-      /* We found a valid parent. Check that the OS didn't report invalid locality */
-      parent = hwloc_pci_fixup_busid_parent(topology, busid, parent);
-  } else {
+  if (!parent) {
     /* Fallback to root */
     parent = hwloc_get_root_obj(topology);
   }
@@ -805,19 +891,28 @@ hwloc_pcidisc_find_linkspeed(const unsigned char *config,
   memcpy(&linksta, &config[offset + HWLOC_PCI_EXP_LNKSTA], 4);
   speed = linksta & HWLOC_PCI_EXP_LNKSTA_SPEED; /* PCIe generation */
   width = (linksta & HWLOC_PCI_EXP_LNKSTA_WIDTH) >> 4; /* how many lanes */
-  /* PCIe Gen1 = 2.5GT/s signal-rate per lane with 8/10 encoding    = 0.25GB/s data-rate per lane
-   * PCIe Gen2 = 5  GT/s signal-rate per lane with 8/10 encoding    = 0.5 GB/s data-rate per lane
-   * PCIe Gen3 = 8  GT/s signal-rate per lane with 128/130 encoding = 1   GB/s data-rate per lane
-   * PCIe Gen4 = 16 GT/s signal-rate per lane with 128/130 encoding = 2   GB/s data-rate per lane
-   * PCIe Gen5 = 32 GT/s signal-rate per lane with 128/130 encoding = 4   GB/s data-rate per lane
-   * PCIe Gen6 = 64 GT/s signal-rate per lane with 128/130 encoding = 8   GB/s data-rate per lane
+  /*
+   * These are single-direction bandwidths only.
+   *
+   * Gen1 used NRZ with 8/10 encoding.
+   * PCIe Gen1 = 2.5GT/s signal-rate per lane x 8/10    =  0.25GB/s data-rate per lane
+   * PCIe Gen2 = 5  GT/s signal-rate per lane x 8/10    =  0.5 GB/s data-rate per lane
+   * Gen3 switched to NRZ with 128/130 encoding.
+   * PCIe Gen3 = 8  GT/s signal-rate per lane x 128/130 =  1   GB/s data-rate per lane
+   * PCIe Gen4 = 16 GT/s signal-rate per lane x 128/130 =  2   GB/s data-rate per lane
+   * PCIe Gen5 = 32 GT/s signal-rate per lane x 128/130 =  4   GB/s data-rate per lane
+   * Gen6 switched to PAM with with 242/256 FLIT (242B payload protected by 8B CRC + 6B FEC).
+   * PCIe Gen6 = 64 GT/s signal-rate per lane x 242/256 =  8   GB/s data-rate per lane
+   * PCIe Gen7 = 128GT/s signal-rate per lane x 242/256 = 16   GB/s data-rate per lane
    */
 
   /* lanespeed in Gbit/s */
   if (speed <= 2)
     lanespeed = 2.5f * speed * 0.8f;
+  else if (speed <= 5)
+    lanespeed = 8.0f * (1<<(speed-3)) * 128/130;
   else
-    lanespeed = 8.0f * (1<<(speed-3)) * 128/130; /* assume Gen7 will be 128 GT/s and so on */
+    lanespeed = 8.0f * (1<<(speed-3)) * 242/256; /* assume Gen8 will be 256 GT/s and so on */
 
   /* linkspeed in GB/s */
   *linkspeed = lanespeed * width / 8;
@@ -944,6 +1039,7 @@ hwloc_pci_class_string(unsigned short class_id)
       switch (class_id) {
 	case 0x0500: return "RAM";
 	case 0x0501: return "Flash";
+        case 0x0502: return "CXLMem";
       }
       return "Memory";
     case 0x06:

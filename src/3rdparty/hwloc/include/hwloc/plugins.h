@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2021 Inria.  All rights reserved.
+ * Copyright © 2013-2022 Inria.  All rights reserved.
  * Copyright © 2016 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -338,8 +338,14 @@ struct hwloc_component {
  * This function return 1 by default (show critical only),
  * 0 in lstopo (show all),
  * or anything set in HWLOC_HIDE_ERRORS in the environment.
+ *
+ * Use macros HWLOC_SHOW_CRITICAL_ERRORS() and HWLOC_SHOW_ALL_ERRORS()
+ * for clarity.
  */
 HWLOC_DECLSPEC int hwloc_hide_errors(void);
+
+#define HWLOC_SHOW_CRITICAL_ERRORS() (hwloc_hide_errors() < 2)
+#define HWLOC_SHOW_ALL_ERRORS() (hwloc_hide_errors() == 0)
 
 /** \brief Add an object to the topology.
  *
@@ -501,6 +507,7 @@ hwloc_filter_check_pcidev_subtype_important(unsigned classid)
 	  || baseclass == 0x0b /* PCI_BASE_CLASS_PROCESSOR */
 	  || classid == 0x0c04 /* PCI_CLASS_SERIAL_FIBER */
 	  || classid == 0x0c06 /* PCI_CLASS_SERIAL_INFINIBAND */
+          || classid == 0x0502 /* PCI_CLASS_MEMORY_CXL */
           || baseclass == 0x06 /* PCI_BASE_CLASS_BRIDGE with non-PCI downstream. the core will drop the useless ones later */
 	  || baseclass == 0x12 /* Processing Accelerators */);
 }

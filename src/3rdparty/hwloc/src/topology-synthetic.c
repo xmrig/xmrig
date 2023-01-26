@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -323,17 +323,29 @@ hwloc_synthetic_parse_memory_attr(const char *attr, const char **endp)
   hwloc_uint64_t size;
   size = strtoull(attr, (char **) &endptr, 0);
   if (!hwloc_strncasecmp(endptr, "TB", 2)) {
+    size *= 1000ULL*1000ULL*1000ULL*1000ULL;
+    endptr += 2;
+  } else if (!hwloc_strncasecmp(endptr, "TiB", 3)) {
     size <<= 40;
-    endptr += 2;
+    endptr += 3;
   } else if (!hwloc_strncasecmp(endptr, "GB", 2)) {
+    size *= 1000ULL*1000ULL*1000ULL;
+    endptr += 2;
+  } else if (!hwloc_strncasecmp(endptr, "GiB", 3)) {
     size <<= 30;
-    endptr += 2;
+    endptr += 3;
   } else if (!hwloc_strncasecmp(endptr, "MB", 2)) {
+    size *= 1000ULL*1000ULL;
+    endptr += 2;
+  } else if (!hwloc_strncasecmp(endptr, "MiB", 3)) {
     size <<= 20;
-    endptr += 2;
+    endptr += 3;
   } else if (!hwloc_strncasecmp(endptr, "kB", 2)) {
-    size <<= 10;
+    size *= 1000ULL;
     endptr += 2;
+  } else if (!hwloc_strncasecmp(endptr, "kiB", 3)) {
+    size <<= 10;
+    endptr += 3;
   }
   *endp = endptr;
   return size;
@@ -802,15 +814,15 @@ hwloc_backend_synthetic_init(struct hwloc_synthetic_backend_data_s *data,
     } else if (hwloc__obj_type_is_cache(type)) {
       if (!curlevel->attr.memorysize) {
 	if (1 == curlevel->attr.depth)
-	  /* 32Kb in L1 */
+	  /* 32KiB in L1 */
 	  curlevel->attr.memorysize = 32*1024;
 	else
-	  /* *4 at each level, starting from 1MB for L2, unified */
+	  /* *4 at each level, starting from 1MiB for L2, unified */
 	  curlevel->attr.memorysize = 256ULL*1024 << (2*curlevel->attr.depth);
       }
 
     } else if (type == HWLOC_OBJ_NUMANODE && !curlevel->attr.memorysize) {
-      /* 1GB in memory nodes. */
+      /* 1GiB in memory nodes. */
       curlevel->attr.memorysize = 1024*1024*1024;
     }
 

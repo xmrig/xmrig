@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2021 Inria.  All rights reserved.
+ * Copyright © 2020-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -504,7 +504,7 @@ hwloc_internal_cpukinds_rank(struct hwloc_topology *topology)
       heuristics = HWLOC_CPUKINDS_RANKING_FORCED_EFFICIENCY;
     else if (!strcmp(env, "no_forced_efficiency"))
       heuristics = HWLOC_CPUKINDS_RANKING_NO_FORCED_EFFICIENCY;
-    else if (hwloc_hide_errors() < 2)
+    else if (HWLOC_SHOW_CRITICAL_ERRORS())
       fprintf(stderr, "hwloc: Failed to recognize HWLOC_CPUKINDS_RANKING value %s\n", env);
   }
 
