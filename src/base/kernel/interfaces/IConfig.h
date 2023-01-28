@@ -88,6 +88,7 @@ public:
         DaemonZMQPortKey     = 1056,
         HugePagesJitKey      = 1057,
         RotationKey          = 1058,
+        DaemonJobTimeoutKey  = 1059,
 
         // xmrig common
         CPUPriorityKey       = 1021,
