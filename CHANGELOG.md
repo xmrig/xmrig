@@ -1,4 +1,4 @@
-# v6.18.2
+# v6.19.0
 - [#3144](https://github.com/xmrig/xmrig/pull/3144) Update to latest `sse2neon.h`.
 - [#3161](https://github.com/xmrig/xmrig/pull/3161) MSVC build: enabled parallel compilation.
 - [#3163](https://github.com/xmrig/xmrig/pull/3163) Improved Zen 3 MSR mod.
@@ -7,6 +7,7 @@
 - [#3196](https://github.com/xmrig/xmrig/pull/3196) Show IP address for failed connections.
 - [#3185](https://github.com/xmrig/xmrig/issues/3185) Fixed macOS DMI reader.
 - [#3198](https://github.com/xmrig/xmrig/pull/3198) Fixed broken RandomX light mode mining.
+- [#3202](https://github.com/xmrig/xmrig/pull/3202) Solo mining: added job timeout (default is 15 seconds)
 
 # v6.18.1
 - [#3129](https://github.com/xmrig/xmrig/pull/3129) Fix: protectRX flushed CPU cache only on MacOS/iOS.
