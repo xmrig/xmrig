@@ -17,6 +17,50 @@ bug fixes (and other actions) for each version of hwloc since version
 0.9.
 
 
+Version 2.9.0
+-------------
+* Backends
+  + Expose the memory size of CXL memory devices (Type 3) on Linux.
+  + The LevelZero backend now reports the "XeLinkBandwidth" distance
+    matrix between L0 devices (and subdevices) when available.
+  + Add support for CUDA compute capability up to 9.0.
+* Tools
+  + lstopo now switches to console mode when its output is redirected.
+    Graphical window mode may be forced back with --of window.
+  + hwloc-calc now accepts "numa" in -H, and I/O subtypes such as "gpu"
+    in -I and -N.
+
+
+Version 2.8.0
+-------------
+* API
+  + Add HWLOC_TOPOLOGY_FLAG_NO_DISTANCES, _NO_MEMATTRS and _NO_CPUKINDS
+    to reduce the overhead when unneeded.
+  + Add separate Read/Write Bandwidth/Latency memory attributes and
+    implement them on Linux.
+* Backends
+  + NUMA nodes may now have a subtype such as DRAM, HBM, SPM, or NVM
+    on heterogeneous memory platforms on Linux.
+    - Add DAXType and DAXParent attributes on Linux to tell where a
+      DAX device or its corresponding NUMA node come from (SPM for
+      Specific-Purpose or NVM for Non-Volatile Memory).
+  + Detect heterogeneous caches in hybrid CPUs on MacOS X,
+    thanks to Paul Bone for the help.
+  + Max frequencies are not ignored in Linux cpukinds anymore (they were
+    ignored in hwloc 2.7.0), but they may be slightly adjusted to avoid
+    reporting hybrid CPUs because Intel Turbo Boost Max 3.0.
+    - See the documentation of environment variable HWLOC_CPUKINDS_MAXFREQ.
+  + Hardwire the PCI locality of HPE Cray EX235a nodes.
+* Tools
+  + lstopo and other tools may now load Linux and x86 cpuid topology files
+    from a tarball.
+  + lstopo may now replace the P# and L# index prefixes with custom strings
+    thanks to --os-index-prefix and --logical-index-prefix options.
+* Misc
+  + Add --disable-readme to avoid regenerating the top-level hwloc README
+    file from the documentation.
+
+
 Version 2.7.1
 -------------
 * Workaround crashes when virtual machines report incoherent x86 CPUID

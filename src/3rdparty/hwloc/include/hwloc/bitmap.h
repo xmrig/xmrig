@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -112,7 +112,7 @@ HWLOC_DECLSPEC int hwloc_bitmap_copy(hwloc_bitmap_t dst, hwloc_const_bitmap_t sr
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 HWLOC_DECLSPEC int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
@@ -137,7 +137,7 @@ HWLOC_DECLSPEC int hwloc_bitmap_sscanf(hwloc_bitmap_t bitmap, const char * __hwl
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 HWLOC_DECLSPEC int hwloc_bitmap_list_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
@@ -161,7 +161,7 @@ HWLOC_DECLSPEC int hwloc_bitmap_list_sscanf(hwloc_bitmap_t bitmap, const char * 
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 HWLOC_DECLSPEC int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
@@ -357,11 +357,11 @@ HWLOC_DECLSPEC int hwloc_bitmap_last_unset(hwloc_const_bitmap_t bitmap) __hwloc_
  * The loop must start with hwloc_bitmap_foreach_begin() and end
  * with hwloc_bitmap_foreach_end() followed by a terminating ';'.
  *
- * \p index is the loop variable; it should be an unsigned int.  The
- * first iteration will set \p index to the lowest index in the bitmap.
+ * \p id is the loop variable; it should be an unsigned int.  The
+ * first iteration will set \p id to the lowest index in the bitmap.
  * Successive iterations will iterate through, in order, all remaining
  * indexes set in the bitmap.  To be specific: each iteration will return a
- * value for \p index such that hwloc_bitmap_isset(bitmap, index) is true.
+ * value for \p id such that hwloc_bitmap_isset(bitmap, id) is true.
  *
  * The assert prevents the loop from being infinite if the bitmap is infinitely set.
  *

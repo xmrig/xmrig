@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -886,9 +886,6 @@ enum hwloc_distrib_flags_e {
  * \p flags should be 0 or a OR'ed set of ::hwloc_distrib_flags_e.
  *
  * \note This function requires the \p roots objects to have a CPU set.
- *
- * \note This function replaces the now deprecated hwloc_distribute()
- * and hwloc_distributev() functions.
  */
 static __hwloc_inline int
 hwloc_distrib(hwloc_topology_t topology,

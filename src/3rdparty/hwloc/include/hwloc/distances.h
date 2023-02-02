@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Inria.  All rights reserved.
+ * Copyright © 2010-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -35,8 +35,8 @@ extern "C" {
  * from a core in another node.
  * The corresponding kind is ::HWLOC_DISTANCES_KIND_FROM_OS | ::HWLOC_DISTANCES_KIND_FROM_USER.
  * The name of this distances structure is "NUMALatency".
- * Others distance structures include and "XGMIBandwidth", "XGMIHops"
- * and "NVLinkBandwidth".
+ * Others distance structures include and "XGMIBandwidth", "XGMIHops",
+ * "XeLinkBandwidth" and "NVLinkBandwidth".
  *
  * The matrix may also contain bandwidths between random sets of objects,
  * possibly provided by the user, as specified in the \p kind attribute.
@@ -160,7 +160,8 @@ hwloc_distances_get_by_type(hwloc_topology_t topology, hwloc_obj_type_t type,
  * Usually only one distances structure may match a given name.
  *
  * The name of the most common structure is "NUMALatency".
- * Others include "XGMIBandwidth", "XGMIHops" and "NVLinkBandwidth".
+ * Others include "XGMIBandwidth", "XGMIHops", "XeLinkBandwidth",
+ * and "NVLinkBandwidth".
  */
 HWLOC_DECLSPEC int
 hwloc_distances_get_by_name(hwloc_topology_t topology, const char *name,

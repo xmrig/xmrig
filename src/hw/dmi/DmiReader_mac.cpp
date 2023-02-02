@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2002-2006 Hugo Weber  <address@hidden>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "hw/dmi/DmiReader.h"
 #include "hw/dmi/DmiTools.h"
@@ -91,12 +90,12 @@ bool xmrig::DmiReader::read()
     }
 
     CFDataRef data = reinterpret_cast<CFDataRef>(IORegistryEntryCreateCFProperty(service, CFSTR("SMBIOS-EPS"), kCFAllocatorDefault, kNilOptions));
-    if (!data) {
+    if (!data || CFDataGetLength(data) < 0x1f) {
         return false;
     }
 
     uint8_t buf[0x20]{};
-    CFDataGetBytes(data, CFRangeMake(0, sizeof(buf)), buf);
+    CFDataGetBytes(data, CFRangeMake(0, sizeof(buf) - 1), buf);
     CFRelease(data);
 
     auto smb      = smbios_decode(buf, m_size, m_version, service);
