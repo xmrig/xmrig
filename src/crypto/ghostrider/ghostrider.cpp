@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "ghostrider.h"
 #include "sph_blake.h"
@@ -574,7 +573,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     if (helper && (tune[cn_indices[0]].threads == 2) && (tune[cn_indices[1]].threads == 2) && (tune[cn_indices[2]].threads == 2)) {
         const size_t n = N / 2;
 
-        helper->launch_task([n, av, data, size, &ctx_memory, ctx, &cn_indices, &core_indices, &tmp, output, tune]() {
+        helper->launch_task([av, data, size, &ctx_memory, ctx, &cn_indices, &core_indices, &tmp, output, tune]() {
             const uint8_t* input = data;
             size_t input_size = size;
 
