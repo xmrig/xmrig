@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/kernel/Platform.h"
 
@@ -42,9 +41,12 @@ void xmrig::Platform::init(const char *userAgent)
 #   ifdef XMRIG_FEATURE_TLS
     SSL_library_init();
     SSL_load_error_strings();
+
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
     ERR_load_BIO_strings();
     ERR_load_crypto_strings();
-    SSL_load_error_strings();
+#   endif
+
     OpenSSL_add_all_digests();
 #   endif
 
