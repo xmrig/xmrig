@@ -573,7 +573,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     if (helper && (tune[cn_indices[0]].threads == 2) && (tune[cn_indices[1]].threads == 2) && (tune[cn_indices[2]].threads == 2)) {
         const size_t n = N / 2;
 
-        helper->launch_task([av, data, size, &ctx_memory, ctx, &cn_indices, &core_indices, &tmp, output, tune]() {
+        helper->launch_task([n, av, data, size, &ctx_memory, ctx, &cn_indices, &core_indices, &tmp, output, tune]() {
             const uint8_t* input = data;
             size_t input_size = size;
 
