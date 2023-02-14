@@ -31,7 +31,7 @@
 #include <unistd.h>
 #include <cstdio>
 
-#ifdef __FreeBSD__
+#ifdef XMRIG_OS_FREEBSD
 #   include <kenv.h>
 #endif
 
@@ -288,7 +288,7 @@ static off_t address_from_efi()
     const char *filename;
     char linebuf[64];
     off_t address = 0;
-#   elif defined(__FreeBSD__)
+#   elif defined(XMRIG_OS_FREEBSD)
     char addrstr[KENV_MVALLEN + 1];
 #   endif
 
@@ -310,7 +310,7 @@ static off_t address_from_efi()
     fclose(efi_systab);
 
     return address;
-#   elif defined(__FreeBSD__)
+#   elif defined(XMRIG_OS_FREEBSD)
     if (kenv(KENV_GET, "hint.smbios.0.mem", addrstr, sizeof(addrstr)) == -1) {
         return EFI_NOT_FOUND;
     }

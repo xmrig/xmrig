@@ -16,10 +16,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifdef __FreeBSD__
+#ifdef XMRIG_OS_FREEBSD
 #   include <sys/types.h>
 #   include <sys/param.h>
-#   include <sys/cpuset.h>
+#   ifndef __DragonFly__
+#       include <sys/cpuset.h>
+#   endif
 #   include <pthread_np.h>
 #endif
 
@@ -39,11 +41,6 @@
 
 #include "base/kernel/Platform.h"
 #include "version.h"
-
-
-#ifdef __FreeBSD__
-typedef cpuset_t cpu_set_t;
-#endif
 
 
 char *xmrig::Platform::createUserAgent()
@@ -74,6 +71,19 @@ char *xmrig::Platform::createUserAgent()
 
 
 #ifndef XMRIG_FEATURE_HWLOC
+#ifdef __DragonFly__
+
+bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
+{
+    return true;
+}
+
+#else
+
+#ifdef XMRIG_OS_FREEBSD
+typedef cpuset_t cpu_set_t;
+#endif
+
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
     cpu_set_t mn;
@@ -89,7 +99,9 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
     return result;
 }
-#endif
+
+#endif // __DragonFly__
+#endif // XMRIG_FEATURE_HWLOC
 
 
 void xmrig::Platform::setProcessPriority(int)

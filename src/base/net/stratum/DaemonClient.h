@@ -104,6 +104,7 @@ private:
     String m_blocktemplateStr;
     String m_currentJobId;
     String m_prevHash;
+    uint64_t m_jobSteadyMs = 0;
     String m_tlsFingerprint;
     String m_tlsVersion;
     Timer *m_timer;

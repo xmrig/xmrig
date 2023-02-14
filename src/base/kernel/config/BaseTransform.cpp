@@ -251,6 +251,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::HttpPort:         /* --http-port */
     case IConfig::DonateLevelKey:   /* --donate-level */
     case IConfig::DaemonPollKey:    /* --daemon-poll-interval */
+    case IConfig::DaemonJobTimeoutKey: /* --daemon-job-timeout */
     case IConfig::DnsTtlKey:        /* --dns-ttl */
     case IConfig::DaemonZMQPortKey: /* --daemon-zmq-port */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
@@ -376,6 +377,9 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
+
+    case IConfig::DaemonJobTimeoutKey:  /* --daemon-job-timeout */
+        return add(doc, Pools::kPools, Pool::kDaemonJobTimeout, arg);
 
     case IConfig::DaemonZMQPortKey:  /* --daemon-zmq-port */
         return add(doc, Pools::kPools, Pool::kDaemonZMQPort, arg);

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2020 Inria.  All rights reserved.
+ * Copyright © 2013-2022 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -218,7 +218,7 @@ hwloc_diff_trees(hwloc_topology_t topo1, hwloc_obj_t obj1,
 		struct hwloc_info_s *info1 = &obj1->infos[i], *info2 = &obj2->infos[i];
 		if (strcmp(info1->name, info2->name))
 			goto out_too_complex;
-		if (strcmp(obj1->infos[i].value, obj2->infos[i].value)) {
+		if (strcmp(info1->value, info2->value)) {
 			err = hwloc_append_diff_obj_attr_string(obj1,
 								HWLOC_TOPOLOGY_DIFF_OBJ_ATTR_INFO,
 								info1->name,

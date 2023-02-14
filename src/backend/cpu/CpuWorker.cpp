@@ -33,6 +33,7 @@
 #include "crypto/common/Nonce.h"
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
+#include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
@@ -145,6 +146,11 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
         uint8_t* scratchpad = m_memory->isHugePages() ? m_memory->scratchpad() : dataset->tryAllocateScrathpad();
         m_vm = RxVm::create(dataset, scratchpad ? scratchpad : m_memory->scratchpad(), !m_hwAES, m_assembly, node());
     }
+    else if (!dataset->get() && (m_job.currentJob().seed() != m_seed)) {
+        // Update RandomX light VM with the new seed
+        randomx_vm_set_cache(m_vm, dataset->cache()->get());
+    }
+    m_seed = m_job.currentJob().seed();
 }
 #endif
 

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2020 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -93,7 +93,7 @@ extern "C" {
  * Two stable releases of the same series usually have the same ::HWLOC_API_VERSION
  * even if their HWLOC_VERSION are different.
  */
-#define HWLOC_API_VERSION 0x00020500
+#define HWLOC_API_VERSION 0x00020800
 
 /** \brief Indicate at runtime which hwloc API version was used at build time.
  *
@@ -971,7 +971,7 @@ HWLOC_DECLSPEC const char * hwloc_obj_type_string (hwloc_obj_type_t type) __hwlo
  *
  * If \p size is 0, \p string may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 HWLOC_DECLSPEC int hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_t size,
@@ -986,7 +986,7 @@ HWLOC_DECLSPEC int hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_
  *
  * If \p size is 0, \p string may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 HWLOC_DECLSPEC int hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size,
@@ -2060,7 +2060,26 @@ enum hwloc_topology_flags_e {
    * not change to due thread binding changes on Windows
    * (see ::HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING).
    */
-  HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = (1UL<<6)
+  HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING = (1UL<<6),
+
+  /** \brief Ignore distances.
+   *
+   * Ignore distance information from the operating systems (and from XML)
+   * and hence do not use distances for grouping.
+   */
+  HWLOC_TOPOLOGY_FLAG_NO_DISTANCES = (1UL<<7),
+
+  /** \brief Ignore memory attributes.
+   *
+   * Ignore memory attribues from the operating systems (and from XML).
+   */
+  HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS = (1UL<<8),
+
+  /** \brief Ignore CPU Kinds.
+   *
+   * Ignore CPU kind information from the operating systems (and from XML).
+   */
+  HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS = (1UL<<9)
 };
 
 /** \brief Set OR'ed flags to non-yet-loaded topology.

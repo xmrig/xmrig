@@ -61,6 +61,7 @@ public:
     static const char *kCoin;
     static const char *kDaemon;
     static const char *kDaemonPollInterval;
+    static const char* kDaemonJobTimeout;
     static const char *kEnabled;
     static const char *kFingerprint;
     static const char *kKeepalive;
@@ -80,6 +81,7 @@ public:
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
     constexpr static uint64_t kDefaultPollInterval = 1000;
+    constexpr static uint64_t kDefaultJobTimeout   = 15000;
 
     Pool() = default;
     Pool(const char *host, uint16_t port, const char *user, const char *password, const char* spendSecretKey, int keepAlive, bool nicehash, bool tls, Mode mode);
@@ -112,6 +114,7 @@ public:
     inline uint16_t port() const                        { return m_url.port(); }
     inline int zmq_port() const                         { return m_zmqPort; }
     inline uint64_t pollInterval() const                { return m_pollInterval; }
+    inline uint64_t jobTimeout() const                  { return m_jobTimeout; }
     inline void setAlgo(const Algorithm &algorithm)     { m_algorithm = algorithm; }
     inline void setUrl(const char *url)                 { m_url = Url(url); }
     inline void setPassword(const String &password)     { m_password = password; }
@@ -162,6 +165,7 @@ private:
     String m_user;
     String m_spendSecretKey;
     uint64_t m_pollInterval         = kDefaultPollInterval;
+    uint64_t m_jobTimeout           = kDefaultJobTimeout;
     Url m_daemon;
     Url m_url;
     int m_zmqPort                   = -1;

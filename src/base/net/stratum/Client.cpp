@@ -1020,7 +1020,7 @@ void xmrig::Client::onConnect(uv_connect_t *req, int status)
 
     if (status < 0) {
         if (!client->isQuiet()) {
-            LOG_ERR("%s " RED("connect error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
+            LOG_ERR("%s %s " RED("connect error: ") RED_BOLD("\"%s\""), client->tag(), client->ip().data(), uv_strerror(status));
         }
 
         if (client->state() == ReconnectingState || client->state() == ClosingState) {
