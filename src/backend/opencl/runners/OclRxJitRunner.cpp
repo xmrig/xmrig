@@ -16,6 +16,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
+
+
 #include "backend/opencl/runners/OclRxJitRunner.h"
 #include "backend/opencl/cl/rx/randomx_run_gfx803.h"
 #include "backend/opencl/cl/rx/randomx_run_gfx900.h"
