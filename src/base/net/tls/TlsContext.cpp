@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,6 +45,7 @@ namespace xmrig {
 
 
 // https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
 static DH *get_dh2048()
 {
     static unsigned char dhp_2048[] = {
@@ -96,6 +97,8 @@ static DH *get_dh2048()
 
     return dh;
 }
+#endif
+
 
 } // namespace xmrig
 
@@ -191,6 +194,7 @@ bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
 
 bool xmrig::TlsContext::setDH(const char *dhparam)
 {
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
     DH *dh = nullptr;
 
     if (dhparam != nullptr) {
@@ -225,6 +229,34 @@ bool xmrig::TlsContext::setDH(const char *dhparam)
 
         return false;
     }
+#   else
+    if (dhparam != nullptr) {
+        EVP_PKEY *dh = nullptr;
+        BIO *bio     = BIO_new_file(Env::expand(dhparam), "r");
+
+        if (bio) {
+            dh = PEM_read_bio_Parameters(bio, nullptr);
+            BIO_free(bio);
+        }
+
+        if (!dh) {
+            LOG_ERR("PEM_read_bio_Parameters(\"%s\") failed.", dhparam);
+
+            return false;
+        }
+
+        if (SSL_CTX_set0_tmp_dh_pkey(m_ctx, dh) != 1) {
+            EVP_PKEY_free(dh);
+
+            LOG_ERR("SSL_CTX_set0_tmp_dh_pkey(\"%s\") failed.", dhparam);
+
+            return false;
+        }
+    }
+    else {
+        SSL_CTX_set_dh_auto(m_ctx, 1);
+    }
+#   endif
 
     return true;
 }
