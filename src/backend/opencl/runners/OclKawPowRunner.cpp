@@ -16,6 +16,9 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
+
+
 #include "backend/opencl/runners/OclKawPowRunner.h"
 #include "backend/common/Tags.h"
 #include "3rdparty/libethash/ethash_internal.h"

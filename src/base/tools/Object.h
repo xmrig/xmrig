@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,7 +20,9 @@
 #define XMRIG_OBJECT_H
 
 
-#include <chrono>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 
 
 namespace xmrig {
@@ -41,6 +43,7 @@ namespace xmrig {
     X &operator=(X &&other)      = delete;
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
-#endif /* XMRIG_OBJECT_H */
+
+#endif // XMRIG_OBJECT_H

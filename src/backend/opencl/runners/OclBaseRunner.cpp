@@ -23,6 +23,9 @@
  */
 
 
+#include <stdexcept>
+
+
 #include "backend/opencl/runners/OclBaseRunner.h"
 #include "backend/opencl/cl/OclSource.h"
 #include "backend/opencl/OclCache.h"
