@@ -20,10 +20,10 @@
 #define XMRIG_VERSION_H
 
 #define APP_ID        "xmrig-4-xdag"
-#define APP_NAME      "XMRig-4-xdag"
+#define APP_NAME      "XMRig-4-XDAG"
 #define APP_DESC      "XMRig-4-XDAG miner"
 #define APP_VERSION   "6.19.0"
-#define APP_DOMAIN    "xmrig-4-xdag.com"
+#define APP_DOMAIN    "www.xdag.io"
 #define APP_SITE      "www.xdag.io"
 #define APP_COPYRIGHT "Copyright (C) 2016-2023 xmrig.com / xdag.io"
 #define APP_KIND      "miner"
