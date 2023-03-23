@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -46,11 +46,11 @@ xmrig::String xmrig::DnsRecord::ip() const
 
     if (m_type == AAAA) {
         buf = new char[45]();
-        uv_ip6_name(reinterpret_cast<sockaddr_in6*>(m_data), buf, 45);
+        uv_ip6_name(reinterpret_cast<const sockaddr_in6*>(m_data), buf, 45);
     }
     else {
         buf = new char[16]();
-        uv_ip4_name(reinterpret_cast<sockaddr_in*>(m_data), buf, 16);
+        uv_ip4_name(reinterpret_cast<const sockaddr_in*>(m_data), buf, 16);
     }
 
     return buf;
