@@ -19,13 +19,13 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
-#define APP_NAME      "XMRig"
-#define APP_DESC      "XMRig miner"
+#define APP_ID        "xmrig-4-xdag"
+#define APP_NAME      "XMRig-4-XDAG"
+#define APP_DESC      "XMRig-4-XDAG miner"
 #define APP_VERSION   "6.19.0"
-#define APP_DOMAIN    "xmrig.com"
-#define APP_SITE      "www.xmrig.com"
-#define APP_COPYRIGHT "Copyright (C) 2016-2023 xmrig.com"
+#define APP_DOMAIN    "www.xdag.io"
+#define APP_SITE      "www.xdag.io"
+#define APP_COPYRIGHT "Copyright (C) 2016-2023 xmrig.com / xdag.io"
 #define APP_KIND      "miner"
 
 #define APP_VER_MAJOR  6
