@@ -47,7 +47,7 @@ public:
 
     static inline Algorithm::Id id(Algorithm::Id algorithm)
     {
-        if (algorithm == Algorithm::RX_SFX) {
+        if (algorithm == Algorithm::RX_SFX || algorithm == Algorithm::RX_XDAG) {
             return Algorithm::RX_0;
         }
 
