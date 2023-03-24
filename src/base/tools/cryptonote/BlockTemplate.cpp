@@ -269,7 +269,7 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         case 0x03: // TX_EXTRA_MERGE_MINING_TAG
             ar_extra(size);
             setOffset(TX_EXTRA_MERGE_MINING_TAG_OFFSET, offset(TX_EXTRA_OFFSET) + ar_extra.index());
-            ar_extra(m_txMergeMiningTag, size + kKeySize);
+            ar_extra(m_txMergeMiningTag, size);
             break;
 
         default:
