@@ -1,3 +1,9 @@
+# v6.19.1
+- Resolved deprecated methods warnings with OpenSSL 3.0.
+- [#3213](https://github.com/xmrig/xmrig/pull/3213) Fixed build with 32-bit clang 15.
+- [#3218](https://github.com/xmrig/xmrig/pull/3218) Fixed: `--randomx-wrmsr=-1` worked only on Intel.
+- [#3228](https://github.com/xmrig/xmrig/pull/3228) Fixed build with gcc 13.
+
 # v6.19.0
 - [#3144](https://github.com/xmrig/xmrig/pull/3144) Update to latest `sse2neon.h`.
 - [#3161](https://github.com/xmrig/xmrig/pull/3161) MSVC build: enabled parallel compilation.

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@ static const char *kLocalhost = "localhost";
 
 static EVP_PKEY *generate_pkey()
 {
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
     auto pkey = EVP_PKEY_new();
     if (!pkey) {
         return nullptr;
@@ -53,6 +54,9 @@ static EVP_PKEY *generate_pkey()
     BN_free(exponent);
 
     return pkey;
+#   else
+    return EVP_RSA_gen(2048);
+#   endif
 }
 
 
