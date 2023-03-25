@@ -178,7 +178,9 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
 #   endif
 
-    return rpcSend(doc);
+    std::map<std::string, std::string> headers;
+    headers.insert({"X-Hash-Difficulty", std::to_string(result.actualDiff())});
+    return rpcSend(doc, headers);
 }
 
 
@@ -553,9 +555,11 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 }
 
 
-int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
+int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc, const std::map<std::string, std::string> &headers)
 {
     FetchRequest req(HTTP_POST, m_pool.host(), m_pool.port(), kJsonRPC, doc, m_pool.isTLS(), isQuiet());
+    for (const auto &header: headers)
+        req.headers.insert(header);
     fetch(tag(), std::move(req), m_httpListener);
 
     return m_sequence++;

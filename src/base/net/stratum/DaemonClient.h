@@ -86,7 +86,7 @@ private:
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     int64_t getBlockTemplate();
-    int64_t rpcSend(const rapidjson::Document &doc);
+    int64_t rpcSend(const rapidjson::Document &doc, const std::map<std::string, std::string> &headers = {});
     void retry();
     void send(const char *path);
     void setState(SocketState state);
