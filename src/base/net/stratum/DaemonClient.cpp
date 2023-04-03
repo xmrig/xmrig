@@ -148,6 +148,11 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
         memcpy(data + sig_offset * 2, result.sig, 64 * 2);
         memcpy(data + m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) * 2, result.sig_data, 32 * 2);
         memcpy(data + m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) * 2, result.sig_data + 32 * 2, 32 * 2);
+
+        // Handle view tag for txout_to_tagged_key outputs
+        if (m_blocktemplate.outputType() == 3) {
+            Cvt::toHex(data + m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) * 2 + 32 * 2, 2, &result.view_tag, 1);
+        }
     }
 
     if (result.extra_nonce >= 0) {
@@ -178,7 +183,10 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
 #   endif
 
-    return rpcSend(doc);
+    std::map<std::string, std::string> headers;
+    headers.insert({"X-Hash-Difficulty", std::to_string(result.actualDiff())});
+
+    return rpcSend(doc, headers);
 }
 
 
@@ -401,7 +409,8 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) - k,
         m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) - k,
         m_blocktemplate.txExtraNonce().size(),
-        m_blocktemplate.minerTxMerkleTreeBranch()
+        m_blocktemplate.minerTxMerkleTreeBranch(),
+        m_blocktemplate.outputType() == 3
     );
 #   endif
 
@@ -438,7 +447,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         }
 
         uint8_t derivation[32];
-        if (!generate_key_derivation(m_blocktemplate.blob(BlockTemplate::TX_PUBKEY_OFFSET), secret_viewkey, derivation)) {
+        if (!generate_key_derivation(m_blocktemplate.blob(BlockTemplate::TX_PUBKEY_OFFSET), secret_viewkey, derivation, nullptr)) {
             return jobError("Failed to generate key derivation for miner signature.");
         }
 
@@ -553,9 +562,13 @@ int64_t xmrig::DaemonClient::getBlockTemplate()
 }
 
 
-int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc)
+int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc, const std::map<std::string, std::string> &headers)
 {
     FetchRequest req(HTTP_POST, m_pool.host(), m_pool.port(), kJsonRPC, doc, m_pool.isTLS(), isQuiet());
+    for (const auto &header : headers) {
+        req.headers.insert(header);
+    }
+
     fetch(tag(), std::move(req), m_httpListener);
 
     return m_sequence++;

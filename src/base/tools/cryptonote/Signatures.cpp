@@ -147,7 +147,7 @@ bool check_signature(const uint8_t* prefix_hash, const uint8_t* pub, const uint8
 }
 
 
-bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* derivation)
+bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* derivation, uint8_t* view_tag)
 {
     ge_p3 point;
     ge_p2 point2;
@@ -161,6 +161,22 @@ bool generate_key_derivation(const uint8_t* key1, const uint8_t* key2, uint8_t* 
     ge_mul8(&point3, &point2);
     ge_p1p1_to_p2(&point2, &point3);
     ge_tobytes(derivation, &point2);
+
+    if (view_tag) {
+        constexpr uint8_t salt[] = "view_tag";
+        constexpr size_t SALT_SIZE = sizeof(salt) - 1;
+
+        uint8_t buf[SALT_SIZE + 32 + 1];
+        memcpy(buf, salt, SALT_SIZE);
+        memcpy(buf + SALT_SIZE, derivation, 32);
+
+        // Assuming output_index == 0
+        buf[SALT_SIZE + 32] = 0;
+
+        uint8_t view_tag_full[32];
+        xmrig::keccak(buf, sizeof(buf), view_tag_full, sizeof(view_tag_full));
+        *view_tag = view_tag_full[0];
+    }
 
     return true;
 }
