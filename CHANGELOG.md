@@ -1,3 +1,9 @@
+# v6.19.2
+- [#3230](https://github.com/xmrig/xmrig/pull/3230) Fixed parsing of `TX_EXTRA_MERGE_MINING_TAG`.
+- [#3232](https://github.com/xmrig/xmrig/pull/3232) Added new `X-Hash-Difficulty` HTTP header.
+- [#3240](https://github.com/xmrig/xmrig/pull/3240) Improved .cmd files when run by shortcuts on another drive.
+- [#3241](https://github.com/xmrig/xmrig/pull/3241) Added view tag calculation (fixes Wownero solo mining issue).
+
 # v6.19.1
 - Resolved deprecated methods warnings with OpenSSL 3.0.
 - [#3213](https://github.com/xmrig/xmrig/pull/3213) Fixed build with 32-bit clang 15.
