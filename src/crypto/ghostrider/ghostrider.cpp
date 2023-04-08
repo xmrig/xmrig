@@ -538,7 +538,7 @@ void destroy_helper_thread(HelperThread* t)
     delete t;
 }
 
-
+template <size_t CORE_ALGO_LIMIT>
 void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread* helper, bool verbose)
 {
     enum { N = 8 };
@@ -549,7 +549,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     }
 
     // PrevBlockHash (GhostRider's seed) is stored in bytes [4; 36)
-    uint32_t core_indices[15];
+    uint32_t core_indices[CORE_ALGO_LIMIT];
     select_indices(core_indices, data + 4);
 
     uint32_t cn_indices[6];
@@ -600,6 +600,9 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
                 for (size_t i = 0; i < 5; ++i) {
                     for (size_t j = n; j < N; ++j) {
+                        if ((part * 5 + i) >= CORE_ALGO_LIMIT) {
+                            break;
+                        }
                         core_hash[core_indices[part * 5 + i]](input + j * input_size, input_size, tmp + j * 64);
                     }
                     input = tmp;
@@ -644,6 +647,9 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
             for (size_t i = 0; i < 5; ++i) {
                 for (size_t j = 0; j < n; ++j) {
+                    if ((part * 5 + i) >= CORE_ALGO_LIMIT) {
+                        break;
+                    }
                     core_hash[core_indices[part * 5 + i]](input + j * input_size, input_size, tmp + j * 64);
                 }
                 input = tmp;
@@ -712,6 +718,9 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
                     for (size_t i = 0; i < 5; ++i) {
                         for (size_t j = n; j < N; ++j) {
+                            if ((part * 5 + i) >= CORE_ALGO_LIMIT) {
+                                break;
+                            }
                             core_hash[core_indices[part * 5 + i]](input + j * input_size, input_size, tmp + j * 64);
                         }
                         input = tmp;
@@ -732,6 +741,9 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
             for (size_t i = 0; i < 5; ++i) {
                 for (size_t j = 0; j < n; ++j) {
+                    if ((part * 5 + i) >= CORE_ALGO_LIMIT) {
+                        break;
+                    }
                     core_hash[core_indices[part * 5 + i]](data + j * size, size, tmp + j * 64);
                 }
                 data = tmp;
@@ -768,6 +780,7 @@ HelperThread* create_helper_thread(int64_t, int, const std::vector<int64_t>&) { 
 void destroy_helper_thread(HelperThread*) {}
 
 
+template <size_t CORE_ALGO_LIMIT>
 void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ctx** ctx, HelperThread*, bool verbose)
 {
     constexpr uint32_t N = 8;
@@ -828,6 +841,9 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
 
         for (size_t i = 0; i < 5; ++i) {
             for (size_t j = 0; j < N; ++j) {
+                if ((part * 5 + i) >= CORE_ALGO_LIMIT) {
+                    break;
+                }
                 core_hash[core_indices[part * 5 + i]](data + j * size, size, tmp + j * 64);
             }
             data = tmp;

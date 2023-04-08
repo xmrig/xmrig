@@ -54,6 +54,8 @@ namespace xmrig {
 
 static constexpr uint32_t kReserveCount = 32768;
 
+static constexpr size_t GHOSTRIDER_RTM_CORE_ALGO_LIMIT = 15;
+static constexpr size_t GHOSTRIDER_MIKE_CORE_ALGO_LIMIT = 11;
 
 #ifdef XMRIG_ALGO_CN_HEAVY
 static std::mutex cn_heavyZen3MemoryMutex;
@@ -168,8 +170,8 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (m_algorithm.family() == Algorithm::GHOSTRIDER) {
-        return (N == 8) && verify(Algorithm::GHOSTRIDER_RTM, test_output_gr);
-    }
+        return (N == 8) && verify(Algorithm::GHOSTRIDER_RTM, test_output_gr)
+                        && verify(Algorithm::GHOSTRIDER_MIKE, test_output_gr_mike);    }
 #   endif
 
     if (m_algorithm.family() == Algorithm::CN) {
@@ -317,7 +319,11 @@ void xmrig::CpuWorker<N>::start()
 #               ifdef XMRIG_ALGO_GHOSTRIDER
                 case Algorithm::GHOSTRIDER:
                     if (N == 8) {
-                        ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                        if (job.algorithm().id() != Algorithm::GHOSTRIDER_MIKE) {
+                          ghostrider::hash_octa<GHOSTRIDER_RTM_CORE_ALGO_LIMIT>(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                        } else {
+                          ghostrider::hash_octa<GHOSTRIDER_MIKE_CORE_ALGO_LIMIT>(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                        }
                     }
                     else {
                         valid = false;
@@ -387,7 +393,7 @@ template<size_t N>
 bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (algorithm == Algorithm::GHOSTRIDER_RTM) {
+    if (algorithm.family() == Algorithm::GHOSTRIDER) {
         uint8_t blob[N * 80] = {};
         for (size_t i = 0; i < N; ++i) {
             blob[i * 80 + 0] = static_cast<uint8_t>(i);
@@ -396,7 +402,12 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
         }
 
         uint8_t hash1[N * 32] = {};
-        ghostrider::hash_octa(blob, 80, hash1, m_ctx, 0, false);
+          if (algorithm.id() != Algorithm::GHOSTRIDER_MIKE) {
+            ghostrider::hash_octa<GHOSTRIDER_RTM_CORE_ALGO_LIMIT>(blob, 80, hash1, m_ctx, 0, false);
+        }
+        else {
+            ghostrider::hash_octa<GHOSTRIDER_MIKE_CORE_ALGO_LIMIT>(blob, 80, hash1, m_ctx, 0, false);
+        }
 
         for (size_t i = 0; i < N; ++i) {
             blob[i * 80 + 0] = static_cast<uint8_t>(i);
@@ -405,7 +416,12 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
         }
 
         uint8_t hash2[N * 32] = {};
-        ghostrider::hash_octa(blob, 80, hash2, m_ctx, 0, false);
+           if (algorithm.id() != Algorithm::GHOSTRIDER_MIKE) {
+            ghostrider::hash_octa<GHOSTRIDER_RTM_CORE_ALGO_LIMIT>(blob, 80, hash2, m_ctx, 0, false);
+        }
+        else {
+            ghostrider::hash_octa<GHOSTRIDER_MIKE_CORE_ALGO_LIMIT>(blob, 80, hash2, m_ctx, 0, false);
+        }
 
         for (size_t i = 0; i < N * 32; ++i) {
             if ((hash1[i] ^ hash2[i]) != referenceValue[i]) {
