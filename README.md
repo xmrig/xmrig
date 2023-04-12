@@ -11,17 +11,17 @@
 * **the fees have been set to zero** for improving mining and to avoid disconnections to XDAG mining pools, 
 
 ## Available on theses OS/platforms :
-* Windows x64
+* Windows 10 x64 and upper.
 * Linux Ubuntu 18.04 / 20.04 / 22.04 / 22.10
 * Hive OS (Ubuntu 18.04)
 * FreeBSD 13.1
-* MacOS x64 darwin (intel CPU)
+* MacOS x64 darwin (10.5.x and upper)
 
 ## How to compile
-Check Github [wiki pages](https://github.com/FSOL-XDAG/xmrig-4-xdag/wiki)
+Check Github [wiki pages](https://github.com/FSOL-XDAG/xmrig-4-xdag/wiki#how-to-build).
 
 ## Donations
-* If you appreciate this work, feel free to send me some XDAG as tips (remark : x4x tips).
+* If you appreciate this work, feel free to send me some XDAG as tips (remark : `x4x tips`).
 * XDAG: `53r2nH7y81CePxqe73mpoZdEjs66j178K`
 
 ## XMRig Developers
