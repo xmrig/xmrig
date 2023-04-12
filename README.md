@@ -1,5 +1,12 @@
 # XMRig-4-XDAG
 
+[![Github All Releases](https://img.shields.io/github/downloads/FSOL-XDAG/xmrig-4-xdag/total.svg)]()
+[![GitHub release](https://img.shields.io/github/release/FSOL-XDAG/xmrig-4-xdag/all.svg)](https://github.com/FSOL-XDAG/xmrig-4-xdag/releases)
+[![GitHub Release Date](https://img.shields.io/github/release-date/FSOL-XDAG/xmrig-4-xdag.svg)](https://github.com/FSOL-XDAG/xmrig-4-xdag/releases)
+[![GitHub license](https://img.shields.io/github/license/FSOL-XDAG/xmrig-4-xdag.svg)](https://github.com/FSOL-XDAG/xmrig-4-xdag/blob/master/LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/FSOL-XDAG/xmrig-4-xdag.svg)](https://github.com/FSOL-XDAG/xmrig-4-xdag/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/FSOL-XDAG/xmrig-4-xdag.svg)](https://github.com/FSOL-XDAG/xmrig-4-xdag/network)
+
 ![x4x_spash](https://user-images.githubusercontent.com/128682335/227436274-10a8321c-7b75-4f70-a304-e7ab34f74e16.png)
 
 ## Description
