@@ -10,6 +10,16 @@
 * **_CUDA_ and _OpenCL_ support have been removed** at compilation too (_GPUs are useless to mine XDAG_).
 * **the fees have been set to zero** for improving mining and to avoid disconnections to XDAG mining pools, 
 
+## Available on theses OS/platforms :
+* Windows x64
+* Linux Ubuntu 18.04 / 20.04 / 22.04 / 22.10
+* Hive OS (Ubuntu 18.04)
+* FreeBSD 13.1
+* MacOS x64 darwin (intel CPU)
+
+## How to compile
+Check Github [wiki pages](https://github.com/FSOL-XDAG/xmrig-4-xdag/wiki)
+
 ## Donations
 * If you appreciate this work, feel free to send me some XDAG as tips (remark : x4x tips).
 * XDAG: `53r2nH7y81CePxqe73mpoZdEjs66j178K`
@@ -21,8 +31,11 @@
 ## x4x Developer
 * **[FSOL-XDAG](https://github.com/FSOL-XDAG)**
 
-## Contacts
+## Usefull link
+* [Medium](https://medium.com/@fsol)
+* [Discord]([https://medium.com/@fsol](https://discord.gg/fHE4sJ7NKt))
+* [Twitter](https://twitter.com/Chrix_Switch)
+* [How to](https://1to.fr)
+
+## Contact
 * fsol@xdag.io
-* [web](https://1to.fr)
-* [medium](https://medium.com/@fsol)
-* [twitter](https://twitter.com/Chrix_Switch)
