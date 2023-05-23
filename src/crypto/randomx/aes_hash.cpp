@@ -167,16 +167,8 @@ void fillAes1Rx4(void *state, size_t outputSize, void *buffer) {
 template void fillAes1Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes1Rx4<false>(void *state, size_t outputSize, void *buffer);
 
-static const rx_vec_i128 inst_mask = []() {
-	constexpr randomx::Instruction inst{ 0xFF, randomx::RegistersCount - 1, randomx::RegistersCount - 1, 0xFF, 0xFFFFFFFFU };
-
-	union {
-		randomx::Instruction mask[2];
-		rx_vec_i128 vec;
-	} result = { inst, inst };
-
-	return result.vec;
-}();
+static constexpr randomx::Instruction inst{ 0xFF, 7, 7, 0xFF, 0xFFFFFFFFU };
+alignas(16) static const randomx::Instruction inst_mask[2] = { inst, inst };
 
 template<int softAes>
 void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
@@ -227,7 +219,8 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 		rx_store_vec_i128((rx_vec_i128*)outptr + 3, state3);
 	}
 
-	const rx_vec_i128 mask = inst_mask;
+	static_assert(sizeof(inst_mask) == sizeof(rx_vec_i128), "Incorrect inst_mask size");
+	const rx_vec_i128 mask = *reinterpret_cast<const rx_vec_i128*>(inst_mask);
 
 	while (outptr < outputEnd) {
 		TRANSFORM;
