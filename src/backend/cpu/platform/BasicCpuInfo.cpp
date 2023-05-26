@@ -296,7 +296,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                 // Affected CPU models and stepping numbers are taken from https://www.intel.com/content/dam/support/us/en/documents/processors/mitigations-jump-conditional-code-erratum.pdf
                 m_jccErratum =
                     ((model == 0x4E) && (stepping == 0x3)) ||
-                    ((model == 0x55) && (stepping == 0x4)) ||
+                    ((model == 0x55) && ((stepping == 0x4) || (stepping == 0x7))) ||
                     ((model == 0x5E) && (stepping == 0x3)) ||
                     ((model == 0x8E) && (stepping >= 0x9) && (stepping <= 0xC)) ||
                     ((model == 0x9E) && (stepping >= 0x9) && (stepping <= 0xD)) ||
