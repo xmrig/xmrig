@@ -88,7 +88,6 @@ set(HEADERS_BASE
    )
 
 set(SOURCES_BASE
-    src/3rdparty/fmt/format.cc
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp

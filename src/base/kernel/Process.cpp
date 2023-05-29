@@ -22,10 +22,10 @@
 
 
 #include "base/kernel/Process.h"
-#include "3rdparty/fmt/core.h"
 #include "base/tools/Chrono.h"
 #include "version.h"
 
+#include <fmt/core.h>
 
 #ifdef XMRIG_OS_WIN
 #   ifdef _MSC_VER

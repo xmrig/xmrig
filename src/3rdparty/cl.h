@@ -29,7 +29,7 @@
 #if defined(__APPLE__)
 #   include <OpenCL/cl.h>
 #else
-#   include "3rdparty/CL/cl.h"
+#   include <CL/cl.h>
 #endif
 
 
