@@ -1,3 +1,11 @@
+# v6.19.3
+- [#3245](https://github.com/xmrig/xmrig/issues/3245) Improved algorithm negotiation for donation rounds by sending extra information about current mining job.
+- [#3254](https://github.com/xmrig/xmrig/pull/3254) Tweaked auto-tuning for Intel CPUs.
+- [#3271](https://github.com/xmrig/xmrig/pull/3271) RandomX: optimized program generation.
+- [#3273](https://github.com/xmrig/xmrig/pull/3273) RandomX: fixed undefined behavior.
+- [#3275](https://github.com/xmrig/xmrig/pull/3275) RandomX: fixed `jccErratum` list.
+- [#3280](https://github.com/xmrig/xmrig/pull/3280) Updated example scripts.
+
 # v6.19.2
 - [#3230](https://github.com/xmrig/xmrig/pull/3230) Fixed parsing of `TX_EXTRA_MERGE_MINING_TAG`.
 - [#3232](https://github.com/xmrig/xmrig/pull/3232) Added new `X-Hash-Difficulty` HTTP header.
