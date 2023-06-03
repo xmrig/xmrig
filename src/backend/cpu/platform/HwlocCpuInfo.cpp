@@ -298,8 +298,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     cores.reserve(m_cores);
     findByType(cache, HWLOC_OBJ_CORE, [&cores](hwloc_obj_t found) { cores.emplace_back(found); });
 
+    const bool L3_exclusive = isCacheExclusive(cache);
+
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if ((algorithm == Algorithm::GHOSTRIDER_RTM) && (PUs > cores.size()) && (PUs < cores.size() * 2)) {
+    if ((algorithm == Algorithm::GHOSTRIDER_RTM) && L3_exclusive && (PUs > cores.size()) && (PUs < cores.size() * 2)) {
         // Don't use E-cores on Alder Lake
         cores.erase(std::remove_if(cores.begin(), cores.end(), [](hwloc_obj_t c) { return hwloc_bitmap_weight(c->cpuset) == 1; }), cores.end());
 
@@ -311,7 +313,6 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 #   endif
 
     size_t L3               = cache->attr->cache.size;
-    const bool L3_exclusive = isCacheExclusive(cache);
     size_t L2               = 0;
     int L2_associativity    = 0;
     size_t extra            = 0;
@@ -355,6 +356,10 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 #   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
+    if ((algorithm.family() == Algorithm::RANDOM_X) && L3_exclusive && (PUs > cores.size()) && (PUs < cores.size() * 2)) {
+        // Use all L3+L2 on latest Intel CPUs with P-cores, E-cores and exclusive L3 cache
+        cacheHashes = (L3 + L2) / scratchpad;
+    }
     if (extra == 0 && algorithm.l2() > 0) {
         cacheHashes = std::min<size_t>(std::max<size_t>(L2 / algorithm.l2(), cores.size()), cacheHashes);
     }

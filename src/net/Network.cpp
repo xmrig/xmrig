@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -307,8 +307,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     }
 
     if (!donate && m_donate) {
-        m_donate->setAlgo(job.algorithm());
-        m_donate->setProxy(client->pool().proxy());
+        static_cast<DonateStrategy *>(m_donate)->update(client, job);
     }
 
     m_controller->miner()->setJob(job, donate);
