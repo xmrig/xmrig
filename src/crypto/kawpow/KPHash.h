@@ -7,8 +7,8 @@
  * Copyright 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 tevador     <tevador@gmail.com>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 #define XMRIG_KP_HASH_H
 
 
-#include <stdint.h>
+#include <cstdint>
 
 
 namespace xmrig
@@ -43,16 +43,16 @@ class KPHash
 public:
     static constexpr uint32_t EPOCH_LENGTH  = 7500;
     static constexpr uint32_t PERIOD_LENGTH = 3;
-    static constexpr int CNT_CACHE = 11;
-    static constexpr int CNT_MATH = 18;
-    static constexpr uint32_t REGS = 32;
-    static constexpr uint32_t LANES = 16;
+    static constexpr int CNT_CACHE          = 11;
+    static constexpr int CNT_MATH           = 18;
+    static constexpr uint32_t REGS          = 32;
+    static constexpr uint32_t LANES         = 16;
 
     static void calculate(const KPCache& light_cache, uint32_t block_height, const uint8_t (&header_hash)[32], uint64_t nonce, uint32_t (&output)[8], uint32_t (&mix_hash)[8]);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_KP_HASH_H */
+#endif // XMRIG_KP_HASH_H

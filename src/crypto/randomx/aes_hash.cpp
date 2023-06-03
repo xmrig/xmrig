@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "base/tools/Chrono.h"
 #include "crypto/randomx/randomx.h"
 #include "crypto/randomx/soft_aes.h"
+#include "crypto/randomx/instruction.hpp"
+#include "crypto/randomx/common.hpp"
 #include "crypto/rx/Profiler.h"
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
@@ -165,6 +167,9 @@ void fillAes1Rx4(void *state, size_t outputSize, void *buffer) {
 template void fillAes1Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes1Rx4<false>(void *state, size_t outputSize, void *buffer);
 
+static constexpr randomx::Instruction inst{ 0xFF, 7, 7, 0xFF, 0xFFFFFFFFU };
+alignas(16) static const randomx::Instruction inst_mask[2] = { inst, inst };
+
 template<int softAes>
 void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 	const uint8_t* outptr = (uint8_t*)buffer;
@@ -187,32 +192,42 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 	state2 = rx_load_vec_i128((rx_vec_i128*)state + 2);
 	state3 = rx_load_vec_i128((rx_vec_i128*)state + 3);
 
-	while (outptr < outputEnd) {
-		state0 = aesdec<softAes>(state0, key0);
-		state1 = aesenc<softAes>(state1, key0);
-		state2 = aesdec<softAes>(state2, key4);
-		state3 = aesenc<softAes>(state3, key4);
+#define TRANSFORM do { \
+	state0 = aesdec<softAes>(state0, key0); \
+	state1 = aesenc<softAes>(state1, key0); \
+	state2 = aesdec<softAes>(state2, key4); \
+	state3 = aesenc<softAes>(state3, key4); \
+	state0 = aesdec<softAes>(state0, key1); \
+	state1 = aesenc<softAes>(state1, key1); \
+	state2 = aesdec<softAes>(state2, key5); \
+	state3 = aesenc<softAes>(state3, key5); \
+	state0 = aesdec<softAes>(state0, key2); \
+	state1 = aesenc<softAes>(state1, key2); \
+	state2 = aesdec<softAes>(state2, key6); \
+	state3 = aesenc<softAes>(state3, key6); \
+	state0 = aesdec<softAes>(state0, key3); \
+	state1 = aesenc<softAes>(state1, key3); \
+	state2 = aesdec<softAes>(state2, key7); \
+	state3 = aesenc<softAes>(state3, key7); \
+} while (0)
 
-		state0 = aesdec<softAes>(state0, key1);
-		state1 = aesenc<softAes>(state1, key1);
-		state2 = aesdec<softAes>(state2, key5);
-		state3 = aesenc<softAes>(state3, key5);
-
-		state0 = aesdec<softAes>(state0, key2);
-		state1 = aesenc<softAes>(state1, key2);
-		state2 = aesdec<softAes>(state2, key6);
-		state3 = aesenc<softAes>(state3, key6);
-
-		state0 = aesdec<softAes>(state0, key3);
-		state1 = aesenc<softAes>(state1, key3);
-		state2 = aesdec<softAes>(state2, key7);
-		state3 = aesenc<softAes>(state3, key7);
-
+	for (int i = 0; i < 2; ++i, outptr += 64) {
+		TRANSFORM;
 		rx_store_vec_i128((rx_vec_i128*)outptr + 0, state0);
 		rx_store_vec_i128((rx_vec_i128*)outptr + 1, state1);
 		rx_store_vec_i128((rx_vec_i128*)outptr + 2, state2);
 		rx_store_vec_i128((rx_vec_i128*)outptr + 3, state3);
+	}
 
+	static_assert(sizeof(inst_mask) == sizeof(rx_vec_i128), "Incorrect inst_mask size");
+	const rx_vec_i128 mask = *reinterpret_cast<const rx_vec_i128*>(inst_mask);
+
+	while (outptr < outputEnd) {
+		TRANSFORM;
+		rx_store_vec_i128((rx_vec_i128*)outptr + 0, rx_and_vec_i128(state0, mask));
+		rx_store_vec_i128((rx_vec_i128*)outptr + 1, rx_and_vec_i128(state1, mask));
+		rx_store_vec_i128((rx_vec_i128*)outptr + 2, rx_and_vec_i128(state2, mask));
+		rx_store_vec_i128((rx_vec_i128*)outptr + 3, rx_and_vec_i128(state3, mask));
 		outptr += 64;
 	}
 }

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2022 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2022 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ static const char *kDonateHost = "donate.v2.xmrig.com";
 static const char *kDonateHostTls = "donate.ssl.xmrig.com";
 #endif
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
 xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener *listener) :
@@ -95,6 +95,17 @@ xmrig::DonateStrategy::~DonateStrategy()
     if (m_proxy) {
         m_proxy->deleteLater();
     }
+}
+
+
+void xmrig::DonateStrategy::update(IClient *client, const Job &job)
+{
+    setAlgo(job.algorithm());
+    setProxy(client->pool().proxy());
+
+    m_diff   = job.diff();
+    m_height = job.height();
+    m_seed   = job.seed();
 }
 
 
@@ -199,13 +210,13 @@ void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjs
     params.AddMember("url", m_pools[0].url().toJSON(), allocator);
 #   endif
 
-    setAlgorithms(doc, params);
+    setParams(doc, params);
 }
 
 
 void xmrig::DonateStrategy::onLogin(IStrategy *, IClient *, rapidjson::Document &doc, rapidjson::Value &params)
 {
-    setAlgorithms(doc, params);
+    setParams(doc, params);
 }
 
 
@@ -270,12 +281,20 @@ void xmrig::DonateStrategy::idle(double min, double max)
 }
 
 
-void xmrig::DonateStrategy::setAlgorithms(rapidjson::Document &doc, rapidjson::Value &params)
+void xmrig::DonateStrategy::setJob(IClient *client, const Job &job, const rapidjson::Value &params)
+{
+    if (isActive()) {
+        m_listener->onJob(this, client, job, params);
+    }
+}
+
+
+void xmrig::DonateStrategy::setParams(rapidjson::Document &doc, rapidjson::Value &params)
 {
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
+    auto algorithms = m_controller->miner()->algorithms();
 
-    Algorithms algorithms = m_controller->miner()->algorithms();
     const size_t index = static_cast<size_t>(std::distance(algorithms.begin(), std::find(algorithms.begin(), algorithms.end(), m_algorithm)));
     if (index > 0 && index < algorithms.size()) {
         std::swap(algorithms[0], algorithms[index]);
@@ -287,14 +306,12 @@ void xmrig::DonateStrategy::setAlgorithms(rapidjson::Document &doc, rapidjson::V
         algo.PushBack(StringRef(a.name()), allocator);
     }
 
-    params.AddMember("algo", algo, allocator);
-}
+    params.AddMember("algo",    algo, allocator);
+    params.AddMember("diff",    m_diff, allocator);
+    params.AddMember("height",  m_height, allocator);
 
-
-void xmrig::DonateStrategy::setJob(IClient *client, const Job &job, const rapidjson::Value &params)
-{
-    if (isActive()) {
-        m_listener->onJob(this, client, job, params);
+    if (!m_seed.empty()) {
+       params.AddMember("seed_hash", Cvt::toHex(m_seed, doc), allocator);
     }
 }
 
