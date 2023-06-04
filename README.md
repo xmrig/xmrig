@@ -23,7 +23,6 @@
 * Hive OS (Ubuntu 18.04)
 * FreeBSD 13.1
 * MacOS x64 darwin (10.5.x and upper)
-* CentOS 8
 
 ## How to compile
 Check Github [wiki pages](https://github.com/FSOL-XDAG/xmrig-4-xdag/wiki#how-to-build).
