@@ -47,9 +47,13 @@
 #include <uv.h>
 
 #ifdef XMRIG_FEATURE_HWLOC
-#include "base/kernel/Platform.h"
-#include "backend/cpu/platform/HwlocCpuInfo.h"
-#include <hwloc.h>
+#   include "base/kernel/Platform.h"
+#   include "backend/cpu/platform/HwlocCpuInfo.h"
+#   include <hwloc.h>
+
+#   if HWLOC_API_VERSION < 0x20000
+#       define HWLOC_OBJ_L3CACHE HWLOC_OBJ_CACHE
+#   endif
 #endif
 
 #if defined(XMRIG_ARM)
@@ -487,6 +491,12 @@ HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::v
         bool is8MB = false;
 
         findByType(root, HWLOC_OBJ_L3CACHE, [cpu_index, &is8MB](hwloc_obj_t obj) {
+#           if HWLOC_API_VERSION < 0x20000
+            if (obj->attr->cache.depth != 3) {
+                return false;
+            }
+#           endif
+
             if (!hwloc_bitmap_isset(obj->cpuset, cpu_index)) {
                 return false;
             }
@@ -510,7 +520,11 @@ HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::v
             return true;
         });
 
+#       if HWLOC_API_VERSION >= 0x20000
         for (auto obj_type : { HWLOC_OBJ_CORE, HWLOC_OBJ_L1CACHE, HWLOC_OBJ_L2CACHE, HWLOC_OBJ_L3CACHE }) {
+#       else
+        for (auto obj_type : { HWLOC_OBJ_CORE, HWLOC_OBJ_CACHE }) {
+#       endif
             findByType(root, obj_type, [cpu_index, helper_cpu_set, main_threads_set](hwloc_obj_t obj) {
                 const hwloc_cpuset_t& s = obj->cpuset;
                 if (hwloc_bitmap_isset(s, cpu_index)) {

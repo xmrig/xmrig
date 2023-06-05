@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -36,27 +36,25 @@
 #include "base/io/log/Log.h"
 
 
+#if HWLOC_API_VERSION < 0x20000
+static inline int hwloc_obj_type_is_cache(hwloc_obj_type_t type)
+{
+    return type == HWLOC_OBJ_CACHE;
+}
+#endif
+
+
 namespace xmrig {
 
 
 uint32_t HwlocCpuInfo::m_features = 0;
 
 
-static inline bool isCacheObject(hwloc_obj_t obj)
-{
-#   if HWLOC_API_VERSION >= 0x20000
-    return hwloc_obj_type_is_cache(obj->type);
-#   else
-    return obj->type == HWLOC_OBJ_CACHE;
-#   endif
-}
-
-
 template <typename func>
 static inline void findCache(hwloc_obj_t obj, unsigned min, unsigned max, func lambda)
 {
     for (size_t i = 0; i < obj->arity; i++) {
-        if (isCacheObject(obj->children[i])) {
+        if (hwloc_obj_type_is_cache(obj->children[i]->type)) {
             const unsigned depth = obj->children[i]->attr->cache.depth;
             if (depth < min || depth > max) {
                 continue;
@@ -322,7 +320,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     if (cache->attr->cache.depth == 3) {
         for (size_t i = 0; i < cache->arity; ++i) {
             hwloc_obj_t l2 = cache->children[i];
-            if (!isCacheObject(l2) || l2->attr == nullptr) {
+            if (!hwloc_obj_type_is_cache(l2->type) || l2->attr == nullptr) {
                 continue;
             }
 
