@@ -48,7 +48,6 @@
 
 #ifdef XMRIG_FEATURE_HWLOC
 #   include "base/kernel/Platform.h"
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
 #   include <hwloc.h>
 
 #   if HWLOC_API_VERSION < 0x20000
@@ -243,7 +242,7 @@ struct HelperThread
     void run()
     {
         if (hwloc_bitmap_weight(m_cpuSet) > 0) {
-            hwloc_topology_t topology = reinterpret_cast<HwlocCpuInfo*>(Cpu::info())->topology();
+            hwloc_topology_t topology = Cpu::info()->topology();
             if (hwloc_set_cpubind(topology, m_cpuSet, HWLOC_CPUBIND_THREAD | HWLOC_CPUBIND_STRICT) < 0) {
                 hwloc_set_cpubind(topology, m_cpuSet, HWLOC_CPUBIND_THREAD);
             }
@@ -297,7 +296,7 @@ void benchmark()
         // Try to avoid CPU core 0 because many system threads use it and can interfere
         uint32_t thread_index1 = (Cpu::info()->threads() > 2) ? 2 : 0;
 
-        hwloc_topology_t topology = reinterpret_cast<HwlocCpuInfo*>(Cpu::info())->topology();
+        hwloc_topology_t topology = Cpu::info()->topology();
         hwloc_obj_t pu = hwloc_get_pu_obj_by_os_index(topology, thread_index1);
         hwloc_obj_t pu2 = nullptr;
         hwloc_get_closest_objs(topology, pu, &pu2, 1);
@@ -490,8 +489,7 @@ HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::v
     }
 
     if (cpu_index >= 0) {
-        hwloc_topology_t topology = reinterpret_cast<HwlocCpuInfo*>(Cpu::info())->topology();
-        hwloc_obj_t root = hwloc_get_root_obj(topology);
+        hwloc_obj_t root = hwloc_get_root_obj(Cpu::info()->topology());
 
         bool is8MB = false;
 

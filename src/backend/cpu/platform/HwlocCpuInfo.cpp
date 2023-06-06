@@ -47,9 +47,6 @@ static inline int hwloc_obj_type_is_cache(hwloc_obj_type_t type)
 namespace xmrig {
 
 
-uint32_t HwlocCpuInfo::m_features = 0;
-
-
 template <typename func>
 static inline void findCache(hwloc_obj_t obj, unsigned min, unsigned max, func lambda)
 {
@@ -172,10 +169,6 @@ xmrig::HwlocCpuInfo::HwlocCpuInfo()
     m_packages  = countByType(m_topology, HWLOC_OBJ_PACKAGE);
 
     if (m_nodes > 1) {
-        if (hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
-            m_features |= SET_THISTHREAD_MEMBIND;
-        }
-
         m_nodeset.reserve(m_nodes);
         hwloc_obj_t node = nullptr;
 

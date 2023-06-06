@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,6 @@
 
 #include "crypto/rx/RxNUMAStorage.h"
 #include "backend/cpu/Cpu.h"
-#include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
@@ -45,13 +44,12 @@ static std::mutex mutex;
 
 static bool bindToNUMANode(uint32_t nodeId)
 {
-    auto cpu         = static_cast<HwlocCpuInfo *>(Cpu::info());
-    hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(cpu->topology(), nodeId);
+    auto node = hwloc_get_numanode_obj_by_os_index(Cpu::info()->topology(), nodeId);
     if (!node) {
         return false;
     }
 
-    if (cpu->membind(node->nodeset)) {
+    if (Cpu::info()->membind(node->nodeset)) {
         Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
 
         return true;
