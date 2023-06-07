@@ -54,6 +54,7 @@ public:
     void request(const HttpData &req);
     void start();
     void stop();
+    void tick();
 
 protected:
     void onConfigChanged(Config *config, Config *previousConfig) override;
@@ -67,6 +68,7 @@ private:
     char m_id[32]{};
     String m_workerId;
     const uint64_t m_timestamp;
+    uint8_t m_ticks;
     Httpd *m_httpd = nullptr;
     std::vector<IApiListener *> m_listeners;
 };
