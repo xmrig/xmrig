@@ -315,6 +315,13 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         }
     }
 
+    if (m_coin == Coin::ZEPHYR) {
+        uint64_t pricing_record_height, amount_burnt, amount_minted;
+        ar(pricing_record_height);
+        ar(amount_burnt);
+        ar(amount_minted);
+    }
+
     setOffset(MINER_TX_PREFIX_END_OFFSET, ar.index());
     // Prefix end
 
