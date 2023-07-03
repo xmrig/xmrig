@@ -40,6 +40,7 @@ public:
         RAVEN,
         WOWNERO,
         ZEPHYR,
+        XDAG,
         MAX
     };
 
