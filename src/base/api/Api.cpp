@@ -126,7 +126,7 @@ void xmrig::Api::stop()
 void xmrig::Api::tick()
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    if (m_httpd->isBound() || !m_base->config()->http().isEnabled()) {
+    if (!m_base->config()->http().isEnabled() || m_httpd->isBound()) {
         return;
     }
 
