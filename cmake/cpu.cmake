@@ -29,6 +29,12 @@ else()
     set(WITH_VAES OFF)
 endif()
 
+if (ARM_V8)
+    set(ARM_TARGET 8)
+elseif (ARM_V7)
+    set(ARM_TARGET 7)
+endif()
+
 if (NOT ARM_TARGET)
     if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|armv8-a)$")
         set(ARM_TARGET 8)

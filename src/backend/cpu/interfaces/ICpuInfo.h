@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,6 +24,12 @@
 #include "base/crypto/Algorithm.h"
 #include "base/tools/Object.h"
 #include "crypto/common/Assembly.h"
+
+
+#ifdef XMRIG_FEATURE_HWLOC
+using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
+using hwloc_topology_t      = struct hwloc_topology *;
+#endif
 
 
 namespace xmrig {
@@ -116,10 +122,16 @@ public:
     virtual size_t threads() const                                                  = 0;
     virtual Vendor vendor() const                                                   = 0;
     virtual uint32_t model() const                                                  = 0;
+
+#   ifdef XMRIG_FEATURE_HWLOC
+    virtual bool membind(hwloc_const_bitmap_t nodeset)                              = 0;
+    virtual const std::vector<uint32_t> &nodeset() const                            = 0;
+    virtual hwloc_topology_t topology() const                                       = 0;
+#   endif
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
 #endif // XMRIG_CPUINFO_H

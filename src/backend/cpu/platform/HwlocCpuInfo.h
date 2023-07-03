@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,12 +21,9 @@
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
-#include "base/tools/Object.h"
 
 
-using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
-using hwloc_obj_t           = struct hwloc_obj *;
-using hwloc_topology_t      = struct hwloc_topology *;
+using hwloc_obj_t = struct hwloc_obj *;
 
 
 namespace xmrig {
@@ -37,38 +34,26 @@ class HwlocCpuInfo : public BasicCpuInfo
 public:
     XMRIG_DISABLE_COPY_MOVE(HwlocCpuInfo)
 
-
-    enum Feature : uint32_t {
-        SET_THISTHREAD_MEMBIND = 1
-    };
-
-
     HwlocCpuInfo();
     ~HwlocCpuInfo() override;
 
-    static inline bool hasFeature(Feature feature)              { return m_features & feature; }
-
-    inline const std::vector<uint32_t> &nodeset() const         { return m_nodeset; }
-    inline hwloc_topology_t topology() const                    { return m_topology; }
-
-    bool membind(hwloc_const_bitmap_t nodeset);
-
 protected:
+    bool membind(hwloc_const_bitmap_t nodeset) override;
     CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
 
-    inline const char *backend() const override     { return m_backend; }
-    inline size_t cores() const override            { return m_cores; }
-    inline size_t L2() const override               { return m_cache[2]; }
-    inline size_t L3() const override               { return m_cache[3]; }
-    inline size_t nodes() const override            { return m_nodes; }
-    inline size_t packages() const override         { return m_packages; }
+    inline const char *backend() const override                     { return m_backend; }
+    inline const std::vector<uint32_t> &nodeset() const override    { return m_nodeset; }
+    inline hwloc_topology_t topology() const override               { return m_topology; }
+    inline size_t cores() const override                            { return m_cores; }
+    inline size_t L2() const override                               { return m_cache[2]; }
+    inline size_t L3() const override                               { return m_cache[3]; }
+    inline size_t nodes() const override                            { return m_nodes; }
+    inline size_t packages() const override                         { return m_packages; }
 
 private:
     CpuThreads allThreads(const Algorithm &algorithm, uint32_t limit) const;
     void processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const;
     void setThreads(size_t threads);
-
-    static uint32_t m_features;
 
     char m_backend[20]          = { 0 };
     hwloc_topology_t m_topology = nullptr;
@@ -80,7 +65,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_HWLOCCPUINFO_H */
+#endif // XMRIG_HWLOCCPUINFO_H

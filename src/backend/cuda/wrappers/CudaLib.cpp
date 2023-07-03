@@ -353,13 +353,9 @@ bool xmrig::CudaLib::open()
 #   ifdef XMRIG_OS_LINUX
     if (m_loader == defaultLoader) {
         m_loader = Process::location(Process::ExeLocation, m_loader);
-    }
-    else {
-        return false;
-    }
-
-    if (uv_dlopen(m_loader, &cudaLib) == 0) {
-        return true;
+        if (uv_dlopen(m_loader, &cudaLib) == 0) {
+            return true;
+        }
     }
 #   endif
 
