@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,11 +22,6 @@
 
 #include "base/kernel/interfaces/IBaseListener.h"
 #include "base/net/http/HttpListener.h"
-#include "base/tools/Object.h"
-
-
-#include <cstdint>
-#include <memory>
 
 
 namespace xmrig {
@@ -43,8 +38,10 @@ class Httpd : public IBaseListener, public IHttpListener
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Httpd)
 
-    Httpd(Base *base);
+    explicit Httpd(Base *base);
     ~Httpd() override;
+
+    inline bool isBound() const { return m_server != nullptr; }
 
     bool start();
     void stop();
@@ -69,7 +66,7 @@ private:
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_HTTPD_H */
+#endif // XMRIG_HTTPD_H

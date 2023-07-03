@@ -399,6 +399,9 @@ private:
     uv_loop_t* m_loop          = nullptr;
     uv_thread_t m_loopThread   = {};
     uv_async_t m_shutdownAsync = {};
+    uv_async_t m_batonAsync    = {};
+
+    std::vector<KawPowBaton> m_batons;
 
     static void loop(void* data)
     {
@@ -419,19 +422,37 @@ void KawPowBuilder::build_async(const IOclRunner& runner, uint64_t period, uint3
     if (!m_loop) {
         m_loop = new uv_loop_t{};
         uv_loop_init(m_loop);
-        uv_async_init(m_loop, &m_shutdownAsync, [](uv_async_t* handle) { uv_close(reinterpret_cast<uv_handle_t*>(handle), nullptr); });
+
+        uv_async_init(m_loop, &m_shutdownAsync, [](uv_async_t* handle)
+            {
+                KawPowBuilder* builder = reinterpret_cast<KawPowBuilder*>(handle->data);
+                uv_close(reinterpret_cast<uv_handle_t*>(&builder->m_shutdownAsync), nullptr);
+                uv_close(reinterpret_cast<uv_handle_t*>(&builder->m_batonAsync), nullptr);
+            });
+
+        uv_async_init(m_loop, &m_batonAsync, [](uv_async_t* handle)
+            {
+                std::vector<KawPowBaton> batons;
+                {
+                    KawPowBuilder* b = reinterpret_cast<KawPowBuilder*>(handle->data);
+
+                    std::lock_guard<std::mutex> lock(b->m_mutex);
+                    batons = std::move(b->m_batons);
+                }
+
+                for (const KawPowBaton& baton : batons) {
+                    builder.build(baton.runner, baton.period, baton.worksize);
+                }
+            });
+
+        m_shutdownAsync.data = this;
+        m_batonAsync.data = this;
+
         uv_thread_create(&m_loopThread, loop, this);
     }
 
-    KawPowBaton* baton = new KawPowBaton(runner, period, worksize);
-
-    uv_queue_work(m_loop, &baton->req,
-        [](uv_work_t* req) {
-            KawPowBaton* baton = static_cast<KawPowBaton*>(req->data);
-            builder.build(baton->runner, baton->period, baton->worksize);
-        },
-        [](uv_work_t* req, int) { delete static_cast<KawPowBaton*>(req->data); }
-    );
+    m_batons.emplace_back(runner, period, worksize);
+    uv_async_send(&m_batonAsync);
 }
 
 

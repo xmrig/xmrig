@@ -323,6 +323,10 @@ void xmrig::Network::tick()
     if (m_donate) {
         m_donate->tick(now);
     }
+
+#   ifdef XMRIG_FEATURE_API
+    m_controller->api()->tick();
+#   endif
 }
 
 

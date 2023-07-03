@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,11 +20,6 @@
 #include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
-
-
-#ifdef XMRIG_FEATURE_HWLOC
-#   include "backend/cpu/platform/HwlocCpuInfo.h"
-#endif
 
 
 #include <array>
@@ -190,7 +185,7 @@ std::vector<uint32_t> xmrig::RxConfig::nodeset() const
         return m_nodeset;
     }
 
-    return (m_numa && Cpu::info()->nodes() > 1) ? static_cast<HwlocCpuInfo *>(Cpu::info())->nodeset() : std::vector<uint32_t>();
+    return (m_numa && Cpu::info()->nodes() > 1) ? Cpu::info()->nodeset() : std::vector<uint32_t>();
 }
 #endif
 

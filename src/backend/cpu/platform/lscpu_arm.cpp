@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Riku Voipio <riku.voipio@iki.fi>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/tools/String.h"
 #include "3rdparty/fmt/core.h"
@@ -84,6 +83,7 @@ static const id_part arm_part[] = {
     { 0xc27, "Cortex-M7" },
     { 0xc60, "Cortex-M0+" },
     { 0xd01, "Cortex-A32" },
+    { 0xd02, "Cortex-A34" },
     { 0xd03, "Cortex-A53" },
     { 0xd04, "Cortex-A35" },
     { 0xd05, "Cortex-A55" },
@@ -97,40 +97,60 @@ static const id_part arm_part[] = {
     { 0xd0d, "Cortex-A77" },
     { 0xd0e, "Cortex-A76AE" },
     { 0xd13, "Cortex-R52" },
+    { 0xd15, "Cortex-R82" },
     { 0xd20, "Cortex-M23" },
     { 0xd21, "Cortex-M33" },
+    { 0xd40, "Neoverse-V1" },
     { 0xd41, "Cortex-A78" },
     { 0xd42, "Cortex-A78AE" },
+    { 0xd43, "Cortex-A65AE" },
+    { 0xd44, "Cortex-X1" },
+    { 0xd46, "Cortex-A510" },
+    { 0xd47, "Cortex-A710" },
+    { 0xd48, "Cortex-X2" },
+    { 0xd49, "Neoverse-N2" },
     { 0xd4a, "Neoverse-E1" },
     { 0xd4b, "Cortex-A78C" },
-    { -1, nullptr },
+    { 0xd4c, "Cortex-X1C" },
+    { 0xd4d, "Cortex-A715" },
+    { 0xd4e, "Cortex-X3" },
+    { 0xd4f, "Neoverse-V2" },
+    { -1, nullptr }
 };
 
 static const id_part brcm_part[] = {
-    { 0x0f, "Brahma B15" },
-    { 0x100, "Brahma B53" },
+    { 0x0f, "Brahma-B15" },
+    { 0x100, "Brahma-B53" },
     { 0x516, "ThunderX2" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part dec_part[] = {
     { 0xa10, "SA110" },
     { 0xa11, "SA1100" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part cavium_part[] = {
     { 0x0a0, "ThunderX" },
-    { 0x0a1, "ThunderX 88XX" },
-    { 0x0a2, "ThunderX 81XX" },
-    { 0x0a3, "ThunderX 83XX" },
-    { 0x0af, "ThunderX2 99xx" },
-    { -1, nullptr },
+    { 0x0a1, "ThunderX-88XX" },
+    { 0x0a2, "ThunderX-81XX" },
+    { 0x0a3, "ThunderX-83XX" },
+    { 0x0af, "ThunderX2-99xx" },
+    { 0x0b0, "OcteonTX2" },
+    { 0x0b1, "OcteonTX2-98XX" },
+    { 0x0b2, "OcteonTX2-96XX" },
+    { 0x0b3, "OcteonTX2-95XX" },
+    { 0x0b4, "OcteonTX2-95XXN" },
+    { 0x0b5, "OcteonTX2-95XXMM" },
+    { 0x0b6, "OcteonTX2-95XXO" },
+    { 0x0b8, "ThunderX3-T110" },
+    { -1, nullptr }
 };
 
 static const id_part apm_part[] = {
     { 0x000, "X-Gene" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part qcom_part[] = {
@@ -141,36 +161,43 @@ static const id_part qcom_part[] = {
     { 0x201, "Kryo" },
     { 0x205, "Kryo" },
     { 0x211, "Kryo" },
-    { 0x800, "Falkor V1/Kryo" },
-    { 0x801, "Kryo V2" },
+    { 0x800, "Falkor-V1/Kryo" },
+    { 0x801, "Kryo-V2" },
+    { 0x802, "Kryo-3XX-Gold" },
+    { 0x803, "Kryo-3XX-Silver" },
+    { 0x804, "Kryo-4XX-Gold" },
+    { 0x805, "Kryo-4XX-Silver" },
     { 0xc00, "Falkor" },
     { 0xc01, "Saphira" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part samsung_part[] = {
     { 0x001, "exynos-m1" },
-    { -1, nullptr },
+    { 0x002, "exynos-m3" },
+    { 0x003, "exynos-m4" },
+    { 0x004, "exynos-m5" },
+    { -1, nullptr }
 };
 
 static const id_part nvidia_part[] = {
     { 0x000, "Denver" },
     { 0x003, "Denver 2" },
     { 0x004, "Carmel" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part marvell_part[] = {
-    { 0x131, "Feroceon 88FR131" },
+    { 0x131, "Feroceon-88FR131" },
     { 0x581, "PJ4/PJ4b" },
     { 0x584, "PJ4B-MP" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part faraday_part[] = {
     { 0x526, "FA526" },
     { 0x626, "FA626" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const id_part intel_part[] = {
@@ -195,23 +222,50 @@ static const id_part intel_part[] = {
     { 0x689, "PXA31x" },
     { 0xb11, "SA1110" },
     { 0xc12, "IPX1200" },
-    { -1, nullptr },
+    { -1, nullptr }
 };
 
 static const struct id_part fujitsu_part[] = {
     { 0x001, "A64FX" },
-    { -1, "unknown" },
+    { -1, nullptr }
 };
 
 static const id_part hisi_part[] = {
-    { 0xd01, "Kunpeng-920" }, /* aka tsv110 */
-    { -1, nullptr },
+    { 0xd01, "Kunpeng-920" },	/* aka tsv110 */
+    { 0xd40, "Cortex-A76" },	/* HiSilicon uses this ID though advertises A76 */
+    { -1, nullptr }
 };
 
 static const id_part apple_part[] = {
     { 0x022, "M1" },
     { 0x023, "M1" },
-    { -1, nullptr },
+    { 0x024, "M1-Pro" },
+    { 0x025, "M1-Pro" },
+    { 0x028, "M1-Max" },
+    { 0x029, "M1-Max" },
+    { 0x032, "M2" },
+    { 0x033, "M2" },
+    { 0x034, "M2-Pro" },
+    { 0x035, "M2-Pro" },
+    { 0x038, "M2-Max" },
+    { 0x039, "M2-Max" },
+    { -1, nullptr }
+};
+
+
+static const struct id_part ft_part[] = {
+    { 0x660, "FTC660" },
+    { 0x661, "FTC661" },
+    { 0x662, "FTC662" },
+    { 0x663, "FTC663" },
+    { -1, nullptr }
+};
+
+
+static const struct id_part ampere_part[] = {
+    { 0xac3, "Ampere-1" },
+    { 0xac4, "Ampere-1a" },
+    { -1, nullptr }
 };
 
 
@@ -229,7 +283,9 @@ static const hw_impl hw_implementer[] = {
     { 0x56, marvell_part, "Marvell" },
     { 0x61, apple_part,   "Apple" },
     { 0x66, faraday_part, "Faraday" },
-    { 0x69, intel_part,   "Intel" }
+    { 0x69, intel_part,   "Intel" },
+    { 0x70, ft_part,      "Phytium" },
+    { 0xc0, ampere_part,  "Ampere" }
 };
 
 

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -119,6 +119,21 @@ void xmrig::Api::stop()
 {
 #   ifdef XMRIG_FEATURE_HTTP
     m_httpd->stop();
+#   endif
+}
+
+
+void xmrig::Api::tick()
+{
+#   ifdef XMRIG_FEATURE_HTTP
+    if (m_httpd->isBound() || !m_base->config()->http().isEnabled()) {
+        return;
+    }
+
+    if (++m_ticks % 10 == 0) {
+        m_ticks = 0;
+        m_httpd->start();
+    }
 #   endif
 }
 
