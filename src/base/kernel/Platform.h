@@ -49,6 +49,8 @@ public:
     static inline bool isUserActive(uint64_t ms)    { return idleTime() < ms; }
     static inline const String &userAgent()         { return m_userAgent; }
 
+    static bool hasKeepalive();
+
     static bool isOnBatteryPower();
     static uint64_t idleTime();
 

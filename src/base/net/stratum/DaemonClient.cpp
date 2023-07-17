@@ -46,6 +46,7 @@
 #include "base/tools/Timer.h"
 #include "base/tools/cryptonote/Signatures.h"
 #include "net/JobResult.h"
+#include "base/kernel/Platform.h"
 
 
 #ifdef XMRIG_FEATURE_TLS
@@ -358,9 +359,9 @@ void xmrig::DaemonClient::onResolved(const DnsRecords &records, int status, cons
     uv_tcp_init(uv_default_loop(), s);
     uv_tcp_nodelay(s, 1);
 
-#   ifndef WIN32
-    uv_tcp_keepalive(s, 1, 60);
-#   endif
+    if (Platform::hasKeepalive()) {
+        uv_tcp_keepalive(s, 1, 60);
+    }
 
     if (m_pool.zmq_port() > 0) {
         delete m_ZMQSocket;

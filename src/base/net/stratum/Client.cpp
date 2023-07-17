@@ -50,6 +50,7 @@
 #include "base/tools/Cvt.h"
 #include "base/tools/cryptonote/BlobReader.h"
 #include "net/JobResult.h"
+#include "base/kernel/Platform.h"
 
 
 #ifdef _MSC_VER
@@ -567,9 +568,9 @@ void xmrig::Client::connect(const sockaddr *addr)
     uv_tcp_init(uv_default_loop(), m_socket);
     uv_tcp_nodelay(m_socket, 1);
 
-#   ifndef WIN32
-    uv_tcp_keepalive(m_socket, 1, 60);
-#   endif
+    if (Platform::hasKeepalive()) {
+        uv_tcp_keepalive(m_socket, 1, 60);
+    }
 
     uv_tcp_connect(req, m_socket, addr, onConnect);
 }

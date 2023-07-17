@@ -70,6 +70,12 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
+bool xmrig::Platform::hasKeepalive()
+{
+    return winOsVersion().dwMajorVersion >= 6;
+}
+
+
 #ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
