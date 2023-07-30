@@ -1,0 +1,29 @@
+name: Build
+on: [push]
+
+jobs:
+  linux:
+    name: linux:${{ matrix.compiler.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler:
+          - { name: gcc,  CC: gcc,   CXX: g++ }
+          - { name: clang, CC: clang, CXX: clang++ }
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+
+      - name: install packages
+        run: sudo apt-get install -y g++ clang cmake ninja-build libuv1-dev libssl-dev libhwloc-dev
+
+      - name: configure
+        run: cmake -G Ninja -DCMAKE_BUILD_TYPE=Release .
+        env:
+          CC: ${{ matrix.compiler.CC }}
+          CXX: ${{ matrix.compiler.CXX }}
+
+      - name: build
+        run: ninja
+
