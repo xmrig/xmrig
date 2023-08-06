@@ -344,6 +344,9 @@ bool xmrig::Client::close()
     setState(ClosingState);
 
     if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
+        if (Platform::hasKeepalive()) {
+            uv_tcp_keepalive(m_socket, 0, 60);
+        }
         uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
     }
 

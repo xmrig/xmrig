@@ -590,6 +590,9 @@ void xmrig::DaemonClient::retry()
     }
 
     if ((m_ZMQConnectionState != ZMQ_NOT_CONNECTED) && (m_ZMQConnectionState != ZMQ_DISCONNECTING)) {
+        if (Platform::hasKeepalive()) {
+            uv_tcp_keepalive(m_ZMQSocket, 0, 60);
+        }
         uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), onZMQClose);
     }
 
@@ -917,6 +920,9 @@ bool xmrig::DaemonClient::ZMQClose(bool shutdown)
     m_ZMQConnectionState = ZMQ_DISCONNECTING;
 
     if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_ZMQSocket)) == 0) {
+        if (Platform::hasKeepalive()) {
+            uv_tcp_keepalive(m_ZMQSocket, 0, 60);
+        }
         uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), shutdown ? onZMQShutdown : onZMQClose);
         if (!shutdown) {
             retry();
