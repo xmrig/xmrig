@@ -70,12 +70,6 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-bool xmrig::Platform::hasKeepalive()
-{
-    return true;
-}
-
-
 #ifndef XMRIG_FEATURE_HWLOC
 #ifdef __DragonFly__
 

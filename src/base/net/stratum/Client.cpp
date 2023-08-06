@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,15 +42,15 @@
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/dns/DnsRecords.h"
 #include "base/net/stratum/Socks5.h"
 #include "base/net/tools/NetBuffer.h"
 #include "base/tools/Chrono.h"
-#include "base/tools/Cvt.h"
 #include "base/tools/cryptonote/BlobReader.h"
+#include "base/tools/Cvt.h"
 #include "net/JobResult.h"
-#include "base/kernel/Platform.h"
 
 
 #ifdef _MSC_VER

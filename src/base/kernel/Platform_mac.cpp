@@ -55,12 +55,6 @@ char *xmrig::Platform::createUserAgent()
 }
 
 
-bool xmrig::Platform::hasKeepalive()
-{
-    return true;
-}
-
-
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
     return true;
