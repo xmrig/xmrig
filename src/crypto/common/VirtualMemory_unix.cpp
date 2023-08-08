@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2020 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,7 +17,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "crypto/common/VirtualMemory.h"
 #include "backend/cpu/Cpu.h"
 #include "crypto/common/portable/mm_malloc.h"
@@ -25,6 +24,7 @@
 
 #include <cmath>
 #include <cstdlib>
+#include <fstream>
 #include <sys/mman.h>
 
 
@@ -84,7 +84,9 @@ static inline int hugePagesFlag(size_t size)
 
 bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
-#   if defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+#   ifdef XMRIG_OS_LINUX
+    return std::ifstream("/proc/sys/vm/nr_hugepages").good() || std::ifstream("/sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages").good();
+#   elif defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
     return false;
 #   else
     return true;
