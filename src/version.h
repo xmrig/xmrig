@@ -52,4 +52,39 @@
 #   endif
 #endif
 
+#ifdef XMRIG_OS_WIN
+#    define APP_OS "Windows"
+#elif defined XMRIG_OS_IOS
+#    define APP_OS "iOS"
+#elif defined XMRIG_OS_MACOS
+#    define APP_OS "macOS"
+#elif defined XMRIG_OS_ANDROID
+#    define APP_OS "Android"
+#elif defined XMRIG_OS_LINUX
+#    define APP_OS "Linux"
+#elif defined XMRIG_OS_FREEBSD
+#    define APP_OS "FreeBSD"
+#else
+#    define APP_OS "Unknown OS"
+#endif
+
+#define STR(X) #X
+#define STR2(X) STR(X)
+
+#ifdef XMRIG_ARM
+#   define APP_ARCH "ARMv" STR2(XMRIG_ARM)
+#else
+#   if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
+#       define APP_ARCH "x86-64"
+#   else
+#       define APP_ARCH "x86"
+#   endif
+#endif
+
+#ifdef XMRIG_64_BIT
+#   define APP_BITS "64 bit"
+#else
+#   define APP_BITS "32 bit"
+#endif
+
 #endif // XMRIG_VERSION_H
