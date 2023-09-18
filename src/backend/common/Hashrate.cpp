@@ -53,6 +53,9 @@ xmrig::Hashrate::Hashrate(size_t threads) :
         m_timestamps[i] = new uint64_t[kBucketSize]();
         m_top[i]        = 0;
     }
+
+    m_earliestTimestamp = std::numeric_limits<uint64_t>::max();
+    m_totalCount = 0;
 }
 
 
@@ -66,6 +69,14 @@ xmrig::Hashrate::~Hashrate()
     delete [] m_counts;
     delete [] m_timestamps;
     delete [] m_top;
+
+}
+
+
+double xmrig::Hashrate::average() const
+{
+    const uint64_t ts = Chrono::steadyMSecs();
+    return (ts > m_earliestTimestamp) ? (m_totalCount * 1e3 / (ts - m_earliestTimestamp)) : 0.0;
 }
 
 
@@ -167,4 +178,11 @@ void xmrig::Hashrate::addData(size_t index, uint64_t count, uint64_t timestamp)
     m_timestamps[index][top] = timestamp;
 
     m_top[index] = (top + 1) & kBucketMask;
+
+    if (index == 0) {
+        if (m_earliestTimestamp == std::numeric_limits<uint64_t>::max()) {
+            m_earliestTimestamp = timestamp;
+        }
+        m_totalCount = count;
+    }
 }

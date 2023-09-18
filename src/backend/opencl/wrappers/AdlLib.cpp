@@ -1,7 +1,7 @@
 /* XMRig
- * Copyright 2008-2018 Advanced Micro Devices, Inc.
- * Copyright 2018-2020 SChernykh                    <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2008-2018 Advanced Micro Devices, Inc.
+ * Copyright (c) 2018-2021 SChernykh                    <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig                        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <stdexcept>
 #include <uv.h>
@@ -81,7 +80,7 @@ bool AdlLib::m_ready               = false;
 
 static void * __stdcall ADL_Main_Memory_Alloc(int iSize)
 {
-    return malloc(iSize);
+    return malloc(iSize); // NOLINT(cppcoreguidelines-no-malloc, hicpp-no-malloc)
 }
 
 
@@ -191,7 +190,9 @@ AdlHealth xmrig::AdlLib::health(const OclDevice &device)
         return {};
     }
 
-    int supported, enabled, version;
+    int supported   = 0;
+    int enabled     = 0;
+    int version     = 0;
     AdlHealth health;
 
     for (const auto &adapter : adapters) {

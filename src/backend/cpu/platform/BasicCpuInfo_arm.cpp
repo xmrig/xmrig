@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/tools/String.h"
 
 
@@ -28,7 +27,15 @@
 
 #if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
 #   include <sys/auxv.h>
-#   include <asm/hwcap.h>
+#   if !defined(XMRIG_OS_FREEBSD)
+#       include <asm/hwcap.h>
+#   else
+#       include <stdint.h>
+#       include <machine/armreg.h>
+#       ifndef ID_AA64ISAR0_AES_VAL
+#           define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES
+#       endif
+#   endif
 #endif
 
 
@@ -55,17 +62,20 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         m_units[i] = i;
     }
 
-#   ifdef XMRIG_ARMv8
+#   if (XMRIG_ARM == 8)
     memcpy(m_brand, "ARMv8", 5);
 #   else
     memcpy(m_brand, "ARMv7", 5);
 #   endif
 
 #   if __ARM_FEATURE_CRYPTO
-#   if !defined(__APPLE__)
-    m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
-#   else
+#   if defined(__APPLE__)
     m_flags.set(FLAG_AES, true);
+#   elif defined(XMRIG_OS_FREEBSD)
+    uint64_t isar0 = READ_SPECIALREG(id_aa64isar0_el1);
+    m_flags.set(FLAG_AES, ID_AA64ISAR0_AES_VAL(isar0) >= ID_AA64ISAR0_AES_BASE);
+#   else
+    m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
 #   endif
 #   endif
 
@@ -89,8 +99,14 @@ const char *xmrig::BasicCpuInfo::backend() const
 }
 
 
-xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &, uint32_t) const
+xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
 {
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (algorithm.family() == Algorithm::GHOSTRIDER) {
+        return CpuThreads(threads(), 8);
+    }
+#   endif
+
     return CpuThreads(threads());
 }
 
@@ -117,7 +133,7 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("msr",        "none", allocator);
     out.AddMember("assembly",   "none", allocator);
 
-#   ifdef XMRIG_ARMv8
+#   if (XMRIG_ARM == 8)
     out.AddMember("arch", "aarch64", allocator);
 #   else
     out.AddMember("arch", "aarch32", allocator);

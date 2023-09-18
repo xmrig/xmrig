@@ -30,7 +30,7 @@
 
 static inline OSVERSIONINFOEX winOsVersion()
 {
-    typedef NTSTATUS (NTAPI *RtlGetVersionFunction)(LPOSVERSIONINFO);
+    typedef NTSTATUS (NTAPI *RtlGetVersionFunction)(LPOSVERSIONINFO); // NOLINT(modernize-use-using)
     OSVERSIONINFOEX result = { sizeof(OSVERSIONINFOEX), 0, 0, 0, 0, {'\0'}, 0, 0, 0, 0, 0};
 
     HMODULE ntdll = GetModuleHandleW(L"ntdll.dll");
@@ -61,9 +61,9 @@ char *xmrig::Platform::createUserAgent()
 #   endif
 
 #   ifdef __GNUC__
-    length += snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
+    snprintf(buf + length, max - length, " gcc/%d.%d.%d", __GNUC__, __GNUC_MINOR__, __GNUC_PATCHLEVEL__);
 #   elif _MSC_VER
-    length += snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
+    snprintf(buf + length, max - length, " msvc/%d", MSVC_VERSION);
 #   endif
 
     return buf;

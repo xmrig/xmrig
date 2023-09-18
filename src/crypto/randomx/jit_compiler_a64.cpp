@@ -144,8 +144,6 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	for (uint32_t i = 0; i < program.getSize(); ++i)
 	{
 		Instruction& instr = program(i);
-		instr.src %= RegistersCount;
-		instr.dst %= RegistersCount;
 		(this->*engine[instr.opcode])(instr, codePos);
 	}
 
@@ -204,8 +202,6 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	for (uint32_t i = 0; i < program.getSize(); ++i)
 	{
 		Instruction& instr = program(i);
-		instr.src %= RegistersCount;
-		instr.dst %= RegistersCount;
 		(this->*engine[instr.opcode])(instr, codePos);
 	}
 

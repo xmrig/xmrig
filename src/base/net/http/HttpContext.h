@@ -62,7 +62,7 @@ public:
     void write(std::string &&data, bool close) override;
 
     bool isRequest() const override;
-    size_t parse(const char *data, size_t size);
+    bool parse(const char *data, size_t size);
     std::string ip() const override;
     uint64_t elapsed() const;
     void close(int status = 0);

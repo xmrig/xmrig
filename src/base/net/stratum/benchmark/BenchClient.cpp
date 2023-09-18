@@ -27,6 +27,7 @@
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/dns/Dns.h"
+#include "base/net/dns/DnsRecords.h"
 #include "base/net/http/Fetch.h"
 #include "base/net/http/HttpData.h"
 #include "base/net/http/HttpListener.h"
@@ -47,8 +48,42 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     std::vector<char> blob(112 * 2 + 1, '0');
     blob.back() = '\0';
 
-    m_job.setBlob(blob.data());
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (m_benchmark->algorithm() == Algorithm::GHOSTRIDER_RTM) {
+        const uint32_t q = (benchmark->rotation() / 20) & 1;
+        const uint32_t r = benchmark->rotation() % 20;
+
+        static constexpr uint32_t indices[20][3] = {
+             { 0, 1, 2 },
+             { 0, 1, 3 },
+             { 0, 1, 4 },
+             { 0, 1, 5 },
+             { 0, 2, 3 },
+             { 0, 2, 4 },
+             { 0, 2, 5 },
+             { 0, 3, 4 },
+             { 0, 3, 5 },
+             { 0, 4, 5 },
+             { 1, 2, 3 },
+             { 1, 2, 4 },
+             { 1, 2, 5 },
+             { 1, 3, 4 },
+             { 1, 3, 5 },
+             { 1, 4, 5 },
+             { 2, 3, 4 },
+             { 2, 3, 5 },
+             { 2, 4, 5 },
+             { 3, 4, 5 },
+        };
+
+        blob[ 8] = '0' + indices[r][q ? 2 : 1];
+        blob[ 9] = '0' + indices[r][0];
+        blob[11] = '0' + indices[r][q ? 1 : 2];
+    }
+#   endif
+
     m_job.setAlgorithm(m_benchmark->algorithm());
+    m_job.setBlob(blob.data());
     m_job.setDiff(std::numeric_limits<uint64_t>::max());
     m_job.setHeight(1);
     m_job.setId("00000000");
@@ -59,8 +94,9 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     BenchState::init(this, m_benchmark->size());
 
 #   ifdef XMRIG_FEATURE_HTTP
-    if (m_benchmark->isSubmit()) {
-        m_mode = ONLINE_BENCH;
+    if (m_benchmark->isSubmit() && (m_benchmark->algorithm().family() == Algorithm::RANDOM_X)) {
+        m_mode  = ONLINE_BENCH;
+        m_token = m_benchmark->token();
 
         return;
     }
@@ -185,16 +221,18 @@ void xmrig::BenchClient::onHttpData(const HttpData &data)
 }
 
 
-void xmrig::BenchClient::onResolved(const Dns &dns, int status)
+void xmrig::BenchClient::onResolved(const DnsRecords &records, int status, const char *error)
 {
 #   ifdef XMRIG_FEATURE_HTTP
     assert(!m_httpListener);
 
+    m_dns.reset();
+
     if (status < 0) {
-        return setError(dns.error(), "DNS error");
+        return setError(error, "DNS error");
     }
 
-    m_ip            = dns.get().ip();
+    m_ip            = records.get().ip();
     m_httpListener  = std::make_shared<HttpListener>(this, tag());
 
     if (m_mode == ONLINE_BENCH) {
@@ -245,7 +283,7 @@ uint64_t xmrig::BenchClient::referenceHash() const
 }
 
 
-void xmrig::BenchClient::printExit()
+void xmrig::BenchClient::printExit() const
 {
     LOG_INFO("%s " WHITE_BOLD("press ") MAGENTA_BOLD("Ctrl+C") WHITE_BOLD(" to exit"), tag());
 }
@@ -259,7 +297,7 @@ void xmrig::BenchClient::start()
                tag(),
                size < 1000000 ? size / 1000 : size / 1000000,
                size < 1000000 ? "K" : "M",
-               m_job.algorithm().shortName());
+               m_job.algorithm().name());
 
     m_listener->onLoginSuccess(this);
     m_listener->onJobReceived(this, m_job, rapidjson::Value());
@@ -307,11 +345,7 @@ void xmrig::BenchClient::onGetReply(const rapidjson::Value &value)
 
 void xmrig::BenchClient::resolve()
 {
-    m_dns = std::make_shared<Dns>(this);
-
-    if (!m_dns->resolve(BenchConfig::kApiHost)) {
-        setError(m_dns->error(), "getaddrinfo error");
-    }
+    m_dns = Dns::resolve(BenchConfig::kApiHost, this);
 }
 
 
@@ -335,6 +369,7 @@ void xmrig::BenchClient::send(Request request)
         {
             doc.AddMember(StringRef(BenchConfig::kSize),    m_benchmark->size(), allocator);
             doc.AddMember(StringRef(BenchConfig::kAlgo),    m_benchmark->algorithm().toJSON(), allocator);
+            doc.AddMember(StringRef(BenchConfig::kUser),    m_benchmark->user().toJSON(), allocator);
             doc.AddMember("version",                        APP_VERSION, allocator);
             doc.AddMember("threads",                        m_threads, allocator);
             doc.AddMember("steady_ready_ts",                m_readyTime, allocator);
@@ -350,6 +385,11 @@ void xmrig::BenchClient::send(Request request)
 #           endif
 
             FetchRequest req(HTTP_POST, m_ip, BenchConfig::kApiPort, "/1/benchmark", doc, BenchConfig::kApiTLS, true);
+
+            if (!m_token.isEmpty()) {
+                req.headers.insert({ "Authorization", fmt::format("Bearer {}", m_token)});
+            }
+
             fetch(tag(), std::move(req), m_httpListener);
         }
         break;

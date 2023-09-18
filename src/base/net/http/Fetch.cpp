@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "base/net/http/Fetch.h"
 #include "3rdparty/rapidjson/document.h"
 #include "3rdparty/rapidjson/stringbuffer.h"
@@ -106,7 +105,7 @@ void xmrig::fetch(const char *tag, FetchRequest &&req, const std::weak_ptr<IHttp
     }
 #   endif
 
-    HttpClient *client;
+    HttpClient *client = nullptr;
 #   ifdef XMRIG_FEATURE_TLS
     if (req.tls) {
         client = new HttpsClient(tag, std::move(req), listener);

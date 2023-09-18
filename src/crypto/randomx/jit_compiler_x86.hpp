@@ -89,7 +89,8 @@ namespace randomx {
 		uint32_t codePos = 0;
 		uint32_t codePosFirst = 0;
 		uint32_t vm_flags = 0;
-		uint32_t prevCFROUND = 0;
+		int32_t prevCFROUND = -1;
+		int32_t prevFPOperation = -1;
 
 #		ifdef XMRIG_FIX_RYZEN
 		std::pair<const void*, const void*> mainLoopBounds;
@@ -103,6 +104,9 @@ namespace randomx {
 
 		uint8_t* allocatedCode = nullptr;
 		size_t allocatedSize = 0;
+
+		uint8_t* imul_rcp_storage = nullptr;
+		uint32_t imul_rcp_storage_used = 0;
 
 		void generateProgramPrologue(Program&, ProgramConfiguration&);
 		void generateProgramEpilogue(Program&, ProgramConfiguration&);

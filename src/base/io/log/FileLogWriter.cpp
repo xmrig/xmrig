@@ -91,7 +91,7 @@ bool xmrig::FileLogWriter::writeLine(const char *data, size_t size)
 {
     const uv_buf_t buf[2] = {
         uv_buf_init(new char[size], size),
-        uv_buf_init(m_endl, sizeof(m_endl) - 1)
+        uv_buf_init(const_cast<char *>(m_endl), sizeof(m_endl) - 1)
     };
 
     memcpy(buf[0].base, data, size);

@@ -231,7 +231,7 @@ namespace randomx {
 	const SuperscalarInstructionInfo SuperscalarInstructionInfo::IMULH_R = SuperscalarInstructionInfo("IMULH_R", SuperscalarInstructionType::IMULH_R, IMULH_R_ops_array, 1, 0, 1);
 	const SuperscalarInstructionInfo SuperscalarInstructionInfo::ISMULH_R = SuperscalarInstructionInfo("ISMULH_R", SuperscalarInstructionType::ISMULH_R, ISMULH_R_ops_array, 1, 0, 1);
 	const SuperscalarInstructionInfo SuperscalarInstructionInfo::IMUL_RCP = SuperscalarInstructionInfo("IMUL_RCP", SuperscalarInstructionType::IMUL_RCP, IMUL_RCP_ops_array, 1, 1, -1);
-	
+
 	const SuperscalarInstructionInfo SuperscalarInstructionInfo::NOP = SuperscalarInstructionInfo("NOP");
 
 	//these are some of the options how to split a 16-byte window into 3 or 4 x86 instructions.
@@ -494,7 +494,7 @@ namespace randomx {
 			// * value must be ready at the required cycle
 			// * cannot be the same as the source register unless the instruction allows it
 			//   - this avoids optimizable instructions such as "xor r, r" or "sub r, r"
-			// * register cannot be multiplied twice in a row unless allowChainedMul is true 
+			// * register cannot be multiplied twice in a row unless allowChainedMul is true
 			//   - this avoids accumulation of trailing zeroes in registers due to excessive multiplication
 			//   - allowChainedMul is set to true if an attempt to find source/destination registers failed (this is quite rare, but prevents a catastrophic failure of the generator)
 			// * either the last instruction applied to the register or its source must be different than this instruction
@@ -619,7 +619,7 @@ namespace randomx {
 			if (commit)
 				if (trace) std::cout << "; (eliminated)" << std::endl;
 			return cycle;
-		} 
+		}
 		else if (mop.isSimple()) {
 			//this macro-op has only one uOP
 			return scheduleUop<commit>(mop.getUop1(), portBusy, cycle);
@@ -676,7 +676,7 @@ namespace randomx {
 			if (trace) std::cout << "; ------------- fetch cycle " << cycle << " (" << decodeBuffer->getName() << ")" << std::endl;
 
 			int bufferIndex = 0;
-			
+
 			//fill all instruction slots in the current decode buffer
 			while (bufferIndex < decodeBuffer->getSize()) {
 				int topCycle = cycle;
@@ -831,7 +831,7 @@ namespace randomx {
 		prog.decodeCycles = decodeCycle;
 		prog.ipc = ipc;
 		prog.mulCount = mulCount;
-		
+
 
 		/*if(INFO) std::cout << "; ALU port utilization:" << std::endl;
 		if (INFO) std::cout << "; (* = in use, _ = idle)" << std::endl;

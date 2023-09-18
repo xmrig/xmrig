@@ -38,15 +38,16 @@
 #endif
 
 .global DECL(randomx_prefetch_scratchpad)
+.global DECL(randomx_prefetch_scratchpad_bmi2)
 .global DECL(randomx_prefetch_scratchpad_end)
 .global DECL(randomx_program_prologue)
 .global DECL(randomx_program_prologue_first_load)
+.global DECL(randomx_program_imul_rcp_store)
 .global DECL(randomx_program_loop_begin)
 .global DECL(randomx_program_loop_load)
 .global DECL(randomx_program_loop_load_xop)
 .global DECL(randomx_program_start)
 .global DECL(randomx_program_read_dataset)
-.global DECL(randomx_program_read_dataset_ryzen)
 .global DECL(randomx_program_read_dataset_sshash_init)
 .global DECL(randomx_program_read_dataset_sshash_fin)
 .global DECL(randomx_program_loop_store)
@@ -79,6 +80,13 @@ DECL(randomx_prefetch_scratchpad):
 	and edx, RANDOMX_SCRATCHPAD_MASK
 	prefetcht0 [rsi+rdx]
 
+DECL(randomx_prefetch_scratchpad_bmi2):
+	rorx rdx, rax, 32
+	and eax, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rax]
+	and edx, RANDOMX_SCRATCHPAD_MASK
+	prefetcht0 [rsi+rdx]
+
 DECL(randomx_prefetch_scratchpad_end):
 
 .balign 64
@@ -106,10 +114,14 @@ DECL(randomx_program_prologue_first_load):
 	nop
 	nop
 	nop
-	jmp DECL(randomx_program_loop_begin)
+	jmp DECL(randomx_program_imul_rcp_store)
 
 .balign 64
 	#include "asm/program_xmm_constants.inc"
+
+DECL(randomx_program_imul_rcp_store):
+	#include "asm/program_imul_rcp_store.inc"
+	jmp DECL(randomx_program_loop_begin)
 
 .balign 64
 DECL(randomx_program_loop_begin):
@@ -126,9 +138,6 @@ DECL(randomx_program_start):
 
 DECL(randomx_program_read_dataset):
 	#include "asm/program_read_dataset.inc"
-
-DECL(randomx_program_read_dataset_ryzen):
-	#include "asm/program_read_dataset_ryzen.inc"
 
 DECL(randomx_program_read_dataset_sshash_init):
 	#include "asm/program_read_dataset_sshash_init.inc"
@@ -167,7 +176,7 @@ init_block_loop:
 	prefetchw byte ptr [rsi]
 	mov rbx, rbp
 	.byte 232 ;# 0xE8 = call
-	;# .set CALL_LOC, 
+	;# .set CALL_LOC,
 	.int 32768 - (call_offset - DECL(randomx_dataset_init))
 call_offset:
 	mov qword ptr [rsi+0], r8

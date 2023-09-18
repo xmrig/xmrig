@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2020 Inria.  All rights reserved.
+Copyright © 2009-2022 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -15,6 +15,202 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.9.0
+-------------
+* Backends
+  + Expose the memory size of CXL memory devices (Type 3) on Linux.
+  + The LevelZero backend now reports the "XeLinkBandwidth" distance
+    matrix between L0 devices (and subdevices) when available.
+  + Add support for CUDA compute capability up to 9.0.
+* Tools
+  + lstopo now switches to console mode when its output is redirected.
+    Graphical window mode may be forced back with --of window.
+  + hwloc-calc now accepts "numa" in -H, and I/O subtypes such as "gpu"
+    in -I and -N.
+
+
+Version 2.8.0
+-------------
+* API
+  + Add HWLOC_TOPOLOGY_FLAG_NO_DISTANCES, _NO_MEMATTRS and _NO_CPUKINDS
+    to reduce the overhead when unneeded.
+  + Add separate Read/Write Bandwidth/Latency memory attributes and
+    implement them on Linux.
+* Backends
+  + NUMA nodes may now have a subtype such as DRAM, HBM, SPM, or NVM
+    on heterogeneous memory platforms on Linux.
+    - Add DAXType and DAXParent attributes on Linux to tell where a
+      DAX device or its corresponding NUMA node come from (SPM for
+      Specific-Purpose or NVM for Non-Volatile Memory).
+  + Detect heterogeneous caches in hybrid CPUs on MacOS X,
+    thanks to Paul Bone for the help.
+  + Max frequencies are not ignored in Linux cpukinds anymore (they were
+    ignored in hwloc 2.7.0), but they may be slightly adjusted to avoid
+    reporting hybrid CPUs because Intel Turbo Boost Max 3.0.
+    - See the documentation of environment variable HWLOC_CPUKINDS_MAXFREQ.
+  + Hardwire the PCI locality of HPE Cray EX235a nodes.
+* Tools
+  + lstopo and other tools may now load Linux and x86 cpuid topology files
+    from a tarball.
+  + lstopo may now replace the P# and L# index prefixes with custom strings
+    thanks to --os-index-prefix and --logical-index-prefix options.
+* Misc
+  + Add --disable-readme to avoid regenerating the top-level hwloc README
+    file from the documentation.
+
+
+Version 2.7.1
+-------------
+* Workaround crashes when virtual machines report incoherent x86 CPUID
+  information about numbers of cores and threads.
+  Thanks to Peter Bense for the report.
+* Use setenv() instead of putenv() when trying to force enable oneAPI L0
+  support, to avoid issues with applications that touch the environment,
+  thanks to Josh Hursey for the patch.
+* Add some warnings at the end of configure when GPU libraries are
+  missing on the system or their path is missing in the environment.
+
+
+Version 2.7.0
+-------------
+* Backends
+  + Add support for NUMA nodes and caches with more than 64 PUs across
+    multiple processor groups on Windows 11 and Windows Server 2022.
+  + Group objects are not created for Windows processor groups anymore,
+    except if HWLOC_WINDOWS_PROCESSOR_GROUP_OBJS=1 in the environment.
+  + Expose "Cluster" group objects on Linux kernel 5.16+ for CPUs
+    that share some internal cache or bus. This can be equivalent
+    to the L2 Cache level on some platforms (e.g. x86) or a specific
+    level between L2 and L3 on others (e.g. ARM Kungpeng 920).
+    Thanks to Jonathan Cameron for the help.
+    - HWLOC_DONT_MERGE_CLUSTER_GROUPS=1 may be set in the environment
+      to prevent these groups from being merged with identical caches, etc.
+  + Improve the oneAPI LevelZero backend:
+    - Expose subdevices such as "ze0.1" inside root OS devices ("ze0")
+      when the hardware contains multiple subdevices.
+    - Add many new attributes to describe device type, and the
+      numbers of slices, subslices, execution units and threads.
+    - Expose the memory information as LevelZeroHBM/DDR/MemorySize infos.
+  + Ignore the max frequencies of cores in Linux cpukinds when the
+    base frequencies are available (to avoid exposing hybrid CPUs
+    when Intel Turbo Boost Max 3.0 gives slightly different max
+    frequencies to CPU cores).
+    - May be reverted by setting HWLOC_CPUKINDS_MAXFREQ=1 in the environment.
+* Tools
+  + Add --grey and --palette options to switch lstopo to greyscale or
+    white-background-only graphics, or to tune individual colors.
+* Build
+  + Windows CMake builds now support non-MSVC compilers, detect several
+    features at build time, can build/run tests, etc.
+    Thanks to Michael Hirsch and Alexander Neumann .
+
+
+Version 2.6.0
+-------------
+* Backends
+  + Expose two cpukinds for energy-efficient cores (icestorm) and
+    high-performance cores (firestorm) on Apple M1 on Mac OS X.
+  + Use sysfs CPU "capacity" to rank hybrid cores by efficiency
+    on Linux when available (mostly on recent ARM platforms for now).
+  + Improve HWLOC_MEMBIND_BIND (without the STRICT flag) on Linux kernel
+    >= 5.15: If more than one node is given, the kernel may now use all
+    of them instead of only the first one before falling back to others.
+  + Expose cache os_index when available on Linux, it may be needed
+    when using resctrl to configure cache partitioning, memory bandwidth
+    monitoring, etc.
+  + Add a "XGMIHops" distances matrix in the RSMI backend for AMD GPU
+    interconnected through XGMI links.
+  + Expose AMD GPU memory information (VRAM and GTT) in the RSMI backend.
+  + Add OS devices such as "bxi0" for Atos/Bull BXI HCAs on Linux.
+* Tools
+  + lstopo has a better placement algorithm with respect to I/O
+    objects, see --children-order in the manpage for details.
+  + hwloc-annotate may now change object subtypes and cache or memory
+    sizes.
+* Build
+  + Allow to specify the ROCm installation for building the RSMI backend:
+    - Use a custom installation path if specified with --with-rocm=<dir>.
+    - Use /opt/rocm-<version> if specified with --with-rocm-version=<version>
+      or the ROCM_VERSION environment variable.
+    - Try /opt/rocm if it exists.
+    - See "How do I enable ROCm SMI and select which version to use?"
+      in the FAQ for details.
+  + Add a CMakeLists for Windows under contrib/windows-cmake/ .
+* Documentation
+  + Add FAQ entry "How do I create a custom heterogeneous and
+     asymmetric topology?"
+
+
+Version 2.5.0
+-------------
+* API
+  + Add hwloc/windows.h to query Windows processor groups.
+  + Add hwloc_get_obj_with_same_locality() to convert between objects
+    with same locality, for instance NUMA nodes and Packages,
+    or OS devices within a PCI device.
+  + Add hwloc_distances_transform() to modify distances structures.
+    - hwloc-annotate and lstopo have new distances-transform options.
+  + hwloc_distances_add() is replaced with _add_create() followed by
+    _add_values() and _add_commit(). See hwloc/distances.h for details.
+  + Add topology flags to mitigate binding modifications during
+    hwloc discovery, especially on Windows:
+    - HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING and _MEMBINDING
+      restrict discovery to PUs and NUMA nodes inside the binding.
+    - HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING prevents from ever
+      changing the binding during discovery.
+* Backends
+  + Add a levelzero backend for oneAPI L0 devices, exposed as OS devices
+    of subtype "LevelZero" and name such as "ze0".
+    - Add hwloc/levelzero.h for interoperability between converting
+      between L0 API devices and hwloc cpusets or OS devices.
+  + Expose NEC Vector Engine cards on Linux as OS devices of subtype
+    "VectorEngine" and name "ve0", etc.
+    Thanks to Anara Kozhokanova, Tim Cramer and Erich Focht for the help.
+  + Add a NVLinkBandwidth distances structure between NVIDIA GPUs
+    (and POWER processor or NVSwitches) in the NVML backend,
+    and a XGMIBandwidth distances structure between AMD GPUs
+    in the RSMI backends.
+    - See "Topology Attributes: Distances, Memory Attributes and CPU Kinds"
+      in the documentation for details about these new distances.
+  + Add support for NUMA node 0 being offline in Linux, thanks to Jirka Hladky.
+* Build
+  + Add --with-cuda-version=<version> or look at the CUDA_VERSION
+    environment variable to find the appropriate CUDA pkg-config files.
+    Thanks to Stephen Herbein for the suggestion.
+    - Also add --with-cuda=<dir> to specify the CUDA installation path
+      manually (and its NVML and OpenCL components).
+      Thanks to Andrea Bocci for the suggestion.
+    - See "How do I enable CUDA and select which CUDA version to use?"
+      in the FAQ for details.
+* Tools
+  + lstopo now has a --windows-processor-groups option on Windows.
+  + hwloc-ps now has a --short-name option to avoid long/truncated
+    command path.
+  + hwloc-ps now has a --single-ancestor option to return a single
+    (possibly too large) object where a process is bound.
+  + hwloc-ps --pid-cmd may now query environment variables,
+    including MPI-specific variables to find out process ranks.
+
+
+Version 2.4.1
+-------------
+* Fix AMD OpenCL device locality when PCI bus or device number >= 128.
+  Thanks to Edgar Leon for reporting the issue.
+  + Applications using any of the following inline functions must
+    be recompiled to get the fix: hwloc_opencl_get_device_pci_busid()
+    hwloc_opencl_get_device_cpuset(), hwloc_opencl_get_device_osdev().
+* Fix the ranking of cpukinds on non-Windows systems,
+  thanks to Ivan Kochin for the report.
+* Fix the insertion of custom Groups after loading the topology,
+  thanks to Scott Hicks.
+* Add support for CPU0 being offline in Linux, thanks to Garrett Clay.
+* Fix missing x86 Package and Core objects FreeBSD/NetBSD.
+  Thanks to Thibault Payet and Yuri Victorovich for the report.
+* Fix the import of very large distances with heterogeneous object types.
+* Fix a memory leak in the Linux backend,
+  thanks to Perceval Anichini.
 
 
 Version 2.4.0

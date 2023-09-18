@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2019 tevador     <tevador@gmail.com>
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -17,10 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "crypto/rx/RxNUMAStorage.h"
 #include "backend/cpu/Cpu.h"
-#include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
@@ -46,13 +44,12 @@ static std::mutex mutex;
 
 static bool bindToNUMANode(uint32_t nodeId)
 {
-    auto cpu         = static_cast<HwlocCpuInfo *>(Cpu::info());
-    hwloc_obj_t node = hwloc_get_numanode_obj_by_os_index(cpu->topology(), nodeId);
+    auto node = hwloc_get_numanode_obj_by_os_index(Cpu::info()->topology(), nodeId);
     if (!node) {
         return false;
     }
 
-    if (cpu->membind(node->nodeset)) {
+    if (Cpu::info()->membind(node->nodeset)) {
         Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
 
         return true;
@@ -79,7 +76,7 @@ class RxNUMAStoragePrivate
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(RxNUMAStoragePrivate)
 
-    inline RxNUMAStoragePrivate(const std::vector<uint32_t> &nodeset) :
+    inline explicit RxNUMAStoragePrivate(const std::vector<uint32_t> &nodeset) :
         m_nodeset(nodeset)
     {
         m_threads.reserve(nodeset.size());
@@ -230,7 +227,7 @@ private:
 
         std::lock_guard<std::mutex> lock(mutex);
         d_ptr->m_datasets.insert({ nodeId, dataset });
-        d_ptr->printAllocStatus(dataset, nodeId, ts);
+        RxNUMAStoragePrivate::printAllocStatus(dataset, nodeId, ts);
     }
 
 
@@ -251,7 +248,7 @@ private:
 
         std::lock_guard<std::mutex> lock(mutex);
         d_ptr->m_cache = cache;
-        d_ptr->printAllocStatus(cache, nodeId, ts);
+        RxNUMAStoragePrivate::printAllocStatus(cache, nodeId, ts);
     }
 
 
@@ -265,7 +262,7 @@ private:
     }
 
 
-    void printAllocStatus(RxDataset *dataset, uint32_t nodeId, uint64_t ts)
+    static void printAllocStatus(RxDataset *dataset, uint32_t nodeId, uint64_t ts)
     {
         const auto pages = dataset->hugePages();
 
@@ -280,7 +277,7 @@ private:
     }
 
 
-    void printAllocStatus(RxCache *cache, uint32_t nodeId, uint64_t ts)
+    static void printAllocStatus(RxCache *cache, uint32_t nodeId, uint64_t ts)
     {
         const auto pages = cache->hugePages();
 
@@ -296,7 +293,7 @@ private:
     }
 
 
-    void printAllocStatus(uint64_t ts)
+    void printAllocStatus(uint64_t ts) const
     {
         auto pages = hugePages();
 

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -47,8 +47,13 @@ protected:
 
     void setExtraNonce(const rapidjson::Value &nonce);
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    inline void setExtraNonce2Size(uint64_t size)   { m_extraNonce2Size = size; }
+#   endif
+
 private:
-    const char *errorMessage(const rapidjson::Value &error) const;
+    static const char *errorMessage(const rapidjson::Value &error);
+
     void authorize();
     void onAuthorizeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);
     void onSubscribeResponse(const rapidjson::Value &result, bool success, uint64_t elapsed);
@@ -56,6 +61,12 @@ private:
 
     bool m_authorized   = false;
     std::pair<uint64_t, String> m_extraNonce{};
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    uint64_t m_extraNonce2Size = 0;
+    uint64_t m_nextDifficulty = 0;
+    String m_ntime;
+#   endif
 };
 
 

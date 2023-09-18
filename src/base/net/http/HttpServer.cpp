@@ -50,14 +50,7 @@ void xmrig::HttpServer::onConnection(uv_stream_t *stream, uint16_t)
         {
             auto ctx = static_cast<HttpContext*>(tcp->data);
 
-            if (nread >= 0) {
-                const auto size   = static_cast<size_t>(nread);
-                const auto parsed = ctx->parse(buf->base, size);
-
-                if (parsed < size) {
-                    ctx->close();
-                }
-            } else {
+            if (nread < 0 || !ctx->parse(buf->base, static_cast<size_t>(nread))) {
                 ctx->close();
             }
 

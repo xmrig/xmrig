@@ -3,9 +3,9 @@
  * DISCLAIMER
  * This file is part of the mingw-w64 runtime package.
  *
- * The mingw-w64 runtime package and its code is distributed in the hope that it 
- * will be useful but WITHOUT ANY WARRANTY.  ALL WARRANTIES, EXPRESSED OR 
- * IMPLIED ARE HEREBY DISCLAIMED.  This includes but is not limited to 
+ * The mingw-w64 runtime package and its code is distributed in the hope that it
+ * will be useful but WITHOUT ANY WARRANTY.  ALL WARRANTIES, EXPRESSED OR
+ * IMPLIED ARE HEREBY DISCLAIMED.  This includes but is not limited to
  * warranties of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
  */
  /*
@@ -109,11 +109,7 @@ char    *optarg;		/* argument associated with option */
 extern char __declspec(dllimport) *__progname;
 #endif
 
-#ifdef __CYGWIN__
 static char EMSG[] = "";
-#else
-#define	EMSG		""
-#endif
 
 static int getopt_internal(int, char * const *, const char *,
 			   const struct option *, int *, int);

@@ -1,13 +1,7 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +16,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/net/tls/TlsContext.h"
 #include "base/io/Env.h"
@@ -52,6 +45,7 @@ namespace xmrig {
 
 
 // https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
 static DH *get_dh2048()
 {
     static unsigned char dhp_2048[] = {
@@ -103,6 +97,8 @@ static DH *get_dh2048()
 
     return dh;
 }
+#endif
+
 
 } // namespace xmrig
 
@@ -198,6 +194,7 @@ bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
 
 bool xmrig::TlsContext::setDH(const char *dhparam)
 {
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
     DH *dh = nullptr;
 
     if (dhparam != nullptr) {
@@ -223,7 +220,7 @@ bool xmrig::TlsContext::setDH(const char *dhparam)
         dh = get_dh2048();
     }
 
-    const int rc = SSL_CTX_set_tmp_dh(m_ctx, dh);
+    const int rc = SSL_CTX_set_tmp_dh(m_ctx, dh); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
 
     DH_free(dh);
 
@@ -232,6 +229,34 @@ bool xmrig::TlsContext::setDH(const char *dhparam)
 
         return false;
     }
+#   else
+    if (dhparam != nullptr) {
+        EVP_PKEY *dh = nullptr;
+        BIO *bio     = BIO_new_file(Env::expand(dhparam), "r");
+
+        if (bio) {
+            dh = PEM_read_bio_Parameters(bio, nullptr);
+            BIO_free(bio);
+        }
+
+        if (!dh) {
+            LOG_ERR("PEM_read_bio_Parameters(\"%s\") failed.", dhparam);
+
+            return false;
+        }
+
+        if (SSL_CTX_set0_tmp_dh_pkey(m_ctx, dh) != 1) {
+            EVP_PKEY_free(dh);
+
+            LOG_ERR("SSL_CTX_set0_tmp_dh_pkey(\"%s\") failed.", dhparam);
+
+            return false;
+        }
+    }
+    else {
+        SSL_CTX_set_dh_auto(m_ctx, 1);
+    }
+#   endif
 
     return true;
 }

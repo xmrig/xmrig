@@ -44,8 +44,9 @@ private:
         Ready
     };
 
-    bool isIPv4(const String &host, sockaddr_storage *addr) const;
-    bool isIPv6(const String &host, sockaddr_storage *addr) const;
+    static bool isIPv4(const String &host, sockaddr_storage *addr);
+    static bool isIPv6(const String &host, sockaddr_storage *addr);
+
     void connect();
 
     Client *m_client;

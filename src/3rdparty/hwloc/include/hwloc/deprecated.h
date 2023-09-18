@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2018 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2010 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -30,6 +30,15 @@ extern "C" {
 /* backward compat with v1.10 before Node->NUMANode clarification */
 #define HWLOC_OBJ_NODE HWLOC_OBJ_NUMANODE
 
+/** \brief Add a distances structure.
+ *
+ * Superseded by hwloc_distances_add_create()+hwloc_distances_add_values()+hwloc_distances_add_commit()
+ * in v2.5.
+ */
+HWLOC_DECLSPEC int hwloc_distances_add(hwloc_topology_t topology,
+				       unsigned nbobjs, hwloc_obj_t *objs, hwloc_uint64_t *values,
+				       unsigned long kind, unsigned long flags) __hwloc_attribute_deprecated;
+
 /** \brief Insert a misc object by parent.
  *
  * Identical to hwloc_topology_insert_misc_object().
@@ -46,7 +55,7 @@ hwloc_topology_insert_misc_object_by_parent(hwloc_topology_t topology, hwloc_obj
  *
  * If \p size is 0, \p string may safely be \c NULL.
  *
- * \return the number of character that were actually written if not truncating,
+ * \return the number of characters that were actually written if not truncating,
  * or that would have been written (not including the ending \\0).
  */
 static __hwloc_inline int

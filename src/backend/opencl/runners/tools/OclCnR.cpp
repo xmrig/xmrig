@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +17,6 @@
  */
 
 #include "backend/opencl/runners/tools/OclCnR.h"
-
 #include "backend/opencl/cl/cn/cryptonight_r_cl.h"
 #include "backend/opencl/interfaces/IOclRunner.h"
 #include "backend/opencl/OclCache.h"
@@ -62,7 +55,7 @@ public:
     inline bool isExpired(uint64_t offset) const                                    { return m_offset + OclCnR::kHeightChunkSize < offset; }
     inline bool match(const Algorithm &algo, uint64_t offset, uint32_t index) const { return m_algo == algo && m_offset == offset && m_index == index; }
     inline bool match(const IOclRunner &runner, uint64_t offset) const              { return match(runner.algorithm(), offset, runner.deviceIndex()); }
-    inline void release()                                                           { OclLib::release(program); }
+    inline void release() const                                                     { OclLib::release(program); }
 
     cl_program program;
 
@@ -165,7 +158,7 @@ public:
             return program;
         }
 
-        cl_int ret;
+        cl_int ret = 0;
         const std::string source = getSource(offset);
         cl_device_id device      = runner.data().device.id();
         const char *s            = source.c_str();
@@ -190,7 +183,7 @@ public:
     }
 
 private:
-    std::string getCode(const V4_Instruction *code, int code_size) const
+    static std::string getCode(const V4_Instruction *code, int code_size)
     {
         std::stringstream s;
 
@@ -231,7 +224,7 @@ private:
     }
 
 
-    std::string getSource(uint64_t offset) const
+    static std::string getSource(uint64_t offset)
     {
         std::string source(cryptonight_r_defines_cl);
 

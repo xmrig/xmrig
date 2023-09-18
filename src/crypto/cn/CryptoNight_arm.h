@@ -67,41 +67,6 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
-#if defined (__arm64__) || defined (__aarch64__)
-static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
-    *hi = r >> 64;
-    return (uint64_t) r;
-}
-#else
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
-    // multiplier   = ab = a * 2^32 + b
-    // multiplicand = cd = c * 2^32 + d
-    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
-    uint64_t a = multiplier >> 32;
-    uint64_t b = multiplier & 0xFFFFFFFF;
-    uint64_t c = multiplicand >> 32;
-    uint64_t d = multiplicand & 0xFFFFFFFF;
-
-    //uint64_t ac = a * c;
-    uint64_t ad = a * d;
-    //uint64_t bc = b * c;
-    uint64_t bd = b * d;
-
-    uint64_t adbc = ad + (b * c);
-    uint64_t adbc_carry = adbc < ad ? 1 : 0;
-
-    // multiplier * multiplicand = product_hi * 2^64 + product_lo
-    uint64_t product_lo = bd + (adbc << 32);
-    uint64_t product_lo_carry = product_lo < bd ? 1 : 0;
-    *product_hi = (a * c) + (adbc >> 32) + (adbc_carry << 32) + product_lo_carry;
-
-    return product_lo;
-}
-#endif
-
-
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
 // sl_xor(a1 a2 a3 a4) = a1 (a2^a1) (a3^a2^a1) (a4^a3^a2^a1)
 static inline __m128i sl_xor(__m128i tmp1)
@@ -384,6 +349,9 @@ static inline __m128i aes_round_tweak_div(const __m128i &in, const __m128i &key)
 }
 
 
+alignas(64) static const uint32_t tweak1_table[256] = { 268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456 };
+
+
 namespace xmrig {
 
 
@@ -395,7 +363,7 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
     uint64_t* mem_out = (uint64_t*)&l[idx];
 
     if (props.base() == Algorithm::CN_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
         _mm_store_si128((__m128i *)mem_out, _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -403,12 +371,7 @@ static inline void cryptonight_monero_tweak(const uint8_t* l, uint64_t idx, __m1
 
         uint64_t vh = vgetq_lane_u64(tmp, 1);
 
-        uint8_t x = vh >> 24;
-        static const uint16_t table = 0x7531;
-        const uint8_t index = (((x >> (3)) & 6) | (x & 1)) << 1;
-        vh ^= ((table >> index) & 0x3) << 28;
-
-        mem_out[1] = vh;
+        mem_out[1] = vh ^ tweak1_table[static_cast<uint8_t>(vh >> 24)];
     }
 }
 
@@ -528,7 +491,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -704,7 +667,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -764,7 +727,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 

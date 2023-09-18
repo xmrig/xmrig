@@ -24,6 +24,70 @@ void llhttp_init(llhttp_t* parser, llhttp_type_t type,
 }
 
 
+#if defined(__wasm__)
+
+extern int wasm_on_message_begin(llhttp_t * p);
+extern int wasm_on_url(llhttp_t* p, const char* at, size_t length);
+extern int wasm_on_status(llhttp_t* p, const char* at, size_t length);
+extern int wasm_on_header_field(llhttp_t* p, const char* at, size_t length);
+extern int wasm_on_header_value(llhttp_t* p, const char* at, size_t length);
+extern int wasm_on_headers_complete(llhttp_t * p);
+extern int wasm_on_body(llhttp_t* p, const char* at, size_t length);
+extern int wasm_on_message_complete(llhttp_t * p);
+
+const llhttp_settings_t wasm_settings = {
+  wasm_on_message_begin,
+  wasm_on_url,
+  wasm_on_status,
+  wasm_on_header_field,
+  wasm_on_header_value,
+  wasm_on_headers_complete,
+  wasm_on_body,
+  wasm_on_message_complete,
+  NULL,
+  NULL,
+};
+
+
+llhttp_t* llhttp_alloc(llhttp_type_t type) {
+  llhttp_t* parser = malloc(sizeof(llhttp_t));
+  llhttp_init(parser, type, &wasm_settings);
+  return parser;
+}
+
+void llhttp_free(llhttp_t* parser) {
+  free(parser);
+}
+
+/* Some getters required to get stuff from the parser */
+
+uint8_t llhttp_get_type(llhttp_t* parser) {
+  return parser->type;
+}
+
+uint8_t llhttp_get_http_major(llhttp_t* parser) {
+  return parser->http_major;
+}
+
+uint8_t llhttp_get_http_minor(llhttp_t* parser) {
+  return parser->http_minor;
+}
+
+uint8_t llhttp_get_method(llhttp_t* parser) {
+  return parser->method;
+}
+
+int llhttp_get_status_code(llhttp_t* parser) {
+  return parser->status_code;
+}
+
+uint8_t llhttp_get_upgrade(llhttp_t* parser) {
+  return parser->upgrade;
+}
+
+#endif  // defined(__wasm__)
+
+
 void llhttp_reset(llhttp_t* parser) {
   llhttp_type_t type = parser->type;
   const llhttp_settings_t* settings = parser->settings;
@@ -150,6 +214,7 @@ void llhttp_set_lenient_headers(llhttp_t* parser, int enabled) {
   }
 }
 
+
 void llhttp_set_lenient_chunked_length(llhttp_t* parser, int enabled) {
   if (enabled) {
     parser->lenient_flags |= LENIENT_CHUNKED_LENGTH;
@@ -158,6 +223,14 @@ void llhttp_set_lenient_chunked_length(llhttp_t* parser, int enabled) {
   }
 }
 
+
+void llhttp_set_lenient_keep_alive(llhttp_t* parser, int enabled) {
+  if (enabled) {
+    parser->lenient_flags |= LENIENT_KEEP_ALIVE;
+  } else {
+    parser->lenient_flags &= ~LENIENT_KEEP_ALIVE;
+  }
+}
 
 /* Callbacks */
 

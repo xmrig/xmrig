@@ -1,5 +1,5 @@
 set(HEADERS_BASE
-    src/3rdparty/fmt/format.cc
+    src/3rdparty/epee/span.h
     src/base/api/interfaces/IApiListener.h
     src/base/crypto/Algorithm.h
     src/base/crypto/Coin.h
@@ -32,6 +32,7 @@ set(HEADERS_BASE
     src/base/kernel/interfaces/IConfigListener.h
     src/base/kernel/interfaces/IConfigTransform.h
     src/base/kernel/interfaces/IConsoleListener.h
+    src/base/kernel/interfaces/IDnsBackend.h
     src/base/kernel/interfaces/IDnsListener.h
     src/base/kernel/interfaces/ILineListener.h
     src/base/kernel/interfaces/ILogBackend.h
@@ -43,7 +44,11 @@ set(HEADERS_BASE
     src/base/kernel/Platform.h
     src/base/kernel/Process.h
     src/base/net/dns/Dns.h
+    src/base/net/dns/DnsConfig.h
     src/base/net/dns/DnsRecord.h
+    src/base/net/dns/DnsRecords.h
+    src/base/net/dns/DnsRequest.h
+    src/base/net/dns/DnsUvBackend.h
     src/base/net/http/Http.h
     src/base/net/http/HttpListener.h
     src/base/net/stratum/BaseClient.h
@@ -63,17 +68,27 @@ set(HEADERS_BASE
     src/base/net/tools/MemPool.h
     src/base/net/tools/NetBuffer.h
     src/base/net/tools/Storage.h
+    src/base/tools/Alignment.h
     src/base/tools/Arguments.h
     src/base/tools/Baton.h
+    src/base/tools/bswap_64.h
     src/base/tools/Buffer.h
     src/base/tools/Chrono.h
+    src/base/tools/cryptonote/BlobReader.h
+    src/base/tools/cryptonote/BlockTemplate.h
+    src/base/tools/cryptonote/crypto-ops.h
+    src/base/tools/cryptonote/Signatures.h
+    src/base/tools/cryptonote/umul128.h
+    src/base/tools/cryptonote/WalletAddress.h
     src/base/tools/Cvt.h
     src/base/tools/Handle.h
+    src/base/tools/Span.h
     src/base/tools/String.h
     src/base/tools/Timer.h
    )
 
 set(SOURCES_BASE
+    src/3rdparty/fmt/format.cc
     src/base/crypto/Algorithm.cpp
     src/base/crypto/Coin.cpp
     src/base/crypto/keccak.cpp
@@ -99,7 +114,10 @@ set(SOURCES_BASE
     src/base/kernel/Platform.cpp
     src/base/kernel/Process.cpp
     src/base/net/dns/Dns.cpp
+    src/base/net/dns/DnsConfig.cpp
     src/base/net/dns/DnsRecord.cpp
+    src/base/net/dns/DnsRecords.cpp
+    src/base/net/dns/DnsUvBackend.cpp
     src/base/net/http/Http.cpp
     src/base/net/stratum/BaseClient.cpp
     src/base/net/stratum/Client.cpp
@@ -115,6 +133,12 @@ set(SOURCES_BASE
     src/base/net/tools/LineReader.cpp
     src/base/net/tools/NetBuffer.cpp
     src/base/tools/Arguments.cpp
+    src/base/tools/Chrono.cpp
+    src/base/tools/cryptonote/BlockTemplate.cpp
+    src/base/tools/cryptonote/crypto-ops-data.c
+    src/base/tools/cryptonote/crypto-ops.c
+    src/base/tools/cryptonote/Signatures.cpp
+    src/base/tools/cryptonote/WalletAddress.cpp
     src/base/tools/Cvt.cpp
     src/base/tools/String.cpp
     src/base/tools/Timer.cpp
@@ -222,7 +246,7 @@ else()
 endif()
 
 
-if (WITH_KAWPOW)
+if (WITH_KAWPOW OR WITH_GHOSTRIDER)
     list(APPEND HEADERS_BASE
         src/base/net/stratum/AutoClient.h
         src/base/net/stratum/EthStratumClient.h

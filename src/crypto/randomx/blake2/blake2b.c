@@ -179,7 +179,7 @@ int rx_blake2b_init_key(blake2b_state *S, size_t outlen, const void *key, size_t
 	return 0;
 }
 
-static void rx_blake2b_compress_integer(blake2b_state *S, const uint8_t *block) {
+void rx_blake2b_compress_integer(blake2b_state *S, const uint8_t *block) {
 	uint64_t m[16];
 	uint64_t v[16];
 	unsigned int i, r;
@@ -236,21 +236,6 @@ static void rx_blake2b_compress_integer(blake2b_state *S, const uint8_t *block) 
 #undef G
 #undef ROUND
 }
-
-#if defined(XMRIG_FEATURE_SSE4_1)
-
-uint32_t rx_blake2b_use_sse41 = 0;
-void rx_blake2b_compress_sse41(blake2b_state* S, const uint8_t* block);
-
-#define rx_blake2b_compress(S, block) \
-	if (rx_blake2b_use_sse41) \
-		rx_blake2b_compress_sse41(S, block); \
-	else \
-		rx_blake2b_compress_integer(S, block);
-
-#else
-#define rx_blake2b_compress(S, block) rx_blake2b_compress_integer(S, block);
-#endif
 
 int rx_blake2b_update(blake2b_state *S, const void *in, size_t inlen) {
 	const uint8_t *pin = (const uint8_t *)in;
@@ -322,7 +307,7 @@ int rx_blake2b_final(blake2b_state *S, void *out, size_t outlen) {
 	return 0;
 }
 
-int rx_blake2b(void *out, size_t outlen, const void *in, size_t inlen) {
+int rx_blake2b_default(void *out, size_t outlen, const void *in, size_t inlen) {
 	blake2b_state S;
 	int ret = -1;
 

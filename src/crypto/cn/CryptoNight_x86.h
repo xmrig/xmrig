@@ -43,6 +43,11 @@
 #include "crypto/cn/soft_aes.h"
 
 
+#ifdef XMRIG_VAES
+#   include "crypto/cn/CryptoNight_x86_vaes.h"
+#endif
+
+
 extern "C"
 {
 #include "crypto/cn/c_groestl.h"
@@ -75,18 +80,7 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
 
 
-#if defined(__x86_64__) || defined(_M_AMD64)
-#   ifdef __GNUC__
-static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t* hi)
-{
-    unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
-    *hi = r >> 64;
-    return (uint64_t) r;
-}
-#   else
-    #define __umul128 _umul128
-#   endif
-#elif defined(__i386__) || defined(_M_IX86)
+#if (defined(__i386__) || defined(_M_IX86)) && !(defined(__clang__) && defined(__clang_major__) && (__clang_major__ >= 15))
 static inline int64_t _mm_cvtsi128_si64(__m128i a)
 {
     return ((uint64_t)(uint32_t)_mm_cvtsi128_si32(a) | ((uint64_t)(uint32_t)_mm_cvtsi128_si32(_mm_srli_si128(a, 4)) << 32));
@@ -94,31 +88,6 @@ static inline int64_t _mm_cvtsi128_si64(__m128i a)
 
 static inline __m128i _mm_cvtsi64_si128(int64_t a) {
     return _mm_set_epi64x(0, a);
-}
-
-static inline uint64_t __umul128(uint64_t multiplier, uint64_t multiplicand, uint64_t *product_hi) {
-    // multiplier   = ab = a * 2^32 + b
-    // multiplicand = cd = c * 2^32 + d
-    // ab * cd = a * c * 2^64 + (a * d + b * c) * 2^32 + b * d
-    uint64_t a = multiplier >> 32;
-    uint64_t b = multiplier & 0xFFFFFFFF;
-    uint64_t c = multiplicand >> 32;
-    uint64_t d = multiplicand & 0xFFFFFFFF;
-
-    //uint64_t ac = a * c;
-    uint64_t ad = a * d;
-    //uint64_t bc = b * c;
-    uint64_t bd = b * d;
-
-    uint64_t adbc = ad + (b * c);
-    uint64_t adbc_carry = adbc < ad ? 1 : 0;
-
-    // multiplier * multiplicand = product_hi * 2^64 + product_lo
-    uint64_t product_lo = bd + (adbc << 32);
-    uint64_t product_lo_carry = product_lo < bd ? 1 : 0;
-    *product_hi = (a * c) + (adbc >> 32) + (adbc_carry << 32) + product_lo_carry;
-
-    return product_lo;
 }
 #endif
 
@@ -321,23 +290,48 @@ inline constexpr uint64_t interleaved_index<0>(uint64_t k)
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
-static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
+static NOINLINE void cn_explode_scratchpad(cryptonight_ctx *ctx)
 {
     constexpr CnAlgo<ALGO> props;
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes(ctx, props.memory(), props.half_mem());
+        return;
+    }
+#   endif
+
+    constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
 
     __m128i xin0, xin1, xin2, xin3, xin4, xin5, xin6, xin7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
 
+    const __m128i* input = reinterpret_cast<const __m128i*>(ctx->state);
+    __m128i* output = reinterpret_cast<__m128i*>(ctx->memory);
+
     aes_genkey<SOFT_AES>(input, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
-    xin0 = _mm_load_si128(input + 4);
-    xin1 = _mm_load_si128(input + 5);
-    xin2 = _mm_load_si128(input + 6);
-    xin3 = _mm_load_si128(input + 7);
-    xin4 = _mm_load_si128(input + 8);
-    xin5 = _mm_load_si128(input + 9);
-    xin6 = _mm_load_si128(input + 10);
-    xin7 = _mm_load_si128(input + 11);
+    if (props.half_mem() && !ctx->first_half) {
+        const __m128i* p = reinterpret_cast<const __m128i*>(ctx->save_state);
+        xin0 = _mm_load_si128(p + 0);
+        xin1 = _mm_load_si128(p + 1);
+        xin2 = _mm_load_si128(p + 2);
+        xin3 = _mm_load_si128(p + 3);
+        xin4 = _mm_load_si128(p + 4);
+        xin5 = _mm_load_si128(p + 5);
+        xin6 = _mm_load_si128(p + 6);
+        xin7 = _mm_load_si128(p + 7);
+    }
+    else {
+        xin0 = _mm_load_si128(input + 4);
+        xin1 = _mm_load_si128(input + 5);
+        xin2 = _mm_load_si128(input + 6);
+        xin3 = _mm_load_si128(input + 7);
+        xin4 = _mm_load_si128(input + 8);
+        xin5 = _mm_load_si128(input + 9);
+        xin6 = _mm_load_si128(input + 10);
+        xin7 = _mm_load_si128(input + 11);
+    }
 
     if (props.isHeavy()) {
         for (size_t i = 0; i < 16; i++) {
@@ -356,46 +350,79 @@ static inline void cn_explode_scratchpad(const __m128i *input, __m128i *output)
         }
     }
 
-    for (size_t i = 0; i < props.memory() / sizeof(__m128i); i += 8) {
-        if (interleave > 0) {
-            _mm_prefetch((const char*)(output), _MM_HINT_T0);
-            _mm_prefetch((const char*)(output + (64 << interleave) / sizeof(__m128i)), _MM_HINT_T0);
-        }
+    constexpr int output_increment = (64 << interleave) / sizeof(__m128i);
+    constexpr int prefetch_dist = 2048 / sizeof(__m128i);
 
-        aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k3, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k4, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k5, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k6, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k7, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
-        aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+    __m128i* e = output + (N << interleave) - prefetch_dist;
+    __m128i* prefetch_ptr = output + prefetch_dist;
 
-        _mm_store_si128(output + 0, xin0);
-        _mm_store_si128(output + 1, xin1);
-        _mm_store_si128(output + 2, xin2);
-        _mm_store_si128(output + 3, xin3);
-        output += (64 << interleave) / sizeof(__m128i);
-        _mm_store_si128(output + 0, xin4);
-        _mm_store_si128(output + 1, xin5);
-        _mm_store_si128(output + 2, xin6);
-        _mm_store_si128(output + 3, xin7);
-        output += (64 << interleave) / sizeof(__m128i);
+    for (int i = 0; i < 2; ++i) {
+        do {
+            _mm_prefetch((const char*)(prefetch_ptr), _MM_HINT_T0);
+            _mm_prefetch((const char*)(prefetch_ptr + output_increment), _MM_HINT_T0);
+
+            aes_round<SOFT_AES>(k0, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k1, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k2, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k3, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k4, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k5, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k6, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k7, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k8, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+            aes_round<SOFT_AES>(k9, &xin0, &xin1, &xin2, &xin3, &xin4, &xin5, &xin6, &xin7);
+
+            _mm_store_si128(output + 0, xin0);
+            _mm_store_si128(output + 1, xin1);
+            _mm_store_si128(output + 2, xin2);
+            _mm_store_si128(output + 3, xin3);
+
+            _mm_store_si128(output + output_increment + 0, xin4);
+            _mm_store_si128(output + output_increment + 1, xin5);
+            _mm_store_si128(output + output_increment + 2, xin6);
+            _mm_store_si128(output + output_increment + 3, xin7);
+
+            output += output_increment * 2;
+            prefetch_ptr += output_increment * 2;
+        } while (output < e);
+        e += prefetch_dist;
+        prefetch_ptr = output;
+    }
+
+    if (props.half_mem() && ctx->first_half) {
+         __m128i* p = reinterpret_cast<__m128i*>(ctx->save_state);
+        _mm_store_si128(p + 0, xin0);
+        _mm_store_si128(p + 1, xin1);
+        _mm_store_si128(p + 2, xin2);
+        _mm_store_si128(p + 3, xin3);
+        _mm_store_si128(p + 4, xin4);
+        _mm_store_si128(p + 5, xin5);
+        _mm_store_si128(p + 6, xin6);
+        _mm_store_si128(p + 7, xin7);
     }
 }
 
 
 template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
-static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
+static NOINLINE void cn_implode_scratchpad(cryptonight_ctx *ctx)
 {
     constexpr CnAlgo<ALGO> props;
 
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes(ctx, props.memory(), props.half_mem());
+        return;
+    }
+#   endif
+
     constexpr bool IS_HEAVY = props.isHeavy();
+    constexpr size_t N = (props.memory() / sizeof(__m128i)) / (props.half_mem() ? 2 : 1);
 
     __m128i xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7;
     __m128i k0, k1, k2, k3, k4, k5, k6, k7, k8, k9;
+
+    const __m128i *input = reinterpret_cast<const __m128i*>(ctx->memory);
+    __m128i *output = reinterpret_cast<__m128i*>(ctx->state);
 
     aes_genkey<SOFT_AES>(output + 2, &k0, &k1, &k2, &k3, &k4, &k5, &k6, &k7, &k8, &k9);
 
@@ -409,44 +436,54 @@ static inline void cn_implode_scratchpad(const __m128i *input, __m128i *output)
     xout7 = _mm_load_si128(output + 11);
 
     const __m128i* input_begin = input;
-    for (size_t i = 0; i < props.memory() / sizeof(__m128i);) {
-        xout0 = _mm_xor_si128(_mm_load_si128(input + 0), xout0);
-        xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
-        xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
-        xout3 = _mm_xor_si128(_mm_load_si128(input + 3), xout3);
-        input += (64 << interleave) / sizeof(__m128i);
-        xout4 = _mm_xor_si128(_mm_load_si128(input + 0), xout4);
-        xout5 = _mm_xor_si128(_mm_load_si128(input + 1), xout5);
-        xout6 = _mm_xor_si128(_mm_load_si128(input + 2), xout6);
-        xout7 = _mm_xor_si128(_mm_load_si128(input + 3), xout7);
-        input += (64 << interleave) / sizeof(__m128i);
-
-        i += 8;
-
-        if ((interleave > 0) && (i < props.memory() / sizeof(__m128i))) {
-            _mm_prefetch((const char*)(input), _MM_HINT_T0);
-            _mm_prefetch((const char*)(input + (64 << interleave) / sizeof(__m128i)), _MM_HINT_T0);
+    for (size_t part = 0; part < (props.half_mem() ? 2 : 1); ++part) {
+        if (props.half_mem() && (part == 1)) {
+            input = input_begin;
+            ctx->first_half = false;
+            cn_explode_scratchpad<ALGO, SOFT_AES, interleave>(ctx);
         }
 
-        aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k2, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k3, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k4, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k5, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k6, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
-        aes_round<SOFT_AES>(k9, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+        for (size_t i = 0; i < N;) {
+            xout0 = _mm_xor_si128(_mm_load_si128(input + 0), xout0);
+            xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
+            xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
+            xout3 = _mm_xor_si128(_mm_load_si128(input + 3), xout3);
 
-        if (IS_HEAVY) {
-            mix_and_propagate(xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7);
+            constexpr int input_increment = (64 << interleave) / sizeof(__m128i);
+
+            xout4 = _mm_xor_si128(_mm_load_si128(input + input_increment + 0), xout4);
+            xout5 = _mm_xor_si128(_mm_load_si128(input + input_increment + 1), xout5);
+            xout6 = _mm_xor_si128(_mm_load_si128(input + input_increment + 2), xout6);
+            xout7 = _mm_xor_si128(_mm_load_si128(input + input_increment + 3), xout7);
+
+            input += input_increment * 2;
+            i += 8;
+
+            if (i < N) {
+                _mm_prefetch((const char*)(input), _MM_HINT_T0);
+                _mm_prefetch((const char*)(input + input_increment), _MM_HINT_T0);
+            }
+
+            aes_round<SOFT_AES>(k0, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k1, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k2, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k3, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k4, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k5, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k6, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k7, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k8, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+            aes_round<SOFT_AES>(k9, &xout0, &xout1, &xout2, &xout3, &xout4, &xout5, &xout6, &xout7);
+
+            if (IS_HEAVY) {
+                mix_and_propagate(xout0, xout1, xout2, xout3, xout4, xout5, xout6, xout7);
+            }
         }
     }
 
     if (IS_HEAVY) {
         input = input_begin;
-        for (size_t i = 0; i < props.memory() / sizeof(__m128i);) {
+        for (size_t i = 0; i < N;) {
             xout0 = _mm_xor_si128(_mm_load_si128(input + 0), xout0);
             xout1 = _mm_xor_si128(_mm_load_si128(input + 1), xout1);
             xout2 = _mm_xor_si128(_mm_load_si128(input + 2), xout2);
@@ -554,6 +591,9 @@ static inline __m128i int_sqrt_v2(const uint64_t n0)
 void v4_soft_aes_compile_code(const V4_Instruction *code, int code_size, void *machine_code, xmrig::Assembly ASM);
 
 
+alignas(64) static const uint32_t tweak1_table[256] = { 268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,268435456,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,805306368,0,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456,805306368,268435456 };
+
+
 namespace xmrig {
 
 
@@ -563,7 +603,7 @@ static inline void cryptonight_monero_tweak(uint64_t *mem_out, const uint8_t *l,
     constexpr CnAlgo<ALGO> props;
 
     if (props.base() == Algorithm::CN_2) {
-        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+        VARIANT2_SHUFFLE(l, idx, ax0, bx0, bx1, cx, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
         _mm_store_si128(reinterpret_cast<__m128i *>(mem_out), _mm_xor_si128(bx0, cx));
     } else {
         __m128i tmp = _mm_xor_si128(bx0, cx);
@@ -572,12 +612,7 @@ static inline void cryptonight_monero_tweak(uint64_t *mem_out, const uint8_t *l,
         tmp = _mm_castps_si128(_mm_movehl_ps(_mm_castsi128_ps(tmp), _mm_castsi128_ps(tmp)));
         uint64_t vh = _mm_cvtsi128_si64(tmp);
 
-        uint8_t x = static_cast<uint8_t>(vh >> 24);
-        static const uint16_t table = 0x7531;
-        const uint8_t index = (((x >> (3)) & 6) | (x & 1)) << 1;
-        vh ^= ((table >> index) & 0x3) << 28;
-
-        mem_out[1] = vh;
+        mem_out[1] = vh ^ tweak1_table[static_cast<uint32_t>(vh) >> 24];
     }
 }
 
@@ -599,9 +634,35 @@ static inline void cryptonight_conceal_tweak(__m128i& cx, __m128& conc_var)
     cx = _mm_xor_si128(cx, _mm_cvttps_epi32(nc));
 }
 
+#ifdef XMRIG_FEATURE_ASM
+template<Algorithm::Id ALGO>
+static void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height);
+#endif
+
 template<Algorithm::Id ALGO, bool SOFT_AES, int interleave>
 inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
+    if (!SOFT_AES) {
+        switch (ALGO) {
+        case Algorithm::CN_GR_0:
+        case Algorithm::CN_GR_1:
+        case Algorithm::CN_GR_2:
+        case Algorithm::CN_GR_3:
+        case Algorithm::CN_GR_4:
+        case Algorithm::CN_GR_5:
+            if (cn_sse41_enabled) {
+                cryptonight_single_hash_gr_sse41<ALGO>(input, size, output, ctx, height);
+                return;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
     constexpr Algorithm::Id BASE = props.base();
@@ -618,7 +679,11 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     }
 
     keccak(input, size, ctx[0]->state);
-    cn_explode_scratchpad<ALGO, SOFT_AES, interleave>(reinterpret_cast<const __m128i *>(ctx[0]->state), reinterpret_cast<__m128i *>(ctx[0]->memory));
+
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+    }
+    cn_explode_scratchpad<ALGO, SOFT_AES, interleave>(ctx[0]);
 
     uint64_t *h0 = reinterpret_cast<uint64_t*>(ctx[0]->state);
     uint8_t *l0   = ctx[0]->memory;
@@ -715,7 +780,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx0, bx1, cx, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx0, bx1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -739,8 +804,18 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 #       ifdef XMRIG_ALGO_CN_HEAVY
         if (props.isHeavy()) {
             int64_t n = ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0];
-            int32_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
-            int64_t q = n / (d | 0x5);
+            int64_t d = ((int32_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[2];
+
+            int64_t d5;
+
+#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
+            d5 = d | 5;
+#           else
+            // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit
+            asm("mov %1, %0\n\tor $5, %0" : "=r"(d5) : "r"(d));
+#           endif
+
+            int64_t q = n / d5;
 
             ((int64_t*)&l0[interleaved_index<interleave>(idx0 & MASK)])[0] = n ^ q;
 
@@ -763,7 +838,7 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
     }
 #   endif
 
-    cn_implode_scratchpad<ALGO, SOFT_AES, interleave>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
+    cn_implode_scratchpad<ALGO, SOFT_AES, interleave>(ctx[0]);
     keccakf(h0, 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
@@ -773,12 +848,16 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
 
 #ifdef XMRIG_FEATURE_ASM
+extern "C" void cnv1_single_mainloop_asm(cryptonight_ctx * *ctx);
+extern "C" void cnv1_double_mainloop_asm(cryptonight_ctx **ctx);
+extern "C" void cnv1_quad_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_double_mainloop_asm(cryptonight_ctx **ctx);
+extern "C" void cnv2_upx_double_mainloop_zen3_asm(cryptonight_ctx **ctx);
 
 
 namespace xmrig {
@@ -811,6 +890,30 @@ extern cn_mainloop_fun cn_double_mainloop_ivybridge_asm;
 extern cn_mainloop_fun cn_double_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_double_mainloop_bulldozer_asm;
 extern cn_mainloop_fun cn_double_double_mainloop_sandybridge_asm;
+
+extern cn_mainloop_fun cn_upx2_mainloop_asm;
+extern cn_mainloop_fun cn_upx2_double_mainloop_asm;
+
+extern cn_mainloop_fun cn_gr0_single_mainloop_asm;
+extern cn_mainloop_fun cn_gr1_single_mainloop_asm;
+extern cn_mainloop_fun cn_gr2_single_mainloop_asm;
+extern cn_mainloop_fun cn_gr3_single_mainloop_asm;
+extern cn_mainloop_fun cn_gr4_single_mainloop_asm;
+extern cn_mainloop_fun cn_gr5_single_mainloop_asm;
+
+extern cn_mainloop_fun cn_gr0_double_mainloop_asm;
+extern cn_mainloop_fun cn_gr1_double_mainloop_asm;
+extern cn_mainloop_fun cn_gr2_double_mainloop_asm;
+extern cn_mainloop_fun cn_gr3_double_mainloop_asm;
+extern cn_mainloop_fun cn_gr4_double_mainloop_asm;
+extern cn_mainloop_fun cn_gr5_double_mainloop_asm;
+
+extern cn_mainloop_fun cn_gr0_quad_mainloop_asm;
+extern cn_mainloop_fun cn_gr1_quad_mainloop_asm;
+extern cn_mainloop_fun cn_gr2_quad_mainloop_asm;
+extern cn_mainloop_fun cn_gr3_quad_mainloop_asm;
+extern cn_mainloop_fun cn_gr4_quad_mainloop_asm;
+extern cn_mainloop_fun cn_gr5_quad_mainloop_asm;
 
 
 } // namespace xmrig
@@ -851,7 +954,11 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
     }
 
     keccak(input, size, ctx[0]->state);
-    cn_explode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[0]->state), reinterpret_cast<__m128i*>(ctx[0]->memory));
+
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+    }
+    cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
 
     if (ALGO == Algorithm::CN_2) {
         if (ASM == Assembly::INTEL) {
@@ -924,11 +1031,16 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
             cn_double_mainloop_bulldozer_asm(ctx);
         }
     }
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    else if (ALGO == Algorithm::CN_UPX2) {
+        cn_upx2_mainloop_asm(ctx);
+    }
+#   endif
     else if (props.isR()) {
         ctx[0]->generated_code(ctx);
     }
 
-    cn_implode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
+    cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
     keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
@@ -950,8 +1062,21 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
     keccak(input,        size, ctx[0]->state);
     keccak(input + size, size, ctx[1]->state);
 
-    cn_explode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[0]->state), reinterpret_cast<__m128i*>(ctx[0]->memory));
-    cn_explode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[1]->state), reinterpret_cast<__m128i*>(ctx[1]->memory));
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+        ctx[1]->first_half = true;
+    }
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
 
     if (ALGO == Algorithm::CN_2) {
         cnv2_double_mainloop_sandybridge_asm(ctx);
@@ -967,6 +1092,16 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         cn_tlo_double_mainloop_sandybridge_asm(ctx);
     }
 #   endif
+#   ifdef XMRIG_ALGO_CN_FEMTO
+    else if (ALGO == Algorithm::CN_UPX2) {
+        if (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) {
+            cnv2_upx_double_mainloop_zen3_asm(ctx);
+        }
+        else {
+            cn_upx2_double_mainloop_asm(ctx);
+        }
+    }
+#   endif
     else if (ALGO == Algorithm::CN_RWZ) {
         cnv2_rwz_double_mainloop_asm(ctx);
     }
@@ -980,8 +1115,16 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
         ctx[0]->generated_code(ctx);
     }
 
-    cn_implode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[0]->memory), reinterpret_cast<__m128i*>(ctx[0]->state));
-    cn_implode_scratchpad<ALGO, false, 0>(reinterpret_cast<const __m128i*>(ctx[1]->memory), reinterpret_cast<__m128i*>(ctx[1]->state));
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
 
     keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
     keccakf(reinterpret_cast<uint64_t*>(ctx[1]->state), 24);
@@ -998,9 +1141,130 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 namespace xmrig {
 
 
+#ifdef XMRIG_FEATURE_ASM
+template<Algorithm::Id ALGO>
+static NOINLINE void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height)
+{
+    constexpr CnAlgo<ALGO> props;
+    constexpr Algorithm::Id BASE = props.base();
+
+    if (BASE == Algorithm::CN_1 && size < 43) {
+        memset(output, 0, 32);
+        return;
+    }
+
+    keccak(input, size, ctx[0]->state);
+
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+    }
+    cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
+
+    VARIANT1_INIT(0);
+    ctx[0]->tweak1_2 = tweak1_2_0;
+    ctx[0]->tweak1_table = tweak1_table;
+    if (ALGO == Algorithm::CN_GR_0) cn_gr0_single_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_1) cn_gr1_single_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_2) cn_gr2_single_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_3) cn_gr3_single_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_4) cn_gr4_single_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_5) cn_gr5_single_mainloop_asm(ctx);
+
+    cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
+    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+}
+
+
+template<Algorithm::Id ALGO>
+static NOINLINE void cryptonight_double_hash_gr_sse41(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
+{
+    constexpr CnAlgo<ALGO> props;
+    constexpr Algorithm::Id BASE = props.base();
+
+    if (BASE == Algorithm::CN_1 && size < 43) {
+        memset(output, 0, 64);
+        return;
+    }
+
+    keccak(input,        size, ctx[0]->state);
+    keccak(input + size, size, ctx[1]->state);
+
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+        ctx[1]->first_half = true;
+    }
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
+
+    VARIANT1_INIT(0);
+    VARIANT1_INIT(1);
+
+    ctx[0]->tweak1_2 = tweak1_2_0;
+    ctx[1]->tweak1_2 = tweak1_2_1;
+
+    ctx[0]->tweak1_table = tweak1_table;
+
+    if (ALGO == Algorithm::CN_GR_0) cn_gr0_double_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_1) cn_gr1_double_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_2) cn_gr2_double_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_3) cn_gr3_double_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_4) cn_gr4_double_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_5) cn_gr5_double_mainloop_asm(ctx);
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[1]);
+    }
+
+    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
+    keccakf(reinterpret_cast<uint64_t*>(ctx[1]->state), 24);
+
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+    extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
+}
+#endif
+
+
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
+    if (!SOFT_AES) {
+        switch (ALGO) {
+        case Algorithm::CN_GR_0:
+        case Algorithm::CN_GR_1:
+        case Algorithm::CN_GR_2:
+        case Algorithm::CN_GR_3:
+        case Algorithm::CN_GR_4:
+        case Algorithm::CN_GR_5:
+            if (cn_sse41_enabled) {
+                cryptonight_double_hash_gr_sse41<ALGO>(input, size, output, ctx, height);
+                return;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
     constexpr Algorithm::Id BASE = props.base();
@@ -1032,8 +1296,21 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     VARIANT4_RANDOM_MATH_INIT(0);
     VARIANT4_RANDOM_MATH_INIT(1);
 
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i *>(h0), reinterpret_cast<__m128i *>(l0));
-    cn_explode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i *>(h1), reinterpret_cast<__m128i *>(l1));
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+        ctx[1]->first_half = true;
+    }
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+    }
 
     uint64_t al0 = h0[0] ^ h0[4];
     uint64_t al1 = h1[0] ^ h1[4];
@@ -1124,7 +1401,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l0, idx0 & MASK, ax0, bx00, bx01, cx0, 0);
             } else {
-                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l0, idx0 & MASK, ax0, bx00, bx01, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -1182,7 +1459,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
             if (ALGO == Algorithm::CN_R) {
                 VARIANT2_SHUFFLE(l1, idx1 & MASK, ax1, bx10, bx11, cx1, 0);
             } else {
-                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));
+                VARIANT2_SHUFFLE2(l1, idx1 & MASK, ax1, bx10, bx11, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0));
             }
         }
 
@@ -1228,8 +1505,16 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         bx10 = cx1;
     }
 
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i *>(l0), reinterpret_cast<__m128i *>(h0));
-    cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i *>(l1), reinterpret_cast<__m128i *>(h1));
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+    }
 
     keccakf(h0, 24);
     keccakf(h1, 24);
@@ -1237,6 +1522,85 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
     extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
     extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
 }
+
+
+#ifdef XMRIG_FEATURE_ASM
+template<Algorithm::Id ALGO>
+static NOINLINE void cryptonight_quad_hash_gr_sse41(const uint8_t* __restrict__ input, size_t size, uint8_t* __restrict__ output, cryptonight_ctx** __restrict__ ctx, uint64_t height)
+{
+    constexpr CnAlgo<ALGO> props;
+    constexpr Algorithm::Id BASE = props.base();
+
+    if (BASE == Algorithm::CN_1 && size < 43) {
+        memset(output, 0, 32 * 4);
+        return;
+    }
+
+    keccak(input + size * 0, size, ctx[0]->state);
+    keccak(input + size * 1, size, ctx[1]->state);
+    keccak(input + size * 2, size, ctx[2]->state);
+    keccak(input + size * 3, size, ctx[3]->state);
+
+    if (props.half_mem()) {
+        ctx[0]->first_half = true;
+        ctx[1]->first_half = true;
+        ctx[2]->first_half = true;
+        ctx[3]->first_half = true;
+    }
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+        cn_explode_scratchpad_vaes_double(ctx[2], ctx[3], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[1]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[2]);
+        cn_explode_scratchpad<ALGO, false, 0>(ctx[3]);
+    }
+
+    VARIANT1_INIT(0); ctx[0]->tweak1_2 = tweak1_2_0;
+    VARIANT1_INIT(1); ctx[1]->tweak1_2 = tweak1_2_1;
+    VARIANT1_INIT(2); ctx[2]->tweak1_2 = tweak1_2_2;
+    VARIANT1_INIT(3); ctx[3]->tweak1_2 = tweak1_2_3;
+
+    ctx[0]->tweak1_table = tweak1_table;
+
+    if (ALGO == Algorithm::CN_GR_0) cn_gr0_quad_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_1) cn_gr1_quad_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_2) cn_gr2_quad_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_3) cn_gr3_quad_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_4) cn_gr4_quad_mainloop_asm(ctx);
+    if (ALGO == Algorithm::CN_GR_5) cn_gr5_quad_mainloop_asm(ctx);
+
+#   ifdef XMRIG_VAES
+    if (!props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+        cn_implode_scratchpad_vaes_double(ctx[2], ctx[3], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[1]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[2]);
+        cn_implode_scratchpad<ALGO, false, 0>(ctx[3]);
+    }
+
+    keccakf(reinterpret_cast<uint64_t*>(ctx[0]->state), 24);
+    keccakf(reinterpret_cast<uint64_t*>(ctx[1]->state), 24);
+    keccakf(reinterpret_cast<uint64_t*>(ctx[2]->state), 24);
+    keccakf(reinterpret_cast<uint64_t*>(ctx[3]->state), 24);
+
+    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+    extra_hashes[ctx[1]->state[0] & 3](ctx[1]->state, 200, output + 32);
+    extra_hashes[ctx[2]->state[0] & 3](ctx[2]->state, 200, output + 64);
+    extra_hashes[ctx[3]->state[0] & 3](ctx[3]->state, 200, output + 96);
+}
+#endif
 
 
 #define CN_STEP1(a, b0, b1, c, l, ptr, idx, conc_var) \
@@ -1292,7 +1656,7 @@ inline void cryptonight_double_hash(const uint8_t *__restrict__ input, size_t si
         if (ALGO == Algorithm::CN_R) {                                                                      \
             VARIANT2_SHUFFLE(l, idx & MASK, a, b0, b1, c, 0);                                               \
         } else {                                                                                            \
-            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (ALGO == Algorithm::CN_RWZ ? 1 : 0));       \
+            VARIANT2_SHUFFLE2(l, idx & MASK, a, b0, b1, hi, lo, (((ALGO == Algorithm::CN_RWZ) || (ALGO == Algorithm::CN_UPX2)) ? 1 : 0)); \
         }                                                                                                   \
     }                                                                                                       \
     if (ALGO == Algorithm::CN_R) {                                                                          \
@@ -1374,7 +1738,10 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
 
     for (size_t i = 0; i < 3; i++) {
         keccak(input + size * i, size, ctx[i]->state);
-        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
+        if (props.half_mem()) {
+            ctx[i]->first_half = true;
+        }
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
     }
 
     uint8_t* l0  = ctx[0]->memory;
@@ -1419,7 +1786,7 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
     }
 
     for (size_t i = 0; i < 3; i++) {
-        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
         keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }
@@ -1429,6 +1796,27 @@ inline void cryptonight_triple_hash(const uint8_t *__restrict__ input, size_t si
 template<Algorithm::Id ALGO, bool SOFT_AES>
 inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size, uint8_t *__restrict__ output, cryptonight_ctx **__restrict__ ctx, uint64_t height)
 {
+#   ifdef XMRIG_FEATURE_ASM
+    if (!SOFT_AES) {
+        switch (ALGO) {
+        case Algorithm::CN_GR_0:
+        case Algorithm::CN_GR_1:
+        case Algorithm::CN_GR_2:
+        case Algorithm::CN_GR_3:
+        case Algorithm::CN_GR_4:
+        case Algorithm::CN_GR_5:
+            if (cn_sse41_enabled) {
+                cryptonight_quad_hash_gr_sse41<ALGO>(input, size, output, ctx, height);
+                return;
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
+#   endif
+
     constexpr CnAlgo<ALGO> props;
     constexpr size_t MASK        = props.mask();
     constexpr Algorithm::Id BASE = props.base();
@@ -1448,7 +1836,23 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
 
     for (size_t i = 0; i < 4; i++) {
         keccak(input + size * i, size, ctx[i]->state);
-        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
+        if (props.half_mem()) {
+            ctx[i]->first_half = true;
+        }
+    }
+
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_explode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+        cn_explode_scratchpad_vaes_double(ctx[2], ctx[3], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
     }
 
     uint8_t* l0  = ctx[0]->memory;
@@ -1500,8 +1904,21 @@ inline void cryptonight_quad_hash(const uint8_t *__restrict__ input, size_t size
         CN_STEP4(3, ax3, bx30, bx31, cx3, l3, mc3, ptr3, idx3);
     }
 
+#   ifdef XMRIG_VAES
+    if (!SOFT_AES && !props.isHeavy() && cn_vaes_enabled) {
+        cn_implode_scratchpad_vaes_double(ctx[0], ctx[1], props.memory(), props.half_mem());
+        cn_implode_scratchpad_vaes_double(ctx[2], ctx[3], props.memory(), props.half_mem());
+    }
+    else
+#   endif
+    {
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[0]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[1]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[2]);
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[3]);
+    }
+
     for (size_t i = 0; i < 4; i++) {
-        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
         keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }
@@ -1530,7 +1947,10 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
 
     for (size_t i = 0; i < 5; i++) {
         keccak(input + size * i, size, ctx[i]->state);
-        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->state), reinterpret_cast<__m128i*>(ctx[i]->memory));
+        if (props.half_mem()) {
+            ctx[i]->first_half = true;
+        }
+        cn_explode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
     }
 
     uint8_t* l0  = ctx[0]->memory;
@@ -1591,7 +2011,7 @@ inline void cryptonight_penta_hash(const uint8_t *__restrict__ input, size_t siz
     }
 
     for (size_t i = 0; i < 5; i++) {
-        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(reinterpret_cast<const __m128i*>(ctx[i]->memory), reinterpret_cast<__m128i*>(ctx[i]->state));
+        cn_implode_scratchpad<ALGO, SOFT_AES, 0>(ctx[i]);
         keccakf(reinterpret_cast<uint64_t*>(ctx[i]->state), 24);
         extra_hashes[ctx[i]->state[0] & 3](ctx[i]->state, 200, output + 32 * i);
     }

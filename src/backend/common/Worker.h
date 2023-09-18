@@ -31,6 +31,8 @@ class Worker : public IWorker
 public:
     Worker(size_t id, int64_t affinity, int priority);
 
+    size_t threads() const override                         { return 1; }
+
 protected:
     inline int64_t affinity() const                         { return m_affinity; }
     inline size_t id() const override                       { return m_id; }

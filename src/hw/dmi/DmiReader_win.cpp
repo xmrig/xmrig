@@ -46,14 +46,16 @@ struct RawSMBIOSData {
 
 bool xmrig::DmiReader::read()
 {
-    const uint32_t size = GetSystemFirmwareTable('RSMB', 0, nullptr, 0);
+    constexpr uint32_t RSMB = 0x52534D42;
+
+    const uint32_t size = GetSystemFirmwareTable(RSMB, 0, nullptr, 0);
     auto smb            = reinterpret_cast<RawSMBIOSData *>(HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, size));
 
     if (!smb) {
         return false;
     }
 
-    if (GetSystemFirmwareTable('RSMB', 0, smb, size) != size) {
+    if (GetSystemFirmwareTable(RSMB, 0, smb, size) != size) {
         HeapFree(GetProcessHeap(), 0, smb);
 
         return false;

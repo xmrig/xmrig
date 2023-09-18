@@ -42,9 +42,9 @@ public:
 
 private:
 #   ifdef XMRIG_OS_WIN
-    char m_endl[3]  = "\r\n";
+    const char m_endl[3]  = {'\r', '\n', 0};
 #   else
-    char m_endl[2]  = "\n";
+    const char m_endl[2]  = {'\n', 0};
 #   endif
 
     int m_file      = -1;

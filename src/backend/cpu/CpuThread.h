@@ -41,7 +41,7 @@ public:
     CpuThread(const rapidjson::Value &value);
 
     inline bool isEqual(const CpuThread &other) const       { return other.m_affinity == m_affinity && other.m_intensity == m_intensity; }
-    inline bool isValid() const                             { return m_intensity <= 5; }
+    inline bool isValid() const                             { return m_intensity <= 8; }
     inline int64_t affinity() const                         { return m_affinity; }
     inline uint32_t intensity() const                       { return m_intensity == 0 ? 1 : m_intensity; }
 

@@ -118,13 +118,13 @@ bool xmrig::HttpContext::isRequest() const
 }
 
 
-size_t xmrig::HttpContext::parse(const char *data, size_t size)
+bool xmrig::HttpContext::parse(const char *data, size_t size)
 {
     if (size == 0) {
-        return size;
+        return true;
     }
 
-    return llhttp_execute(m_parser, data, size);
+    return llhttp_execute(m_parser, data, size) == HPE_OK;
 }
 
 

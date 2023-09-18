@@ -1,15 +1,15 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
-// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
+//
+// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
 // in compliance with the License. You may obtain a copy of the License at
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_BIGINTEGER_H_
@@ -17,7 +17,7 @@
 
 #include "../rapidjson.h"
 
-#if defined(_MSC_VER) && !__INTEL_COMPILER && defined(_M_AMD64)
+#if defined(_MSC_VER) && !defined(__INTEL_COMPILER) && defined(_M_AMD64)
 #include <intrin.h> // for _umul128
 #pragma intrinsic(_umul128)
 #endif
@@ -37,7 +37,8 @@ public:
         digits_[0] = u;
     }
 
-    BigInteger(const char* decimals, size_t length) : count_(1) {
+    template<typename Ch>
+    BigInteger(const Ch* decimals, size_t length) : count_(1) {
         RAPIDJSON_ASSERT(length > 0);
         digits_[0] = 0;
         size_t i = 0;
@@ -51,7 +52,7 @@ public:
         if (length > 0)
             AppendDecimal64(decimals + i, decimals + i + length);
     }
-    
+
     BigInteger& operator=(const BigInteger &rhs)
     {
         if (this != &rhs) {
@@ -60,9 +61,9 @@ public:
         }
         return *this;
     }
-    
+
     BigInteger& operator=(uint64_t u) {
-        digits_[0] = u;            
+        digits_[0] = u;
         count_ = 1;
         return *this;
     }
@@ -95,7 +96,7 @@ public:
             digits_[i] = MulAdd64(digits_[i], u, k, &hi);
             k = hi;
         }
-        
+
         if (k > 0)
             PushBack(k);
 
@@ -118,7 +119,7 @@ public:
             digits_[i] = (p0 & 0xFFFFFFFF) | (p1 << 32);
             k = p1 >> 32;
         }
-        
+
         if (k > 0)
             PushBack(k);
 
@@ -221,7 +222,8 @@ public:
     bool IsZero() const { return count_ == 1 && digits_[0] == 0; }
 
 private:
-    void AppendDecimal64(const char* begin, const char* end) {
+    template<typename Ch>
+    void AppendDecimal64(const Ch* begin, const Ch* end) {
         uint64_t u = ParseUint64(begin, end);
         if (IsZero())
             *this = u;
@@ -236,11 +238,12 @@ private:
         digits_[count_++] = digit;
     }
 
-    static uint64_t ParseUint64(const char* begin, const char* end) {
+    template<typename Ch>
+    static uint64_t ParseUint64(const Ch* begin, const Ch* end) {
         uint64_t r = 0;
-        for (const char* p = begin; p != end; ++p) {
-            RAPIDJSON_ASSERT(*p >= '0' && *p <= '9');
-            r = r * 10u + static_cast<unsigned>(*p - '0');
+        for (const Ch* p = begin; p != end; ++p) {
+            RAPIDJSON_ASSERT(*p >= Ch('0') && *p <= Ch('9'));
+            r = r * 10u + static_cast<unsigned>(*p - Ch('0'));
         }
         return r;
     }

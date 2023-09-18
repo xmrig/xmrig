@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009-2010 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -44,7 +44,7 @@ extern "C" {
 /** \brief Get the CPU set of processors that are physically
  * close to device \p ibdev.
  *
- * Return the CPU set describing the locality of the OpenFabrics
+ * Store in \p set the CPU-set describing the locality of the OpenFabrics
  * device \p ibdev (InfiniBand, etc).
  *
  * Topology \p topology and device \p ibdev must match the local machine.
@@ -88,10 +88,11 @@ hwloc_ibv_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unused,
 /** \brief Get the hwloc OS device object corresponding to the OpenFabrics
  * device named \p ibname.
  *
- * Return the OS device object describing the OpenFabrics device
+ * \return The hwloc OS device object describing the OpenFabrics device
  * (InfiniBand, Omni-Path, usNIC, etc) whose name is \p ibname
  * (mlx5_0, hfi1_0, usnic_0, qib0, etc).
- * Returns NULL if there is none.
+ * \return \c NULL if none could be found.
+ *
  * The name \p ibname is usually obtained from ibv_get_device_name().
  *
  * The topology \p topology does not necessarily have to match the current
@@ -117,8 +118,9 @@ hwloc_ibv_get_device_osdev_by_name(hwloc_topology_t topology,
 /** \brief Get the hwloc OS device object corresponding to the OpenFabrics
  * device \p ibdev.
  *
- * Return the OS device object describing the OpenFabrics device \p ibdev
- * (InfiniBand, etc). Returns NULL if there is none.
+ * \return The hwloc OS device object describing the OpenFabrics
+ * device \p ibdev (InfiniBand, etc).
+ * \return \c NULL if none could be found.
  *
  * Topology \p topology and device \p ibdev must match the local machine.
  * I/O devices detection must be enabled in the topology.

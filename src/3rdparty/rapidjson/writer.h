@@ -1,21 +1,22 @@
 // Tencent is pleased to support the open source community by making RapidJSON available.
-// 
-// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip. All rights reserved.
+//
+// Copyright (C) 2015 THL A29 Limited, a Tencent company, and Milo Yip.
 //
 // Licensed under the MIT License (the "License"); you may not use this file except
 // in compliance with the License. You may obtain a copy of the License at
 //
 // http://opensource.org/licenses/MIT
 //
-// Unless required by applicable law or agreed to in writing, software distributed 
-// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR 
-// CONDITIONS OF ANY KIND, either express or implied. See the License for the 
+// Unless required by applicable law or agreed to in writing, software distributed
+// under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+// CONDITIONS OF ANY KIND, either express or implied. See the License for the
 // specific language governing permissions and limitations under the License.
 
 #ifndef RAPIDJSON_WRITER_H_
 #define RAPIDJSON_WRITER_H_
 
 #include "stream.h"
+#include "internal/clzll.h"
 #include "internal/meta.h"
 #include "internal/stack.h"
 #include "internal/strfunc.h"
@@ -51,7 +52,7 @@ RAPIDJSON_NAMESPACE_BEGIN
 ///////////////////////////////////////////////////////////////////////////////
 // WriteFlag
 
-/*! \def RAPIDJSON_WRITE_DEFAULT_FLAGS 
+/*! \def RAPIDJSON_WRITE_DEFAULT_FLAGS
     \ingroup RAPIDJSON_CONFIG
     \brief User-defined kWriteDefaultFlags definition.
 
@@ -75,7 +76,7 @@ enum WriteFlag {
 
     User may programmatically calls the functions of a writer to generate JSON text.
 
-    On the other side, a writer can also be passed to objects that generates events, 
+    On the other side, a writer can also be passed to objects that generates events,
 
     for example Reader::Parse() and Document::Accept().
 
@@ -98,7 +99,7 @@ public:
         \param levelDepth Initial capacity of stack.
     */
     explicit
-    Writer(OutputStream& os, StackAllocator* stackAllocator = 0, size_t levelDepth = kDefaultLevelDepth) : 
+    Writer(OutputStream& os, StackAllocator* stackAllocator = 0, size_t levelDepth = kDefaultLevelDepth) :
         os_(&os), level_stack_(stackAllocator, levelDepth * sizeof(Level)), maxDecimalPlaces_(kDefaultMaxDecimalPlaces), hasRoot_(false) {}
 
     explicit
@@ -152,7 +153,7 @@ public:
     /*!
         This setting truncates the output with specified number of decimal places.
 
-        For example, 
+        For example,
 
         \code
         writer.SetMaxDecimalPlaces(3);
@@ -226,7 +227,7 @@ public:
       return Key(str.data(), SizeType(str.size()));
     }
 #endif
-	
+
     bool EndObject(SizeType memberCount = 0) {
         (void)memberCount;
         RAPIDJSON_ASSERT(level_stack_.GetSize() >= sizeof(Level)); // not inside an Object
@@ -257,7 +258,7 @@ public:
     //! Simpler but slower overload.
     bool String(const Ch* const& str) { return String(str, internal::StrLen(str)); }
     bool Key(const Ch* const& str) { return Key(str, internal::StrLen(str)); }
-    
+
     //@}
 
     //! Write a raw JSON value.
@@ -282,6 +283,8 @@ public:
         os_->Flush();
     }
 
+    static const size_t kDefaultLevelDepth = 32;
+
 protected:
     //! Information for each nested level
     struct Level {
@@ -290,8 +293,6 @@ protected:
         bool inArray;       //!< true if in array, otherwise in object
         bool inLine = false;
     };
-
-    static const size_t kDefaultLevelDepth = 32;
 
     bool WriteNull()  {
         PutReserve(*os_, 4);
@@ -425,7 +426,7 @@ protected:
                     PutUnsafe(*os_, hexDigits[(trail >> 12) & 15]);
                     PutUnsafe(*os_, hexDigits[(trail >>  8) & 15]);
                     PutUnsafe(*os_, hexDigits[(trail >>  4) & 15]);
-                    PutUnsafe(*os_, hexDigits[(trail      ) & 15]);                    
+                    PutUnsafe(*os_, hexDigits[(trail      ) & 15]);
                 }
             }
             else if ((sizeof(Ch) == 1 || static_cast<unsigned>(c) < 256) && RAPIDJSON_UNLIKELY(escape[static_cast<unsigned char>(c)]))  {
@@ -439,7 +440,7 @@ protected:
                     PutUnsafe(*os_, hexDigits[static_cast<unsigned char>(c) & 0xF]);
                 }
             }
-            else if (RAPIDJSON_UNLIKELY(!(writeFlags & kWriteValidateEncodingFlag ? 
+            else if (RAPIDJSON_UNLIKELY(!(writeFlags & kWriteValidateEncodingFlag ?
                 Transcoder<SourceEncoding, TargetEncoding>::Validate(is, *os_) :
                 Transcoder<SourceEncoding, TargetEncoding>::TranscodeUnsafe(is, *os_))))
                 return false;
@@ -462,7 +463,7 @@ protected:
         GenericStringStream<SourceEncoding> is(json);
         while (RAPIDJSON_LIKELY(is.Tell() < length)) {
             RAPIDJSON_ASSERT(is.Peek() != '\0');
-            if (RAPIDJSON_UNLIKELY(!(writeFlags & kWriteValidateEncodingFlag ? 
+            if (RAPIDJSON_UNLIKELY(!(writeFlags & kWriteValidateEncodingFlag ?
                 Transcoder<SourceEncoding, TargetEncoding>::Validate(is, *os_) :
                 Transcoder<SourceEncoding, TargetEncoding>::TranscodeUnsafe(is, *os_))))
                 return false;
@@ -475,7 +476,7 @@ protected:
         if (RAPIDJSON_LIKELY(level_stack_.GetSize() != 0)) { // this value is not at root
             Level* level = level_stack_.template Top<Level>();
             if (level->valueCount > 0) {
-                if (level->inArray) 
+                if (level->inArray)
                     os_->Put(','); // add comma if it is not the first element in array
                 else  // in object
                     os_->Put((level->valueCount % 2 == 0) ? ',' : ':');
@@ -563,7 +564,7 @@ inline bool Writer<StringBuffer>::WriteDouble(double d) {
         PutUnsafe(*os_, 'i'); PutUnsafe(*os_, 'n'); PutUnsafe(*os_, 'i'); PutUnsafe(*os_, 't'); PutUnsafe(*os_, 'y');
         return true;
     }
-    
+
     char *buffer = os_->Push(25);
     char* end = internal::dtoa(d, buffer, maxDecimalPlaces_);
     os_->Pop(static_cast<size_t>(25 - (end - buffer)));
@@ -669,19 +670,19 @@ inline bool Writer<StringBuffer>::ScanWriteUnescapedString(StringStream& is, siz
         x = vorrq_u8(x, vcltq_u8(s, s3));
 
         x = vrev64q_u8(x);                     // Rev in 64
-        uint64_t low = vgetq_lane_u64(reinterpret_cast<uint64x2_t>(x), 0);   // extract
-        uint64_t high = vgetq_lane_u64(reinterpret_cast<uint64x2_t>(x), 1);  // extract
+        uint64_t low = vgetq_lane_u64(vreinterpretq_u64_u8(x), 0);   // extract
+        uint64_t high = vgetq_lane_u64(vreinterpretq_u64_u8(x), 1);  // extract
 
         SizeType len = 0;
         bool escaped = false;
         if (low == 0) {
             if (high != 0) {
-                unsigned lz = (unsigned)__builtin_clzll(high);
+                uint32_t lz = internal::clzll(high);
                 len = 8 + (lz >> 3);
                 escaped = true;
             }
         } else {
-            unsigned lz = (unsigned)__builtin_clzll(low);
+            uint32_t lz = internal::clzll(low);
             len = lz >> 3;
             escaped = true;
         }

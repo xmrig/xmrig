@@ -126,6 +126,7 @@ FORCE_INLINE rx_vec_f128 rx_set1_vec_f128(uint64_t x) {
 
 #define rx_xor_vec_f128 _mm_xor_pd
 #define rx_and_vec_f128 _mm_and_pd
+#define rx_and_vec_i128 _mm_and_si128
 #define rx_or_vec_f128 _mm_or_pd
 
 #ifdef __AES__
@@ -276,6 +277,10 @@ FORCE_INLINE rx_vec_f128 rx_xor_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 
 FORCE_INLINE rx_vec_f128 rx_and_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 	return (rx_vec_f128)vec_and(a,b);
+}
+
+FORCE_INLINE rx_vec_i128 rx_and_vec_i128(rx_vec_i128 a, rx_vec_i128 b) {
+	return (rx_vec_i128)vec_and(a, b);
 }
 
 FORCE_INLINE rx_vec_f128 rx_or_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
@@ -443,6 +448,8 @@ FORCE_INLINE rx_vec_f128 rx_xor_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 FORCE_INLINE rx_vec_f128 rx_and_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 	return vreinterpretq_f64_u8(vandq_u8(vreinterpretq_u8_f64(a), vreinterpretq_u8_f64(b)));
 }
+
+#define rx_and_vec_i128 vandq_u8
 
 FORCE_INLINE rx_vec_f128 rx_or_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 	return vreinterpretq_f64_u8(vorrq_u8(vreinterpretq_u8_f64(a), vreinterpretq_u8_f64(b)));
@@ -632,6 +639,13 @@ FORCE_INLINE rx_vec_f128 rx_and_vec_f128(rx_vec_f128 a, rx_vec_f128 b) {
 	rx_vec_f128 x;
 	x.i.u64[0] = a.i.u64[0] & b.i.u64[0];
 	x.i.u64[1] = a.i.u64[1] & b.i.u64[1];
+	return x;
+}
+
+FORCE_INLINE rx_vec_i128 rx_and_vec_i128(rx_vec_i128 a, rx_vec_i128 b) {
+	rx_vec_i128 x;
+	x.u64[0] = a.u64[0] & b.u64[0];
+	x.u64[1] = a.u64[1] & b.u64[1];
 	return x;
 }
 

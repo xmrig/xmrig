@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Inria.  All rights reserved.
+ * Copyright © 2010-2022 Inria.  All rights reserved.
  * Copyright © 2010-2013 Université Bordeaux
  * Copyright © 2010-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -7,11 +7,14 @@
  *
  * This backend is only used when the operating system does not export
  * the necessary hardware topology information to user-space applications.
- * Currently, only the FreeBSD backend relies on this x86 backend.
+ * Currently, FreeBSD and NetBSD only add PUs and then fallback to this
+ * backend for CPU/Cache discovery.
  *
  * Other backends such as Linux have their own way to retrieve various
  * pieces of hardware topology information from the operating system
  * on various architectures, without having to use this x86-specific code.
+ * But this backend is still used after them to annotate some objects with
+ * additional details (CPU info in Package, Inclusiveness in Caches).
  */
 
 #include "private/autogen/config.h"
@@ -497,7 +500,8 @@ static void read_amd_cores_topoext(struct procinfo *infos, unsigned long flags, 
       nodes_per_proc = ((ecx >> 8) & 7) + 1;
     }
     if ((infos->cpufamilynumber == 0x15 && nodes_per_proc > 2)
-	|| ((infos->cpufamilynumber == 0x17 || infos->cpufamilynumber == 0x18) && nodes_per_proc > 4)) {
+	|| ((infos->cpufamilynumber == 0x17 || infos->cpufamilynumber == 0x18) && nodes_per_proc > 4)
+        || (infos->cpufamilynumber == 0x19 && nodes_per_proc > 1)) {
       hwloc_debug("warning: undefined nodes_per_proc value %u, assuming it means %u\n", nodes_per_proc, nodes_per_proc);
     }
   }
@@ -610,10 +614,13 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
   eax = 0x01;
   cpuid_or_from_dump(&eax, &ebx, &ecx, &edx, src_cpuiddump);
   infos->apicid = ebx >> 24;
-  if (edx & (1 << 28))
+  if (edx & (1 << 28)) {
     legacy_max_log_proc = 1 << hwloc_flsl(((ebx >> 16) & 0xff) - 1);
-  else
+  } else {
+    hwloc_debug("HTT bit not set in CPUID 0x01.edx, assuming legacy_max_log_proc = 1\n");
     legacy_max_log_proc = 1;
+  }
+
   hwloc_debug("APIC ID 0x%02x legacy_max_log_proc %u\n", infos->apicid, legacy_max_log_proc);
   infos->ids[PKG] = infos->apicid / legacy_max_log_proc;
   legacy_log_proc_id = infos->apicid % legacy_max_log_proc;
@@ -676,12 +683,23 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
       unsigned max_nbcores;
       unsigned max_nbthreads;
       unsigned threadid __hwloc_attribute_unused;
+      hwloc_debug("Trying to get core/thread IDs from 0x04...\n");
       max_nbcores = ((eax >> 26) & 0x3f) + 1;
-      max_nbthreads = legacy_max_log_proc / max_nbcores;
-      hwloc_debug("thus %u threads\n", max_nbthreads);
-      threadid = legacy_log_proc_id % max_nbthreads;
-      infos->ids[CORE] = legacy_log_proc_id / max_nbthreads;
-      hwloc_debug("this is thread %u of core %u\n", threadid, infos->ids[CORE]);
+      hwloc_debug("found %u cores max\n", max_nbcores);
+      /* some VMs (e.g. issue#525) don't report valid information, check things before dividing by 0. */
+      if (!max_nbcores) {
+        hwloc_debug("cannot detect core/thread IDs from 0x04 without a valid max of cores\n");
+      } else {
+        max_nbthreads = legacy_max_log_proc / max_nbcores;
+        hwloc_debug("found %u threads max\n", max_nbthreads);
+        if (!max_nbthreads) {
+          hwloc_debug("cannot detect core/thread IDs from 0x04 without a valid max of threads\n");
+        } else {
+          threadid = legacy_log_proc_id % max_nbthreads;
+          infos->ids[CORE] = legacy_log_proc_id / max_nbthreads;
+          hwloc_debug("this is thread %u of core %u\n", threadid, infos->ids[CORE]);
+        }
+      }
     }
   }
 
@@ -772,13 +790,19 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
 
     } else if (cpuid_type == amd) {
       /* AMD quirks */
-      if (infos->cpufamilynumber == 0x17
-	  && cache->level == 3 && cache->nbthreads_sharing == 6) {
-	/* AMD family 0x17 always shares L3 between 8 APIC ids,
-	 * even when only 6 APIC ids are enabled and reported in nbthreads_sharing
-	 * (on 24-core CPUs).
+      if (infos->cpufamilynumber >= 0x17 && cache->level == 3) {
+	/* AMD family 0x19 always shares L3 between 16 APIC ids (8 HT cores).
+         * while Family 0x17 shares between 8 APIC ids (4 HT cores).
+         * But many models have less APIC ids enabled and reported in nbthreads_sharing.
+         * It means we must round-up nbthreads_sharing to the nearest power of 2
+         * before computing cacheid.
 	 */
-	cache->cacheid = infos->apicid / 8;
+        unsigned nbapics_sharing = cache->nbthreads_sharing;
+        if (nbapics_sharing & (nbapics_sharing-1))
+          /* not a power of two, round-up */
+          nbapics_sharing = 1U<<(1+hwloc_ffsl(nbapics_sharing));
+
+	cache->cacheid = infos->apicid / nbapics_sharing;
 
       } else if (infos->cpufamilynumber== 0x10 && infos->cpumodelnumber == 0x9
 	  && cache->level == 3
@@ -804,7 +828,7 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
       } else if (infos->cpufamilynumber == 0x15
 		 && (infos->cpumodelnumber == 0x1 /* Bulldozer */ || infos->cpumodelnumber == 0x2 /* Piledriver */)
 		 && cache->level == 3 && cache->nbthreads_sharing == 6) {
-	/* AMD Bulldozer and Piledriver 12-core processors have same APIC ids as Magny-Cours below,
+	/* AMD Bulldozer and Piledriver 12-core processors have same APIC ids as Magny-Cours above,
 	 * but we can't merge the checks because the original nbthreads_sharing must be exactly 6 here.
 	 */
 	cache->cacheid = (infos->apicid % legacy_max_log_proc) / cache->nbthreads_sharing /* cacheid within the package */
@@ -1228,6 +1252,18 @@ static void summarize(struct hwloc_backend *backend, struct procinfo *infos, uns
 	    }
 	  }
 	  cache = hwloc_alloc_setup_object(topology, otype, HWLOC_UNKNOWN_INDEX);
+          /* We don't specify the os_index of caches because we want to be
+           * 100% sure they are identical to what the Linux kernel reports
+           * (so that things like resctrl work).
+           * However, vendor/model-specific quirks in the x86 code above
+           * make this difficult.
+           *
+           * Caveat: if the x86 backend is used on Linux to avoid kernel bugs,
+           * IDs won't be available to resctrl users. But resctrl heavily
+           * relies on the kernel x86 discovery being non-buggy anyway.
+           *
+           * TODO: make this optional? or only disable it on Linux?
+           */
 	  cache->attr->cache.depth = level;
 	  cache->attr->cache.size = infos[i].cache[l].size;
 	  cache->attr->cache.linesize = infos[i].cache[l].linesize;
@@ -1257,7 +1293,8 @@ static int
 look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long flags,
 	   unsigned highest_cpuid, unsigned highest_ext_cpuid, unsigned *features, enum cpuid_type cpuid_type,
 	   int (*get_cpubind)(hwloc_topology_t topology, hwloc_cpuset_t set, int flags),
-	   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags))
+	   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags),
+           hwloc_bitmap_t restrict_set)
 {
   struct hwloc_x86_backend_data_s *data = backend->private_data;
   struct hwloc_topology *topology = backend->topology;
@@ -1277,6 +1314,12 @@ look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long 
 
   for (i = 0; i < nbprocs; i++) {
     struct cpuiddump *src_cpuiddump = NULL;
+
+    if (restrict_set && !hwloc_bitmap_isset(restrict_set, i)) {
+      /* skip this CPU outside of the binding mask */
+      continue;
+    }
+
     if (data->src_cpuiddump_path) {
       src_cpuiddump = cpuiddump_read(data->src_cpuiddump_path, i);
       if (!src_cpuiddump)
@@ -1306,7 +1349,7 @@ look_procs(struct hwloc_backend *backend, struct procinfo *infos, unsigned long 
   if (data->apicid_unique) {
     summarize(backend, infos, flags);
 
-    if (has_hybrid(features)) {
+    if (has_hybrid(features) && !(topology->flags & HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS)) {
       /* use hybrid info for cpukinds */
       hwloc_bitmap_t atomset = hwloc_bitmap_alloc();
       hwloc_bitmap_t coreset = hwloc_bitmap_alloc();
@@ -1410,6 +1453,7 @@ static
 int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 {
   struct hwloc_x86_backend_data_s *data = backend->private_data;
+  struct hwloc_topology *topology = backend->topology;
   unsigned nbprocs = data->nbprocs;
   unsigned eax, ebx, ecx = 0, edx;
   unsigned i;
@@ -1425,8 +1469,20 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
   struct hwloc_topology_membind_support memsupport __hwloc_attribute_unused;
   int (*get_cpubind)(hwloc_topology_t topology, hwloc_cpuset_t set, int flags) = NULL;
   int (*set_cpubind)(hwloc_topology_t topology, hwloc_const_cpuset_t set, int flags) = NULL;
+  hwloc_bitmap_t restrict_set = NULL;
   struct cpuiddump *src_cpuiddump = NULL;
   int ret = -1;
+
+  /* check if binding works */
+  memset(&hooks, 0, sizeof(hooks));
+  support.membind = &memsupport;
+  /* We could just copy the main hooks (except in some corner cases),
+   * but the current overhead is negligible, so just always reget them.
+   */
+  hwloc_set_native_binding_hooks(&hooks, &support);
+  /* in theory, those are only needed if !data->src_cpuiddump_path || HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_BINDING
+   * but that's the vast majority of cases anyway, and the overhead is very small.
+   */
 
   if (data->src_cpuiddump_path) {
     /* Just read cpuid from the dump (implies !topology->is_thissystem by default) */
@@ -1440,13 +1496,6 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
      * we may still force use this backend when debugging with !thissystem.
      */
 
-    /* check if binding works */
-    memset(&hooks, 0, sizeof(hooks));
-    support.membind = &memsupport;
-    /* We could just copy the main hooks (except in some corner cases),
-     * but the current overhead is negligible, so just always reget them.
-     */
-    hwloc_set_native_binding_hooks(&hooks, &support);
     if (hooks.get_thisthread_cpubind && hooks.set_thisthread_cpubind) {
       get_cpubind = hooks.get_thisthread_cpubind;
       set_cpubind = hooks.set_thisthread_cpubind;
@@ -1463,6 +1512,20 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 	goto out;
       get_cpubind = fake_get_cpubind;
       set_cpubind = fake_set_cpubind;
+    }
+  }
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_RESTRICT_TO_CPUBINDING) {
+    restrict_set = hwloc_bitmap_alloc();
+    if (!restrict_set)
+      goto out;
+    if (hooks.get_thisproc_cpubind)
+      hooks.get_thisproc_cpubind(topology, restrict_set, 0);
+    else if (hooks.get_thisthread_cpubind)
+      hooks.get_thisthread_cpubind(topology, restrict_set, 0);
+    if (hwloc_bitmap_iszero(restrict_set)) {
+      hwloc_bitmap_free(restrict_set);
+      restrict_set = NULL;
     }
   }
 
@@ -1530,7 +1593,7 @@ int hwloc_look_x86(struct hwloc_backend *backend, unsigned long flags)
 
   ret = look_procs(backend, infos, flags,
 		   highest_cpuid, highest_ext_cpuid, features, cpuid_type,
-		   get_cpubind, set_cpubind);
+		   get_cpubind, set_cpubind, restrict_set);
   if (!ret)
     /* success, we're done */
     goto out_with_os_state;
@@ -1555,6 +1618,7 @@ out_with_infos:
   }
 
 out:
+  hwloc_bitmap_free(restrict_set);
   if (src_cpuiddump)
     cpuiddump_free(src_cpuiddump);
   return ret;
@@ -1570,6 +1634,11 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
   int ret;
 
   assert(dstatus->phase == HWLOC_DISC_PHASE_CPU);
+
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_DONT_CHANGE_BINDING) {
+    /* TODO: Things would work if there's a single PU, no need to rebind */
+    return 0;
+  }
 
   if (getenv("HWLOC_X86_TOPOEXT_NUMANODES")) {
     flags |= HWLOC_X86_DISC_FLAG_TOPOEXT_NUMANODES;

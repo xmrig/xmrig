@@ -29,6 +29,7 @@
 #include <cstdio>
 #include <dirent.h>
 #include <fcntl.h>
+#include <fstream>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -48,7 +49,27 @@ static int msr_open(int32_t cpu, int flags)
 class MsrPrivate
 {
 public:
-    bool available = true;
+    inline MsrPrivate() : m_available(msr_allow_writes() || msr_modprobe()) {}
+
+    inline bool isAvailable() const { return m_available; }
+
+private:
+    inline bool msr_allow_writes()
+    {
+        std::ofstream file("/sys/module/msr/parameters/allow_writes", std::ios::out | std::ios::binary | std::ios::trunc);
+        if (file.is_open()) {
+            file << "on";
+        }
+
+        return file.good();
+    }
+
+    inline bool msr_modprobe()
+    {
+        return system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") == 0;
+    }
+
+    const bool m_available;
 };
 
 
@@ -57,10 +78,8 @@ public:
 
 xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
 {
-    if (system("/sbin/modprobe msr allow_writes=on > /dev/null 2>&1") != 0) {
-        LOG_WARN("%s " YELLOW_BOLD("msr kernel module is not available"), Msr::tag());
-
-        d_ptr->available = false;
+    if (!isAvailable()) {
+        LOG_WARN("%s " YELLOW_BOLD("msr kernel module is not available"), tag());
     }
 }
 
@@ -73,7 +92,7 @@ xmrig::Msr::~Msr()
 
 bool xmrig::Msr::isAvailable() const
 {
-    return d_ptr->available;
+    return d_ptr->isAvailable();
 }
 
 

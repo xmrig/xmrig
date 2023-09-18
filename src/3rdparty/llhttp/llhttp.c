@@ -627,6 +627,13 @@ int llhttp__internal__c_update_finish_1(
   return 0;
 }
 
+int llhttp__internal__c_test_lenient_flags(
+    llhttp__internal_t* state,
+    const unsigned char* p,
+    const unsigned char* endp) {
+  return (state->lenient_flags & 4) == 4;
+}
+
 int llhttp__internal__c_test_flags_1(
     llhttp__internal_t* state,
     const unsigned char* p,
@@ -634,7 +641,7 @@ int llhttp__internal__c_test_flags_1(
   return (state->flags & 544) == 544;
 }
 
-int llhttp__internal__c_test_lenient_flags(
+int llhttp__internal__c_test_lenient_flags_1(
     llhttp__internal_t* state,
     const unsigned char* p,
     const unsigned char* endp) {
@@ -670,9 +677,9 @@ int llhttp__internal__c_mul_add_content_length(
   if (state->content_length > 0xffffffffffffffffULL / 16) {
     return 1;
   }
-  
+
   state->content_length *= 16;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->content_length > 0xffffffffffffffffULL - match) {
@@ -802,7 +809,7 @@ int llhttp__internal__c_update_header_state_2(
   return 0;
 }
 
-int llhttp__internal__c_test_lenient_flags_1(
+int llhttp__internal__c_test_lenient_flags_2(
     llhttp__internal_t* state,
     const unsigned char* p,
     const unsigned char* endp) {
@@ -849,9 +856,9 @@ int llhttp__internal__c_mul_add_content_length_1(
   if (state->content_length > 0xffffffffffffffffULL / 10) {
     return 1;
   }
-  
+
   state->content_length *= 10;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->content_length > 0xffffffffffffffffULL - match) {
@@ -948,9 +955,9 @@ int llhttp__internal__c_mul_add_status_code(
   if (state->status_code > 0xffff / 10) {
     return 1;
   }
-  
+
   state->status_code *= 10;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->status_code > 0xffff - match) {
@@ -962,7 +969,7 @@ int llhttp__internal__c_mul_add_status_code(
     }
   }
   state->status_code += match;
-  
+
   /* Enforce maximum */
   if (state->status_code > 999) {
     return 1;
@@ -1072,7 +1079,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_chunk_data_almost_done:
     s_n_llhttp__internal__n_chunk_data_almost_done: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_chunk_data_almost_done;
       }
@@ -1097,7 +1104,7 @@ static llparse_state_t llhttp__internal__run(
     s_n_llhttp__internal__n_consume_content_length: {
       size_t avail;
       size_t need;
-      
+
       avail = endp - p;
       need = state->content_length;
       if (avail >= need) {
@@ -1105,7 +1112,7 @@ static llparse_state_t llhttp__internal__run(
         state->content_length = 0;
         goto s_n_llhttp__internal__n_span_end_llhttp__on_body;
       }
-      
+
       state->content_length -= avail;
       return s_n_llhttp__internal__n_consume_content_length;
       /* UNREACHABLE */;
@@ -1452,7 +1459,7 @@ static llparse_state_t llhttp__internal__run(
     s_n_llhttp__internal__n_consume_content_length_1: {
       size_t avail;
       size_t need;
-      
+
       avail = endp - p;
       need = state->content_length;
       if (avail >= need) {
@@ -1460,7 +1467,7 @@ static llparse_state_t llhttp__internal__run(
         state->content_length = 0;
         goto s_n_llhttp__internal__n_span_end_llhttp__on_body_1;
       }
-      
+
       state->content_length -= avail;
       return s_n_llhttp__internal__n_consume_content_length_1;
       /* UNREACHABLE */;
@@ -1661,7 +1668,7 @@ static llparse_state_t llhttp__internal__run(
           goto s_n_llhttp__internal__n_span_end_llhttp__on_header_value_2;
         }
         default: {
-          goto s_n_llhttp__internal__n_invoke_test_lenient_flags_1;
+          goto s_n_llhttp__internal__n_invoke_test_lenient_flags_2;
         }
       }
       /* UNREACHABLE */;
@@ -1736,7 +1743,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_1:
     s_n_llhttp__internal__n_header_value_connection_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_1;
       }
@@ -1760,7 +1767,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_2:
     s_n_llhttp__internal__n_header_value_connection_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_2;
       }
@@ -1784,7 +1791,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_3:
     s_n_llhttp__internal__n_header_value_connection_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_3;
       }
@@ -2017,17 +2024,17 @@ static llparse_state_t llhttp__internal__run(
         __m128i input;
         int avail;
         int match_len;
-      
+
         /* Load input */
         input = _mm_loadu_si128((__m128i const*) p);
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob7);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 6,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_value;
@@ -2089,7 +2096,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_te_chunked:
     s_n_llhttp__internal__n_header_value_te_chunked: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_te_chunked;
       }
@@ -2204,29 +2211,29 @@ static llparse_state_t llhttp__internal__run(
         __m128i input;
         int avail;
         int match_len;
-      
+
         /* Load input */
         input = _mm_loadu_si128((__m128i const*) p);
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob8);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 16,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_field_general;
         }
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob9);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 2,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_field_general;
@@ -2269,7 +2276,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_3:
     s_n_llhttp__internal__n_header_field_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_3;
       }
@@ -2294,7 +2301,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_4:
     s_n_llhttp__internal__n_header_field_4: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_4;
       }
@@ -2340,7 +2347,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_1:
     s_n_llhttp__internal__n_header_field_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_1;
       }
@@ -2364,7 +2371,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_5:
     s_n_llhttp__internal__n_header_field_5: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_5;
       }
@@ -2389,7 +2396,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_6:
     s_n_llhttp__internal__n_header_field_6: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_6;
       }
@@ -2414,7 +2421,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_7:
     s_n_llhttp__internal__n_header_field_7: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_7;
       }
@@ -2584,7 +2591,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_pri_upgrade:
     s_n_llhttp__internal__n_req_pri_upgrade: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_pri_upgrade;
       }
@@ -2789,7 +2796,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_1:
     s_n_llhttp__internal__n_req_http_start_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_1;
       }
@@ -2813,7 +2820,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_2:
     s_n_llhttp__internal__n_req_http_start_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_2;
       }
@@ -2837,7 +2844,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_3:
     s_n_llhttp__internal__n_req_http_start_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_3;
       }
@@ -3538,7 +3545,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_3:
     s_n_llhttp__internal__n_start_req_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_3;
       }
@@ -3584,7 +3591,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_4:
     s_n_llhttp__internal__n_start_req_4: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_4;
       }
@@ -3609,7 +3616,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_6:
     s_n_llhttp__internal__n_start_req_6: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_6;
       }
@@ -3634,7 +3641,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_8:
     s_n_llhttp__internal__n_start_req_8: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_8;
       }
@@ -3719,7 +3726,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_12:
     s_n_llhttp__internal__n_start_req_12: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_12;
       }
@@ -3744,7 +3751,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_13:
     s_n_llhttp__internal__n_start_req_13: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_13;
       }
@@ -3807,7 +3814,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_14:
     s_n_llhttp__internal__n_start_req_14: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_14;
       }
@@ -3832,7 +3839,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_17:
     s_n_llhttp__internal__n_start_req_17: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_17;
       }
@@ -3875,7 +3882,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_15:
     s_n_llhttp__internal__n_start_req_15: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_15;
       }
@@ -3899,7 +3906,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_18:
     s_n_llhttp__internal__n_start_req_18: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_18;
       }
@@ -3924,7 +3931,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_20:
     s_n_llhttp__internal__n_start_req_20: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_20;
       }
@@ -3949,7 +3956,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_21:
     s_n_llhttp__internal__n_start_req_21: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_21;
       }
@@ -3995,7 +4002,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_23:
     s_n_llhttp__internal__n_start_req_23: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_23;
       }
@@ -4020,7 +4027,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_24:
     s_n_llhttp__internal__n_start_req_24: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_24;
       }
@@ -4045,7 +4052,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_26:
     s_n_llhttp__internal__n_start_req_26: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_26;
       }
@@ -4070,7 +4077,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_28:
     s_n_llhttp__internal__n_start_req_28: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_28;
       }
@@ -4155,7 +4162,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_30:
     s_n_llhttp__internal__n_start_req_30: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_30;
       }
@@ -4209,7 +4216,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_31:
     s_n_llhttp__internal__n_start_req_31: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_31;
       }
@@ -4234,7 +4241,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_32:
     s_n_llhttp__internal__n_start_req_32: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_32;
       }
@@ -4259,7 +4266,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_35:
     s_n_llhttp__internal__n_start_req_35: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_35;
       }
@@ -4284,7 +4291,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_36:
     s_n_llhttp__internal__n_start_req_36: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_36;
       }
@@ -4330,7 +4337,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_37:
     s_n_llhttp__internal__n_start_req_37: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_37;
       }
@@ -4355,7 +4362,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_38:
     s_n_llhttp__internal__n_start_req_38: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_38;
       }
@@ -4380,7 +4387,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_42:
     s_n_llhttp__internal__n_start_req_42: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_42;
       }
@@ -4405,7 +4412,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_43:
     s_n_llhttp__internal__n_start_req_43: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_43;
       }
@@ -4490,7 +4497,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_45:
     s_n_llhttp__internal__n_start_req_45: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_45;
       }
@@ -4570,7 +4577,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_48:
     s_n_llhttp__internal__n_start_req_48: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_48;
       }
@@ -4595,7 +4602,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_49:
     s_n_llhttp__internal__n_start_req_49: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_49;
       }
@@ -4620,7 +4627,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_50:
     s_n_llhttp__internal__n_start_req_50: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_50;
       }
@@ -4645,7 +4652,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_51:
     s_n_llhttp__internal__n_start_req_51: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_51;
       }
@@ -4716,7 +4723,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_54:
     s_n_llhttp__internal__n_start_req_54: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_54;
       }
@@ -4759,7 +4766,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_57:
     s_n_llhttp__internal__n_start_req_57: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_57;
       }
@@ -4826,7 +4833,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_58:
     s_n_llhttp__internal__n_start_req_58: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_58;
       }
@@ -4851,7 +4858,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_59:
     s_n_llhttp__internal__n_start_req_59: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_59;
       }
@@ -4901,7 +4908,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_61:
     s_n_llhttp__internal__n_start_req_61: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_61;
       }
@@ -4926,7 +4933,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_62:
     s_n_llhttp__internal__n_start_req_62: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_62;
       }
@@ -4972,7 +4979,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_65:
     s_n_llhttp__internal__n_start_req_65: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_65;
       }
@@ -4997,7 +5004,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_67:
     s_n_llhttp__internal__n_start_req_67: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_67;
       }
@@ -5022,7 +5029,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_68:
     s_n_llhttp__internal__n_start_req_68: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_68;
       }
@@ -5068,7 +5075,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_69:
     s_n_llhttp__internal__n_start_req_69: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_69;
       }
@@ -5536,7 +5543,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_res:
     s_n_llhttp__internal__n_start_res: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_res;
       }
@@ -5560,7 +5567,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_or_res_method_2:
     s_n_llhttp__internal__n_req_or_res_method_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_or_res_method_2;
       }
@@ -5585,7 +5592,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_or_res_method_3:
     s_n_llhttp__internal__n_req_or_res_method_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_or_res_method_3;
       }
@@ -5733,10 +5740,20 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
+  s_n_llhttp__internal__n_invoke_test_lenient_flags: {
+    switch (llhttp__internal__c_test_lenient_flags(state, p, endp)) {
+      case 1:
+        goto s_n_llhttp__internal__n_invoke_update_finish_2;
+      default:
+        goto s_n_llhttp__internal__n_closed;
+    }
+    /* UNREACHABLE */;
+    abort();
+  }
   s_n_llhttp__internal__n_invoke_update_finish_1: {
     switch (llhttp__internal__c_update_finish_1(state, p, endp)) {
       default:
-        goto s_n_llhttp__internal__n_closed;
+        goto s_n_llhttp__internal__n_invoke_test_lenient_flags;
     }
     /* UNREACHABLE */;
     abort();
@@ -5879,7 +5896,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_body: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_body(state, start, p);
@@ -5971,7 +5988,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_body_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_body(state, start, p);
@@ -6098,8 +6115,8 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_test_lenient_flags: {
-    switch (llhttp__internal__c_test_lenient_flags(state, p, endp)) {
+  s_n_llhttp__internal__n_invoke_test_lenient_flags_1: {
+    switch (llhttp__internal__c_test_lenient_flags_1(state, p, endp)) {
       case 0:
         goto s_n_llhttp__internal__n_error_15;
       default:
@@ -6111,7 +6128,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_invoke_test_flags_1: {
     switch (llhttp__internal__c_test_flags_1(state, p, endp)) {
       case 1:
-        goto s_n_llhttp__internal__n_invoke_test_lenient_flags;
+        goto s_n_llhttp__internal__n_invoke_test_lenient_flags_1;
       default:
         goto s_n_llhttp__internal__n_invoke_llhttp__before_headers_complete;
     }
@@ -6149,7 +6166,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6306,7 +6323,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6323,7 +6340,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_2: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6341,7 +6358,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_3: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6365,8 +6382,8 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_test_lenient_flags_1: {
-    switch (llhttp__internal__c_test_lenient_flags_1(state, p, endp)) {
+  s_n_llhttp__internal__n_invoke_test_lenient_flags_2: {
+    switch (llhttp__internal__c_test_lenient_flags_2(state, p, endp)) {
       case 1:
         goto s_n_llhttp__internal__n_header_value_lenient;
       default:
@@ -6466,7 +6483,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_4: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6501,7 +6518,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_5: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -6593,7 +6610,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_field: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_field(state, start, p);
@@ -6611,7 +6628,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_field_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_field(state, start, p);
@@ -6686,7 +6703,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_3: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -6712,7 +6729,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_4: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -6727,7 +6744,7 @@ static llparse_state_t llhttp__internal__run(
     abort();
   }
   s_n_llhttp__internal__n_error_29: {
-    state->error = 0x16;
+    state->error = 0x17;
     state->reason = "Pause on PRI/Upgrade";
     state->error_pos = (const char*) p;
     state->_current = (void*) (intptr_t) s_error;
@@ -6977,7 +6994,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_5: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -6994,7 +7011,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_6: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7011,7 +7028,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_7: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7028,7 +7045,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_8: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7054,7 +7071,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_9: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7071,7 +7088,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_10: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7088,7 +7105,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_11: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7123,7 +7140,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7140,7 +7157,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7157,7 +7174,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_2: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7174,7 +7191,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_12: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7191,7 +7208,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_13: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7208,7 +7225,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_14: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -7343,7 +7360,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_status: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_status(state, start, p);
@@ -7361,7 +7378,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_status_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_status(state, start, p);
@@ -7547,7 +7564,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
   if (state->_span_pos0 != NULL) {
     state->_span_pos0 = (void*) p;
   }
-  
+
   next = llhttp__internal__run(state, (const unsigned char*) p, (const unsigned char*) endp);
   if (next == s_error) {
     return state->error;
@@ -7557,7 +7574,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
   /* execute spans */
   if (state->_span_pos0 != NULL) {
     int error;
-  
+
     error = ((llhttp__internal__span_cb) state->_span_cb0)(state, state->_span_pos0, (const char*) endp);
     if (error != 0) {
       state->error = error;
@@ -7565,7 +7582,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
       return error;
     }
   }
-  
+
   return 0;
 }
 
@@ -7906,6 +7923,7 @@ reset:
 
 enum llparse_state_e {
   s_error,
+  s_n_llhttp__internal__n_closed,
   s_n_llhttp__internal__n_invoke_llhttp__after_message_complete,
   s_n_llhttp__internal__n_pause_1,
   s_n_llhttp__internal__n_invoke_is_equal_upgrade,
@@ -8199,6 +8217,13 @@ int llhttp__internal__c_update_finish_1(
   return 0;
 }
 
+int llhttp__internal__c_test_lenient_flags(
+    llhttp__internal_t* state,
+    const unsigned char* p,
+    const unsigned char* endp) {
+  return (state->lenient_flags & 4) == 4;
+}
+
 int llhttp__internal__c_test_flags_1(
     llhttp__internal_t* state,
     const unsigned char* p,
@@ -8206,7 +8231,7 @@ int llhttp__internal__c_test_flags_1(
   return (state->flags & 544) == 544;
 }
 
-int llhttp__internal__c_test_lenient_flags(
+int llhttp__internal__c_test_lenient_flags_1(
     llhttp__internal_t* state,
     const unsigned char* p,
     const unsigned char* endp) {
@@ -8242,9 +8267,9 @@ int llhttp__internal__c_mul_add_content_length(
   if (state->content_length > 0xffffffffffffffffULL / 16) {
     return 1;
   }
-  
+
   state->content_length *= 16;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->content_length > 0xffffffffffffffffULL - match) {
@@ -8278,7 +8303,7 @@ int llhttp__internal__c_or_flags(
   return 0;
 }
 
-int llhttp__internal__c_update_finish_2(
+int llhttp__internal__c_update_finish_3(
     llhttp__internal_t* state,
     const unsigned char* p,
     const unsigned char* endp) {
@@ -8374,7 +8399,7 @@ int llhttp__internal__c_update_header_state_2(
   return 0;
 }
 
-int llhttp__internal__c_test_lenient_flags_1(
+int llhttp__internal__c_test_lenient_flags_2(
     llhttp__internal_t* state,
     const unsigned char* p,
     const unsigned char* endp) {
@@ -8421,9 +8446,9 @@ int llhttp__internal__c_mul_add_content_length_1(
   if (state->content_length > 0xffffffffffffffffULL / 10) {
     return 1;
   }
-  
+
   state->content_length *= 10;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->content_length > 0xffffffffffffffffULL - match) {
@@ -8520,9 +8545,9 @@ int llhttp__internal__c_mul_add_status_code(
   if (state->status_code > 0xffff / 10) {
     return 1;
   }
-  
+
   state->status_code *= 10;
-  
+
   /* Addition overflow */
   if (match >= 0) {
     if (state->status_code > 0xffff - match) {
@@ -8534,7 +8559,7 @@ int llhttp__internal__c_mul_add_status_code(
     }
   }
   state->status_code += match;
-  
+
   /* Enforce maximum */
   if (state->status_code > 999) {
     return 1;
@@ -8574,9 +8599,21 @@ static llparse_state_t llhttp__internal__run(
     const unsigned char* endp) {
   int match;
   switch ((llparse_state_t) (intptr_t) state->_current) {
+    case s_n_llhttp__internal__n_closed:
+    s_n_llhttp__internal__n_closed: {
+      if (p == endp) {
+        return s_n_llhttp__internal__n_closed;
+      }
+      p++;
+      goto s_n_llhttp__internal__n_closed;
+      /* UNREACHABLE */;
+      abort();
+    }
     case s_n_llhttp__internal__n_invoke_llhttp__after_message_complete:
     s_n_llhttp__internal__n_invoke_llhttp__after_message_complete: {
       switch (llhttp__after_message_complete(state, p, endp)) {
+        case 1:
+          goto s_n_llhttp__internal__n_invoke_update_finish_2;
         default:
           goto s_n_llhttp__internal__n_invoke_update_finish_1;
       }
@@ -8641,7 +8678,7 @@ static llparse_state_t llhttp__internal__run(
     s_n_llhttp__internal__n_consume_content_length: {
       size_t avail;
       size_t need;
-      
+
       avail = endp - p;
       need = state->content_length;
       if (avail >= need) {
@@ -8649,7 +8686,7 @@ static llparse_state_t llhttp__internal__run(
         state->content_length = 0;
         goto s_n_llhttp__internal__n_span_end_llhttp__on_body;
       }
-      
+
       state->content_length -= avail;
       return s_n_llhttp__internal__n_consume_content_length;
       /* UNREACHABLE */;
@@ -8989,7 +9026,7 @@ static llparse_state_t llhttp__internal__run(
     s_n_llhttp__internal__n_consume_content_length_1: {
       size_t avail;
       size_t need;
-      
+
       avail = endp - p;
       need = state->content_length;
       if (avail >= need) {
@@ -8997,7 +9034,7 @@ static llparse_state_t llhttp__internal__run(
         state->content_length = 0;
         goto s_n_llhttp__internal__n_span_end_llhttp__on_body_1;
       }
-      
+
       state->content_length -= avail;
       return s_n_llhttp__internal__n_consume_content_length_1;
       /* UNREACHABLE */;
@@ -9045,7 +9082,7 @@ static llparse_state_t llhttp__internal__run(
         case 3:
           goto s_n_llhttp__internal__n_span_start_llhttp__on_body_1;
         case 4:
-          goto s_n_llhttp__internal__n_invoke_update_finish_2;
+          goto s_n_llhttp__internal__n_invoke_update_finish_3;
         case 5:
           goto s_n_llhttp__internal__n_error_10;
         default:
@@ -9184,7 +9221,7 @@ static llparse_state_t llhttp__internal__run(
           goto s_n_llhttp__internal__n_span_end_llhttp__on_header_value_2;
         }
         default: {
-          goto s_n_llhttp__internal__n_invoke_test_lenient_flags_1;
+          goto s_n_llhttp__internal__n_invoke_test_lenient_flags_2;
         }
       }
       /* UNREACHABLE */;
@@ -9259,7 +9296,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_1:
     s_n_llhttp__internal__n_header_value_connection_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_1;
       }
@@ -9283,7 +9320,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_2:
     s_n_llhttp__internal__n_header_value_connection_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_2;
       }
@@ -9307,7 +9344,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_connection_3:
     s_n_llhttp__internal__n_header_value_connection_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_connection_3;
       }
@@ -9540,17 +9577,17 @@ static llparse_state_t llhttp__internal__run(
         __m128i input;
         int avail;
         int match_len;
-      
+
         /* Load input */
         input = _mm_loadu_si128((__m128i const*) p);
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob7);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 6,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_value;
@@ -9612,7 +9649,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_value_te_chunked:
     s_n_llhttp__internal__n_header_value_te_chunked: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_value_te_chunked;
       }
@@ -9727,29 +9764,29 @@ static llparse_state_t llhttp__internal__run(
         __m128i input;
         int avail;
         int match_len;
-      
+
         /* Load input */
         input = _mm_loadu_si128((__m128i const*) p);
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob8);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 16,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_field_general;
         }
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob9);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 2,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_header_field_general;
@@ -9792,7 +9829,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_3:
     s_n_llhttp__internal__n_header_field_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_3;
       }
@@ -9817,7 +9854,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_4:
     s_n_llhttp__internal__n_header_field_4: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_4;
       }
@@ -9863,7 +9900,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_1:
     s_n_llhttp__internal__n_header_field_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_1;
       }
@@ -9887,7 +9924,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_5:
     s_n_llhttp__internal__n_header_field_5: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_5;
       }
@@ -9912,7 +9949,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_6:
     s_n_llhttp__internal__n_header_field_6: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_6;
       }
@@ -9937,7 +9974,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_header_field_7:
     s_n_llhttp__internal__n_header_field_7: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_header_field_7;
       }
@@ -10032,7 +10069,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_url_skip_lf_to_http09:
     s_n_llhttp__internal__n_url_skip_lf_to_http09: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_url_skip_lf_to_http09;
       }
@@ -10056,7 +10093,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_pri_upgrade:
     s_n_llhttp__internal__n_req_pri_upgrade: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_pri_upgrade;
       }
@@ -10261,7 +10298,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_1:
     s_n_llhttp__internal__n_req_http_start_1: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_1;
       }
@@ -10285,7 +10322,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_2:
     s_n_llhttp__internal__n_req_http_start_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_2;
       }
@@ -10309,7 +10346,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_http_start_3:
     s_n_llhttp__internal__n_req_http_start_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_http_start_3;
       }
@@ -10529,17 +10566,17 @@ static llparse_state_t llhttp__internal__run(
         __m128i input;
         int avail;
         int match_len;
-      
+
         /* Load input */
         input = _mm_loadu_si128((__m128i const*) p);
         ranges = _mm_loadu_si128((__m128i const*) llparse_blob0);
-      
+
         /* Find first character that does not match `ranges` */
         match_len = _mm_cmpestri(ranges, 12,
             input, 16,
             _SIDD_UBYTE_OPS | _SIDD_CMP_RANGES |
               _SIDD_NEGATIVE_POLARITY);
-      
+
         if (match_len != 0) {
           p += match_len;
           goto s_n_llhttp__internal__n_url_path;
@@ -10915,7 +10952,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_3:
     s_n_llhttp__internal__n_start_req_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_3;
       }
@@ -10961,7 +10998,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_4:
     s_n_llhttp__internal__n_start_req_4: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_4;
       }
@@ -10986,7 +11023,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_6:
     s_n_llhttp__internal__n_start_req_6: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_6;
       }
@@ -11011,7 +11048,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_8:
     s_n_llhttp__internal__n_start_req_8: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_8;
       }
@@ -11096,7 +11133,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_12:
     s_n_llhttp__internal__n_start_req_12: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_12;
       }
@@ -11121,7 +11158,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_13:
     s_n_llhttp__internal__n_start_req_13: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_13;
       }
@@ -11184,7 +11221,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_14:
     s_n_llhttp__internal__n_start_req_14: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_14;
       }
@@ -11209,7 +11246,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_17:
     s_n_llhttp__internal__n_start_req_17: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_17;
       }
@@ -11252,7 +11289,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_15:
     s_n_llhttp__internal__n_start_req_15: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_15;
       }
@@ -11276,7 +11313,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_18:
     s_n_llhttp__internal__n_start_req_18: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_18;
       }
@@ -11301,7 +11338,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_20:
     s_n_llhttp__internal__n_start_req_20: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_20;
       }
@@ -11326,7 +11363,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_21:
     s_n_llhttp__internal__n_start_req_21: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_21;
       }
@@ -11372,7 +11409,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_23:
     s_n_llhttp__internal__n_start_req_23: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_23;
       }
@@ -11397,7 +11434,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_24:
     s_n_llhttp__internal__n_start_req_24: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_24;
       }
@@ -11422,7 +11459,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_26:
     s_n_llhttp__internal__n_start_req_26: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_26;
       }
@@ -11447,7 +11484,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_28:
     s_n_llhttp__internal__n_start_req_28: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_28;
       }
@@ -11532,7 +11569,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_30:
     s_n_llhttp__internal__n_start_req_30: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_30;
       }
@@ -11586,7 +11623,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_31:
     s_n_llhttp__internal__n_start_req_31: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_31;
       }
@@ -11611,7 +11648,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_32:
     s_n_llhttp__internal__n_start_req_32: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_32;
       }
@@ -11636,7 +11673,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_35:
     s_n_llhttp__internal__n_start_req_35: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_35;
       }
@@ -11661,7 +11698,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_36:
     s_n_llhttp__internal__n_start_req_36: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_36;
       }
@@ -11707,7 +11744,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_37:
     s_n_llhttp__internal__n_start_req_37: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_37;
       }
@@ -11732,7 +11769,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_38:
     s_n_llhttp__internal__n_start_req_38: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_38;
       }
@@ -11757,7 +11794,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_42:
     s_n_llhttp__internal__n_start_req_42: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_42;
       }
@@ -11782,7 +11819,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_43:
     s_n_llhttp__internal__n_start_req_43: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_43;
       }
@@ -11867,7 +11904,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_45:
     s_n_llhttp__internal__n_start_req_45: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_45;
       }
@@ -11947,7 +11984,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_48:
     s_n_llhttp__internal__n_start_req_48: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_48;
       }
@@ -11972,7 +12009,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_49:
     s_n_llhttp__internal__n_start_req_49: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_49;
       }
@@ -11997,7 +12034,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_50:
     s_n_llhttp__internal__n_start_req_50: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_50;
       }
@@ -12022,7 +12059,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_51:
     s_n_llhttp__internal__n_start_req_51: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_51;
       }
@@ -12093,7 +12130,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_54:
     s_n_llhttp__internal__n_start_req_54: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_54;
       }
@@ -12136,7 +12173,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_57:
     s_n_llhttp__internal__n_start_req_57: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_57;
       }
@@ -12203,7 +12240,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_58:
     s_n_llhttp__internal__n_start_req_58: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_58;
       }
@@ -12228,7 +12265,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_59:
     s_n_llhttp__internal__n_start_req_59: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_59;
       }
@@ -12278,7 +12315,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_61:
     s_n_llhttp__internal__n_start_req_61: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_61;
       }
@@ -12303,7 +12340,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_62:
     s_n_llhttp__internal__n_start_req_62: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_62;
       }
@@ -12349,7 +12386,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_65:
     s_n_llhttp__internal__n_start_req_65: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_65;
       }
@@ -12374,7 +12411,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_67:
     s_n_llhttp__internal__n_start_req_67: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_67;
       }
@@ -12399,7 +12436,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_68:
     s_n_llhttp__internal__n_start_req_68: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_68;
       }
@@ -12445,7 +12482,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_req_69:
     s_n_llhttp__internal__n_start_req_69: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_req_69;
       }
@@ -12906,7 +12943,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_start_res:
     s_n_llhttp__internal__n_start_res: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_start_res;
       }
@@ -12930,7 +12967,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_or_res_method_2:
     s_n_llhttp__internal__n_req_or_res_method_2: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_or_res_method_2;
       }
@@ -12955,7 +12992,7 @@ static llparse_state_t llhttp__internal__run(
     case s_n_llhttp__internal__n_req_or_res_method_3:
     s_n_llhttp__internal__n_req_or_res_method_3: {
       llparse_match_t match_seq;
-      
+
       if (p == endp) {
         return s_n_llhttp__internal__n_req_or_res_method_3;
       }
@@ -13077,10 +13114,28 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_update_finish_1: {
+  s_n_llhttp__internal__n_invoke_update_finish_2: {
     switch (llhttp__internal__c_update_finish_1(state, p, endp)) {
       default:
         goto s_n_llhttp__internal__n_start;
+    }
+    /* UNREACHABLE */;
+    abort();
+  }
+  s_n_llhttp__internal__n_invoke_test_lenient_flags: {
+    switch (llhttp__internal__c_test_lenient_flags(state, p, endp)) {
+      case 1:
+        goto s_n_llhttp__internal__n_invoke_update_finish_2;
+      default:
+        goto s_n_llhttp__internal__n_closed;
+    }
+    /* UNREACHABLE */;
+    abort();
+  }
+  s_n_llhttp__internal__n_invoke_update_finish_1: {
+    switch (llhttp__internal__c_update_finish_1(state, p, endp)) {
+      default:
+        goto s_n_llhttp__internal__n_invoke_test_lenient_flags;
     }
     /* UNREACHABLE */;
     abort();
@@ -13214,7 +13269,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_body: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_body(state, start, p);
@@ -13297,7 +13352,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_body_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_body(state, start, p);
@@ -13311,8 +13366,8 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_update_finish_2: {
-    switch (llhttp__internal__c_update_finish_2(state, p, endp)) {
+  s_n_llhttp__internal__n_invoke_update_finish_3: {
+    switch (llhttp__internal__c_update_finish_3(state, p, endp)) {
       default:
         goto s_n_llhttp__internal__n_span_start_llhttp__on_body_2;
     }
@@ -13424,8 +13479,8 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_test_lenient_flags: {
-    switch (llhttp__internal__c_test_lenient_flags(state, p, endp)) {
+  s_n_llhttp__internal__n_invoke_test_lenient_flags_1: {
+    switch (llhttp__internal__c_test_lenient_flags_1(state, p, endp)) {
       case 0:
         goto s_n_llhttp__internal__n_error_11;
       default:
@@ -13437,7 +13492,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_invoke_test_flags_1: {
     switch (llhttp__internal__c_test_flags_1(state, p, endp)) {
       case 1:
-        goto s_n_llhttp__internal__n_invoke_test_lenient_flags;
+        goto s_n_llhttp__internal__n_invoke_test_lenient_flags_1;
       default:
         goto s_n_llhttp__internal__n_invoke_llhttp__before_headers_complete;
     }
@@ -13466,7 +13521,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13614,7 +13669,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13631,7 +13686,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_2: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13649,7 +13704,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_3: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13673,8 +13728,8 @@ static llparse_state_t llhttp__internal__run(
     /* UNREACHABLE */;
     abort();
   }
-  s_n_llhttp__internal__n_invoke_test_lenient_flags_1: {
-    switch (llhttp__internal__c_test_lenient_flags_1(state, p, endp)) {
+  s_n_llhttp__internal__n_invoke_test_lenient_flags_2: {
+    switch (llhttp__internal__c_test_lenient_flags_2(state, p, endp)) {
       case 1:
         goto s_n_llhttp__internal__n_header_value_lenient;
       default:
@@ -13774,7 +13829,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_4: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13809,7 +13864,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_value_5: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_value(state, start, p);
@@ -13901,7 +13956,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_field: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_field(state, start, p);
@@ -13919,7 +13974,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_header_field_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_header_field(state, start, p);
@@ -13994,7 +14049,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_3: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14020,7 +14075,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_4: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14035,7 +14090,7 @@ static llparse_state_t llhttp__internal__run(
     abort();
   }
   s_n_llhttp__internal__n_error_23: {
-    state->error = 0x16;
+    state->error = 0x17;
     state->reason = "Pause on PRI/Upgrade";
     state->error_pos = (const char*) p;
     state->_current = (void*) (intptr_t) s_error;
@@ -14285,7 +14340,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_5: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14302,7 +14357,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_6: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14319,7 +14374,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_7: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14336,7 +14391,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_8: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14362,7 +14417,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_9: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14379,7 +14434,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_10: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14396,7 +14451,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_11: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14431,7 +14486,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14448,7 +14503,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14465,7 +14520,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_2: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14482,7 +14537,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_12: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14499,7 +14554,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_13: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14516,7 +14571,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_url_14: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_url(state, start, p);
@@ -14642,7 +14697,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_status: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_status(state, start, p);
@@ -14660,7 +14715,7 @@ static llparse_state_t llhttp__internal__run(
   s_n_llhttp__internal__n_span_end_llhttp__on_status_1: {
     const unsigned char* start;
     int err;
-    
+
     start = state->_span_pos0;
     state->_span_pos0 = NULL;
     err = llhttp__on_status(state, start, p);
@@ -14846,7 +14901,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
   if (state->_span_pos0 != NULL) {
     state->_span_pos0 = (void*) p;
   }
-  
+
   next = llhttp__internal__run(state, (const unsigned char*) p, (const unsigned char*) endp);
   if (next == s_error) {
     return state->error;
@@ -14856,7 +14911,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
   /* execute spans */
   if (state->_span_pos0 != NULL) {
     int error;
-  
+
     error = ((llhttp__internal__span_cb) state->_span_cb0)(state, state->_span_pos0, (const char*) endp);
     if (error != 0) {
       state->error = error;
@@ -14864,7 +14919,7 @@ int llhttp__internal_execute(llhttp__internal_t* state, const char* p, const cha
       return error;
     }
   }
-  
+
   return 0;
 }
 

@@ -5,9 +5,13 @@ if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
 endif()
 
 if (WITH_OPENCL)
-    add_definitions(/DCL_TARGET_OPENCL_VERSION=200)
-    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
     add_definitions(/DXMRIG_FEATURE_OPENCL)
+    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
+    if (XMRIG_OS_APPLE)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
+    elseif (WITH_OPENCL_VERSION)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
+    endif()
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
@@ -103,31 +107,6 @@ if (WITH_OPENCL)
              src/backend/opencl/runners/OclRxBaseRunner.cpp
              src/backend/opencl/runners/OclRxJitRunner.cpp
              src/backend/opencl/runners/OclRxVmRunner.cpp
-             )
-    endif()
-
-    if (WITH_ASTROBWT)
-        list(APPEND HEADERS_BACKEND_OPENCL
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FilterKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FindSharesKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_MainKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_PrepareBatch2Kernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_Salsa20Kernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3InitialKernel.h
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3Kernel.h
-             src/backend/opencl/runners/OclAstroBWTRunner.h
-             )
-
-        list(APPEND SOURCES_BACKEND_OPENCL
-             src/backend/opencl/generators/ocl_generic_astrobwt_generator.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FilterKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_FindSharesKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_MainKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_PrepareBatch2Kernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_Salsa20Kernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3InitialKernel.cpp
-             src/backend/opencl/kernels/astrobwt/AstroBWT_SHA3Kernel.cpp
-             src/backend/opencl/runners/OclAstroBWTRunner.cpp
              )
     endif()
 

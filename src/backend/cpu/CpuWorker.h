@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -38,6 +38,11 @@ namespace xmrig {
 class RxVm;
 
 
+#ifdef XMRIG_ALGO_GHOSTRIDER
+namespace ghostrider { struct HelperThread; }
+#endif
+
+
 template<size_t N>
 class CpuWorker : public Worker
 {
@@ -46,6 +51,15 @@ public:
 
     CpuWorker(size_t id, const CpuLaunchData &data);
     ~CpuWorker() override;
+
+    size_t threads() const override
+    {
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        return ((m_algorithm.family() == Algorithm::GHOSTRIDER) && m_ghHelper) ? 2 : 1;
+#       else
+        return 1;
+#       endif
+    }
 
 protected:
     bool selfTest() override;
@@ -69,14 +83,12 @@ private:
     void allocateCnCtx();
     void consumeJob();
 
-    alignas(16) uint8_t m_hash[N * 32]{ 0 };
+    alignas(8) uint8_t m_hash[N * 32]{ 0 };
     const Algorithm m_algorithm;
     const Assembly m_assembly;
-    const bool m_astrobwtAVX2;
     const bool m_hwAES;
     const bool m_yield;
     const CnHash::AlgoVariant m_av;
-    const int m_astrobwtMaxSize;
     const Miner *m_miner;
     const size_t m_threads;
     cryptonight_ctx *m_ctx[N];
@@ -85,6 +97,11 @@ private:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     randomx_vm *m_vm        = nullptr;
+    Buffer m_seed;
+#   endif
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    ghostrider::HelperThread* m_ghHelper = nullptr;
 #   endif
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
@@ -102,6 +119,7 @@ extern template class CpuWorker<2>;
 extern template class CpuWorker<3>;
 extern template class CpuWorker<4>;
 extern template class CpuWorker<5>;
+extern template class CpuWorker<8>;
 
 
 } // namespace xmrig

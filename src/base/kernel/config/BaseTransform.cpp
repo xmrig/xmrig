@@ -16,7 +16,6 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <cstdio>
 
 
@@ -33,6 +32,7 @@
 #include "base/kernel/config/BaseConfig.h"
 #include "base/kernel/interfaces/IConfig.h"
 #include "base/kernel/Process.h"
+#include "base/net/dns/DnsConfig.h"
 #include "base/net/stratum/Pool.h"
 #include "base/net/stratum/Pools.h"
 #include "core/config/Config_platform.h"
@@ -47,14 +47,14 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 {
     using namespace rapidjson;
 
-    int key;
+    int key     = 0;
     int argc    = process->arguments().argc();
     char **argv = process->arguments().argv();
 
     Document doc(kObjectType);
 
     while (true) {
-        key = getopt_long(argc, argv, short_options, options, nullptr);
+        key = getopt_long(argc, argv, short_options, options, nullptr); // NOLINT(concurrency-mt-unsafe)
         if (key < 0) {
             break;
         }
@@ -180,6 +180,9 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::PasswordKey: /* --pass */
         return add(doc, Pools::kPools, Pool::kPass, arg);
 
+    case IConfig::SpendSecretKey: /* --spend-secret-key */
+        return add(doc, Pools::kPools, Pool::kSpendSecretKey, arg);
+
     case IConfig::RigIdKey: /* --rig-id */
         return add(doc, Pools::kPools, Pool::kRigId, arg);
 
@@ -238,12 +241,15 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
         return set(doc, BaseConfig::kTls, TlsConfig::kGen, arg);
 #   endif
 
-    case IConfig::RetriesKey:     /* --retries */
-    case IConfig::RetryPauseKey:  /* --retry-pause */
-    case IConfig::PrintTimeKey:   /* --print-time */
-    case IConfig::HttpPort:       /* --http-port */
-    case IConfig::DonateLevelKey: /* --donate-level */
-    case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
+    case IConfig::RetriesKey:       /* --retries */
+    case IConfig::RetryPauseKey:    /* --retry-pause */
+    case IConfig::PrintTimeKey:     /* --print-time */
+    case IConfig::HttpPort:         /* --http-port */
+    case IConfig::DonateLevelKey:   /* --donate-level */
+    case IConfig::DaemonPollKey:    /* --daemon-poll-interval */
+    case IConfig::DaemonJobTimeoutKey: /* --daemon-job-timeout */
+    case IConfig::DnsTtlKey:        /* --dns-ttl */
+    case IConfig::DaemonZMQPortKey: /* --daemon-zmq-port */
         return transformUint64(doc, key, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
     case IConfig::BackgroundKey:  /* --background */
@@ -256,6 +262,7 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DaemonKey:      /* --daemon */
     case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
+    case IConfig::DnsIPv6Key:     /* --dns-ipv6 */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -316,6 +323,9 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
 
+    case IConfig::DnsIPv6Key: /* --dns-ipv6 */
+        return set(doc, DnsConfig::kField, DnsConfig::kIPv6, enable);
+
     default:
         break;
     }
@@ -344,9 +354,18 @@ void xmrig::BaseTransform::transformUint64(rapidjson::Document &doc, int key, ui
     case IConfig::PrintTimeKey: /* --print-time */
         return set(doc, BaseConfig::kPrintTime, arg);
 
+    case IConfig::DnsTtlKey: /* --dns-ttl */
+        return set(doc, DnsConfig::kField, DnsConfig::kTTL, arg);
+
 #   ifdef XMRIG_FEATURE_HTTP
     case IConfig::DaemonPollKey:  /* --daemon-poll-interval */
         return add(doc, Pools::kPools, Pool::kDaemonPollInterval, arg);
+
+    case IConfig::DaemonJobTimeoutKey:  /* --daemon-job-timeout */
+        return add(doc, Pools::kPools, Pool::kDaemonJobTimeout, arg);
+
+    case IConfig::DaemonZMQPortKey:  /* --daemon-zmq-port */
+        return add(doc, Pools::kPools, Pool::kDaemonZMQPort, arg);
 #   endif
 
     default:

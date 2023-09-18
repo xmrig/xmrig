@@ -95,6 +95,7 @@ bool xmrig::Httpd::start()
     m_port = static_cast<uint16_t>(rc);
 
 #   ifdef _WIN32
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast, performance-no-int-to-ptr)
     HRSRC src = FindResource(nullptr, MAKEINTRESOURCE(1), RT_ICON);
     if (src != nullptr) {
         HGLOBAL res = LoadResource(nullptr, src);

@@ -24,6 +24,7 @@
 #include "backend/opencl/wrappers/OclDevice.h"
 
 
+#include <limits.h>
 #include <dirent.h>
 #include <fstream>
 #include <map>

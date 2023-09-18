@@ -1,5 +1,5 @@
 /*
- * Copyright © 2012-2020 Inria.  All rights reserved.
+ * Copyright © 2012-2021 Inria.  All rights reserved.
  * Copyright (c) 2020, Advanced Micro Devices, Inc. All rights reserved.
  * Written by Advanced Micro Devices,
  * See COPYING in top-level directory.
@@ -41,7 +41,7 @@ extern "C" {
 /** \brief Get the CPU set of logical processors that are physically
  * close to AMD GPU device whose index is \p dv_ind.
  *
- * Return the CPU set describing the locality of the AMD GPU device
+ * Store in \p set the CPU-set describing the locality of the AMD GPU device
  * whose index is \p dv_ind.
  *
  * Topology \p topology and device \p dv_ind must match the local machine.
@@ -96,8 +96,9 @@ hwloc_rsmi_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unused,
 /** \brief Get the hwloc OS device object corresponding to the
  * AMD GPU device whose index is \p dv_ind.
  *
- * Return the OS device object describing the AMD GPU device whose
- * index is \p dv_ind. Returns NULL if there is none.
+ * \return The hwloc OS device object describing the AMD GPU device whose
+ * index is \p dv_ind.
+ * \return \c NULL if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.
@@ -124,8 +125,9 @@ hwloc_rsmi_get_device_osdev_by_index(hwloc_topology_t topology, uint32_t dv_ind)
 /** \brief Get the hwloc OS device object corresponding to AMD GPU device,
  * whose index is \p dv_ind.
  *
- * Return the hwloc OS device object that describes the given
- * AMD GPU, whose index is \p dv_ind Return NULL if there is none.
+ * \return The hwloc OS device object that describes the given
+ * AMD GPU, whose index is \p dv_ind.
+ * \return \c NULL if none could be found.
  *
  * Topology \p topology and device \p dv_ind must match the local machine.
  * I/O devices detection and the ROCm SMI component must be enabled in the

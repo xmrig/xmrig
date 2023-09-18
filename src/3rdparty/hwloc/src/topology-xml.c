@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -123,6 +123,17 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
       fprintf(stderr, "%s: unexpected zero gp_index, topology may be invalid\n", state->global->msgprefix);
     if (obj->gp_index >= topology->next_gp_index)
       topology->next_gp_index = obj->gp_index + 1;
+  } else if (!strcmp(name, "id")) { /* forward compat */
+    if (!strncmp(value, "obj", 3)) {
+      obj->gp_index = strtoull(value+3, NULL, 10);
+      if (!obj->gp_index && hwloc__xml_verbose())
+        fprintf(stderr, "%s: unexpected zero id, topology may be invalid\n", state->global->msgprefix);
+      if (obj->gp_index >= topology->next_gp_index)
+        topology->next_gp_index = obj->gp_index + 1;
+    } else {
+      if (hwloc__xml_verbose())
+        fprintf(stderr, "%s: unexpected id `%s' not-starting with `obj', ignoring\n", state->global->msgprefix, value);
+    }
   } else if (!strcmp(name, "cpuset")) {
     if (!obj->cpuset)
       obj->cpuset = hwloc_bitmap_alloc();
@@ -192,8 +203,9 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 	  || lvalue == HWLOC_OBJ_CACHE_INSTRUCTION)
 	obj->attr->cache.type = (hwloc_obj_cache_type_t) lvalue;
       else
-	fprintf(stderr, "%s: ignoring invalid cache_type attribute %lu\n",
-		state->global->msgprefix, lvalue);
+        if (hwloc__xml_verbose())
+          fprintf(stderr, "%s: ignoring invalid cache_type attribute %lu\n",
+                  state->global->msgprefix, lvalue);
     } else if (hwloc__xml_verbose())
       fprintf(stderr, "%s: ignoring cache_type attribute for non-cache object type\n",
 	      state->global->msgprefix);
@@ -242,7 +254,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
   else if (!strcmp(name, "dont_merge")) {
     unsigned long lvalue = strtoul(value, NULL, 10);
     if (obj->type == HWLOC_OBJ_GROUP)
-      obj->attr->group.dont_merge = lvalue;
+      obj->attr->group.dont_merge = (unsigned char) lvalue;
     else if (hwloc__xml_verbose())
       fprintf(stderr, "%s: ignoring dont_merge attribute for non-group object type\n",
 	      state->global->msgprefix);
@@ -262,8 +274,8 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 #ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
       } else if (domain > 0xffff) {
 	static int warned = 0;
-	if (!warned && !hwloc_hide_errors())
-	  fprintf(stderr, "Ignoring PCI device with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	if (!warned && HWLOC_SHOW_ALL_ERRORS())
+	  fprintf(stderr, "hwloc/xml: Ignoring PCI device with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
 	warned = 1;
 	*ignore = 1;
 #endif
@@ -337,6 +349,7 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
       } else {
 	obj->attr->bridge.upstream_type = (hwloc_obj_bridge_type_t) upstream_type;
 	obj->attr->bridge.downstream_type = (hwloc_obj_bridge_type_t) downstream_type;
+        /* FIXME verify that upstream/downstream type is valid */
       };
       break;
     }
@@ -361,12 +374,13 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
 #ifndef HWLOC_HAVE_32BITS_PCI_DOMAIN
       } else if (domain > 0xffff) {
 	static int warned = 0;
-	if (!warned && !hwloc_hide_errors())
-	  fprintf(stderr, "Ignoring bridge to PCI with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
+	if (!warned && HWLOC_SHOW_ALL_ERRORS())
+	  fprintf(stderr, "hwloc/xml: Ignoring bridge to PCI with non-16bit domain.\nPass --enable-32bits-pci-domain to configure to support such devices\n(warning: it would break the library ABI, don't enable unless really needed).\n");
 	warned = 1;
 	*ignore = 1;
 #endif
       } else {
+        /* FIXME verify that downstream type vs pci info are valid */
 	obj->attr->bridge.downstream.pci.domain = domain;
 	obj->attr->bridge.downstream.pci.secondary_bus = secbus;
 	obj->attr->bridge.downstream.pci.subordinate_bus = subbus;
@@ -1232,7 +1246,7 @@ hwloc__xml_import_object(hwloc_topology_t topology,
 	/* next should be before cur */
 	if (!childrengotignored) {
 	  static int reported = 0;
-	  if (!reported && !hwloc_hide_errors()) {
+	  if (!reported && HWLOC_SHOW_CRITICAL_ERRORS()) {
 	    hwloc__xml_import_report_outoforder(topology, next, cur);
 	    reported = 1;
 	  }
@@ -1565,7 +1579,10 @@ hwloc__xml_v2import_distances(hwloc_topology_t topology,
     }
   }
 
-  hwloc_internal_distances_add_by_index(topology, name, unique_type, different_types, nbobjs, indexes, u64values, kind, 0);
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_NO_DISTANCES)
+    goto out_ignore;
+
+  hwloc_internal_distances_add_by_index(topology, name, unique_type, different_types, nbobjs, indexes, u64values, kind, 0 /* assume grouping was applied when this matrix was discovered before exporting to XML */);
 
   /* prevent freeing below */
   indexes = NULL;
@@ -1719,7 +1736,8 @@ hwloc__xml_import_memattr(hwloc_topology_t topology,
     }
   }
 
-  if (name && flags != (unsigned long) -1) {
+  if (name && flags != (unsigned long) -1
+      && !(topology->flags & HWLOC_TOPOLOGY_FLAG_NO_MEMATTRS)) {
     hwloc_memattr_id_t _id;
 
     ret = hwloc_memattr_get_by_name(topology, name, &_id);
@@ -1830,7 +1848,13 @@ hwloc__xml_import_cpukind(hwloc_topology_t topology,
     goto error;
   }
 
-  hwloc_internal_cpukinds_register(topology, cpuset, forced_efficiency, infos, nr_infos, HWLOC_CPUKINDS_REGISTER_FLAG_OVERWRITE_FORCED_EFFICIENCY);
+  if (topology->flags & HWLOC_TOPOLOGY_FLAG_NO_CPUKINDS) {
+    hwloc__free_infos(infos, nr_infos);
+    hwloc_bitmap_free(cpuset);
+  } else {
+    hwloc_internal_cpukinds_register(topology, cpuset, forced_efficiency, infos, nr_infos, HWLOC_CPUKINDS_REGISTER_FLAG_OVERWRITE_FORCED_EFFICIENCY);
+    hwloc__free_infos(infos, nr_infos);
+  }
 
   return state->global->close_tag(state);
 
@@ -2165,7 +2189,8 @@ done:
        * but it would require to have those objects in the original XML order (like the first_numanode cousin-list).
        * because the topology order can be different if some parents are ignored during load.
        */
-      if (nbobjs == data->nbnumanodes) {
+      if (nbobjs == data->nbnumanodes
+          && !(topology->flags & HWLOC_TOPOLOGY_FLAG_NO_DISTANCES)) {
 	hwloc_obj_t *objs = malloc(nbobjs*sizeof(hwloc_obj_t));
 	uint64_t *values = malloc(nbobjs*nbobjs*sizeof(*values));
         assert(data->nbnumanodes > 0); /* v1dist->nbobjs is >0 after import */
@@ -2647,7 +2672,8 @@ hwloc__xml_export_object_contents (hwloc__xml_export_state_t state, hwloc_topolo
 
       logical_to_v2array = malloc(nbobjs * sizeof(*logical_to_v2array));
       if (!logical_to_v2array) {
-	fprintf(stderr, "xml/export/v1: failed to allocated logical_to_v2array\n");
+        if (HWLOC_SHOW_ALL_ERRORS())
+          fprintf(stderr, "hwloc/xml/export/v1: failed to allocated logical_to_v2array\n");
 	continue;
       }
 
@@ -2821,6 +2847,7 @@ hwloc__xml_v1export_object_with_memory(hwloc__xml_export_state_t parentstate, hw
     /* child has sibling, we must add a Group around those memory children */
     hwloc_obj_t group = parentstate->global->v1_memory_group;
     parentstate->new_child(parentstate, &gstate, "object");
+    group->parent = obj->parent;
     group->cpuset = obj->cpuset;
     group->complete_cpuset = obj->complete_cpuset;
     group->nodeset = obj->nodeset;
@@ -3119,9 +3146,11 @@ hwloc__xml_export_memattrs(hwloc__xml_export_state_t state, hwloc_topology_t top
       continue;
 
     imattr = &topology->memattrs[id];
-    if ((id == HWLOC_MEMATTR_ID_LATENCY || id == HWLOC_MEMATTR_ID_BANDWIDTH)
-        && !imattr->nr_targets)
-      /* no need to export target-less attributes for initial attributes, no release support attributes without those definitions */
+    if (id < HWLOC_MEMATTR_ID_MAX && !imattr->nr_targets)
+      /* no need to export standard attributes without any target,
+       * their definition is now standardized,
+       * the old hwloc importing this XML may recreate these attributes just like it would for a non-imported topology.
+       */
       continue;
 
     state->new_child(state, &mstate, "memattr");

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009      CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2022 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  *
@@ -166,6 +166,7 @@ struct hwloc_topology {
     unsigned long kind;
 
 #define HWLOC_INTERNAL_DIST_FLAG_OBJS_VALID (1U<<0) /* if the objs array is valid below */
+#define HWLOC_INTERNAL_DIST_FLAG_NOT_COMMITTED (1U<<1) /* if the distances isn't in the list yet */
     unsigned iflags;
 
     /* objects are currently stored in physical_index order */
@@ -258,6 +259,7 @@ struct hwloc_topology {
     unsigned bus_first, bus_last;
     hwloc_bitmap_t cpuset;
   } * pci_forced_locality;
+  hwloc_uint64_t pci_locality_quirks;
 
   /* component blacklisting */
   unsigned nr_blacklisted_components;
@@ -303,11 +305,6 @@ extern hwloc_obj_t hwloc_get_obj_by_type_and_gp_index(hwloc_topology_t topology,
 extern void hwloc_pci_discovery_init(struct hwloc_topology *topology);
 extern void hwloc_pci_discovery_prepare(struct hwloc_topology *topology);
 extern void hwloc_pci_discovery_exit(struct hwloc_topology *topology);
-
-/* Look for an object matching the given domain/bus/func,
- * either exactly or return the smallest container bridge
- */
-extern struct hwloc_obj * hwloc_pci_find_by_busid(struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func);
 
 /* Look for an object matching complete cpuset exactly, or insert one.
  * Return NULL on failure.
@@ -408,9 +405,13 @@ extern void hwloc_internal_distances_prepare(hwloc_topology_t topology);
 extern void hwloc_internal_distances_destroy(hwloc_topology_t topology);
 extern int hwloc_internal_distances_dup(hwloc_topology_t new, hwloc_topology_t old);
 extern void hwloc_internal_distances_refresh(hwloc_topology_t topology);
-extern int hwloc_internal_distances_add(hwloc_topology_t topology, const char *name, unsigned nbobjs, hwloc_obj_t *objs, uint64_t *values, unsigned long kind, unsigned long flags);
-extern int hwloc_internal_distances_add_by_index(hwloc_topology_t topology, const char *name, hwloc_obj_type_t unique_type, hwloc_obj_type_t *different_types, unsigned nbobjs, uint64_t *indexes, uint64_t *values, unsigned long kind, unsigned long flags);
 extern void hwloc_internal_distances_invalidate_cached_objs(hwloc_topology_t topology);
+
+/* these distances_add() functions are higher-level than those in hwloc/plugins.h
+ * but they may change in the future, hence they are not exported to plugins.
+ */
+extern int hwloc_internal_distances_add_by_index(hwloc_topology_t topology, const char *name, hwloc_obj_type_t unique_type, hwloc_obj_type_t *different_types, unsigned nbobjs, uint64_t *indexes, uint64_t *values, unsigned long kind, unsigned long flags);
+extern int hwloc_internal_distances_add(hwloc_topology_t topology, const char *name, unsigned nbobjs, hwloc_obj_t *objs, uint64_t *values, unsigned long kind, unsigned long flags);
 
 extern void hwloc_internal_memattrs_init(hwloc_topology_t topology);
 extern void hwloc_internal_memattrs_prepare(hwloc_topology_t topology);
@@ -419,6 +420,7 @@ extern void hwloc_internal_memattrs_need_refresh(hwloc_topology_t topology);
 extern void hwloc_internal_memattrs_refresh(hwloc_topology_t topology);
 extern int hwloc_internal_memattrs_dup(hwloc_topology_t new, hwloc_topology_t old);
 extern int hwloc_internal_memattr_set_value(hwloc_topology_t topology, hwloc_memattr_id_t id, hwloc_obj_type_t target_type, hwloc_uint64_t target_gp_index, unsigned target_os_index, struct hwloc_internal_location_s *initiator, hwloc_uint64_t value);
+extern int hwloc_internal_memattrs_guess_memory_tiers(hwloc_topology_t topology);
 
 extern void hwloc_internal_cpukinds_init(hwloc_topology_t topology);
 extern int hwloc_internal_cpukinds_rank(hwloc_topology_t topology);
@@ -480,6 +482,7 @@ extern char * hwloc_progname(struct hwloc_topology *topology);
 #define HWLOC_GROUP_KIND_AIX_SDL_UNKNOWN		210	/* subkind is SDL level */
 #define HWLOC_GROUP_KIND_WINDOWS_PROCESSOR_GROUP	220	/* no subkind */
 #define HWLOC_GROUP_KIND_WINDOWS_RELATIONSHIP_UNKNOWN	221	/* no subkind */
+#define HWLOC_GROUP_KIND_LINUX_CLUSTER                  222     /* no subkind */
 /* distance groups */
 #define HWLOC_GROUP_KIND_DISTANCE			900	/* subkind is round of adding these groups during distance based grouping */
 /* finally, hwloc-specific groups required to insert something else, should disappear as soon as possible */

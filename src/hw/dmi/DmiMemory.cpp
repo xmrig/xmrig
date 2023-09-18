@@ -230,6 +230,10 @@ void xmrig::DmiMemory::setId(const char *slot, const char *bank)
     m_slot = slot;
     m_bank = bank;
 
+    if (!slot || !bank) {
+        return;
+    }
+
     try {
         std::cmatch cm;
         if (std::regex_match(slot, cm, std::regex("^Channel([A-Z])[-_]DIMM(\\d+)$", std::regex_constants::icase))) {

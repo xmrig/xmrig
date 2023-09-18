@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -15,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "base/net/tls/TlsGen.h"
 
@@ -34,6 +33,7 @@ static const char *kLocalhost = "localhost";
 
 static EVP_PKEY *generate_pkey()
 {
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
     auto pkey = EVP_PKEY_new();
     if (!pkey) {
         return nullptr;
@@ -41,6 +41,8 @@ static EVP_PKEY *generate_pkey()
 
     auto exponent = BN_new();
     auto rsa      = RSA_new();
+
+    // NOLINTNEXTLINE(cppcoreguidelines-pro-type-cstyle-cast)
     if (!exponent || !rsa || !BN_set_word(exponent, RSA_F4) || !RSA_generate_key_ex(rsa, 2048, exponent, nullptr) || !EVP_PKEY_assign_RSA(pkey, rsa)) {
         EVP_PKEY_free(pkey);
         BN_free(exponent);
@@ -52,6 +54,9 @@ static EVP_PKEY *generate_pkey()
     BN_free(exponent);
 
     return pkey;
+#   else
+    return EVP_RSA_gen(2048);
+#   endif
 }
 
 

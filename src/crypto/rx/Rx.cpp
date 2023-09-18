@@ -17,8 +17,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include "crypto/rx/Rx.h"
+#include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuConfig.h"
 #include "backend/cpu/CpuThreads.h"
 #include "crypto/rx/RxConfig.h"
@@ -46,7 +46,7 @@ static RxPrivate *d_ptr     = nullptr;
 class RxPrivate
 {
 public:
-    inline RxPrivate(IRxListener *listener) : queue(listener) {}
+    inline explicit RxPrivate(IRxListener *listener) : queue(listener) {}
 
     RxQueue queue;
 };
@@ -85,13 +85,26 @@ void xmrig::Rx::init(IRxListener *listener)
 }
 
 
+#include "crypto/randomx/blake2/blake2.h"
+#if defined(XMRIG_FEATURE_AVX2)
+#include "crypto/randomx/blake2/avx2/blake2b.h"
+#endif
+
+
+void (*rx_blake2b_compress)(blake2b_state* S, const uint8_t * block) = rx_blake2b_compress_integer;
+int (*rx_blake2b)(void* out, size_t outlen, const void* in, size_t inlen) = rx_blake2b_default;
+
+
 template<typename T>
 bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu)
 {
-    const Algorithm::Family f = seed.algorithm().family();
+    const auto f = seed.algorithm().family();
     if ((f != Algorithm::RANDOM_X)
 #       ifdef XMRIG_ALGO_CN_HEAVY
         && (f != Algorithm::CN_HEAVY)
+#       endif
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        && (f != Algorithm::GHOSTRIDER)
 #       endif
         ) {
 #       ifdef XMRIG_FEATURE_MSR
@@ -113,6 +126,12 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (f == Algorithm::GHOSTRIDER) {
+        return true;
+    }
+#   endif
+
     randomx_set_scratchpad_prefetch_mode(config.scratchpadPrefetchMode());
     randomx_set_huge_pages_jit(cpu.isHugePagesJit());
     randomx_set_optimized_dataset_init(config.initDatasetAVX2());
@@ -125,6 +144,19 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
         if (!cpu.isHwAES()) {
             SelectSoftAESImpl(cpu.threads().get(seed.algorithm()).count());
         }
+
+#       if defined(XMRIG_FEATURE_SSE4_1)
+        if (Cpu::info()->has(ICpuInfo::FLAG_SSE41)) {
+            rx_blake2b_compress = rx_blake2b_compress_sse41;
+        }
+#       endif
+
+#if     defined(XMRIG_FEATURE_AVX2)
+        if (Cpu::info()->has(ICpuInfo::FLAG_AVX2)) {
+            rx_blake2b = blake2b_avx2;
+        }
+#       endif
+
         osInitialized = true;
     }
 

@@ -1,12 +1,6 @@
 /* XMRig
- * Copyright 2010      Jeff Garzik <jgarzik@pobox.com>
- * Copyright 2012-2014 pooler      <pooler@litecoinpool.org>
- * Copyright 2014      Lucas Jones <https://github.com/lucasjones>
- * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
- * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
- * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +15,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <mutex>
 
@@ -83,18 +76,20 @@ public:
     {
         m_workersMemory.clear();
         m_hugePages.reset();
-        m_memory    = memory;
-        m_started   = 0;
-        m_errors    = 0;
-        m_threads   = threads.size();
-        m_ways      = 0;
-        m_ts        = Chrono::steadyMSecs();
+        m_memory       = memory;
+        m_started      = 0;
+        m_totalStarted = 0;
+        m_errors       = 0;
+        m_threads      = threads.size();
+        m_ways         = 0;
+        m_ts           = Chrono::steadyMSecs();
     }
 
     inline bool started(IWorker *worker, bool ready)
     {
         if (ready) {
             m_started++;
+            m_totalStarted += worker->threads();
 
             if (m_workersMemory.insert(worker->memory()).second) {
                 m_hugePages += worker->memory()->hugePages();
@@ -119,7 +114,7 @@ public:
         LOG_INFO("%s" GREEN_BOLD(" READY") " threads %s%zu/%zu (%zu)" CLEAR " huge pages %s%1.0f%% %zu/%zu" CLEAR " memory " CYAN_BOLD("%zu KB") BLACK_BOLD(" (%" PRIu64 " ms)"),
                  Tags::cpu(),
                  m_errors == 0 ? CYAN_BOLD_S : YELLOW_BOLD_S,
-                 m_started, m_threads, m_ways,
+                 m_totalStarted, std::max(m_totalStarted, m_threads), m_ways,
                  (m_hugePages.isFullyAllocated() ? GREEN_BOLD_S : (m_hugePages.allocated == 0 ? RED_BOLD_S : YELLOW_BOLD_S)),
                  m_hugePages.percent(),
                  m_hugePages.allocated, m_hugePages.total,
@@ -134,6 +129,7 @@ private:
     size_t m_errors       = 0;
     size_t m_memory       = 0;
     size_t m_started      = 0;
+    size_t m_totalStarted = 0;
     size_t m_threads      = 0;
     size_t m_ways         = 0;
     uint64_t m_ts         = 0;
@@ -143,7 +139,7 @@ private:
 class CpuBackendPrivate
 {
 public:
-    inline CpuBackendPrivate(Controller *controller) : controller(controller)   {}
+    inline explicit CpuBackendPrivate(Controller *controller) : controller(controller)   {}
 
 
     inline void start()
@@ -166,7 +162,7 @@ public:
     }
 
 
-    size_t ways()
+    size_t ways() const
     {
         std::lock_guard<std::mutex> lock(mutex);
 
@@ -174,7 +170,7 @@ public:
     }
 
 
-    rapidjson::Value hugePages(int version, rapidjson::Document &doc)
+    rapidjson::Value hugePages(int version, rapidjson::Document &doc) const
     {
         HugePagesInfo pages;
 
@@ -297,7 +293,7 @@ const xmrig::String &xmrig::CpuBackend::type() const
 void xmrig::CpuBackend::prepare(const Job &nextJob)
 {
 #   ifdef XMRIG_ALGO_ARGON2
-    const xmrig::Algorithm::Family f = nextJob.algorithm().family();
+    const auto f = nextJob.algorithm().family();
     if ((f == Algorithm::ARGON2) || (f == Algorithm::RANDOM_X)) {
         if (argon2::Impl::select(d_ptr->controller->config()->cpu().argon2Impl())) {
             LOG_INFO("%s use " WHITE_BOLD("argon2") " implementation " CSI "1;%dm" "%s",
@@ -334,13 +330,11 @@ void xmrig::CpuBackend::printHashrate(bool details)
          i++;
     }
 
-#   ifdef XMRIG_FEATURE_OPENCL
     Log::print(WHITE_BOLD_S "|        - |        - | %7s | %7s | %7s |",
                Hashrate::format(hashrate()->calc(Hashrate::ShortInterval),  num,         sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::MediumInterval), num + 8,     sizeof num / 3),
                Hashrate::format(hashrate()->calc(Hashrate::LargeInterval),  num + 8 * 2, sizeof num / 3)
                );
-#   endif
 }
 
 
@@ -440,10 +434,6 @@ rapidjson::Value xmrig::CpuBackend::toJSON(rapidjson::Document &doc) const
 
 #   ifdef XMRIG_ALGO_ARGON2
     out.AddMember("argon2-impl", argon2::Impl::name().toJSON(), allocator);
-#   endif
-
-#   ifdef XMRIG_ALGO_ASTROBWT
-    out.AddMember("astrobwt-max-size", cpu.astrobwtMaxSize(), allocator);
 #   endif
 
     out.AddMember("hugepages", d_ptr->hugePages(2, doc), allocator);
