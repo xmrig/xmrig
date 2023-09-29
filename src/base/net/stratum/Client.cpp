@@ -589,7 +589,7 @@ void xmrig::Client::handshake()
     if (isTLS()) {
         m_expire = Chrono::steadyMSecs() + kResponseTimeout;
 
-        m_tls->handshake();
+        m_tls->handshake(m_pool.isSNI() ? m_pool.host().data() : nullptr);
     }
     else
 #   endif

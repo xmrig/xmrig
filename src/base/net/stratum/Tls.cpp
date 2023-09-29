@@ -60,13 +60,17 @@ xmrig::Client::Tls::~Tls()
 }
 
 
-bool xmrig::Client::Tls::handshake()
+bool xmrig::Client::Tls::handshake(const char* servername)
 {
     m_ssl = SSL_new(m_ctx);
     assert(m_ssl != nullptr);
 
     if (!m_ssl) {
         return false;
+    }
+
+    if (servername) {
+        SSL_set_tlsext_host_name(m_ssl, servername);
     }
 
     SSL_set_connect_state(m_ssl);
