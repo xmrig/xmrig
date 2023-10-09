@@ -8,6 +8,7 @@ PUBLIC cnv2_mainloop_bulldozer_asm
 PUBLIC cnv2_double_mainloop_sandybridge_asm
 PUBLIC cnv2_rwz_mainloop_asm
 PUBLIC cnv2_rwz_double_mainloop_asm
+PUBLIC cnv2_upx_double_mainloop_zen3_asm
 
 ALIGN(64)
 cnv1_single_mainloop_asm PROC
