@@ -198,7 +198,7 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     }
 
     if (m_coin == Coin::ZEPHYR) {
-        uint8_t pricing_record[24];
+        uint8_t pricing_record[120];
         ar(pricing_record);
     }
 
