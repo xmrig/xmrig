@@ -42,7 +42,7 @@ public:
     Tls(Client *client);
     ~Tls();
 
-    bool handshake();
+    bool handshake(const char* servername);
     bool send(const char *data, size_t size);
     const char *fingerprint() const;
     const char *version() const;

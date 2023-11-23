@@ -72,6 +72,7 @@ public:
     static const char *kSOCKS5;
     static const char *kSubmitToOrigin;
     static const char *kTls;
+    static const char* kSni;
     static const char *kUrl;
     static const char *kUser;
     static const char* kSpendSecretKey;
@@ -97,6 +98,7 @@ public:
 
     inline bool isNicehash() const                      { return m_flags.test(FLAG_NICEHASH); }
     inline bool isTLS() const                           { return m_flags.test(FLAG_TLS) || m_url.isTLS(); }
+    inline bool isSNI() const                           { return m_flags.test(FLAG_SNI); }
     inline bool isValid() const                         { return m_url.isValid(); }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Coin &coin() const                     { return m_coin; }
@@ -140,6 +142,7 @@ private:
         FLAG_ENABLED,
         FLAG_NICEHASH,
         FLAG_TLS,
+        FLAG_SNI,
         FLAG_MAX
     };
 

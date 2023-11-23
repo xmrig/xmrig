@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      jtgrassie   <https://github.com/jtgrassie>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -42,13 +42,14 @@
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/kernel/Platform.h"
 #include "base/net/dns/Dns.h"
 #include "base/net/dns/DnsRecords.h"
 #include "base/net/stratum/Socks5.h"
 #include "base/net/tools/NetBuffer.h"
 #include "base/tools/Chrono.h"
-#include "base/tools/Cvt.h"
 #include "base/tools/cryptonote/BlobReader.h"
+#include "base/tools/Cvt.h"
 #include "net/JobResult.h"
 
 
@@ -345,6 +346,9 @@ bool xmrig::Client::close()
     setState(ClosingState);
 
     if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_socket)) == 0) {
+        if (Platform::hasKeepalive()) {
+            uv_tcp_keepalive(m_socket, 0, 60);
+        }
         uv_close(reinterpret_cast<uv_handle_t*>(m_socket), Client::onClose);
     }
 
@@ -569,9 +573,9 @@ void xmrig::Client::connect(const sockaddr *addr)
     uv_tcp_init(uv_default_loop(), m_socket);
     uv_tcp_nodelay(m_socket, 1);
 
-#   ifndef WIN32
-    uv_tcp_keepalive(m_socket, 1, 60);
-#   endif
+    if (Platform::hasKeepalive()) {
+        uv_tcp_keepalive(m_socket, 1, 60);
+    }
 
     uv_tcp_connect(req, m_socket, addr, onConnect);
 }
@@ -587,7 +591,7 @@ void xmrig::Client::handshake()
     if (isTLS()) {
         m_expire = Chrono::steadyMSecs() + kResponseTimeout;
 
-        m_tls->handshake();
+        m_tls->handshake(m_pool.isSNI() ? m_pool.host().data() : nullptr);
     }
     else
 #   endif
