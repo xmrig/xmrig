@@ -198,7 +198,7 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     }
 
     if (m_coin == Coin::ZEPHYR) {
-        uint8_t pricing_record[24];
+        uint8_t pricing_record[120];
         ar(pricing_record);
     }
 
@@ -225,8 +225,12 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     ar(m_height);
     ar(m_numOutputs);
 
-    const uint64_t expected_outputs = (m_coin == Coin::ZEPHYR) ? 2 : 1;
-    if (m_numOutputs != expected_outputs) {
+    if (m_coin == Coin::ZEPHYR) {
+        if (m_numOutputs < 2) {
+            return false;
+        }
+    }
+    else if (m_numOutputs != 1) {
         return false;
     }
 
@@ -252,23 +256,25 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         ar.skip(asset_type_len);
         ar(m_viewTag);
 
-        uint64_t amount2;
-        ar(amount2);
+        for (uint64_t k = 1; k < m_numOutputs; ++k) {
+            uint64_t amount2;
+            ar(amount2);
 
-        uint8_t output_type2;
-        ar(output_type2);
-        if (output_type2 != 2) {
-            return false;
+            uint8_t output_type2;
+            ar(output_type2);
+            if (output_type2 != 2) {
+                return false;
+            }
+
+            Span key2;
+            ar(key2, kKeySize);
+
+            ar(asset_type_len);
+            ar.skip(asset_type_len);
+
+            uint8_t view_tag2;
+            ar(view_tag2);
         }
-
-        Span key2;
-        ar(key2, kKeySize);
-
-        ar(asset_type_len);
-        ar.skip(asset_type_len);
-
-        uint8_t view_tag2;
-        ar(view_tag2);
     }
     else if (m_outputType == 3) {
         ar(m_viewTag);

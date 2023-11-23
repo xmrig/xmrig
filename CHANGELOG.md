@@ -1,3 +1,13 @@
+# v6.21.0
+- [#3302](https://github.com/xmrig/xmrig/pull/3302) [#3312](https://github.com/xmrig/xmrig/pull/3312) Enabled keepalive for Windows (>= Vista).
+- [#3320](https://github.com/xmrig/xmrig/pull/3320) Added "built for OS/architecture/bits" to "ABOUT".
+- [#3339](https://github.com/xmrig/xmrig/pull/3339) Added SNI option for TLS connections.
+- [#3342](https://github.com/xmrig/xmrig/pull/3342) Update `cn_main_loop.asm`.
+- [#3346](https://github.com/xmrig/xmrig/pull/3346) ARM64 JIT: don't use `x18` register.
+- [#3348](https://github.com/xmrig/xmrig/pull/3348) Update to latest `sse2neon.h`.
+- [#3356](https://github.com/xmrig/xmrig/pull/3356) Updated pricing record size for **Zephyr** solo mining.
+- [#3358](https://github.com/xmrig/xmrig/pull/3358) **Zephyr** solo mining: handle multiple outputs.
+
 # v6.20.0
 - Added new ARM CPU names.
 - [#2394](https://github.com/xmrig/xmrig/pull/2394) Added new CMake options `ARM_V8` and `ARM_V7`.
