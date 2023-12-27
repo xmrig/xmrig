@@ -207,7 +207,8 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     setOffset(MINER_TX_PREFIX_OFFSET, ar.index());
 
     ar(m_txVersion);
-    ar(m_unlockTime);
+    if (m_coin != Coin::TOWNFORGE)
+      ar(m_unlockTime);
     ar(m_numInputs);
 
     // must be 1 input
@@ -280,6 +281,9 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         ar(m_viewTag);
     }
 
+    if (m_coin == Coin::TOWNFORGE)
+      ar(m_unlockTime);
+
     ar(m_extraSize);
 
     setOffset(TX_EXTRA_OFFSET, ar.index());
@@ -334,6 +338,10 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     // RCT signatures (empty in miner transaction)
     uint8_t vin_rct_type = 0;
     ar(vin_rct_type);
+
+    // no way I'm parsing a full game update here
+    if (m_coin == Coin::TOWNFORGE && m_height % 720 == 0)
+      return true;
 
     // must be RCTTypeNull (0)
     if (vin_rct_type != 0) {
