@@ -1,8 +1,8 @@
 /* XMRig
  * Copyright (c) 2012-2013 The Cryptonote developers
  * Copyright (c) 2014-2021 The Monero Project
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -34,8 +34,7 @@
 bool xmrig::WalletAddress::decode(const char *address, size_t size)
 {
     uint64_t tf_tag = 0;
-    if (size >= 4 && !strncmp(address, "TF", 2))
-    {
+    if (size >= 4 && !strncmp(address, "TF", 2)) {
       tf_tag = 0x424200;
       switch (address[2])
       {
@@ -134,8 +133,9 @@ bool xmrig::WalletAddress::decode(const char *address, size_t size)
         if (memcmp(m_checksum, md, sizeof(m_checksum)) == 0) {
             m_data = { address, size };
 
-            if (tf_tag)
+            if (tf_tag) {
               m_tag = tf_tag;
+            }
 
             return true;
         }
