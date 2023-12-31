@@ -107,6 +107,8 @@ private:
 #   ifdef XMRIG_FEATURE_BENCHMARK
     uint32_t m_benchSize    = 0;
 #   endif
+
+    std::atomic<uint64_t> m_count = {0};
 };
 
 
