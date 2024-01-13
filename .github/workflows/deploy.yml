@@ -29,7 +29,7 @@ jobs:
 
   build_lin:
     name: Build Ubuntu artifacts
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Prepare Ubuntu tools
         run: |
