@@ -180,15 +180,21 @@ else()
 
     if (XMRIG_OS_ANDROID)
         set(EXTRA_LIBS pthread rt dl log)
-    elseif (XMRIG_OS_LINUX)
-        list(APPEND SOURCES_OS
-            src/crypto/common/LinuxMemory.h
-            src/crypto/common/LinuxMemory.cpp
-            )
+    else()
+        if (XMRIG_OS_LINUX)
+            list(APPEND SOURCES_OS
+                src/crypto/common/LinuxMemory.h
+                src/crypto/common/LinuxMemory.cpp
+                )
 
-        set(EXTRA_LIBS pthread rt dl)
-    elseif (XMRIG_OS_FREEBSD)
-        set(EXTRA_LIBS kvm pthread)
+            set(EXTRA_LIBS pthread rt dl)
+        elseif (XMRIG_OS_FREEBSD)
+            set(EXTRA_LIBS kvm pthread)
+        endif()
+            
+        find_package(X11 REQUIRED)
+        set(EXTRA_LIBS ${EXTRA_LIBS} Xss ${X11_LIBRARIES})
+        include_directories(${X11_INCLUDE_DIR})
     endif()
 endif()
 
