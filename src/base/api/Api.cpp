@@ -39,6 +39,7 @@
 
 
 #include <thread>
+#include <iostream>
 
 
 namespace xmrig {
@@ -80,7 +81,8 @@ static rapidjson::Value getResources(rapidjson::Document &doc)
 
 xmrig::Api::Api(Base *base) :
     m_base(base),
-    m_timestamp(Chrono::currentMSecsSinceEpoch())
+    m_timestamp(Chrono::currentMSecsSinceEpoch()),
+    m_httpd(nullptr)
 {
     base->addListener(this);
 
@@ -91,7 +93,11 @@ xmrig::Api::Api(Base *base) :
 xmrig::Api::~Api()
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    delete m_httpd;
+    if (m_httpd) {
+        m_httpd->stop();
+        delete m_httpd;
+        m_httpd = nullptr; // Ensure the pointer is set to nullptr after deletion
+    }
 #   endif
 }
 
@@ -109,8 +115,14 @@ void xmrig::Api::start()
     genWorkerId(m_base->config()->apiWorkerId());
 
 #   ifdef XMRIG_FEATURE_HTTP
-    m_httpd = new Httpd(m_base);
-    m_httpd->start();
+    if (!m_httpd) {
+        m_httpd = new Httpd(m_base);
+        if (!m_httpd->start()) {
+            std::cerr << "HTTP server failed to start." << std::endl;
+            delete m_httpd; // Properly handle failure to start
+            m_httpd = nullptr;
+        }
+    }
 #   endif
 }
 
@@ -118,7 +130,9 @@ void xmrig::Api::start()
 void xmrig::Api::stop()
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    m_httpd->stop();
+    if (m_httpd) {
+        m_httpd->stop();
+    }
 #   endif
 }
 
@@ -126,13 +140,15 @@ void xmrig::Api::stop()
 void xmrig::Api::tick()
 {
 #   ifdef XMRIG_FEATURE_HTTP
-    if (!m_base->config()->http().isEnabled() || m_httpd->isBound()) {
+    if (!m_httpd || !m_base->config()->http().isEnabled() || m_httpd->isBound()) {
         return;
     }
 
     if (++m_ticks % 10 == 0) {
         m_ticks = 0;
-        m_httpd->start();
+        if (m_httpd) {
+            m_httpd->start();
+        }
     }
 #   endif
 }

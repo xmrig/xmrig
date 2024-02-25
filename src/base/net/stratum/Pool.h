@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -61,7 +61,7 @@ public:
     static const char *kCoin;
     static const char *kDaemon;
     static const char *kDaemonPollInterval;
-    static const char* kDaemonJobTimeout;
+    static const char *kDaemonJobTimeout;
     static const char *kEnabled;
     static const char *kFingerprint;
     static const char *kKeepalive;
@@ -72,11 +72,11 @@ public:
     static const char *kSOCKS5;
     static const char *kSubmitToOrigin;
     static const char *kTls;
-    static const char* kSni;
+    static const char *kSni;
     static const char *kUrl;
     static const char *kUser;
-    static const char* kSpendSecretKey;
-    static const char* kDaemonZMQPort;
+    static const char *kSpendSecretKey;
+    static const char *kDaemonZMQPort;
     static const char *kNicehashHost;
 
     constexpr static int kKeepAliveTimeout         = 60;

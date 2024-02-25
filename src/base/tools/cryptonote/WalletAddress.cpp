@@ -1,8 +1,8 @@
 /* XMRig
  * Copyright (c) 2012-2013 The Cryptonote developers
  * Copyright (c) 2014-2021 The Monero Project
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -33,6 +33,25 @@
 
 bool xmrig::WalletAddress::decode(const char *address, size_t size)
 {
+    uint64_t tf_tag = 0;
+    if (size >= 4 && !strncmp(address, "TF", 2)) {
+      tf_tag = 0x424200;
+      switch (address[2])
+      {
+        case '1': tf_tag |= 0; break;
+        case '2': tf_tag |= 1; break;
+        default: tf_tag = 0; return false;
+      }
+      switch (address[3]) {
+        case 'M': tf_tag |= 0; break;
+        case 'T': tf_tag |= 0x10; break;
+        case 'S': tf_tag |= 0x20; break;
+        default: tf_tag = 0; return false;
+      }
+      address += 4;
+      size -= 4;
+    }
+
     static constexpr std::array<int, 9> block_sizes{ 0, 2, 3, 5, 6, 7, 9, 10, 11 };
     static constexpr char alphabet[] = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
     constexpr size_t alphabet_size = sizeof(alphabet) - 1;
@@ -113,6 +132,10 @@ bool xmrig::WalletAddress::decode(const char *address, size_t size)
 
         if (memcmp(m_checksum, md, sizeof(m_checksum)) == 0) {
             m_data = { address, size };
+
+            if (tf_tag) {
+              m_tag = tf_tag;
+            }
 
             return true;
         }
@@ -228,6 +251,16 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x54,     { Coin::GRAFT,      TESTNET,    PUBLIC,         28881,  28882 } },
         { 0x55,     { Coin::GRAFT,      TESTNET,    INTEGRATED,     28881,  28882 } },
         { 0x70,     { Coin::GRAFT,      TESTNET,    SUBADDRESS,     28881,  28882 } },
+
+        { 0x424200,     { Coin::TOWNFORGE,     MAINNET,    PUBLIC,         18881,  18882 } },
+        { 0x424201,     { Coin::TOWNFORGE,     MAINNET,    SUBADDRESS,     18881,  18882 } },
+
+        { 0x424210,     { Coin::TOWNFORGE,     TESTNET,    PUBLIC,         28881,  28882 } },
+        { 0x424211,     { Coin::TOWNFORGE,     TESTNET,    SUBADDRESS,     28881,  28882 } },
+
+        { 0x424220,     { Coin::TOWNFORGE,     STAGENET,   PUBLIC,         38881,  38882 } },
+        { 0x424221,     { Coin::TOWNFORGE,     STAGENET,   SUBADDRESS,     38881,  38882 } },
+
     };
 
     const auto it = tags.find(tag);
