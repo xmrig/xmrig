@@ -209,7 +209,7 @@ FORCE_INLINE void _sse2neon_smp_mb(void)
 /* Architecture-specific build options */
 /* FIXME: #pragma GCC push_options is only available on GCC */
 #if defined(__GNUC__)
-#if defined(__arm__) && __ARM_ARCH == 7
+#if defined(__arm__)
 /* According to ARM C Language Extensions Architecture specification,
  * __ARM_NEON is defined to a value indicating the Advanced SIMD (NEON)
  * architecture supported.
