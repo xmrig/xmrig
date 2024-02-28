@@ -609,6 +609,11 @@ bool xmrig::Client::parseLogin(const rapidjson::Value &result, int *code)
 
     parseExtensions(result);
 
+    if (!result.HasMember("job")) {
+        *code = 2;
+        return false;
+    }
+
     const bool rc = parseJob(result["job"], code);
     m_jobs = 0;
 
