@@ -689,7 +689,7 @@ void xmrig::Miner::onRequest(IApiRequest &request)
             d_ptr->getMiner(request.reply(), request.doc(), request.version());
             d_ptr->getHashrate(request.reply(), request.doc(), request.version());
         }
-        else if (request.url() == "/2/backends") {
+        else if (request.type() == IApiRequest::REQ_BACKENDS && request.version() == 2) {
             request.accept();
 
             d_ptr->getBackends(request.reply(), request.doc());
@@ -710,6 +710,12 @@ void xmrig::Miner::onRequest(IApiRequest &request)
             request.accept();
 
             stop();
+        }
+        else if (request.rpcMethod() == "start") {
+            request.accept();
+
+            const auto config = d_ptr->controller->config();
+            onConfigChanged(config, config);
         }
     }
 

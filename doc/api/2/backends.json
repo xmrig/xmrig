@@ -1,0 +1,78 @@
+[
+    {
+        "type": "cpu",
+        "enabled": true,
+        "algo": "rx/0",
+        "profile": "rx",
+        "hw-aes": true,
+        "priority": -1,
+        "msr": true,
+        "asm": "intel",
+        "argon2-impl": "AVX2",
+        "hugepages": [6, 6],
+        "memory": 6291456,
+        "hashrate": [1235.78, 1228.89, null],
+        "threads": [
+            {
+                "intensity": 1,
+                "affinity": 0,
+                "av": 1,
+                "hashrate": [409.75, 406.58, null]
+            },
+            {
+                "intensity": 1,
+                "affinity": 2,
+                "av": 1,
+                "hashrate": [412.9, 411.33, null]
+            },
+            {
+                "intensity": 1,
+                "affinity": 4,
+                "av": 1,
+                "hashrate": [413.11, 410.98, null]
+            }
+        ]
+    },
+    {
+        "type": "cuda",
+        "enabled": true,
+        "algo": "cn-heavy/xhv",
+        "profile": "cn-heavy/xhv",
+        "versions": {
+            "cuda-runtime": "11.6",
+            "cuda-driver": "11.6",
+            "plugin": "6.17.1-dev",
+            "nvml": "11.512.15",
+            "driver": "512.15"
+        },
+        "hashrate": [247.02, 247.34, null],
+        "threads": [
+            {
+                "index": 0,
+                "threads": 32,
+                "blocks": 38,
+                "bfactor": 6,
+                "bsleep": 25,
+                "affinity": -1,
+                "cclock": 0,
+                "mclock": 0,
+                "dataset_host": false,
+                "hashrate": [246.77, 247.26, null],
+                "name": "NVIDIA GeForce GTX 970",
+                "bus_id": "01:00.0",
+                "smx": 13,
+                "arch": 52,
+                "global_mem": 4294836224,
+                "clock": 1177,
+                "memory_clock": 3666,
+                "health": {
+                    "temperature": 69,
+                    "power": 161,
+                    "clock": 1328,
+                    "mem_clock": 3662,
+                    "fan_speed": [100]
+                }
+            }
+        ]
+    }
+]
