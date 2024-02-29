@@ -37,13 +37,35 @@ class CnAlgo
 public:
     constexpr CnAlgo() {};
 
-    constexpr inline Algorithm::Id base() const  { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return Algorithm::base(ALGO); }
-    constexpr inline bool isHeavy() const        { return Algorithm::family(ALGO) == Algorithm::CN_HEAVY; }
-    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
-    constexpr inline size_t memory() const       { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return Algorithm::l3(ALGO); }
-    constexpr inline uint32_t iterations() const { static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm"); return CN_ITER; }
+#   define ASSERT_CN static_assert(Algorithm::isCN(ALGO), "invalid CRYPTONIGHT algorithm")
+    constexpr inline Algorithm::Id base() const  { ASSERT_CN; return Algorithm::base(ALGO); }
+    constexpr inline size_t memory() const       { ASSERT_CN; return Algorithm::l3(ALGO); }
+    constexpr inline uint32_t iterations() const { ASSERT_CN; return CN_ITER; }
     constexpr inline uint32_t mask() const       { return static_cast<uint32_t>(((memory() - 1) / 16) * 16); }
     constexpr inline uint32_t half_mem() const   { return mask() < memory() / 2; }
+
+    constexpr inline bool isBase1() const        { ASSERT_CN; return Algorithm::base(ALGO) == Algorithm::CN_1; }
+    constexpr inline bool isBase2() const        { ASSERT_CN; return Algorithm::base(ALGO) == Algorithm::CN_2; }
+    constexpr inline bool is2() const            { return ALGO == Algorithm::CN_2; }
+    constexpr inline bool isR() const            { return ALGO == Algorithm::CN_R; }
+    constexpr inline bool isHalf() const         { return ALGO == Algorithm::CN_HALF; }
+    constexpr inline bool isRTO() const          { return ALGO == Algorithm::CN_RTO; }
+    constexpr inline bool isRWZ() const          { return ALGO == Algorithm::CN_RWZ; }
+    constexpr inline bool isZLS() const          { return ALGO == Algorithm::CN_ZLS; }
+    constexpr inline bool isDouble() const       { return ALGO == Algorithm::CN_DOUBLE; }
+    constexpr inline bool isCCX() const          { return ALGO == Algorithm::CN_CCX; }
+    constexpr inline bool isHeavy() const        { ASSERT_CN; return Algorithm::family(ALGO) == Algorithm::CN_HEAVY; }
+    constexpr inline bool isHeavyTube() const    { return ALGO == Algorithm::CN_HEAVY_TUBE; }
+    constexpr inline bool isHeavyXHV() const     { return ALGO == Algorithm::CN_HEAVY_XHV; }
+    constexpr inline bool isPico0() const        { return ALGO == Algorithm::CN_PICO_0; }
+    constexpr inline bool isPicoTLO() const      { return ALGO == Algorithm::CN_PICO_TLO; }
+    constexpr inline bool isUPX2() const         { return ALGO == Algorithm::CN_UPX2; }
+    constexpr inline bool isGR0() const          { return ALGO == Algorithm::CN_GR_0; }
+    constexpr inline bool isGR1() const          { return ALGO == Algorithm::CN_GR_1; }
+    constexpr inline bool isGR2() const          { return ALGO == Algorithm::CN_GR_2; }
+    constexpr inline bool isGR3() const          { return ALGO == Algorithm::CN_GR_3; }
+    constexpr inline bool isGR4() const          { return ALGO == Algorithm::CN_GR_4; }
+    constexpr inline bool isGR5() const          { return ALGO == Algorithm::CN_GR_5; }
 
     inline static uint32_t iterations(Algorithm::Id algo)
     {
