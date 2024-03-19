@@ -256,7 +256,7 @@
 
 # v2.8.0
 - **[#753](https://github.com/xmrig/xmrig/issues/753) Added new algorithm [CryptoNight variant 2](https://github.com/xmrig/xmrig/issues/753) for Monero fork, thanks [@SChernykh](https://github.com/SChernykh).**
-  - Added global and per thread option `"asm"` and and command line equivalent.
+  - Added global and per thread option `"asm"` and command line equivalent.
 - **[#758](https://github.com/xmrig/xmrig/issues/758) Added SSL/TLS support for secure connections to pools.**
   - Added per pool options `"tls"` and `"tls-fingerprint"` and command line equivalents.
 - [#767](https://github.com/xmrig/xmrig/issues/767) Added config autosave feature, same with GPU miners.  
