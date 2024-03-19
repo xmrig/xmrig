@@ -22,7 +22,6 @@
 
 
 #include <cassert>
-#include <uv.h>
 
 
 namespace xmrig {
@@ -39,6 +38,32 @@ static void fsWriteCallback(uv_fs_t *req)
 
 } // namespace xmrig
 
+
+xmrig::FileLogWriter::FileLogWriter()
+{
+    init();
+}
+
+xmrig::FileLogWriter::FileLogWriter(const char* fileName)
+{
+    init();
+    open(fileName);
+}
+
+xmrig::FileLogWriter::~FileLogWriter()
+{
+    uv_close(reinterpret_cast<uv_handle_t*>(&m_flushAsync), nullptr);
+
+    uv_mutex_destroy(&m_buffersLock);
+}
+
+void xmrig::FileLogWriter::init()
+{
+    uv_mutex_init(&m_buffersLock);
+
+    uv_async_init(uv_default_loop(), &m_flushAsync, on_flush);
+    m_flushAsync.data = this;
+}
 
 bool xmrig::FileLogWriter::open(const char *fileName)
 {
@@ -77,11 +102,12 @@ bool xmrig::FileLogWriter::write(const char *data, size_t size)
     uv_buf_t buf = uv_buf_init(new char[size], size);
     memcpy(buf.base, data, size);
 
-    auto req = new uv_fs_t;
-    req->data = buf.base;
+    uv_mutex_lock(&m_buffersLock);
 
-    uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, m_pos, fsWriteCallback);
-    m_pos += size;
+    m_buffers.emplace_back(buf);
+    uv_async_send(&m_flushAsync);
+
+    uv_mutex_unlock(&m_buffersLock);
 
     return true;
 }
@@ -89,18 +115,38 @@ bool xmrig::FileLogWriter::write(const char *data, size_t size)
 
 bool xmrig::FileLogWriter::writeLine(const char *data, size_t size)
 {
-    const uv_buf_t buf[2] = {
-        uv_buf_init(new char[size], size),
-        uv_buf_init(const_cast<char *>(m_endl), sizeof(m_endl) - 1)
-    };
+    if (!isOpen()) {
+        return false;
+    }
 
-    memcpy(buf[0].base, data, size);
+    constexpr size_t N = sizeof(m_endl) - 1;
 
-    auto req = new uv_fs_t;
-    req->data = buf[0].base;
+    uv_buf_t buf = uv_buf_init(new char[size + N], size + N);
+    memcpy(buf.base, data, size);
+    memcpy(buf.base + size, m_endl, N);
 
-    uv_fs_write(uv_default_loop(), req, m_file, buf, 2, m_pos, fsWriteCallback);
-    m_pos += (buf[0].len + buf[1].len);
+    uv_mutex_lock(&m_buffersLock);
+
+    m_buffers.emplace_back(buf);
+    uv_async_send(&m_flushAsync);
+
+    uv_mutex_unlock(&m_buffersLock);
 
     return true;
+}
+
+void xmrig::FileLogWriter::flush()
+{
+    uv_mutex_lock(&m_buffersLock);
+
+    for (uv_buf_t buf : m_buffers) {
+        uv_fs_t* req = new uv_fs_t;
+        req->data = buf.base;
+
+        uv_fs_write(uv_default_loop(), req, m_file, &buf, 1, m_pos, fsWriteCallback);
+        m_pos += buf.len;
+    }
+    m_buffers.clear();
+
+    uv_mutex_unlock(&m_buffersLock);
 }
