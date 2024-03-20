@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 # https://xmrig.com/docs/miner/hugepages#onegb-huge-pages
 

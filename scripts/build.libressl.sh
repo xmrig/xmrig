@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 LIBRESSL_VERSION="3.5.2"
 
