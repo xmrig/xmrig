@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 ./build.uv.sh
 ./build.hwloc.sh

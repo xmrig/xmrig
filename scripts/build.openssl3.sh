@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 OPENSSL_VERSION="3.0.13"
 

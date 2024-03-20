@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 HWLOC_VERSION_MAJOR="2"
 HWLOC_VERSION_MINOR="10"

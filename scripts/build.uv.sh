@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 UV_VERSION="1.48.0"
 
