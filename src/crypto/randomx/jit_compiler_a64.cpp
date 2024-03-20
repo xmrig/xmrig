@@ -1078,6 +1078,6 @@ void JitCompilerA64::h_NOP(Instruction& instr, uint32_t& codePos)
 {
 }
 
-InstructionGeneratorA64 JitCompilerA64::engine[256] = {};
+InstructionGeneratorA64 JitCompilerA64::engine[257] = {};
 
 }
