@@ -162,7 +162,7 @@ if (XMRIG_OS_WIN)
         src/crypto/common/VirtualMemory_win.cpp
         )
 
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv dbghelp)
 elseif (XMRIG_OS_APPLE)
     list(APPEND SOURCES_OS
         src/App_unix.cpp
