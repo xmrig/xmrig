@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2020 Inria.  All rights reserved.
+ * Copyright © 2013-2023 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -222,6 +222,8 @@ enum hwloc_topology_diff_apply_flags_e {
 HWLOC_DECLSPEC int hwloc_topology_diff_apply(hwloc_topology_t topology, hwloc_topology_diff_t diff, unsigned long flags);
 
 /** \brief Destroy a list of topology differences.
+ *
+ * \return 0.
  */
 HWLOC_DECLSPEC int hwloc_topology_diff_destroy(hwloc_topology_diff_t diff);
 
@@ -232,6 +234,8 @@ HWLOC_DECLSPEC int hwloc_topology_diff_destroy(hwloc_topology_diff_t diff);
  * if any was specified in the XML file.
  * This identifier is usually the name of the other XML file
  * that contains the reference topology.
+ *
+ * \return 0 on success, -1 on error.
  *
  * \note the pointer returned in refname should later be freed
  * by the caller.
@@ -246,16 +250,25 @@ HWLOC_DECLSPEC int hwloc_topology_diff_load_xml(const char *xmlpath, hwloc_topol
  * This identifier is usually the name of the other XML file
  * that contains the reference topology.
  * This attribute is given back when reading the diff from XML.
+ *
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_topology_diff_export_xml(hwloc_topology_diff_t diff, const char *refname, const char *xmlpath);
 
 /** \brief Load a list of topology differences from a XML buffer.
+ *
+ * Build a list of differences from the XML memory buffer given
+ * at \p xmlbuffer and of length \p buflen (including an ending \0).
+ * This buffer may have been filled earlier with
+ * hwloc_topology_diff_export_xmlbuffer().
  *
  * If not \c NULL, \p refname will be filled with the identifier
  * string of the reference topology for the difference file,
  * if any was specified in the XML file.
  * This identifier is usually the name of the other XML file
  * that contains the reference topology.
+ *
+ * \return 0 on success, -1 on error.
  *
  * \note the pointer returned in refname should later be freed
  * by the caller.
@@ -273,6 +286,8 @@ HWLOC_DECLSPEC int hwloc_topology_diff_load_xmlbuffer(const char *xmlbuffer, int
  *
  * The returned buffer ends with a \0 that is included in the returned
  * length.
+ *
+ * \return 0 on success, -1 on error.
  *
  * \note The XML buffer should later be freed with hwloc_free_xmlbuffer().
  */

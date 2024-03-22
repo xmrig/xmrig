@@ -411,12 +411,12 @@ hwloc_nolibxml_backend_init(struct hwloc_xml_backend_data_s *bdata,
   bdata->data = nbdata;
 
   if (xmlbuffer) {
-    nbdata->buffer = malloc(xmlbuflen+1);
+    nbdata->buffer = malloc(xmlbuflen);
     if (!nbdata->buffer)
       goto out_with_nbdata;
-    nbdata->buflen = xmlbuflen+1;
+    nbdata->buflen = xmlbuflen;
     memcpy(nbdata->buffer, xmlbuffer, xmlbuflen);
-    nbdata->buffer[xmlbuflen] = '\0';
+    nbdata->buffer[xmlbuflen-1] = '\0'; /* make sure it's there as requested in the API */
 
   } else {
     int err = hwloc_nolibxml_read_file(xmlpath, &nbdata->buffer, &nbdata->buflen);
@@ -453,8 +453,9 @@ hwloc_nolibxml_import_diff(struct hwloc__xml_import_state_s *state,
     buffer = malloc(xmlbuflen);
     if (!buffer)
       goto out;
-    memcpy(buffer, xmlbuffer, xmlbuflen);
     buflen = xmlbuflen;
+    memcpy(buffer, xmlbuffer, xmlbuflen);
+    buffer[xmlbuflen-1] = '\0'; /* make sure it's there as requested in the API */
 
   } else {
     ret = hwloc_nolibxml_read_file(xmlpath, &buffer, &buflen);

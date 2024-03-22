@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2022 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -367,7 +367,7 @@ hwloc_win_get_processor_groups(void)
 
   if (nr_processor_groups > 1 && SIZEOF_VOID_P == 4) {
     if (HWLOC_SHOW_ALL_ERRORS())
-      fprintf(stderr, "hwloc: multiple processor groups found on 32bits Windows, topology may be invalid/incomplete.\n");
+      fprintf(stderr, "hwloc/windows: multiple processor groups found on 32bits Windows, topology may be invalid/incomplete.\n");
   }
 
   length = 0;
@@ -987,7 +987,11 @@ hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
   OSVERSIONINFOEX osvi;
   char versionstr[20];
   char hostname[122] = "";
-  unsigned hostname_size = sizeof(hostname);
+#if !defined(__CYGWIN__)
+  DWORD hostname_size = sizeof(hostname);
+#else
+  size_t hostname_size = sizeof(hostname);
+#endif
   int has_efficiencyclass = 0;
   struct hwloc_win_efficiency_classes eclasses;
   char *env = getenv("HWLOC_WINDOWS_PROCESSOR_GROUP_OBJS");
@@ -1051,12 +1055,16 @@ hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
         unsigned efficiency_class = 0;
         GROUP_AFFINITY *GroupMask;
 
-        /* Ignore unknown caches */
-	if (procInfo->Relationship == RelationCache
-		&& procInfo->Cache.Type != CacheUnified
-		&& procInfo->Cache.Type != CacheData
-		&& procInfo->Cache.Type != CacheInstruction)
-	  continue;
+	if (procInfo->Relationship == RelationCache) {
+          if (!topology->want_some_cpu_caches)
+            /* TODO: check if RelationAll&~RelationCache works? */
+            continue;
+          if (procInfo->Cache.Type != CacheUnified
+              && procInfo->Cache.Type != CacheData
+              && procInfo->Cache.Type != CacheInstruction)
+            /* Ignore unknown caches */
+            continue;
+        }
 
 	id = HWLOC_UNKNOWN_INDEX;
 	switch (procInfo->Relationship) {

@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2022 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -50,9 +50,10 @@ extern "C" {
  * hwloc_bitmap_free(set);
  * \endcode
  *
- * \note Most functions below return an int that may be negative in case of
- * error. The usual error case would be an internal failure to realloc/extend
+ * \note Most functions below return 0 on success and -1 on error.
+ * The usual error case would be an internal failure to realloc/extend
  * the storage of the bitmap (\p errno would be set to \c ENOMEM).
+ * See also \ref hwlocality_api_error_reporting.
  *
  * \note Several examples of using the bitmap API are available under the
  * doc/examples/ directory in the source tree.
@@ -83,7 +84,13 @@ typedef const struct hwloc_bitmap_s * hwloc_const_bitmap_t;
  */
 HWLOC_DECLSPEC hwloc_bitmap_t hwloc_bitmap_alloc(void) __hwloc_attribute_malloc;
 
-/** \brief Allocate a new full bitmap. */
+/** \brief Allocate a new full bitmap.
+ *
+ * \returns A valid bitmap or \c NULL.
+ *
+ * The bitmap should be freed by a corresponding call to
+ * hwloc_bitmap_free().
+ */
 HWLOC_DECLSPEC hwloc_bitmap_t hwloc_bitmap_alloc_full(void) __hwloc_attribute_malloc;
 
 /** \brief Free bitmap \p bitmap.
@@ -119,11 +126,13 @@ HWLOC_DECLSPEC int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buf
 
 /** \brief Stringify a bitmap into a newly allocated string.
  *
- * \return -1 on error.
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
 /** \brief Parse a bitmap string and stores it in bitmap \p bitmap.
+ *
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_sscanf(hwloc_bitmap_t bitmap, const char * __hwloc_restrict string);
 
@@ -144,11 +153,13 @@ HWLOC_DECLSPEC int hwloc_bitmap_list_snprintf(char * __hwloc_restrict buf, size_
 
 /** \brief Stringify a bitmap into a newly allocated list string.
  *
- * \return -1 on error.
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_list_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
 /** \brief Parse a list string and stores it in bitmap \p bitmap.
+ *
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_list_sscanf(hwloc_bitmap_t bitmap, const char * __hwloc_restrict string);
 
@@ -168,11 +179,13 @@ HWLOC_DECLSPEC int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, si
 
 /** \brief Stringify a bitmap into a newly allocated taskset-specific string.
  *
- * \return -1 on error.
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_taskset_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
 /** \brief Parse a taskset-specific bitmap string and stores it in bitmap \p bitmap.
+ *
+ * \return 0 on success, -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_taskset_sscanf(hwloc_bitmap_t bitmap, const char * __hwloc_restrict string);
 
@@ -279,6 +292,7 @@ HWLOC_DECLSPEC int hwloc_bitmap_to_ulongs(hwloc_const_bitmap_t bitmap, unsigned 
  * When called on the output of hwloc_topology_get_topology_cpuset(),
  * the returned number is large enough for all cpusets of the topology.
  *
+ * \return the number of unsigned longs required.
  * \return -1 if \p bitmap is infinite.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_nr_ulongs(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
@@ -305,21 +319,23 @@ HWLOC_DECLSPEC int hwloc_bitmap_isfull(hwloc_const_bitmap_t bitmap) __hwloc_attr
 
 /** \brief Compute the first index (least significant bit) in bitmap \p bitmap
  *
- * \return -1 if no index is set in \p bitmap.
+ * \return the first index set in \p bitmap.
+ * \return -1 if \p bitmap is empty.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_first(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
 /** \brief Compute the next index in bitmap \p bitmap which is after index \p prev
  *
- * If \p prev is -1, the first index is returned.
- *
+ * \return the first index set in \p bitmap if \p prev is \c -1.
+ * \return the next index set in \p bitmap if \p prev is not \c -1.
  * \return -1 if no index with higher index is set in \p bitmap.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_next(hwloc_const_bitmap_t bitmap, int prev) __hwloc_attribute_pure;
 
 /** \brief Compute the last index (most significant bit) in bitmap \p bitmap
  *
- * \return -1 if no index is set in \p bitmap, or if \p bitmap is infinitely set.
+ * \return the last index set in \p bitmap.
+ * \return -1 if \p bitmap is empty, or if \p bitmap is infinitely set.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_last(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
@@ -327,28 +343,29 @@ HWLOC_DECLSPEC int hwloc_bitmap_last(hwloc_const_bitmap_t bitmap) __hwloc_attrib
  * indexes that are in the bitmap).
  *
  * \return the number of indexes that are in the bitmap.
- *
  * \return -1 if \p bitmap is infinitely set.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_weight(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
 /** \brief Compute the first unset index (least significant bit) in bitmap \p bitmap
  *
- * \return -1 if no index is unset in \p bitmap.
+ * \return the first unset index in \p bitmap.
+ * \return -1 if \p bitmap is full.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_first_unset(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
 /** \brief Compute the next unset index in bitmap \p bitmap which is after index \p prev
  *
- * If \p prev is -1, the first unset index is returned.
- *
+ * \return the first index unset in \p bitmap if \p prev is \c -1.
+ * \return the next index unset in \p bitmap if \p prev is not \c -1.
  * \return -1 if no index with higher index is unset in \p bitmap.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_next_unset(hwloc_const_bitmap_t bitmap, int prev) __hwloc_attribute_pure;
 
 /** \brief Compute the last unset index (most significant bit) in bitmap \p bitmap
  *
- * \return -1 if no index is unset in \p bitmap, or if \p bitmap is infinitely set.
+ * \return the last index unset in \p bitmap.
+ * \return -1 if \p bitmap is full, or if \p bitmap is not infinitely set.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_last_unset(hwloc_const_bitmap_t bitmap) __hwloc_attribute_pure;
 
@@ -428,6 +445,8 @@ HWLOC_DECLSPEC int hwloc_bitmap_not (hwloc_bitmap_t res, hwloc_const_bitmap_t bi
 /** \brief Test whether bitmaps \p bitmap1 and \p bitmap2 intersects.
  *
  * \return 1 if bitmaps intersect, 0 otherwise.
+ *
+ * \note The empty bitmap does not intersect any other bitmap.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_intersects (hwloc_const_bitmap_t bitmap1, hwloc_const_bitmap_t bitmap2) __hwloc_attribute_pure;
 

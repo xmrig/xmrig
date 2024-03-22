@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2018 Inria.  All rights reserved.
+ * Copyright © 2013-2023 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -48,6 +48,8 @@ extern "C" {
  * This length (in bytes) must be used in hwloc_shmem_topology_write()
  * and hwloc_shmem_topology_adopt() later.
  *
+ * \return the length, or -1 on error, for instance if flags are invalid.
+ *
  * \note Flags \p flags are currently unused, must be 0.
  */
 HWLOC_DECLSPEC int hwloc_shmem_topology_get_length(hwloc_topology_t topology,
@@ -74,9 +76,10 @@ HWLOC_DECLSPEC int hwloc_shmem_topology_get_length(hwloc_topology_t topology,
  * is not. However the caller may also allocate it manually in shared memory
  * to share it as well.
  *
- * \return -1 with errno set to EBUSY if the virtual memory mapping defined
+ * \return 0 on success.
+ * \return -1 with errno set to \c EBUSY if the virtual memory mapping defined
  * by \p mmap_address and \p length isn't available in the process.
- * \return -1 with errno set to EINVAL if \p fileoffset, \p mmap_address
+ * \return -1 with errno set to \c EINVAL if \p fileoffset, \p mmap_address
  * or \p length aren't page-aligned.
  */
 HWLOC_DECLSPEC int hwloc_shmem_topology_write(hwloc_topology_t topology,
@@ -112,14 +115,16 @@ HWLOC_DECLSPEC int hwloc_shmem_topology_write(hwloc_topology_t topology,
  *
  * \note This function takes care of calling hwloc_topology_abi_check().
  *
- * \return -1 with errno set to EBUSY if the virtual memory mapping defined
+ * \return 0 on success.
+ *
+ * \return -1 with errno set to \c EBUSY if the virtual memory mapping defined
  * by \p mmap_address and \p length isn't available in the process.
  *
- * \return -1 with errno set to EINVAL if \p fileoffset, \p mmap_address
+ * \return -1 with errno set to \c EINVAL if \p fileoffset, \p mmap_address
  * or \p length aren't page-aligned, or do not match what was given to
  * hwloc_shmem_topology_write() earlier.
  *
- * \return -1 with errno set to EINVAL if the layout of the topology structure
+ * \return -1 with errno set to \c EINVAL if the layout of the topology structure
  * is different between the writer process and the adopter process.
  */
 HWLOC_DECLSPEC int hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,

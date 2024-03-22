@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2021 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * See COPYING in top-level directory.
  */
@@ -38,6 +38,8 @@ extern "C" {
  * The behavior is exactly the same as the Linux sched_setaffinity system call,
  * but uses a hwloc cpuset.
  *
+ * \return 0 on success, -1 on error.
+ *
  * \note This is equivalent to calling hwloc_set_proc_cpubind() with
  * HWLOC_CPUBIND_THREAD as flags.
  */
@@ -52,6 +54,8 @@ HWLOC_DECLSPEC int hwloc_linux_set_tid_cpubind(hwloc_topology_t topology, pid_t 
  * The behavior is exactly the same as the Linux sched_getaffinity system call,
  * but uses a hwloc cpuset.
  *
+ * \return 0 on success, -1 on error.
+ *
  * \note This is equivalent to calling hwloc_get_proc_cpubind() with
  * ::HWLOC_CPUBIND_THREAD as flags.
  */
@@ -62,6 +66,8 @@ HWLOC_DECLSPEC int hwloc_linux_get_tid_cpubind(hwloc_topology_t topology, pid_t 
  * The CPU-set \p set (previously allocated by the caller)
  * is filled with the PU which the thread last ran on.
  *
+ * \return 0 on success, -1 on error.
+ *
  * \note This is equivalent to calling hwloc_get_proc_last_cpu_location() with
  * ::HWLOC_CPUBIND_THREAD as flags.
  */
@@ -71,6 +77,8 @@ HWLOC_DECLSPEC int hwloc_linux_get_tid_last_cpu_location(hwloc_topology_t topolo
  *
  * Might be used when reading CPU set from sysfs attributes such as topology
  * and caches for processors, or local_cpus for devices.
+ *
+ * \return 0 on success, -1 on error.
  *
  * \note This function ignores the HWLOC_FSROOT environment variable.
  */

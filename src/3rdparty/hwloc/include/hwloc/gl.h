@@ -1,6 +1,6 @@
 /*
  * Copyright © 2012 Blue Brain Project, EPFL. All rights reserved.
- * Copyright © 2012-2021 Inria.  All rights reserved.
+ * Copyright © 2012-2023 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -102,7 +102,8 @@ hwloc_gl_get_display_osdev_by_name(hwloc_topology_t topology,
  * Retrieves the OpenGL display port (server) in \p port and device (screen)
  * in \p screen that correspond to the given hwloc OS device object.
  *
- * \return \c -1 if none could be found.
+ * \return 0 on success.
+ * \return -1 if none could be found.
  *
  * The topology \p topology does not necessarily have to match the current
  * machine. For instance the topology may be an XML import of a remote host.

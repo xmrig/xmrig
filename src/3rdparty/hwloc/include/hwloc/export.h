@@ -55,7 +55,7 @@ enum hwloc_topology_export_xml_flags_e {
  *
  * \p flags is a OR'ed set of ::hwloc_topology_export_xml_flags_e.
  *
- * \return -1 if a failure occured.
+ * \return 0 on success, or -1 on error.
  *
  * \note See also hwloc_topology_set_userdata_export_callback()
  * for exporting application-specific object userdata.
@@ -91,7 +91,7 @@ HWLOC_DECLSPEC int hwloc_topology_export_xml(hwloc_topology_t topology, const ch
  *
  * \p flags is a OR'ed set of ::hwloc_topology_export_xml_flags_e.
  *
- * \return -1 if a failure occured.
+ * \return 0 on success, or -1 on error.
  *
  * \note See also hwloc_topology_set_userdata_export_callback()
  * for exporting application-specific object userdata.
@@ -145,13 +145,15 @@ HWLOC_DECLSPEC void hwloc_topology_set_userdata_export_callback(hwloc_topology_t
  * that were given to the export callback.
  *
  * Only printable characters may be exported to XML string attributes.
- * If a non-printable character is passed in \p name or \p buffer,
- * the function returns -1 with errno set to EINVAL.
  *
  * If exporting binary data, the application should first encode into
  * printable characters only (or use hwloc_export_obj_userdata_base64()).
  * It should also take care of portability issues if the export may
  * be reimported on a different architecture.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c EINVAL if a non-printable character is
+ * passed in \p name or \b buffer.
  */
 HWLOC_DECLSPEC int hwloc_export_obj_userdata(void *reserved, hwloc_topology_t topology, hwloc_obj_t obj, const char *name, const void *buffer, size_t length);
 
@@ -165,8 +167,14 @@ HWLOC_DECLSPEC int hwloc_export_obj_userdata(void *reserved, hwloc_topology_t to
  * This function may only be called from within the export() callback passed
  * to hwloc_topology_set_userdata_export_callback().
  *
+ * The name must be made of printable characters for export to XML string attributes.
+ *
  * The function does not take care of portability issues if the export
  * may be reimported on a different architecture.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c EINVAL if a non-printable character is
+ * passed in \p name.
  */
 HWLOC_DECLSPEC int hwloc_export_obj_userdata_base64(void *reserved, hwloc_topology_t topology, hwloc_obj_t obj, const char *name, const void *buffer, size_t length);
 
