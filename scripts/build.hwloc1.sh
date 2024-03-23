@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 HWLOC_VERSION="1.11.13"
 

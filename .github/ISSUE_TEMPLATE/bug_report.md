@@ -17,6 +17,9 @@ Steps to reproduce the behavior.
 A clear and concise description of what you expected to happen.
 
 **Required data**
+ - XMRig version
+    - Either the exact link to a release you downloaded from https://github.com/xmrig/xmrig/releases
+    - Or the exact command lines that you used to build XMRig
  - Miner log as text or screenshot
  - Config file or command line (without wallets)
  - OS: [e.g. Windows]

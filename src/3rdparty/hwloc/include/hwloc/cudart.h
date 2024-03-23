@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2021 Inria.  All rights reserved.
+ * Copyright © 2010-2023 Inria.  All rights reserved.
  * Copyright © 2010-2011 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -43,6 +43,9 @@ extern "C" {
 /** \brief Return the domain, bus and device IDs of the CUDA device whose index is \p idx.
  *
  * Device index \p idx must match the local machine.
+ *
+ * \return 0 on success.
+ * \return -1 on error, for instance if device information could not be found.
  */
 static __hwloc_inline int
 hwloc_cudart_get_device_pci_ids(hwloc_topology_t topology __hwloc_attribute_unused,
@@ -84,6 +87,9 @@ hwloc_cudart_get_device_pci_ids(hwloc_topology_t topology __hwloc_attribute_unus
  *
  * This function is currently only implemented in a meaningful way for
  * Linux; other systems will simply get a full cpuset.
+ *
+ * \return 0 on success.
+ * \return -1 on error, for instance if device information could not be found.
  */
 static __hwloc_inline int
 hwloc_cudart_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unused,
