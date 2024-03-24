@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2017 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012 Université Bordeaux
  * See COPYING in top-level directory.
  */
@@ -50,6 +50,8 @@ extern "C" {
  * This function may be used before calling set_mempolicy, mbind, migrate_pages
  * or any other function that takes an array of unsigned long and a maximal
  * node number as input parameter.
+ *
+ * \return 0.
  */
 static __hwloc_inline int
 hwloc_cpuset_to_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_const_cpuset_t cpuset,
@@ -84,6 +86,8 @@ hwloc_cpuset_to_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_const_cpus
  * This function may be used before calling set_mempolicy, mbind, migrate_pages
  * or any other function that takes an array of unsigned long and a maximal
  * node number as input parameter.
+ *
+ * \return 0.
  */
 static __hwloc_inline int
 hwloc_nodeset_to_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_const_nodeset_t nodeset,
@@ -119,6 +123,9 @@ hwloc_nodeset_to_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_const_nod
  * This function may be used after calling get_mempolicy or any other function
  * that takes an array of unsigned long as output parameter (and possibly
  * a maximal node number as input parameter).
+ *
+ * \return 0 on success.
+ * \return -1 on error, for instance if failing an internal reallocation.
  */
 static __hwloc_inline int
 hwloc_cpuset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_cpuset_t cpuset,
@@ -130,7 +137,8 @@ hwloc_cpuset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_cpuset_t
   while ((node = hwloc_get_next_obj_by_depth(topology, depth, node)) != NULL)
     if (node->os_index < maxnode
 	&& (mask[node->os_index/sizeof(*mask)/8] & (1UL << (node->os_index % (sizeof(*mask)*8)))))
-      hwloc_bitmap_or(cpuset, cpuset, node->cpuset);
+      if (hwloc_bitmap_or(cpuset, cpuset, node->cpuset) < 0)
+        return -1;
   return 0;
 }
 
@@ -142,6 +150,9 @@ hwloc_cpuset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_cpuset_t
  * This function may be used after calling get_mempolicy or any other function
  * that takes an array of unsigned long as output parameter (and possibly
  * a maximal node number as input parameter).
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c ENOMEM if some internal reallocation failed.
  */
 static __hwloc_inline int
 hwloc_nodeset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_nodeset_t nodeset,
@@ -153,7 +164,8 @@ hwloc_nodeset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_nodeset
   while ((node = hwloc_get_next_obj_by_depth(topology, depth, node)) != NULL)
     if (node->os_index < maxnode
 	&& (mask[node->os_index/sizeof(*mask)/8] & (1UL << (node->os_index % (sizeof(*mask)*8)))))
-      hwloc_bitmap_set(nodeset, node->os_index);
+      if (hwloc_bitmap_set(nodeset, node->os_index) < 0)
+        return -1;
   return 0;
 }
 
@@ -184,7 +196,7 @@ hwloc_nodeset_from_linux_libnuma_ulongs(hwloc_topology_t topology, hwloc_nodeset
  * This function may be used before calling many numa_ functions
  * that use a struct bitmask as an input parameter.
  *
- * \return newly allocated struct bitmask.
+ * \return newly allocated struct bitmask, or \c NULL on error.
  */
 static __hwloc_inline struct bitmask *
 hwloc_cpuset_to_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_const_cpuset_t cpuset) __hwloc_attribute_malloc;
@@ -209,7 +221,7 @@ hwloc_cpuset_to_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_const_cpu
  * This function may be used before calling many numa_ functions
  * that use a struct bitmask as an input parameter.
  *
- * \return newly allocated struct bitmask.
+ * \return newly allocated struct bitmask, or \c NULL on error.
  */
 static __hwloc_inline struct bitmask *
 hwloc_nodeset_to_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_const_nodeset_t nodeset) __hwloc_attribute_malloc;
@@ -231,6 +243,9 @@ hwloc_nodeset_to_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_const_no
  *
  * This function may be used after calling many numa_ functions
  * that use a struct bitmask as an output parameter.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c ENOMEM if some internal reallocation failed.
  */
 static __hwloc_inline int
 hwloc_cpuset_from_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_cpuset_t cpuset,
@@ -241,7 +256,8 @@ hwloc_cpuset_from_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_cpuset_
   hwloc_bitmap_zero(cpuset);
   while ((node = hwloc_get_next_obj_by_depth(topology, depth, node)) != NULL)
     if (numa_bitmask_isbitset(bitmask, node->os_index))
-      hwloc_bitmap_or(cpuset, cpuset, node->cpuset);
+      if (hwloc_bitmap_or(cpuset, cpuset, node->cpuset) < 0)
+        return -1;
   return 0;
 }
 
@@ -249,6 +265,9 @@ hwloc_cpuset_from_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_cpuset_
  *
  * This function may be used after calling many numa_ functions
  * that use a struct bitmask as an output parameter.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c ENOMEM if some internal reallocation failed.
  */
 static __hwloc_inline int
 hwloc_nodeset_from_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_nodeset_t nodeset,
@@ -259,7 +278,8 @@ hwloc_nodeset_from_linux_libnuma_bitmask(hwloc_topology_t topology, hwloc_nodese
   hwloc_bitmap_zero(nodeset);
   while ((node = hwloc_get_next_obj_by_depth(topology, depth, node)) != NULL)
     if (numa_bitmask_isbitset(bitmask, node->os_index))
-      hwloc_bitmap_set(nodeset, node->os_index);
+      if (hwloc_bitmap_set(nodeset, node->os_index) < 0)
+        return -1;
   return 0;
 }
 

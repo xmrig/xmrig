@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2022 Inria.  All rights reserved.
+Copyright © 2009-2023 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -15,6 +15,103 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.10.0
+--------------
+* Heterogeneous Memory core improvements
+  + Better heuristics to identify the subtype of memory such as HBM,
+    DRAM, NVM, CXL-DRAM, etc.
+  + Build memory tiers, i.e. sets of NUMA nodes with the same subtype
+    and similar performance.
+    - NUMA node tier ranks are exposed in the new MemoryTier info
+      attribute (starts from 0 for highest bandwidth tier)..
+  + See the new Heterogeneous Memory section in the documentation.
+* API
+  + Add hwloc_topology_free_group_object() to discard a Group created
+    by hwloc_topology_alloc_group_object().
+* Linux backend
+  + Fix cpukinds on NVIDIA Grace to report identical cores even if they
+    actually have very small frequency differences.
+    Thanks to John C. Linford for the report.
+  + Add CXLDevice attributes to CXL DAX objects and NUMA nodes to show
+    which PCI device implements which window.
+  + Ignore buggy memory-side caches and memory attributes when fake NUMA
+    emulation is enabled on the Linux kernel command-line.
+  + Add more info attributes in MemoryModule Misc objects,
+    thanks to Zubiao Xiong for the patch.
+  + Get CPUModel and CPUFamily info attributes on LoongArch platforms.
+* x86 backend
+  + Add support for new AMD CPUID leaf 0x80000026 for better detection
+    of Core Complex and Die on Zen4 processors.
+  + Improve Zhaoxin CPU topology detection.
+* Tools
+  + Input locations and many command-line options (e.g. hwloc-calc -I -N -H,
+    lstopo --only) now accept filters such as "NUMA[HBM]" so that only
+    objects are that type and subtype are considered.
+    - NUMA[tier=1] is also accepted for selecting NUMA nodes depending
+      on their MemoryTier info attribute.
+  + Add --object-output to hwloc-calc to report the type as a prefix to
+    object indexes, e.g. Core:2 instead of 2 in the output of -I.
+  + hwloc-info --ancestor and --descendants now accepts kinds of objects
+    instead of single types.
+    - The new --first option only shows the first matching object.
+  + Add --children-of-pid to hwloc-ps to show a hierarchy of processes.
+    Thanks to Antoine Morvan for the suggestion.
+  + Add --misc-from to lstopo to add Misc objects described in a file.
+    - To be combined with the new hwloc-ps --lstopo-misc for a customizable
+      lstopo --top replacement.
+* Misc
+  + lstopo may now configure the layout of memory object placed above,
+    for instance with --children-order memory:above:vert.
+  + Fix XML import from memory or stdin when using libxml2 2.12.
+  + Fix installation failures when configuring with --target,
+    thanks to Clement Foyer for the patch.
+  + Fix support for 128bit pointer architectures.
+  + Remove Netloc.
+
+
+Version 2.9.3
+-------------
+* Handle Linux glibc allocation errors in binding routines (CVE-2022-47022).
+* Fix hwloc-calc when searching objects on heterogeneous memory platforms,
+  thanks to Antoine Morvan for the report.
+* Fix hwloc_get_next_child() when there are some memory-side caches.
+* Don't crash if the topology is empty because Linux cgroups are wrong.
+* Improve some hwloc-bind warnings in case of command-line parsing errors.
+* Many documentation improvements all over the place, including:
+  + hwloc_topology_restrict() and hwloc_topology_insert_group() may reorder
+    children, causing the logical indexes of objects to change.
+
+
+Version 2.9.2
+-------------
+* Don't forget L3i when defining filters for multiple levels of caches
+  with hwloc_topology_set_cache/icache_types_filter().
+* Fix object total_memory after hwloc_topology_insert_group_object().
+* Fix the (non-yet) exporting in synthetic description for complex memory
+  hierarchies with memory-side caches, etc.
+* Fix some default size attributes when building synthetic topologies.
+* Fix size units in hwloc-annotate.
+* Improve bitmap reallocation error management in many functions.
+* Documentation improvements:
+  + Better document return values of functions.
+  + Add "Error reporting" section (in hwloc.h and in the doxygen doc).
+  + Add FAQ entry "What may I disable to make hwloc faster?"
+  + Improve FAQ entries "Why is lstopo slow?" and
+    "I only need ..., why should I use hwloc?"
+  + Clarify how to deal with cpukinds in hwloc-calc and hwloc-bind
+    manpages.
+
+
+Version 2.9.1
+-------------
+* Don't forget to apply object type filters to "perflevel" caches detected
+  on recent Mac OS X releases, thanks to Michel Lesoinne for the report.
+* Fix a failed assertion in hwloc_topology_restrict() when some NUMA nodes
+  are removed because of HWLOC_RESTRICT_FLAG_REMOVE_CPULESS but no PUs are.
+  Thanks to Mark Grondona for reporting the issue.
+* Mark HPE Cray Slingshot NICs with subtype "Slingshot".
 
 
 Version 2.9.0
@@ -59,6 +156,14 @@ Version 2.8.0
 * Misc
   + Add --disable-readme to avoid regenerating the top-level hwloc README
     file from the documentation.
+
+
+Version 2.7.2
+-------------
+* Fix a crash when LevelZero devices have multiple subdevices,
+  e.g. on PonteVecchio GPUs, thanks to Jonathan Peyton.
+* Fix a leak when importing cpukinds from XML,
+  thanks to Hui Zhou.
 
 
 Version 2.7.1

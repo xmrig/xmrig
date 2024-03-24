@@ -23,6 +23,7 @@ struct hwloc_shmem_header {
   uint32_t header_length; /* where the actual topology starts in the file/mapping */
   uint64_t mmap_address; /* virtual address to pass to mmap */
   uint64_t mmap_length; /* length to pass to mmap (includes the header) */
+  /* we will pad the end to a multiple of pointer size so that the topology is well aligned */
 };
 
 #define HWLOC_SHMEM_MALLOC_ALIGN 8UL
@@ -85,6 +86,7 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
   hwloc_topology_t new;
   struct hwloc_tma tma;
   struct hwloc_shmem_header header;
+  uint32_t header_length = (sizeof(header) + sizeof(void*) - 1) & ~(sizeof(void*) - 1); /* pad to a multiple of pointer size */
   void *mmap_res;
   int err;
 
@@ -100,7 +102,7 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
   hwloc_internal_memattrs_refresh(topology);
 
   header.header_version = HWLOC_SHMEM_HEADER_VERSION;
-  header.header_length = sizeof(header);
+  header.header_length = header_length;
   header.mmap_address = (uintptr_t) mmap_address;
   header.mmap_length = length;
 
@@ -127,7 +129,7 @@ hwloc_shmem_topology_write(hwloc_topology_t topology,
 
   tma.malloc = tma_shmem_malloc;
   tma.dontfree = 1;
-  tma.data = (char *)mmap_res + sizeof(header);
+  tma.data = (char *)mmap_res + header_length;
   err = hwloc__topology_dup(&new, topology, &tma);
   if (err < 0)
     return err;
@@ -154,6 +156,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
 {
   hwloc_topology_t new, old;
   struct hwloc_shmem_header header;
+  uint32_t header_length = (sizeof(header) + sizeof(void*) - 1) & ~(sizeof(void*) - 1); /* pad to a multiple of pointer size */
   void *mmap_res;
   int err;
 
@@ -171,7 +174,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
     return -1;
 
   if (header.header_version != HWLOC_SHMEM_HEADER_VERSION
-      || header.header_length != sizeof(header)
+      || header.header_length != header_length
       || header.mmap_address != (uintptr_t) mmap_address
       || header.mmap_length != length) {
     errno = EINVAL;
@@ -186,7 +189,7 @@ hwloc_shmem_topology_adopt(hwloc_topology_t *topologyp,
     goto out_with_mmap;
   }
 
-  old = (hwloc_topology_t)((char*)mmap_address + sizeof(header));
+  old = (hwloc_topology_t)((char*)mmap_address + header_length);
   if (hwloc_topology_abi_check(old) < 0) {
     errno = EINVAL;
     goto out_with_mmap;

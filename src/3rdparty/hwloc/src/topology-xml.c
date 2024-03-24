@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2022 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -562,7 +562,13 @@ hwloc__xml_import_pagetype(hwloc_topology_t topology __hwloc_attribute_unused, s
     char *attrname, *attrvalue;
     if (state->global->next_attr(state, &attrname, &attrvalue) < 0)
       break;
-    if (!strcmp(attrname, "size"))
+    if (!strcmp(attrname, "info")) {
+      char *infoname, *infovalue;
+      int ret = hwloc___xml_import_info(&infoname, &infovalue, state);
+      if (ret < 0)
+        return -1;
+      /* ignored */
+    } else if (!strcmp(attrname, "size"))
       size = strtoull(attrvalue, NULL, 10);
     else if (!strcmp(attrname, "count"))
       count = strtoull(attrvalue, NULL, 10);
@@ -1160,6 +1166,48 @@ hwloc__xml_import_object(hwloc_topology_t topology,
     data->last_numanode = obj;
   }
 
+  /* 3.0 forward compatibility */
+  if (data->version_major >= 3 && obj->type == HWLOC_OBJ_OS_DEVICE) {
+    /* osdev.type changed into bitmak in 3.0 */
+    if (obj->attr->osdev.type & 3 /* STORAGE|MEMORY for BLOCK */) {
+      obj->attr->osdev.type = HWLOC_OBJ_OSDEV_BLOCK;
+    } else if (obj->attr->osdev.type & 8 /* COPROC for COPROC and rsmi/nvml GPUs */) {
+      if (obj->subtype && (!strcmp(obj->subtype, "RSMI") || !strcmp(obj->subtype, "NVML")))
+        obj->attr->osdev.type = HWLOC_OBJ_OSDEV_GPU;
+      else
+        obj->attr->osdev.type = HWLOC_OBJ_OSDEV_COPROC;
+    } else if (obj->attr->osdev.type & 4 /* GPU for non-COPROC GPUs */) {
+      obj->attr->osdev.type = HWLOC_OBJ_OSDEV_GPU;
+    } else if (obj->attr->osdev.type & 32 /* OFED */) {
+      obj->attr->osdev.type = HWLOC_OBJ_OSDEV_OPENFABRICS;
+    } else if (obj->attr->osdev.type & 16 /* NET for NET and BXI v2-fake-OFED */) {
+      if (obj->subtype && !strcmp(obj->subtype, "BXI"))
+        obj->attr->osdev.type = HWLOC_OBJ_OSDEV_OPENFABRICS;
+      else
+        obj->attr->osdev.type = HWLOC_OBJ_OSDEV_NETWORK;
+    } else if (obj->attr->osdev.type & 64 /* DMA */) {
+      obj->attr->osdev.type = HWLOC_OBJ_OSDEV_DMA;
+    } else { /* none or unknown */
+      obj->attr->osdev.type = (hwloc_obj_osdev_type_t)  -1;
+    }
+    /* Backend info only in root */
+    if (obj->subtype && !hwloc_obj_get_info_by_name(obj, "Backend")) {
+      if (!strcmp(obj->subtype, "CUDA")) {
+        hwloc_obj_add_info(obj, "Backend", "CUDA");
+      } else if  (!strcmp(obj->subtype, "NVML")) {
+        hwloc_obj_add_info(obj, "Backend", "NVML");
+      } else if  (!strcmp(obj->subtype, "OpenCL")) {
+        hwloc_obj_add_info(obj, "Backend", "OpenCL");
+      } else if  (!strcmp(obj->subtype, "RSMI")) {
+        hwloc_obj_add_info(obj, "Backend", "RSMI");
+      } else if  (!strcmp(obj->subtype, "LevelZero")) {
+        hwloc_obj_add_info(obj, "Backend", "LevelZero");
+      } else if  (!strcmp(obj->subtype, "Display")) {
+        hwloc_obj_add_info(obj, "Backend", "GL");
+      }
+    }
+  }
+
   if (!hwloc_filter_check_keep_object(topology, obj)) {
     /* Ignore this object instead of inserting it.
      *
@@ -1433,7 +1481,14 @@ hwloc__xml_v2import_distances(hwloc_topology_t topology,
     if (ret <= 0)
       break;
 
-    if (!strcmp(tag, "indexes"))
+    if (!strcmp(tag, "info")) {
+      char *infoname, *infovalue;
+      ret = hwloc___xml_import_info(&infoname, &infovalue, state);
+      if (ret < 0)
+        goto out_with_arrays;
+      /* ignored */
+      continue;
+    } else if (!strcmp(tag, "indexes"))
       is_index = 1;
     else if (!strcmp(tag, "u64values"))
       is_u64values = 1;
@@ -1766,6 +1821,10 @@ hwloc__xml_import_memattr(hwloc_topology_t topology,
 
     if (!strcmp(tag, "memattr_value")) {
       ret = hwloc__xml_import_memattr_value(topology, id, flags, &childstate);
+    } else if (!strcmp(tag, "info")) {
+      char *infoname, *infovalue;
+      ret = hwloc___xml_import_info(&infoname, &infovalue, &childstate);
+      /* ignored */
     } else {
       if (hwloc__xml_verbose())
         fprintf(stderr, "%s: memattr with unrecognized child %s\n",
@@ -2094,9 +2153,10 @@ hwloc_look_xml(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus)
   if (ret < 0)
     goto failed;
 
-  if (data->version_major > 2) {
+  if (data->version_major > 3
+      || (data->version_major == 3 && data->version_minor > 0)) {
     if (hwloc__xml_verbose())
-      fprintf(stderr, "%s: cannot import XML version %u.%u > 2\n",
+      fprintf(stderr, "%s: cannot import XML version %u.%u > 3.0\n",
 	      data->msgprefix, data->version_major, data->version_minor);
     goto err;
   }
@@ -2144,6 +2204,13 @@ hwloc_look_xml(struct hwloc_backend *backend, struct hwloc_disc_status *dstatus)
         ret = hwloc__xml_import_cpukind(topology, &childstate);
         if (ret < 0)
           goto failed;
+      } else if (!strcmp(tag, "info")) {
+        char *infoname, *infovalue;
+        ret = hwloc___xml_import_info(&infoname, &infovalue, &childstate);
+        if (ret < 0)
+          goto failed;
+        /* move 3.x topology info back to the root object */
+        hwloc_obj_add_info(topology->levels[0][0], infoname, infovalue);
       } else {
 	if (hwloc__xml_verbose())
 	  fprintf(stderr, "%s: ignoring unknown tag `%s' after root object.\n",

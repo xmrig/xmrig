@@ -164,7 +164,7 @@ struct hwloc_disc_status {
    */
   unsigned excluded_phases;
 
-  /** \brief OR'ed set of hwloc_disc_status_flag_e */
+  /** \brief OR'ed set of ::hwloc_disc_status_flag_e */
   unsigned long flags;
 };
 

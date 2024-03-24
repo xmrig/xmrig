@@ -22,6 +22,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <vector>
+#include <uv.h>
 
 
 namespace xmrig {
@@ -30,8 +32,10 @@ namespace xmrig {
 class FileLogWriter
 {
 public:
-    FileLogWriter() = default;
-    FileLogWriter(const char *fileName) { open(fileName); }
+    FileLogWriter();
+    FileLogWriter(const char* fileName);
+
+    ~FileLogWriter();
 
     inline bool isOpen() const  { return m_file >= 0; }
     inline int64_t pos() const  { return m_pos; }
@@ -49,6 +53,16 @@ private:
 
     int m_file      = -1;
     int64_t m_pos   = 0;
+
+    uv_mutex_t m_buffersLock;
+    std::vector<uv_buf_t> m_buffers;
+
+    uv_async_t m_flushAsync;
+
+    void init();
+
+    static void on_flush(uv_async_t* async) { reinterpret_cast<FileLogWriter*>(async->data)->flush(); }
+    void flush();
 };
 
 

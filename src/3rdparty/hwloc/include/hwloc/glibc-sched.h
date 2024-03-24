@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -52,6 +52,8 @@ extern "C" {
  * that takes a cpu_set_t as input parameter.
  *
  * \p schedsetsize should be sizeof(cpu_set_t) unless \p schedset was dynamically allocated with CPU_ALLOC
+ *
+ * \return 0.
  */
 static __hwloc_inline int
 hwloc_cpuset_to_glibc_sched_affinity(hwloc_topology_t topology __hwloc_attribute_unused, hwloc_const_cpuset_t hwlocset,
@@ -80,6 +82,9 @@ hwloc_cpuset_to_glibc_sched_affinity(hwloc_topology_t topology __hwloc_attribute
  * that takes a cpu_set_t  as input parameter.
  *
  * \p schedsetsize should be sizeof(cpu_set_t) unless \p schedset was dynamically allocated with CPU_ALLOC
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c ENOMEM if some internal reallocation failed.
  */
 static __hwloc_inline int
 hwloc_cpuset_from_glibc_sched_affinity(hwloc_topology_t topology __hwloc_attribute_unused, hwloc_cpuset_t hwlocset,
@@ -95,7 +100,8 @@ hwloc_cpuset_from_glibc_sched_affinity(hwloc_topology_t topology __hwloc_attribu
   cpu = 0;
   while (count) {
     if (CPU_ISSET_S(cpu, schedsetsize, schedset)) {
-      hwloc_bitmap_set(hwlocset, cpu);
+      if (hwloc_bitmap_set(hwlocset, cpu) < 0)
+        return -1;
       count--;
     }
     cpu++;
@@ -107,7 +113,8 @@ hwloc_cpuset_from_glibc_sched_affinity(hwloc_topology_t topology __hwloc_attribu
   assert(schedsetsize == sizeof(cpu_set_t));
   for(cpu=0; cpu<CPU_SETSIZE; cpu++)
     if (CPU_ISSET(cpu, schedset))
-      hwloc_bitmap_set(hwlocset, cpu);
+      if (hwloc_bitmap_set(hwlocset, cpu) < 0)
+        return -1;
 #endif /* !CPU_ZERO_S */
   return 0;
 }

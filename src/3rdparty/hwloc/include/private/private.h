@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009      CNRS
- * Copyright © 2009-2022 Inria.  All rights reserved.
+ * Copyright © 2009-2023 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  *
@@ -245,6 +245,12 @@ struct hwloc_topology {
    * temporary variables during discovery
    */
 
+  /* set to 1 at the beginning of load() if the filter of any cpu cache type (L1 to L3i) is not NONE,
+   * may be checked by backends before querying caches
+   * (when they don't know the level of caches they are querying).
+   */
+  int want_some_cpu_caches;
+
   /* machine-wide memory.
    * temporarily stored there by OSes that only provide this without NUMA information,
    * and actually used later by the core.
@@ -420,7 +426,7 @@ extern void hwloc_internal_memattrs_need_refresh(hwloc_topology_t topology);
 extern void hwloc_internal_memattrs_refresh(hwloc_topology_t topology);
 extern int hwloc_internal_memattrs_dup(hwloc_topology_t new, hwloc_topology_t old);
 extern int hwloc_internal_memattr_set_value(hwloc_topology_t topology, hwloc_memattr_id_t id, hwloc_obj_type_t target_type, hwloc_uint64_t target_gp_index, unsigned target_os_index, struct hwloc_internal_location_s *initiator, hwloc_uint64_t value);
-extern int hwloc_internal_memattrs_guess_memory_tiers(hwloc_topology_t topology);
+extern int hwloc_internal_memattrs_guess_memory_tiers(hwloc_topology_t topology, int force_subtype);
 
 extern void hwloc_internal_cpukinds_init(hwloc_topology_t topology);
 extern int hwloc_internal_cpukinds_rank(hwloc_topology_t topology);
@@ -477,6 +483,7 @@ extern char * hwloc_progname(struct hwloc_topology *topology);
 #define HWLOC_GROUP_KIND_INTEL_DIE			104	/* no subkind */
 #define HWLOC_GROUP_KIND_S390_BOOK			110	/* subkind 0 is book, subkind 1 is drawer (group of books) */
 #define HWLOC_GROUP_KIND_AMD_COMPUTE_UNIT		120	/* no subkind */
+#define HWLOC_GROUP_KIND_AMD_COMPLEX                    121     /* no subkind */
 /* then, OS-specific groups */
 #define HWLOC_GROUP_KIND_SOLARIS_PG_HW_PERF		200	/* subkind is group width */
 #define HWLOC_GROUP_KIND_AIX_SDL_UNKNOWN		210	/* subkind is SDL level */

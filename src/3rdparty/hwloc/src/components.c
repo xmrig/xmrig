@@ -94,8 +94,7 @@ static hwloc_dlhandle hwloc_dlopenext(const char *_filename)
 {
   hwloc_dlhandle handle;
   char *filename = NULL;
-  (void) asprintf(&filename, "%s.so", _filename);
-  if (!filename)
+  if (asprintf(&filename, "%s.so", _filename) < 0)
     return NULL;
   handle = dlopen(filename, RTLD_NOW|RTLD_LOCAL);
   free(filename);

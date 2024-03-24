@@ -1,5 +1,5 @@
 /*
- * Copyright © 2021 Inria.  All rights reserved.
+ * Copyright © 2021-2023 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -44,8 +44,9 @@ extern "C" {
  * the Level Zero device \p device.
  *
  * Topology \p topology and device \p device must match the local machine.
- * The Level Zero must have been initialized with Sysman enabled
- * (ZES_ENABLE_SYSMAN=1 in the environment).
+ * The Level Zero library must have been initialized with Sysman enabled
+ * (by calling zesInit(0) if supported,
+ *  or by setting ZES_ENABLE_SYSMAN=1 in the environment).
  * I/O devices detection and the Level Zero component are not needed in the
  * topology.
  *
@@ -55,6 +56,9 @@ extern "C" {
  *
  * This function is currently only implemented in a meaningful way for
  * Linux; other systems will simply get a full cpuset.
+ *
+ * \return 0 on success.
+ * \return -1 on error, for instance if device information could not be found.
  */
 static __hwloc_inline int
 hwloc_levelzero_get_device_cpuset(hwloc_topology_t topology __hwloc_attribute_unused,
