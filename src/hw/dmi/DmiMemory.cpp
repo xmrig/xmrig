@@ -20,7 +20,6 @@
 
 
 #include "hw/dmi/DmiMemory.h"
-#include "3rdparty/fmt/format.h"
 #include "3rdparty/rapidjson/document.h"
 #include "hw/dmi/DmiTools.h"
 
@@ -28,6 +27,7 @@
 #include <algorithm>
 #include <array>
 #include <regex>
+#include <fmt/format.h>
 
 
 namespace xmrig {
