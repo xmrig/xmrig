@@ -260,6 +260,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 
 #define JIT_HANDLE(x, prev) do { \
 		const InstructionGeneratorX86_2 p = &randomx::JitCompilerX86::h_##x; \
+		static_assert(sizeof(p) == sizeof(randomx::JitCompilerX86::engine[k]), "Pointer size mismatch"); \
 		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
 	} while (0)
 
