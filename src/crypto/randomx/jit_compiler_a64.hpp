@@ -74,7 +74,7 @@ namespace randomx {
 		void enableWriting() const;
 		void enableExecution() const;
 
-		static InstructionGeneratorA64 engine[257];
+		static InstructionGeneratorA64 engine[256];
 
 	private:
 		const bool hugePages;
