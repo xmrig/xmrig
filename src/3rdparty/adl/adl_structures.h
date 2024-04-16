@@ -1269,7 +1269,7 @@ typedef struct ADLActivatableSource
     int iNumActivatableSources;
     /// The bit mask identifies the number of bits ActivatableSourceValue is using. (Not currnetly used)
     int iActivatableSourceMask;
-    /// The bit mask identifies the status.  (Not currnetly used)
+    /// The bit mask identifies the status.  (Not currently used)
     int iActivatableSourceValue;
 } ADLActivatableSource, *LPADLActivatableSource;
 
@@ -1669,10 +1669,10 @@ typedef struct ADLSLSTarget
     /// The target ID
     ADLDisplayTarget displayTarget;
 
-    /// Target postion X in SLS grid
+    /// Target position X in SLS grid
     int iSLSGridPositionX;
 
-    /// Target postion Y in SLS grid
+    /// Target position Y in SLS grid
     int iSLSGridPositionY;
 
     /// The view size width, height and rotation angle per SLS Target

@@ -177,7 +177,7 @@ hwloc_bitmap_realloc_by_ulongs(struct hwloc_bitmap_s * set, unsigned needed_coun
 /* realloc until it contains at least cpu+1 bits */
 #define hwloc_bitmap_realloc_by_cpu_index(set, cpu) hwloc_bitmap_realloc_by_ulongs(set, ((cpu)/HWLOC_BITS_PER_LONG)+1)
 
-/* reset a bitmap to exactely the needed size.
+/* reset a bitmap to exactly the needed size.
  * the caller must reinitialize all ulongs and the infinite flag later.
  */
 static int
