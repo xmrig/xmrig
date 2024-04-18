@@ -50,7 +50,7 @@ typedef struct ethash_h256 { uint8_t b[32]; } ethash_h256_t;
 // usage:
 // ethash_h256_t a = ethash_h256_static_init(1, 2, 3, ... )
 // have to provide all 32 values. If you don't provide all the rest
-// will simply be unitialized (not guranteed to be 0)
+// will simply be unitialized (not guaranteed to be 0)
 #define ethash_h256_static_init(...)			\
 	{ {__VA_ARGS__} }
 

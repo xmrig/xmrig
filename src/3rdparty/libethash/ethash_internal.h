@@ -68,7 +68,7 @@ static inline bool ethash_check_difficulty(
  * @param nonce            The block's nonce
  * @param mix_hash         The mix digest hash
  * @param boundary         The boundary is defined as (2^256 / difficulty)
- * @return                 true for succesful pre-verification and false otherwise
+ * @return                 true for successful pre-verification and false otherwise
  */
 bool ethash_quick_check_difficulty(
 	ethash_h256_t const* header_hash,
