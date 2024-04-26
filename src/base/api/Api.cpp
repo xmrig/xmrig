@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,6 +25,8 @@
 #include "base/crypto/keccak.h"
 #include "base/io/Env.h"
 #include "base/io/json/Json.h"
+#include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/Base.h"
 #include "base/tools/Chrono.h"
 #include "base/tools/Cvt.h"
@@ -39,7 +41,6 @@
 
 
 #include <thread>
-#include <iostream>
 
 
 namespace xmrig {
@@ -81,8 +82,7 @@ static rapidjson::Value getResources(rapidjson::Document &doc)
 
 xmrig::Api::Api(Base *base) :
     m_base(base),
-    m_timestamp(Chrono::currentMSecsSinceEpoch()),
-    m_httpd(nullptr)
+    m_timestamp(Chrono::currentMSecsSinceEpoch())
 {
     base->addListener(this);
 
@@ -118,7 +118,8 @@ void xmrig::Api::start()
     if (!m_httpd) {
         m_httpd = new Httpd(m_base);
         if (!m_httpd->start()) {
-            std::cerr << "HTTP server failed to start." << std::endl;
+            LOG_ERR("%s " RED_BOLD("HTTP API server failed to start."), Tags::network());
+
             delete m_httpd; // Properly handle failure to start
             m_httpd = nullptr;
         }

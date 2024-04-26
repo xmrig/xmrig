@@ -81,7 +81,7 @@ namespace randomx {
 		void enableWriting() const;
 		void enableExecution() const;
 
-		alignas(64) static InstructionGeneratorX86 engine[257];
+		alignas(64) static InstructionGeneratorX86 engine[256];
 
 	private:
 		int registerUsage[RegistersCount] = {};

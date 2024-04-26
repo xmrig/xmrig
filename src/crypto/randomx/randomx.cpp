@@ -301,7 +301,7 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 
 #define JIT_HANDLE(x, prev) do { \
 		const InstructionGeneratorX86_2 p = &randomx::JitCompilerX86::h_##x; \
-		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(p)); \
+		memcpy(randomx::JitCompilerX86::engine + k, &p, sizeof(randomx::JitCompilerX86::engine[k])); \
 	} while (0)
 
 #elif (XMRIG_ARM == 8)

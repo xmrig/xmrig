@@ -1,3 +1,6 @@
+# v6.21.3
+- [#3462](https://github.com/xmrig/xmrig/pull/3462) RandomX: correct memcpy size for JIT initialization.
+
 # v6.21.2
 - The dependencies of all prebuilt releases have been updated. Support for old Ubuntu releases has been dropped.
 - [#2800](https://github.com/xmrig/xmrig/issues/2800) Fixed donation with GhostRider algorithm for builds without KawPow algorithm.
