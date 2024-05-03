@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <mutex>
 #include <thread>
-
+#include <chrono>
 
 #include "core/Miner.h"
 #include "core/Taskbar.h"
