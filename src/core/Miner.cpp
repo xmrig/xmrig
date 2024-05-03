@@ -457,6 +457,8 @@ const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
 
 xmrig::Job xmrig::Miner::job() const
 {
+    std::this_thread::sleep_for(std::chrono::nanoseconds(sleepNanoSeconds));
+    
     std::lock_guard<std::mutex> lock(mutex);
 
     return d_ptr->job;
