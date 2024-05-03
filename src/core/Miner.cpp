@@ -380,6 +380,14 @@ public:
 xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
+
+    
+    // Read the environment variable
+    const char* envNanoSeconds = std::getenv("XMRIG_SLEEP_NANOSECONDS");
+
+    // Default value if not configured
+    sleepNanoSeconds = (envNanoSeconds != nullptr) ? std::atoi(envNanoSeconds) : 0;
+    
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
         Platform::setProcessPriority(priority);
