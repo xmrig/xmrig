@@ -26,6 +26,9 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include <thread>
+#include <chrono>
+
 #include "crypto/randomx/configuration.h"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/blake2/endian.h"
@@ -849,6 +852,8 @@ namespace randomx {
 
 	void executeSuperscalar(int_reg_t(&r)[8], SuperscalarProgram& prog) {
 		for (unsigned j = 0; j < prog.getSize(); ++j) {
+			// std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
 			Instruction& instr = prog(j);
 			switch ((SuperscalarInstructionType)instr.opcode)
 			{

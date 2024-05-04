@@ -108,11 +108,12 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priorit
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
             threads.emplace_back(init_dataset_wrapper, m_dataset, m_cache->get(), a, b - a, priority);
+            threads[i].join(); // force it to be sequential
         }
 
-        for (uint32_t i = 0; i < numThreads; ++i) {
-            threads[i].join();
-        }
+        // for (uint32_t i = 0; i < numThreads; ++i) {
+        //     threads[i].join();
+        // }
     }
     else {
         init_dataset_wrapper(m_dataset, m_cache->get(), 0, datasetItemCount, priority);

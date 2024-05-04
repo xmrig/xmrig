@@ -45,6 +45,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/common/VirtualMemory.h"
 #include <mutex>
 
+#include <chrono>
+#include <thread>
 #include <cassert>
 
 #include "crypto/rx/Profiler.h"
@@ -387,6 +389,12 @@ extern "C" {
 					cache->initialize   = &randomx::initCacheCompile;
 					cache->datasetInit  = nullptr;
 					cache->memory       = memory;
+
+
+					// cache->jit          = nullptr;
+					// cache->initialize   = &randomx::initCache;
+					// cache->datasetInit  = &randomx::initDataset;
+					// cache->memory       = memory;
 					break;
 
 				default:
@@ -573,6 +581,7 @@ extern "C" {
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			machine->run(&tempHash);
 			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
@@ -590,6 +599,7 @@ extern "C" {
 
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			machine->run(&tempHash);
 			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
