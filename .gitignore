@@ -5,3 +5,4 @@ scripts/deps
 /.idea
 /src/backend/opencl/cl/cn/cryptonight_gen.cl
 /.vscode
+/..bfg-report
