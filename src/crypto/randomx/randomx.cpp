@@ -365,6 +365,10 @@ alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 static std::mutex vm_pool_mutex;
 
+const char* envRandomXNanoSeconds = std::getenv("XMRIG_RANDOMX_SLEEP_NANOSECONDS");
+
+int randomx_sleep_nanoseconds = (envRandomXNanoSeconds != nullptr) ? std::atoi(envRandomXNanoSeconds) : 0;
+
 extern "C" {
 
 	randomx_cache *randomx_create_cache(randomx_flags flags, uint8_t *memory) {
@@ -389,12 +393,6 @@ extern "C" {
 					cache->initialize   = &randomx::initCacheCompile;
 					cache->datasetInit  = nullptr;
 					cache->memory       = memory;
-
-
-					// cache->jit          = nullptr;
-					// cache->initialize   = &randomx::initCache;
-					// cache->datasetInit  = &randomx::initDataset;
-					// cache->memory       = memory;
 					break;
 
 				default:
@@ -581,7 +579,7 @@ extern "C" {
 		machine->initScratchpad(&tempHash);
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::nanoseconds(randomx_sleep_nanoseconds));
 			machine->run(&tempHash);
 			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}
@@ -599,7 +597,7 @@ extern "C" {
 
 		machine->resetRoundingMode();
 		for (uint32_t chain = 0; chain < RandomX_CurrentConfig.ProgramCount - 1; ++chain) {
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			std::this_thread::sleep_for(std::chrono::nanoseconds(randomx_sleep_nanoseconds));
 			machine->run(&tempHash);
 			rx_blake2b_wrapper::run(tempHash, sizeof(tempHash), machine->getRegisterFile(), sizeof(randomx::RegisterFile));
 		}

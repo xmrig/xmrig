@@ -24,12 +24,6 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-;# .section .data
-;# nanosecs:
-;#     .quad 0, 10000
-
-;# .extern usleep
-
 .intel_syntax noprefix
 #if defined(__APPLE__)
 .text
@@ -179,17 +173,6 @@ DECL(randomx_dataset_init):
 	push rcx      ;# max. block index
 #endif
 init_block_loop:
-
-	;# mov rax, 35
-	;# mov rdi, nanosecs
-	;# xor rsi, rsi
-	;# syscall
-
-	;# push 100000
-	;# call usleep
-	;# add esp,4
-
-
 	prefetchw byte ptr [rsi]
 	mov rbx, rbp
 	.byte 232 ;# 0xE8 = call
@@ -244,16 +227,6 @@ DECL(randomx_dataset_init_avx2_prologue):
 .balign 64
 randomx_dataset_init_avx2_prologue_loop_begin:
 	#include "asm/program_sshash_avx2_loop_begin.inc"
-
-	;# mov rax, 35
-	;# mov rdi, nanosecs
-	;# xor rsi, rsi
-	;# syscall
-	
-	;# push 100000
-	;# call usleep
-	;# add esp,4
-
 
 	;# init integer registers (lane 0)
 	lea r8, [rbp+1]

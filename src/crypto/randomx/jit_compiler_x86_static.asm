@@ -24,9 +24,6 @@
 ; OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 ; OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-; section .data
-; 	secs dq 5,0
-
 IFDEF RAX
 
 _RANDOMX_JITX86_STATIC SEGMENT PAGE READ EXECUTE
@@ -169,13 +166,6 @@ randomx_dataset_init PROC
 	mov rbp, r8  ;# block index
 	push r9      ;# max. block index
 init_block_loop:
-
-	;# call usleep function
-    ; mov rax, 35   ;# load the number of microseconds to sleep into eax
-    ; mov rdi, secs       ;# push the argument onto the stack
-	; xor rsi, rsi
-    ; syscall    ;# call the usleep function
-
 	prefetchw byte ptr [rsi]
 	mov rbx, rbp
 	db 232 ;# 0xE8 = call
@@ -221,12 +211,6 @@ randomx_dataset_init_avx2_prologue PROC
 ALIGN 64
 loop_begin:
 	include asm/program_sshash_avx2_loop_begin.inc
-
-	;# call usleep function
-    ; mov rax, 35   ;# load the number of microseconds to sleep into eax
-    ; mov rdi, secs    ;# push the argument onto the stack
-	; xor rsi, rsi
-    ; syscall     ;# call the usleep function
 
 	;# init integer registers (lane 0)
 	lea r8, [rbp+1]

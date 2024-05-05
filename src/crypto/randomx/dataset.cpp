@@ -32,7 +32,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  * https://github.com/P-H-C/phc-winner-argon2
  * Copyright 2015
  * Daniel Dinu, Dmitry Khovratovich, Jean-Philippe Aumasson, and Samuel Neves
- */
+*/
 
 #include <new>
 #include <algorithm>
@@ -40,8 +40,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <limits>
 #include <cstring>
-#include <thread>
-#include <chrono>
 
 #include "crypto/randomx/common.hpp"
 #include "crypto/randomx/dataset.hpp"
@@ -56,35 +54,31 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "3rdparty/argon2/include/argon2.h"
 #include "3rdparty/argon2/lib/core.h"
 
-// static_assert(RANDOMX_ARGON_MEMORY % (RANDOMX_ARGON_LANES * ARGON2_SYNC_POINTS) == 0, "RANDOMX_ARGON_MEMORY - invalid value");
+//static_assert(RANDOMX_ARGON_MEMORY % (RANDOMX_ARGON_LANES * ARGON2_SYNC_POINTS) == 0, "RANDOMX_ARGON_MEMORY - invalid value");
 static_assert(ARGON2_BLOCK_SIZE == randomx::ArgonBlockSize, "Unexpected value of ARGON2_BLOCK_SIZE");
 
-namespace randomx
-{
+namespace randomx {
 
-	template <class Allocator>
-	void deallocCache(randomx_cache *cache)
-	{
-		if (cache->memory != nullptr)
-		{
+	template<class Allocator>
+	void deallocCache(randomx_cache* cache) {
+		if (cache->memory != nullptr) {
 			Allocator::freeMemory(cache->memory, RANDOMX_CACHE_MAX_SIZE);
 		}
 
 		delete cache->jit;
 	}
 
-	template void deallocCache<DefaultAllocator>(randomx_cache *cache);
-	template void deallocCache<LargePageAllocator>(randomx_cache *cache);
+	template void deallocCache<DefaultAllocator>(randomx_cache* cache);
+	template void deallocCache<LargePageAllocator>(randomx_cache* cache);
 
-	void initCache(randomx_cache *cache, const void *key, size_t keySize)
-	{
+	void initCache(randomx_cache* cache, const void* key, size_t keySize) {
 		argon2_context context;
 
 		context.out = nullptr;
 		context.outlen = 0;
-		context.pwd = CONST_CAST(uint8_t *) key;
+		context.pwd = CONST_CAST(uint8_t *)key;
 		context.pwdlen = (uint32_t)keySize;
-		context.salt = CONST_CAST(uint8_t *) RandomX_CurrentConfig.ArgonSalt;
+		context.salt = CONST_CAST(uint8_t *)RandomX_CurrentConfig.ArgonSalt;
 		context.saltlen = (uint32_t)strlen(RandomX_CurrentConfig.ArgonSalt);
 		context.secret = nullptr;
 		context.secretlen = 0;
@@ -102,28 +96,25 @@ namespace randomx
 		argon2_ctx_mem(&context, Argon2_d, cache->memory, RandomX_CurrentConfig.ArgonMemory * 1024);
 
 		randomx::Blake2Generator gen(key, keySize);
-		for (uint32_t i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+		for (uint32_t i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i) {
 			randomx::generateSuperscalar(cache->programs[i], gen);
 		}
 	}
 
-	void initCacheCompile(randomx_cache *cache, const void *key, size_t keySize)
-	{
+	void initCacheCompile(randomx_cache* cache, const void* key, size_t keySize) {
 		initCache(cache, key, keySize);
 
-#ifdef XMRIG_SECURE_JIT
+#		ifdef XMRIG_SECURE_JIT
 		cache->jit->enableWriting();
-#endif
+#		endif
 
 		cache->jit->generateSuperscalarHash(cache->programs);
 		cache->jit->generateDatasetInitCode();
-		cache->datasetInit = cache->jit->getDatasetInitFunc();
+		cache->datasetInit  = cache->jit->getDatasetInitFunc();
 
-#ifdef XMRIG_SECURE_JIT
+#		ifdef XMRIG_SECURE_JIT
 		cache->jit->enableExecution();
-#endif
+#		endif
 	}
 
 	constexpr uint64_t superscalarMul0 = 6364136223846793005ULL;
@@ -135,16 +126,14 @@ namespace randomx
 	constexpr uint64_t superscalarAdd6 = 3398623926847679864ULL;
 	constexpr uint64_t superscalarAdd7 = 9549104520008361294ULL;
 
-	static inline uint8_t *getMixBlock(uint64_t registerValue, uint8_t *memory)
-	{
+	static inline uint8_t* getMixBlock(uint64_t registerValue, uint8_t *memory) {
 		const uint32_t mask = (RandomX_CurrentConfig.ArgonMemory * randomx::ArgonBlockSize) / CacheLineSize - 1;
 		return memory + (registerValue & mask) * CacheLineSize;
 	}
 
-	void initDatasetItem(randomx_cache *cache, uint8_t *out, uint64_t itemNumber)
-	{
+	void initDatasetItem(randomx_cache* cache, uint8_t* out, uint64_t itemNumber) {
 		int_reg_t rl[8];
-		uint8_t *mixBlock;
+		uint8_t* mixBlock;
 		uint64_t registerValue = itemNumber;
 		rl[0] = (itemNumber + 1) * superscalarMul0;
 		rl[1] = rl[0] ^ superscalarAdd1;
@@ -154,22 +143,15 @@ namespace randomx
 		rl[5] = rl[0] ^ superscalarAdd5;
 		rl[6] = rl[0] ^ superscalarAdd6;
 		rl[7] = rl[0] ^ superscalarAdd7;
-		for (unsigned i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i)
-		{
-			// std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
+		for (unsigned i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i) {
 			mixBlock = getMixBlock(registerValue, cache->memory);
 			rx_prefetch_nta(mixBlock);
-			SuperscalarProgram &prog = cache->programs[i];
+			SuperscalarProgram& prog = cache->programs[i];
 
 			executeSuperscalar(rl, prog);
 
 			for (unsigned q = 0; q < 8; ++q)
-			{
-				// std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
 				rl[q] ^= load64_native(mixBlock + 8 * q);
-			}
 
 			registerValue = rl[prog.getAddressRegister()];
 		}
@@ -177,12 +159,8 @@ namespace randomx
 		memcpy(out, &rl, CacheLineSize);
 	}
 
-	void initDataset(randomx_cache *cache, uint8_t *dataset, uint32_t startItem, uint32_t endItem)
-	{
+	void initDataset(randomx_cache* cache, uint8_t* dataset, uint32_t startItem, uint32_t endItem) {
 		for (uint32_t itemNumber = startItem; itemNumber < endItem; ++itemNumber, dataset += CacheLineSize)
-		{
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			initDatasetItem(cache, dataset, itemNumber);
-		}
 	}
 }
