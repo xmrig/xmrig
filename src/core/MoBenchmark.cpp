@@ -137,6 +137,7 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::RX_SFX:          return m_bench_algo_perf[BenchAlgo::RX_0];
         case Algorithm::RX_GRAFT:        return m_bench_algo_perf[BenchAlgo::RX_GRAFT];
         case Algorithm::RX_ARQ:          return m_bench_algo_perf[BenchAlgo::RX_ARQ];
+        case Algorithm::RX_XEQ:          return m_bench_algo_perf[BenchAlgo::RX_ARQ];
         case Algorithm::RX_XLA:          return m_bench_algo_perf[BenchAlgo::RX_XLA];
         case Algorithm::GHOSTRIDER_RTM:  return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
         case Algorithm::FLEX_KCN:        return m_bench_algo_perf[BenchAlgo::FLEX_KCN];

@@ -47,6 +47,7 @@ class MoBenchmark : public IJobResultListener {
             RX_0,            // "rx/0"             RandomX (Monero).
             RX_GRAFT,        // "rx/graft"         RandomGraft (Graft).
             RX_ARQ,          // "rx/arq"           RandomARQ (Arqma).
+            RX_XEQ,
             RX_XLA,          // "panthera"         Panthera (Scala2).
             MAX,
             MIN = 0,
@@ -67,6 +68,7 @@ class MoBenchmark : public IJobResultListener {
             Algorithm::RX_0,
             Algorithm::RX_GRAFT,
             Algorithm::RX_ARQ,
+            Algorithm::RX_XEQ,
             Algorithm::RX_XLA,
         };
 

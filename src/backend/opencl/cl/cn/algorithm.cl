@@ -21,7 +21,8 @@
 #define ALGO_CN_GPU         0x63150300
 #define ALGO_RX_0           0x72151200
 #define ALGO_RX_WOW         0x72141177
-#define ALGO_RX_ARQMA       0x72121061
+#define ALGO_RX_ARQ         0x72121061
+#define ALGO_RX_XEQ         0x72121000
 #define ALGO_RX_SFX         0x72151273
 #define ALGO_RX_KEVA        0x7214116b
 #define ALGO_RX_GRAFT       0x72151267

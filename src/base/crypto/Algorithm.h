@@ -77,6 +77,7 @@ public:
         RX_0            = 0x72151200,   // "rx/0"             RandomX (reference configuration).
         RX_WOW          = 0x72141177,   // "rx/wow"           RandomWOW (Wownero).
         RX_ARQ          = 0x72121061,   // "rx/arq"           RandomARQ (Arqma).
+        RX_XEQ          = 0x72121000,
         RX_GRAFT        = 0x72151267,   // "rx/graft"         RandomGRAFT (Graft).
         RX_SFX          = 0x72151273,   // "rx/sfx"           RandomSFX (Safex Cash).
         RX_KEVA         = 0x7214116b,   // "rx/keva"          RandomKEVA (Keva).
@@ -149,6 +150,7 @@ public:
     static const char *kRX_0;
     static const char *kRX_WOW;
     static const char *kRX_ARQ;
+    static const char *kRX_XEQ;
     static const char *kRX_GRAFT;
     static const char *kRX_SFX;
     static const char *kRX_KEVA;
