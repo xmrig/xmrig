@@ -54,7 +54,7 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_controller(controller),
     m_listener(listener)
 {
-#   ifdef XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
+#   if defined(XMRIG_ALGO_KAWPOW) || defined(XMRIG_ALGO_GHOSTRIDER)
     constexpr Pool::Mode mode = Pool::MODE_AUTO_ETH;
 #   else
     constexpr Pool::Mode mode = Pool::MODE_POOL;

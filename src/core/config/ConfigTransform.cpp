@@ -45,7 +45,7 @@ static const char *kEnabled     = "enabled";
 static const char *kIntensity   = "intensity";
 static const char *kThreads     = "threads";
 #ifdef XMRIG_ALGO_KAWPOW
-static const char *kKawPow      = "kawpow";
+//static const char *kKawPow      = "kawpow";
 #endif
 
 

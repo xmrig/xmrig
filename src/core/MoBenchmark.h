@@ -34,6 +34,7 @@ class Job;
 class MoBenchmark : public IJobResultListener {
 
         enum BenchAlgo : int {
+            FLEX_KCN,        // "flex"             Flex
             GHOSTRIDER_RTM,  // "ghostrider"       GhostRider
             CN_R,            // "cn/r"             CryptoNightR (Monero's variant 4).
             CN_LITE_1,       // "cn-lite/1"        CryptoNight-Lite variant 1.
@@ -53,6 +54,7 @@ class MoBenchmark : public IJobResultListener {
         };
 
         const Algorithm::Id ba2a[BenchAlgo::MAX] = {
+            Algorithm::FLEX_KCN,
             Algorithm::GHOSTRIDER_RTM,
             Algorithm::CN_R,
             Algorithm::CN_LITE_1,

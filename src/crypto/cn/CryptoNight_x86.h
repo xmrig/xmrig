@@ -1238,9 +1238,7 @@ static NOINLINE void cryptonight_single_hash_gr_sse41(const uint8_t* __restrict_
 
     keccak(input, size, ctx[0]->state);
 
-    if (props.half_mem()) {
-        ctx[0]->first_half = true;
-    }
+    if (props.half_mem()) ctx[0]->first_half = true;
     cn_explode_scratchpad<ALGO, false, 0>(ctx[0]);
 
     VARIANT1_INIT(0);

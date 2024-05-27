@@ -77,7 +77,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     params.PushBack(result.jobId.toJSON(), allocator);
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM) {
+    if (m_pool.algorithm().family() == Algorithm::GHOSTRIDER) {
         params.PushBack(Value("00000000000000000000000000000000", static_cast<uint32_t>(m_extraNonce2Size * 2)), allocator);
         params.PushBack(Value(m_ntime.data(), allocator), allocator);
 
@@ -114,7 +114,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     uint64_t actual_diff;
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (result.algorithm == Algorithm::GHOSTRIDER_RTM) {
+    if (result.algorithm.family() == Algorithm::GHOSTRIDER) {
         actual_diff = reinterpret_cast<const uint64_t*>(result.result())[3];
     }
     else
@@ -202,7 +202,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             return;
         }
 
-        if (m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM) {
+        if (m_pool.algorithm().family() != Algorithm::GHOSTRIDER) {
             return;
         }
 
@@ -236,7 +236,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
             algo = m_pool.coin().algorithm();
         }
 
-        const size_t min_arr_size = (algo.id() == Algorithm::GHOSTRIDER_RTM) ? 8 : 6;
+        const size_t min_arr_size = (algo.family() == Algorithm::GHOSTRIDER) ? 8 : 6;
 
         if (arr.Size() < min_arr_size) {
             LOG_ERR("%s " RED("invalid mining.notify notification: params array has wrong size"), tag());
@@ -257,7 +257,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         std::stringstream s;
 
 #       ifdef XMRIG_ALGO_GHOSTRIDER
-        if (algo.id() == Algorithm::GHOSTRIDER_RTM) {
+        if (algo.family() == Algorithm::GHOSTRIDER) {
             // Raptoreum uses Bitcoin's Stratum protocol
             // https://en.bitcoinwiki.org/wiki/Stratum_mining_protocol#mining.notify
 

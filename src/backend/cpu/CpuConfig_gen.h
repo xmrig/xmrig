@@ -165,7 +165,10 @@ size_t inline generate<Algorithm::ARGON2>(Threads<CpuThreads> &threads, uint32_t
 template<>
 size_t inline generate<Algorithm::GHOSTRIDER>(Threads<CpuThreads>& threads, uint32_t limit)
 {
-    return generate(Algorithm::kGHOSTRIDER, threads, Algorithm::GHOSTRIDER_RTM, limit);
+    size_t count = 0;
+    count += generate(Algorithm::kGHOSTRIDER, threads, Algorithm::GHOSTRIDER_RTM, limit);
+    count += generate(Algorithm::kFLEX, threads, Algorithm::FLEX_KCN, limit);
+    return count;
 }
 #endif
 

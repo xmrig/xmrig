@@ -49,7 +49,7 @@ xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, I
     blob.back() = '\0';
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (m_benchmark->algorithm() == Algorithm::GHOSTRIDER_RTM) {
+    if (m_benchmark->algorithm().family() == Algorithm::GHOSTRIDER) {
         const uint32_t q = (benchmark->rotation() / 20) & 1;
         const uint32_t r = benchmark->rotation() % 20;
 

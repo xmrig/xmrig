@@ -139,6 +139,7 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::RX_ARQ:          return m_bench_algo_perf[BenchAlgo::RX_ARQ];
         case Algorithm::RX_XLA:          return m_bench_algo_perf[BenchAlgo::RX_XLA];
         case Algorithm::GHOSTRIDER_RTM:  return m_bench_algo_perf[BenchAlgo::GHOSTRIDER_RTM];
+        case Algorithm::FLEX_KCN:        return m_bench_algo_perf[BenchAlgo::FLEX_KCN];
         default: return 0.0f;
     }
 }
@@ -165,6 +166,7 @@ void MoBenchmark::start(const BenchAlgo bench_algo) {
           break;
 
       case BenchAlgo::GHOSTRIDER_RTM:
+      case BenchAlgo::FLEX_KCN:
           job.setBlob("000000208c246d0b90c3b389c4086e8b672ee040d64db5b9648527133e217fbfa48da64c0f3c0a0b0e8350800568b40fbb323ac3ccdf2965de51b9aaeb939b4f11ff81c49b74a16156ff251c00000000");
           job.setDiff(1000);
           break;
@@ -229,6 +231,15 @@ void MoBenchmark::onJobResult(const JobResult& result) {
         m_bench_algo_perf[m_bench_algo] = hashrate; // store hashrate result
         LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), Algorithm(ba2a[m_bench_algo]).name(), hashrate);
         run_next_bench_algo(m_bench_algo);
+    } else switch(m_bench_algo) { // Update GhostRider algo job to produce more accurate perf results
+        case BenchAlgo::GHOSTRIDER_RTM: {
+            Job& job = *m_bench_job[m_bench_algo];
+            uint8_t* blob = job.blob();
+            ++ *reinterpret_cast<uint32_t*>(blob+4);
+            m_controller->miner()->setJob(job, false);
+            break;
+        }
+        default:;
     }
 }
 
