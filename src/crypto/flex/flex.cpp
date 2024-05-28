@@ -145,7 +145,6 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 	sph_shabal512_context ctx_shabal;
 	sph_whirlpool_context ctx_whirlpool;
 	sph_sha256_context ctx_sha;
-        hard_coded_eb = 6;
 	void *in = (void*) input;
 	int size = 80;
 	sph_keccak512_init(&ctx_keccak);
@@ -307,5 +306,4 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 	sph_keccak256(&ctx_keccak, in, size);
 	sph_keccak256_close(&ctx_keccak, hash);
 	memcpy(output, hash, 32);
-        hard_coded_eb = 1;
 }
