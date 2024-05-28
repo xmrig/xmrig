@@ -138,6 +138,7 @@ void MoBenchmark::start() {
     for (auto backend : m_controller->miner()->backends()) if (backend->isEnabled() && backend->isEnabled(algo)) ++ m_enabled_backend_count;
     if (m_enabled_backend_count == 0) {
         LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " is skipped due to a disabled backend"), Tags::benchmark(), algo.name());
+        algo_perf[algo.id()] = -1.0f; // to avoid re-running benchmark next time
         run_next_bench_algo();
         return;
     }
