@@ -32,7 +32,7 @@ option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 option(WITH_AVX2            "Enable AVX2 for Blake2" ON)
 option(WITH_VAES            "Enable VAES instructions for Cryptonight" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
-option(WITH_SECURE_JIT      "Enable secure access to JIT memory" ON)
+option(WITH_SECURE_JIT      "Enable secure access to JIT memory" OFF)
 option(WITH_DMI             "Enable DMI/SMBIOS reader" ON)
 
 option(BUILD_STATIC         "Build static binary" OFF)
