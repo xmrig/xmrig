@@ -95,7 +95,10 @@ int xmrig::App::exec()
             if (m_controller->config()->isShouldSave()) {
                 m_controller->config()->save();
             }
-            m_controller->config()->benchmark().start();
+            if (m_controller->config()->isRebenchAlgo()) {
+                m_controller->config()->benchmark().flush_perf();
+            }
+            m_controller->config()->benchmark().start_perf();
         } else {
             m_controller->start();
         }
