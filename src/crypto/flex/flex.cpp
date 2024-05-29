@@ -24,12 +24,6 @@ extern "C" {
 #include "../ghostrider/sph_shabal.h"
 #include "../ghostrider/sph_whirlpool.h"
 #include "../ghostrider/sph_sha2.h"
-#include "cryptonote/cryptonight_dark.h"
-#include "cryptonote/cryptonight_dark_lite.h"
-#include "cryptonote/cryptonight_fast.h"
-#include "cryptonote/cryptonight_lite.h"
-#include "cryptonote/cryptonight_turtle.h"
-#include "cryptonote/cryptonight_turtle_lite.h"
 }
 #include <stdio.h>
 
