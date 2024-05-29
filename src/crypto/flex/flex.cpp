@@ -78,7 +78,7 @@ static void getAlgoString(void *mem, unsigned int size, uint8_t* selectedAlgoOut
   unsigned char *p = (unsigned char *)mem;
   unsigned int len = size/2;
   unsigned char j = 0;
-  bool selectedAlgo[algoCount];
+  bool* selectedAlgo = new bool[algoCount];
   for(int z=0; z < algoCount; z++) {
 	  selectedAlgo[z] = false;
   }
@@ -97,6 +97,7 @@ static void getAlgoString(void *mem, unsigned int size, uint8_t* selectedAlgoOut
 		}
 	}
   }
+  delete [] selectedAlgo;
 }
 
 void print_hex_memory(void *mem, unsigned int size) {
