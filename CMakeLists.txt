@@ -132,16 +132,6 @@ set(SOURCES_CRYPTO
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
     src/crypto/flex/flex.cpp
-    src/crypto/flex/cryptonote/cryptonight_dark.c
-    src/crypto/flex/cryptonote/cryptonight_dark_lite.c
-    src/crypto/flex/cryptonote/cryptonight_fast.c
-    src/crypto/flex/cryptonote/cryptonight_lite.c
-    src/crypto/flex/cryptonote/cryptonight_turtle.c
-    src/crypto/flex/cryptonote/cryptonight_turtle_lite.c
-    src/crypto/flex/cryptonote/crypto/oaes_lib.c
-    src/crypto/flex/cryptonote/crypto/aesb.c
-    src/crypto/flex/cryptonote/crypto/hash.c
-    src/crypto/flex/cryptonote/crypto/c_keccak.c
    )
 
 if (WITH_MO_BENCHMARK)

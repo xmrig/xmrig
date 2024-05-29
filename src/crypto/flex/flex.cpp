@@ -194,37 +194,37 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 			cnAlgo = 14; // skip cn hashing for this loop iteration
 		}
 		//selection cnAlgo. if a CN algo is selected then core algo will not be selected
-                cn_hash_fun f = nullptr;
+                cn_hash_fun f;
 		switch(cnAlgo)
 		{
 		 case CNDark:
-                        cryptonightdark_hash((const char*)in, (char*)hash, size, 1); 
-                        //f = CnHash::fn(Algorithm::CN_GR_0, av, Assembly::AUTO); 
+                        //cryptonightdark_hash((const char*)in, (char*)hash, size, 1); 
+                        f = CnHash::fn(Algorithm::CN_GR_0, av, Assembly::AUTO); 
 			break;
 		 case CNDarklite:
-                        cryptonightdarklite_hash((const char*)in, (char*)hash, size, 1);
-                        //f = CnHash::fn(Algorithm::CN_GR_1, av, Assembly::AUTO);
+                        //cryptonightdarklite_hash((const char*)in, (char*)hash, size, 1);
+                        f = CnHash::fn(Algorithm::CN_GR_1, av, Assembly::AUTO);
 			break;
 		 case CNFast:
-                        cryptonightfast_hash((const char*)in, (char*)hash, size, 1);
-                        //f = CnHash::fn(Algorithm::CN_GR_2, av, Assembly::AUTO);
+                        //cryptonightfast_hash((const char*)in, (char*)hash, size, 1);
+                        f = CnHash::fn(Algorithm::CN_GR_2, av, Assembly::AUTO);
 			break;
 		 case CNLite:
-                        cryptonightlite_hash((const char*)in, (char*)hash, size, 1);
-                        //f = CnHash::fn(Algorithm::CN_GR_3, av, Assembly::AUTO);
+                        //cryptonightlite_hash((const char*)in, (char*)hash, size, 1);
+                        f = CnHash::fn(Algorithm::CN_GR_3, av, Assembly::AUTO);
 			break;
 		 case CNTurtle:
-                        cryptonightturtle_hash((const char*)in, (char*)hash, size, 1); 
-                        //f = CnHash::fn(Algorithm::CN_GR_4, av, Assembly::AUTO);
+                        //cryptonightturtle_hash((const char*)in, (char*)hash, size, 1); 
+                        f = CnHash::fn(Algorithm::CN_GR_4, av, Assembly::AUTO);
 			break;
 		 case CNTurtlelite:
-                        cryptonightturtlelite_hash((const char*)in, (char*)hash, size, 1);
-                        //f = CnHash::fn(Algorithm::CN_GR_5, av, Assembly::AUTO);
+                        //cryptonightturtlelite_hash((const char*)in, (char*)hash, size, 1);
+                        f = CnHash::fn(Algorithm::CN_GR_5, av, Assembly::AUTO);
 			break;
                  default:
                         f = nullptr;
 		}
-                if (f) f((const uint8_t*)in, size, (uint8_t*)hash, ctx, 0);
+                if (f) f((const uint8_t*)in, size, (uint8_t*)hash, ctx, 101);
 
 		//selection core algo
 		switch (algo) {
