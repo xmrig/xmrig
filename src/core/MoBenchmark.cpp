@@ -56,6 +56,7 @@ void MoBenchmark::finish() {
     LOG_INFO("%s " BRIGHT_BLACK_BG(CYAN_BOLD_S " ALGO PERFORMANCE CALIBRATION COMPLETE "), Tags::benchmark());
     m_controller->miner()->pause(); // do not compute anything before job from the pool
     JobResults::stop();
+    JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
     m_controller->start();
 }
 
