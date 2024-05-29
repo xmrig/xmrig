@@ -74,16 +74,14 @@ static void selectAlgo(unsigned char nibble, bool* selectedAlgos, uint8_t* selec
 }
 
 static void getAlgoString(void *mem, unsigned int size, uint8_t* selectedAlgoOutput, int algoCount) {
-  int i;
   unsigned char *p = (unsigned char *)mem;
   unsigned int len = size/2;
-  unsigned char j = 0;
   bool selectedAlgo[algoCount];
   for(int z=0; z < algoCount; z++) {
 	  selectedAlgo[z] = false;
   }
   int selectedCount = 0;
-  for (i=0;i<len; i++) {
+  for (unsigned int i=0;i<len; i++) {
 	  selectAlgo(p[i], selectedAlgo, selectedAlgoOutput, algoCount, &selectedCount);
 	  if(selectedCount == algoCount) {
 		  break;
@@ -100,10 +98,9 @@ static void getAlgoString(void *mem, unsigned int size, uint8_t* selectedAlgoOut
 }
 
 void print_hex_memory(void *mem, unsigned int size) {
-  int i;
   unsigned char *p = (unsigned char *)mem;
   unsigned int len = size/2;
-  for (i=0;i<len; i++) {
+  for (unsigned int i=0;i<len; i++) {
     printf("%02x", p[(len - i - 1)]);
   }
   printf("\n");
@@ -126,7 +123,6 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 	sph_blake512_context ctx_blake;
 	sph_bmw512_context ctx_bmw;
 	sph_groestl512_context ctx_groestl;
-	sph_jh512_context ctx_jh;
 	sph_keccak512_context ctx_keccak;
 	sph_skein512_context ctx_skein;
 	sph_luffa512_context ctx_luffa;
@@ -138,7 +134,6 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 	sph_fugue512_context ctx_fugue;
 	sph_shabal512_context ctx_shabal;
 	sph_whirlpool_context ctx_whirlpool;
-	sph_sha256_context ctx_sha;
 	void *in = (void*) input;
 	int size = 80;
 	sph_keccak512_init(&ctx_keccak);
