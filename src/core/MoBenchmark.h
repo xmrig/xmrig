@@ -35,20 +35,36 @@ class Job;
 class MoBenchmark : public IJobResultListener {
 
         const Algorithm::Id bench_algos[15] = {
+#           ifdef XMRIG_ALGO_GHOSTRIDER
             Algorithm::FLEX_KCN,
             Algorithm::GHOSTRIDER_RTM,
+#           endif
             Algorithm::CN_R,
+#           ifdef XMRIG_ALGO_CN_LITE
             Algorithm::CN_LITE_1,
+#           endif
+#           ifdef XMRIG_ALGO_CN_HEAVY
             Algorithm::CN_HEAVY_XHV,
+#           endif
+#           ifdef XMRIG_ALGO_CN_PICO
             Algorithm::CN_PICO_0,
+#           endif
             Algorithm::CN_CCX,
+#           ifdef XMRIG_ALGO_CN_GPU
             Algorithm::CN_GPU,
+#           endif
+#           ifdef XMRIG_ALGO_ARGON2
             Algorithm::AR2_CHUKWA_V2,
+#           endif
+#           ifdef XMRIG_ALGO_KAWPOW
             Algorithm::KAWPOW_RVN,
+#           endif
+#           ifdef XMRIG_ALGO_RANDOMX
             Algorithm::RX_0,
             Algorithm::RX_GRAFT,
             Algorithm::RX_ARQ,
             Algorithm::RX_XLA,
+#           endif
             Algorithm::INVALID
         };
 

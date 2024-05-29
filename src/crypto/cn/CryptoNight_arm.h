@@ -63,8 +63,13 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
     xmr_skein(input, output);
 }
 
+static inline void do_flex_skein_hash(const uint8_t* input, size_t len, uint8_t* output) {
+    int r = skein_hash(512, input, 8 * len, (uint8_t*)output);
+    assert(SKEIN_SUCCESS == r);
+}
 
 void (* const extra_hashes[4])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_jh_hash, do_skein_hash};
+void (* const extra_hashes_flex[3])(const uint8_t *, size_t, uint8_t *) = {do_blake_hash, do_groestl_hash, do_flex_skein_hash};
 
 
 // This will shift and xor tmp1 into itself as 4 32-bit vals such as
@@ -543,7 +548,10 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
     cn_implode_scratchpad<ALGO, SOFT_AES>(reinterpret_cast<const __m128i *>(ctx[0]->memory), reinterpret_cast<__m128i *>(ctx[0]->state));
     keccakf(h0, 24);
-    extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
+    if (height == 101) // Flex algo ugly hack
+      extra_hashes_flex[ctx[0]->state[0] & 2](ctx[0]->state, 200, output);
+    else
+      extra_hashes[ctx[0]->state[0] & 3](ctx[0]->state, 200, output);
 }
 
 

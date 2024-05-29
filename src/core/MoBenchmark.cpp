@@ -56,6 +56,7 @@ void MoBenchmark::finish() {
     LOG_INFO("%s " BRIGHT_BLACK_BG(CYAN_BOLD_S " ALGO PERFORMANCE CALIBRATION COMPLETE "), Tags::benchmark());
     m_controller->miner()->pause(); // do not compute anything before job from the pool
     JobResults::stop();
+    JobResults::setListener(m_controller->network(), m_controller->config()->cpu().isHwAES());
     m_controller->start();
 }
 
@@ -67,6 +68,7 @@ rapidjson::Value MoBenchmark::toJSON(rapidjson::Document &doc) const
     Value obj(kObjectType);
 
     for (const Algorithm a : Algorithm::all()) {
+        if (algo_perf[a.id()] == 0.0f) continue;
         obj.AddMember(StringRef(a.name()), algo_perf[a.id()], allocator);
     }
 
@@ -118,10 +120,16 @@ double MoBenchmark::get_algo_perf(Algorithm::Id algo) const {
         case Algorithm::CN_RWZ:          return algo_perf[Algorithm::CN_R] / 3 * 4;
         case Algorithm::CN_ZLS:          return algo_perf[Algorithm::CN_R] / 3 * 4;
         case Algorithm::CN_DOUBLE:       return algo_perf[Algorithm::CN_R] / 2;
+#       ifdef XMRIG_ALGO_CN_LITE
         case Algorithm::CN_LITE_0:       return algo_perf[Algorithm::CN_LITE_1];
+#       endif
+#       ifdef XMRIG_ALGO_CN_PICO
         case Algorithm::CN_PICO_TLO:     return algo_perf[Algorithm::CN_PICO_0];
+#       endif
+#       ifdef XMRIG_ALGO_RANDOMX
         case Algorithm::RX_SFX:          return algo_perf[Algorithm::RX_0];
         case Algorithm::RX_XEQ:          return algo_perf[Algorithm::RX_ARQ];
+#       endif
         default:                         return algo_perf[algo];
     }
 }
@@ -147,17 +155,21 @@ void MoBenchmark::start() {
     m_bench_job = Job(false, Algorithm(bench_algos[m_bench_algo]), "benchmark");
     m_bench_job.setId(algo.name()); // need to set different id so that workers will see job change
     switch (algo.id()) {
+#     ifdef XMRIG_ALGO_KAWPOW
       case Algorithm::KAWPOW_RVN:
           m_bench_job.setBlob("4c38e8a5f7b2944d1e4274635d828519b97bc64a1f1c7896ecdbb139989aa0e80000000000000000000000000000000000000000000000000000000000000000000000000000000000000000");
           m_bench_job.setDiff(Job::toDiff(strtoull("000000639c000000", nullptr, 16)));
           m_bench_job.setHeight(1500000);
           break;
+#     endif
 
+#     ifdef XMRIG_ALGO_GHOSTRIDER
       case Algorithm::GHOSTRIDER_RTM:
       case Algorithm::FLEX_KCN:
           m_bench_job.setBlob("000000208c246d0b90c3b389c4086e8b672ee040d64db5b9648527133e217fbfa48da64c0f3c0a0b0e8350800568b40fbb323ac3ccdf2965de51b9aaeb939b4f11ff81c49b74a16156ff251c00000000");
           m_bench_job.setDiff(1000);
           break;
+#     endif
 
       default:
           // 99 here to trigger all future bench_algo versions for auto veriant detection based on block version
@@ -215,11 +227,15 @@ void MoBenchmark::onJobResult(const JobResult& result) {
             if (!(hashrate = t[1]))
                 if (!(hashrate = t[0]))
                     hashrate = static_cast<double>(m_hash_count) * result.diff / (now - m_bench_start) * 1000.0f;
+#       ifdef XMRIG_ALGO_KAWPOW
         if (algo.id() == Algorithm::KAWPOW_RVN) hashrate /= ((double)0xFFFFFFFFFFFFFFFF) / 0xFF000000;
+#       endif
         algo_perf[algo.id()] = hashrate; // store hashrate result
         LOG_INFO("%s " BRIGHT_BLACK_BG(WHITE_BOLD_S " Algo " MAGENTA_BOLD_S "%s" WHITE_BOLD_S " hashrate: " CYAN_BOLD_S "%f "), Tags::benchmark(), algo.name(), hashrate);
         run_next_bench_algo();
-    } else switch (algo.id()) { // Update GhostRider algo job to produce more accurate perf results
+    }
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    else switch (algo.id()) { // Update GhostRider algo job to produce more accurate perf results
         case Algorithm::GHOSTRIDER_RTM: {
             uint8_t* blob = m_bench_job.blob();
             ++ *reinterpret_cast<uint32_t*>(blob+4);
@@ -228,6 +244,7 @@ void MoBenchmark::onJobResult(const JobResult& result) {
         }
         default:;
     }
+#   endif
 }
 
 uint64_t MoBenchmark::get_now() const { // get current time in ms
