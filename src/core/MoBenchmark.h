@@ -35,16 +35,9 @@ class Job;
 class MoBenchmark : public IJobResultListener {
 
         const Algorithm::Id bench_algos[15] = {
-#           ifdef XMRIG_ALGO_GHOSTRIDER
-            Algorithm::FLEX_KCN,
-            Algorithm::GHOSTRIDER_RTM,
-#           endif
             Algorithm::CN_R,
 #           ifdef XMRIG_ALGO_CN_LITE
             Algorithm::CN_LITE_1,
-#           endif
-#           ifdef XMRIG_ALGO_CN_HEAVY
-            Algorithm::CN_HEAVY_XHV,
 #           endif
 #           ifdef XMRIG_ALGO_CN_PICO
             Algorithm::CN_PICO_0,
@@ -58,6 +51,15 @@ class MoBenchmark : public IJobResultListener {
 #           endif
 #           ifdef XMRIG_ALGO_KAWPOW
             Algorithm::KAWPOW_RVN,
+#           endif
+            // below here use prefetch-disabled MSR setup, keep them grouped
+            // so MSR setting doesn't have to flip back and forth
+#           ifdef XMRIG_ALGO_GHOSTRIDER
+            Algorithm::FLEX_KCN,
+            Algorithm::GHOSTRIDER_RTM,
+#           endif
+#           ifdef XMRIG_ALGO_CN_HEAVY
+            Algorithm::CN_HEAVY_XHV,
 #           endif
 #           ifdef XMRIG_ALGO_RANDOMX
             Algorithm::RX_0,
