@@ -46,7 +46,7 @@ public:
         MODE_POOL,
         MODE_DAEMON,
         MODE_SELF_SELECT,
-#       ifdef XMRIG_ALGO_KAWPOW
+#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
         MODE_AUTO_ETH,
 #       endif
 #       ifdef XMRIG_FEATURE_BENCHMARK
@@ -155,7 +155,7 @@ private:
     bool m_submitToOrigin           = false;
     Coin m_coin;
     int m_keepAlive                 = 0;
-#   ifdef XMRIG_ALGO_KAWPOW
+#   if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
     Mode m_mode                     = MODE_AUTO_ETH;
 #   else
     Mode m_mode                     = MODE_POOL;
