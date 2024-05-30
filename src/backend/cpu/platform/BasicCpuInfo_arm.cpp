@@ -102,8 +102,9 @@ const char *xmrig::BasicCpuInfo::backend() const
 xmrig::CpuThreads xmrig::BasicCpuInfo::threads(const Algorithm &algorithm, uint32_t) const
 {
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (algorithm.family() == Algorithm::GHOSTRIDER) {
-        return CpuThreads(threads(), 8);
+    switch (algorithm.id()) {
+        case Algorithm::GHOSTRIDER_RTM: return CpuThreads(threads(), 8);
+        case Algorithm::FLEX_KCN:       return CpuThreads(threads(), 1);
     }
 #   endif
 

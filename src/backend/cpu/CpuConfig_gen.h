@@ -177,8 +177,8 @@ template<>
 size_t inline generate<Algorithm::GHOSTRIDER>(Threads<CpuThreads>& threads, uint32_t limit)
 {
     size_t count = 0;
-    count += generate(Algorithm::kGHOSTRIDER, threads, Algorithm::GHOSTRIDER_RTM, limit);
-    count += generate(Algorithm::kFLEX, threads, Algorithm::FLEX_KCN, limit);
+    count += threads.move(Algorithm::kGHOSTRIDER, std::move(Cpu::info()->threads(Algorithm::GHOSTRIDER_RTM, limit)));
+    count += threads.move(Algorithm::kFLEX, std::move(Cpu::info()->threads(Algorithm::FLEX_KCN, limit)));
     return count;
 }
 #endif
