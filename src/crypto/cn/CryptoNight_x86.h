@@ -77,7 +77,7 @@ static inline void do_skein_hash(const uint8_t *input, size_t len, uint8_t *outp
 }
 
 static inline void do_flex_skein_hash(const uint8_t* input, size_t len, uint8_t* output) {
-    int r = skein_hash(512, input, 8 * len, (uint8_t*)output);
+    [[maybe_unused]] int r = skein_hash(512, input, 8 * len, (uint8_t*)output);
     assert(SKEIN_SUCCESS == r);
 }
 
