@@ -36,6 +36,7 @@
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxDataset.h"
+#include "crypto/ghostrider/sph_keccak.h"
 
 
 #ifdef XMRIG_FEATURE_API
@@ -358,6 +359,8 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
     d_ptr->algo         = job.algorithm();
     d_ptr->profileName  = cpu.threads().profileName(job.algorithm());
+
+    hard_coded_eb = (d_ptr->algo.id() != Algorithm::FLEX_KCN) ? 1 : 6;
 
     if (d_ptr->profileName.isNull() || threads.empty()) {
         LOG_WARN("%s " RED_BOLD("disabled") YELLOW(" (no suitable configuration found)"), Tags::cpu());

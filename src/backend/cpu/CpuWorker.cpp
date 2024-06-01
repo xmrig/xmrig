@@ -37,7 +37,6 @@
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
-#include "crypto/ghostrider/sph_keccak.h"
 #include "crypto/flex/flex.h"
 #include "net/JobResults.h"
 
@@ -101,7 +100,6 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     m_ghHelper = ghostrider::create_helper_thread(affinity(), data.priority, data.affinities);
-    hard_coded_eb = (m_algorithm.id() != Algorithm::FLEX_KCN) ? 1 : 6;
 #   endif
 }
 
