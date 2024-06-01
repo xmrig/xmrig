@@ -43,7 +43,7 @@ extern "C" {
 // Taken from keccak-gate.h
 extern int flex_hard_coded_eb;
 
-#include "sph_types.h"
+#include "../ghostrider/sph_types.h"
 #include <stddef.h>
 
 /**
