@@ -12,7 +12,6 @@ extern "C" {
 #include "../ghostrider/sph_bmw.h"
 #include "../ghostrider/sph_groestl.h"
 #include "../ghostrider/sph_jh.h"
-#include "../ghostrider/sph_keccak.h"
 #include "../ghostrider/sph_skein.h"
 #include "../ghostrider/sph_luffa.h"
 #include "../ghostrider/sph_cubehash.h"
@@ -24,6 +23,7 @@ extern "C" {
 #include "../ghostrider/sph_shabal.h"
 #include "../ghostrider/sph_whirlpool.h"
 #include "../ghostrider/sph_sha2.h"
+#include "./flex_keccak.h"
 }
 #include <stdio.h>
 
@@ -137,9 +137,9 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 	sph_whirlpool_context ctx_whirlpool;
 	void *in = (void*) input;
 	int size = 80;
-	sph_keccak512_init(&ctx_keccak);
-	sph_keccak512(&ctx_keccak, in, size);
-	sph_keccak512_close(&ctx_keccak, hash);
+	flex_keccak512_init(&ctx_keccak);
+	flex_keccak512(&ctx_keccak, in, size);
+	flex_keccak512_close(&ctx_keccak, hash);
 	uint8_t selectedAlgoOutput[15] = {0};
 	uint8_t selectedCNAlgoOutput[14] = {0};
 	getAlgoString(&hash, 64, selectedAlgoOutput, 14);
@@ -234,9 +234,9 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 				sph_groestl512_close(&ctx_groestl, hash);
 				break;
 		case KECCAK:
-				sph_keccak512_init(&ctx_keccak);
-				sph_keccak512(&ctx_keccak, in, size);
-				sph_keccak512_close(&ctx_keccak, hash);
+				flex_keccak512_init(&ctx_keccak);
+				flex_keccak512(&ctx_keccak, in, size);
+				flex_keccak512_close(&ctx_keccak, hash);
 				break;
 		case SKEIN:
 				sph_skein512_init(&ctx_skein);
@@ -292,8 +292,8 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 		in = (void*) hash;
 		size = 64;
 	}
-	sph_keccak256_init(&ctx_keccak);
-	sph_keccak256(&ctx_keccak, in, size);
-	sph_keccak256_close(&ctx_keccak, hash);
+	flex_keccak256_init(&ctx_keccak);
+	flex_keccak256(&ctx_keccak, in, size);
+	flex_keccak256_close(&ctx_keccak, hash);
 	memcpy(output, hash, 32);
 }

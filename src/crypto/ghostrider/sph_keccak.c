@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 // Taken from keccak-gate.c
-int hard_coded_eb = 1;
+static const int hard_coded_eb = 1;
 
 /*
  * Parameters:

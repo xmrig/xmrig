@@ -40,9 +40,6 @@
 extern "C" {
 #endif
 
-// Taken from keccak-gate.h
-extern int hard_coded_eb;
-
 #include "sph_types.h"
 #include <stddef.h>
 

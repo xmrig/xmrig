@@ -39,7 +39,7 @@ extern "C" {
 #endif
 
 // Taken from keccak-gate.c
-int flex_hard_coded_eb = 6;
+static const int flex_hard_coded_eb = 6;
 
 /*
  * Parameters:

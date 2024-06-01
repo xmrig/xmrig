@@ -40,9 +40,6 @@
 extern "C" {
 #endif
 
-// Taken from keccak-gate.h
-extern int flex_hard_coded_eb;
-
 #include "../ghostrider/sph_types.h"
 #include <stddef.h>
 
