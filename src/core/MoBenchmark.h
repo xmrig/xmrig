@@ -55,8 +55,8 @@ class MoBenchmark : public IJobResultListener {
             // below here use prefetch-disabled MSR setup, keep them grouped
             // so MSR setting doesn't have to flip back and forth
 #           ifdef XMRIG_ALGO_GHOSTRIDER
-            Algorithm::FLEX_KCN,
             Algorithm::GHOSTRIDER_RTM,
+            Algorithm::FLEX_KCN,
 #           endif
 #           ifdef XMRIG_ALGO_CN_HEAVY
             Algorithm::CN_HEAVY_XHV,
