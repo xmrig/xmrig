@@ -44,7 +44,7 @@ public:
 
 private:
     bool m_ipv6     = false;
-    uint32_t m_ttl  = 30U;
+    uint32_t m_ttl  = 300U;
 };
 
 
