@@ -87,27 +87,27 @@ typedef struct {
     sph_u32 narrow[50];
   } u;
 #endif
-} flex_keccak_context;
+} sph_keccak_context;
 
 /**
  * Type for a Keccak-224 context (identical to the common context).
  */
-typedef flex_keccak_context flex_keccak224_context;
+typedef flex_keccak_context sph_keccak224_context;
 
 /**
  * Type for a Keccak-256 context (identical to the common context).
  */
-typedef flex_keccak_context flex_keccak256_context;
+typedef flex_keccak_context sph_keccak256_context;
 
 /**
  * Type for a Keccak-384 context (identical to the common context).
  */
-typedef flex_keccak_context flex_keccak384_context;
+typedef flex_keccak_context sph_keccak384_context;
 
 /**
  * Type for a Keccak-512 context (identical to the common context).
  */
-typedef flex_keccak_context flex_keccak512_context;
+typedef flex_keccak_context sph_keccak512_context;
 
 /**
  * Initialize a Keccak-224 context. This process performs no memory allocation.
