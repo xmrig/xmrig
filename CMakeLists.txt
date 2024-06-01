@@ -132,6 +132,7 @@ set(SOURCES_CRYPTO
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
     src/crypto/flex/flex.cpp
+    src/crypto/flex/flex_keccak.c
    )
 
 if (WITH_MO_BENCHMARK)
