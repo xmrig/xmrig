@@ -120,7 +120,7 @@ void SwapBytes(void *pv, unsigned int n)
 }
 
 void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
-	uint32_t hash[64/4], hash2[64/4];
+	uint32_t hash[64/4];
 	sph_blake512_context ctx_blake;
 	sph_bmw512_context ctx_bmw;
 	sph_groestl512_context ctx_groestl;
@@ -289,8 +289,7 @@ void flex_hash(const char* input, char* output, cryptonight_ctx** ctx) {
 				sph_whirlpool_close(&ctx_whirlpool, hash);
 				break;
 		}
-                memcpy(hash2, hash, 64);
-		in = (void*) hash2;
+		in = (void*) hash;
 		size = 64;
 	}
 	sph_keccak256_init(&ctx_keccak);
