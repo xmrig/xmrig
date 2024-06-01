@@ -60,7 +60,7 @@ static inline const std::string &usage()
 #   endif
 
     u += "      --dns-ipv6                prefer IPv6 records from DNS responses\n";
-    u += "      --dns-ttl=N               N seconds (default: 30) TTL for internal DNS cache\n";
+    u += "      --dns-ttl=N               N seconds (default: 300) TTL for internal DNS cache\n";
 
 #   ifdef XMRIG_FEATURE_HTTP
     u += "      --daemon                  use daemon RPC instead of pool for solo mining\n";
