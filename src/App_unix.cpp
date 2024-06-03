@@ -27,6 +27,7 @@
 #include <csignal>
 #include <cerrno>
 #include <unistd.h>
+#include <uv.h>
 
 
 #include "App.h"
@@ -52,6 +53,8 @@ bool xmrig::App::background(int &rc)
 
         return true;
     }
+
+    uv_loop_fork(uv_default_loop());
 
     i = setsid();
 
