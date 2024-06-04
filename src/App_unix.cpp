@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <cstdlib>
 #include <csignal>
@@ -53,15 +52,8 @@ bool xmrig::App::background(int &rc)
         return true;
     }
 
-    i = setsid();
-
-    if (i < 0) {
+    if (setsid() < 0) {
         LOG_ERR("setsid() failed (errno = %d)", errno);
-    }
-
-    i = chdir("/");
-    if (i < 0) {
-        LOG_ERR("chdir() failed (errno = %d)", errno);
     }
 
     return false;
