@@ -33,6 +33,7 @@
 
 
 #include <memory>
+#include <uv.h>
 
 
 namespace xmrig {
