@@ -61,12 +61,12 @@ int xmrig::App::exec()
         return 2;
     }
 
-    m_signals = std::make_shared<Signals>(this);
-
     int rc = 0;
     if (background(rc)) {
         return rc;
     }
+
+    m_signals = std::make_shared<Signals>(this);
 
     rc = m_controller->init();
     if (rc != 0) {
