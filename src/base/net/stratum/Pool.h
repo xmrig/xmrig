@@ -155,11 +155,7 @@ private:
     bool m_submitToOrigin           = false;
     Coin m_coin;
     int m_keepAlive                 = 0;
-#   if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
-    Mode m_mode                     = MODE_AUTO_ETH;
-#   else
     Mode m_mode                     = MODE_POOL;
-#   endif
     ProxyUrl m_proxy;
     std::bitset<FLAG_MAX> m_flags   = 0;
     String m_fingerprint;

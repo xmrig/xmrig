@@ -36,6 +36,7 @@
 
 #ifdef XMRIG_ALGO_GHOSTRIDER
 #include <cmath>
+#include "base/crypto/sha3.h"
 
 extern "C" {
 #include "crypto/ghostrider/sph_sha2.h"
@@ -307,18 +308,47 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
                 }
             }
 
-            sha256d(merkle_root, buf.data(), static_cast<int>(buf.size()));
-
-            auto merkle_branches = arr[4].GetArray();
-            for (int i = 0, n = merkle_branches.Size(); i < n; ++i) {
-                auto& b = merkle_branches[i];
-                buf = b.IsString() ? Cvt::fromHex(b.GetString(), b.GetStringLength()) : Buffer();
-                if (buf.size() != 32) {
-                    LOG_ERR("%s " RED("invalid mining.notify notification: param 4 is invalid"), tag());
-                    return;
-                }
-                memcpy(merkle_root + 32, buf.data(), 32);
-                sha256d(merkle_root, merkle_root, 64);
+            if (algo.id() == Algorithm::GHOSTRIDER_RTM) {
+              sha256d(merkle_root, buf.data(), static_cast<int>(buf.size()));
+              auto merkle_branches = arr[4].GetArray();
+              for (int i = 0, n = merkle_branches.Size(); i < n; ++i) {
+                  auto& b = merkle_branches[i];
+                  buf = b.IsString() ? Cvt::fromHex(b.GetString(), b.GetStringLength()) : Buffer();
+                  if (buf.size() != 32) {
+                      LOG_ERR("%s " RED("invalid mining.notify notification: param 4 is invalid"), tag());
+                      return;
+                  }
+                  memcpy(merkle_root + 32, buf.data(), 32);
+                  sha256d(merkle_root, merkle_root, 64);
+              }
+            } else {
+              #define SHA3_256(a, b, c) sha3_HashBuffer(256, SHA3_FLAGS_NONE, b, c, a, 32)
+              auto merkle_branches = arr[4].GetArray();
+              int length = merkle_branches.Size() + 1;
+              uint8_t* merkle_tree = new uint8_t[32*length];
+              SHA3_256(merkle_tree, buf.data(), static_cast<int>(buf.size()));
+              SHA3_256(merkle_tree, merkle_tree, 32);
+              for (int i = 1; i < length; ++i) {
+                  auto& b = merkle_branches[i-1];
+                  buf = b.IsString() ? Cvt::fromHex(b.GetString(), b.GetStringLength()) : Buffer();
+                  if (buf.size() != 32) {
+                      LOG_ERR("%s " RED("invalid mining.notify notification: param 4 is invalid"), tag());
+                      delete [] merkle_tree;
+                      return;
+                  }
+                  memcpy(merkle_tree + 32*i, buf.data(), 32);
+              }
+              while (length > 1) {
+                  int j = 0;
+                  for (int i = 0; i < length; i += 2, ++j) {
+                      memcpy(merkle_root, merkle_tree + 32*i, 32);
+                      memcpy(merkle_root + 32, merkle_tree + 32*(i + 1 == length ? i : i+1), 32);
+                      sha256d(merkle_tree + 32*j, merkle_root, 64);
+                  }
+                  length = j;
+              }
+              memcpy(merkle_root, merkle_tree, 32);
+              delete [] merkle_tree;
             }
 
             s << Cvt::toHex(merkle_root, 32);
