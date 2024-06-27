@@ -23,7 +23,6 @@
 #include "base/crypto/keccak.h"
 #include "base/tools/cryptonote/BlobReader.h"
 #include "base/tools/Cvt.h"
-#include "base/io/log/Log.h"
 
 
 void xmrig::BlockTemplate::calculateMinerTxHash(const uint8_t *prefix_begin, const uint8_t *prefix_end, uint8_t *hash)
@@ -348,8 +347,6 @@ bool xmrig::BlockTemplate::parse(bool hashes)
       uint8_t tx_type;
       ar(tx_type);
 
-      const char * tx_type_strings[] = {"UNSET", "MINER", "PROTOCOL", "TRANSFER", "CONVERT", "BURN", "STAKE", "RETURN"};
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%s"), "TX Type ", tx_type_strings[tx_type]);
       if (tx_type != 1) {
         return false;
       }
@@ -464,15 +461,6 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         return false;
       }
 
-      const char * tx_type_strings[] = {"UNSET", "MINER", "PROTOCOL", "TRANSFER", "CONVERT", "BURN", "STAKE", "RETURN"};
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Version ", protocol_tx_version);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Unlock Time ", protocol_tx_unlock_time);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Num Inputs ", protocol_tx_num_inputs);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Input Type ", protocol_input_type);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Num Outputs ", protocol_num_outputs);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Protocol TX Extra Size ", protocol_extra_size);
-      Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%s"), "Protocol TX Type ", tx_type_strings[protocol_tx_type]);
-
       setOffset(PROTOCOL_TX_PREFIX_END_OFFSET, ar.index());
       // Prefix end
 
@@ -497,8 +485,6 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     // Other transaction hashes
     ar(m_numHashes);
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%s") WHITE_BOLD("%d"), "Num TX hashes ", m_numHashes);
-    
     if (hashes) {
         if (m_coin == Coin::SALVIUM) {
 
