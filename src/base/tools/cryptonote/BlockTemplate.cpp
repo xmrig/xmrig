@@ -427,6 +427,10 @@ bool xmrig::BlockTemplate::parse(bool hashes)
       ar(protocol_num_outputs);
       
       for (size_t protocol_output_idx=0; protocol_output_idx<protocol_num_outputs; ++protocol_output_idx) {
+
+        uint64_t out_amount;
+        ar(out_amount);
+        
         uint8_t out_type;
         ar(out_type);
         
