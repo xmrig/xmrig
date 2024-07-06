@@ -67,7 +67,7 @@ void xmrig::BlockTemplate::calculateMerkleTreeHash()
 {
     m_minerTxMerkleTreeBranch.clear();
 
-    const uint64_t count = m_numHashes + 1;
+    const uint64_t count = m_numHashes + ((m_coin == Coin::SALVIUM) ? 2 : 1);
     const uint8_t *h = m_hashes.data();
 
     if (count == 1) {
@@ -169,7 +169,7 @@ void xmrig::BlockTemplate::generateHashingBlob(Buffer &out) const
     out.assign(m_blob.begin(), m_blob.begin() + offset(MINER_TX_PREFIX_OFFSET));
     out.insert(out.end(), m_rootHash, m_rootHash + kHashSize);
 
-    uint64_t k = m_numHashes + 1;
+    uint64_t k = m_numHashes + ((m_coin == Coin::SALVIUM) ? 2 : 1);
     while (k >= 0x80) {
         out.emplace_back((static_cast<uint8_t>(k) & 0x7F) | 0x80);
         k >>= 7;
@@ -250,7 +250,20 @@ bool xmrig::BlockTemplate::parse(bool hashes)
 
     ar(m_ephPublicKey, kKeySize);
 
-    if (m_coin == Coin::ZEPHYR) {
+    if (m_coin == Coin::SALVIUM) {
+
+      uint8_t asset_type_len;
+      ar(asset_type_len);
+      ar.skip(asset_type_len);
+      
+      uint64_t output_unlock_time;
+      ar(output_unlock_time);
+      
+      if (m_outputType == 3) {
+        ar(m_viewTag);
+      }
+        
+    } else if (m_coin == Coin::ZEPHYR) {
         if (m_outputType != 2) {
             return false;
         }
@@ -329,7 +342,19 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         }
     }
 
-    if (m_coin == Coin::ZEPHYR) {
+    if (m_coin == Coin::SALVIUM) {
+
+      uint8_t tx_type;
+      ar(tx_type);
+
+      if (tx_type != 1) {
+        return false;
+      }
+
+      uint64_t amount_burnt;
+      ar(amount_burnt);
+
+    } else if (m_coin == Coin::ZEPHYR) {
         uint64_t pricing_record_height, amount_burnt, amount_minted;
         ar(pricing_record_height);
         ar(amount_burnt);
@@ -361,19 +386,134 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         return false;
     }
 
+    if (m_coin == Coin::SALVIUM) {
+
+      // Protocol transaction begin
+      // Prefix begin
+      setOffset(PROTOCOL_TX_PREFIX_OFFSET, ar.index());
+
+      // Parse/skip the protocol_tx
+      uint64_t protocol_tx_version, protocol_tx_unlock_time, protocol_tx_num_inputs;
+      ar(protocol_tx_version);
+      if (protocol_tx_version != 2) {
+        return false;
+      }
+
+      ar(protocol_tx_unlock_time);
+      ar(protocol_tx_num_inputs);
+
+      // must be 1 input
+      if (protocol_tx_num_inputs != 1) {
+        return false;
+      }
+
+      uint8_t protocol_input_type;
+      ar(protocol_input_type);
+
+      // input type must be txin_gen (0xFF)
+      if (protocol_input_type != 0xFF) {
+        return false;
+      }
+
+      uint64_t protocol_height;
+      ar(protocol_height);
+
+      // height must match miner_tx
+      if (protocol_height != m_height) {
+        return false;
+      }
+
+      uint64_t protocol_num_outputs;
+      ar(protocol_num_outputs);
+      
+      for (size_t protocol_output_idx=0; protocol_output_idx<protocol_num_outputs; ++protocol_output_idx) {
+
+        uint64_t out_amount;
+        ar(out_amount);
+        
+        uint8_t out_type;
+        ar(out_type);
+        
+        // output type must be txout_to_key (2) or txout_to_tagged_key (3)
+        if ((out_type != 2) && (out_type != 3)) {
+          return false;
+        }
+        
+        Span out_pubkey;
+        ar(out_pubkey, kKeySize);
+
+        uint64_t out_at_len;
+        ar(out_at_len);
+        ar.skip(out_at_len);
+      
+        uint64_t out_unlock;
+        ar(out_unlock);
+      
+        if (out_type == 3) {
+          uint8_t out_vt;
+          ar(out_vt);
+        }
+      }
+
+      uint64_t protocol_extra_size;
+      ar(protocol_extra_size);
+      ar.skip(protocol_extra_size);
+
+      uint8_t protocol_tx_type;
+      ar(protocol_tx_type);
+      if (protocol_tx_type != 2) {
+        return false;
+      }
+
+      setOffset(PROTOCOL_TX_PREFIX_END_OFFSET, ar.index());
+      // Prefix end
+
+      // RCT signatures (empty in protocol transaction)
+      uint8_t protocol_rct_type = 0;
+      ar(protocol_rct_type);
+
+      // must be RCTTypeNull (0)
+      if (protocol_rct_type != 0) {
+        return false;
+      }
+
+      const size_t protocol_tx_end = ar.index();
+      // Protocol transaction end
+
+      // Protocol transaction must have exactly 1 byte with value 0 after the prefix
+      if ((protocol_tx_end != offset(PROTOCOL_TX_PREFIX_END_OFFSET) + 1) || (*blob(PROTOCOL_TX_PREFIX_END_OFFSET) != 0)) {
+        return false;
+      }
+    }
+
     // Other transaction hashes
     ar(m_numHashes);
 
     if (hashes) {
-        m_hashes.resize((m_numHashes + 1) * kHashSize);
-        calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), m_hashes.data());
+        if (m_coin == Coin::SALVIUM) {
 
-        for (uint64_t i = 1; i <= m_numHashes; ++i) {
+          m_hashes.resize((m_numHashes + 2) * kHashSize);
+          // Miner TX
+          calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), m_hashes.data());
+          // Protocol TX
+          calculateMinerTxHash(blob(PROTOCOL_TX_PREFIX_OFFSET), blob(PROTOCOL_TX_PREFIX_END_OFFSET), m_hashes.data() + kHashSize);
+
+          for (uint64_t i = 0; i < m_numHashes; ++i) {
+            Span h;
+            ar(h, kHashSize);
+            memcpy(m_hashes.data() + (i+2) * kHashSize, h.data(), kHashSize);
+          }
+        } else {
+          
+          m_hashes.resize((m_numHashes + 1) * kHashSize);
+          calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), m_hashes.data());
+
+          for (uint64_t i = 1; i <= m_numHashes; ++i) {
             Span h;
             ar(h, kHashSize);
             memcpy(m_hashes.data() + i * kHashSize, h.data(), kHashSize);
+          }
         }
-
         calculateMerkleTreeHash();
     }
 
