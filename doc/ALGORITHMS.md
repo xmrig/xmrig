@@ -13,7 +13,6 @@ Option `coin` useful for pools without [algorithm negotiation](https://xmrig.com
 | Name | Memory | Version | Description | Notes |
 |------|--------|---------|-------------|-------|
 | `kawpow` | - | 6.0.0+ | KawPow (Ravencoin) | GPU only |
-| `rx/keva` | 1 MB | 5.9.0+ | RandomKEVA (RandomX variant for Keva). |  |
 | `astrobwt` | 20 MB | 5.8.0+ | AstroBWT (Dero). |  |
 | `cn-pico/tlo` | 256 KB | 5.5.0+ | CryptoNight-Pico (Talleo). |  |
 | `rx/sfx` | 2 MB | 5.4.0+ | RandomSFX (RandomX variant for Safex). |  |

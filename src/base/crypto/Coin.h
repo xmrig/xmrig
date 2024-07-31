@@ -36,7 +36,6 @@ public:
         SUMO,
         ARQMA,
         GRAFT,
-        KEVA,
         RAVEN,
         WOWNERO,
         ZEPHYR,
