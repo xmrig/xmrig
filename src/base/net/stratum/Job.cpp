@@ -180,7 +180,10 @@ int32_t xmrig::Job::nonceOffset() const
    auto f = algorithm().family();
    if (f == Algorithm::KAWPOW)     return 32;
    if (f == Algorithm::GHOSTRIDER) return 76;
-   if (f == Algorithm::RX_YADA)    return 147;
+
+   auto id = algorithm().id();
+   if (id == Algorithm::RX_YADA)   return 147;
+
    return 39;
 }
 
