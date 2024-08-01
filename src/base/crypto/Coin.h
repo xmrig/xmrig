@@ -40,7 +40,8 @@ public:
         WOWNERO,
         ZEPHYR,
         TOWNFORGE,
-        MAX
+        MAX,
+        YADA,
     };
 
     static const char *kDisabled;
