@@ -69,7 +69,6 @@ struct RandomX_ConfigurationBase
 	{
 		ArgonMemory = 262144,
 		CacheAccesses = 8,
-		SuperscalarLatency = 170,
 		DatasetBaseSize = 2147483648,
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
@@ -82,6 +81,7 @@ struct RandomX_ConfigurationBase
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
+	uint32_t SuperscalarLatency;
 
 	uint32_t ScratchpadL1_Size;
 	uint32_t ScratchpadL2_Size;
