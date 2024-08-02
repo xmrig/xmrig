@@ -126,6 +126,11 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<CpuThreads> &threads, uint32
         count += threads.move(Algorithm::kRX_WOW, std::move(wow));
     }
 
+    if (!threads.isExist(Algorithm::RX_YADA)) {
+        auto yada = cpuInfo->threads(Algorithm::RX_YADA, limit);
+        count += threads.move(Algorithm::kRX_YADA, std::move(yada));
+    }
+
     count += generate(Algorithm::kRX, threads, Algorithm::RX_0, limit);
 
     return count;
