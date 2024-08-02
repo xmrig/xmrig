@@ -94,7 +94,7 @@ static size_t CalcDatasetItemSize()
 		// Main loop prologue
 		((uint8_t*)randomx_calc_dataset_item_aarch64_mix - ((uint8_t*)randomx_calc_dataset_item_aarch64_prefetch)) + 4 +
 		// Inner main loop (instructions)
-		((RandomX_ConfigurationBase::SuperscalarLatency * 3) + 2) * 16 +
+		((RandomX_ConfigurationBase::SuperscalarMaxLatency * 3) + 2) * 16 +
 		// Main loop epilogue
 		((uint8_t*)randomx_calc_dataset_item_aarch64_store_result - (uint8_t*)randomx_calc_dataset_item_aarch64_mix) + 4
 	) +

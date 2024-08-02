@@ -69,6 +69,7 @@ struct RandomX_ConfigurationBase
 	{
 		ArgonMemory = 262144,
 		CacheAccesses = 8,
+		SuperscalarMaxLatency = 170,
 		DatasetBaseSize = 2147483648,
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
