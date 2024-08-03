@@ -52,7 +52,8 @@ public:
         ARCH_ZEN_PLUS,
         ARCH_ZEN2,
         ARCH_ZEN3,
-        ARCH_ZEN4
+        ARCH_ZEN4,
+        ARCH_ZEN5
     };
 
     enum MsrMod : uint32_t {
@@ -60,12 +61,13 @@ public:
         MSR_MOD_RYZEN_17H,
         MSR_MOD_RYZEN_19H,
         MSR_MOD_RYZEN_19H_ZEN4,
+        MSR_MOD_RYZEN_1AH_ZEN5,
         MSR_MOD_INTEL,
         MSR_MOD_CUSTOM,
         MSR_MOD_MAX
     };
 
-#   define MSR_NAMES_LIST "none", "ryzen_17h", "ryzen_19h", "ryzen_19h_zen4", "intel", "custom"
+#   define MSR_NAMES_LIST "none", "ryzen_17h", "ryzen_19h", "ryzen_19h_zen4", "ryzen_1Ah_zen5", "intel", "custom"
 
     enum Flag : uint32_t {
         FLAG_AES,
