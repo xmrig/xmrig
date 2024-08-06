@@ -110,16 +110,12 @@ bool xmrig::Job::setSeedHash(const char *hash)
 
 bool xmrig::Job::setTarget(const char *target)
 {
-    static auto parse = [](const char *target, const Algorithm &algorithm) -> uint64_t {
-        if (!target) {
-            return 0;
-        }
-
+    static auto parse = [](const char *target, size_t size, const Algorithm &algorithm) -> uint64_t {
         if (algorithm == Algorithm::RX_YADA) {
             return strtoull(target, nullptr, 16);
         }
 
-        const auto raw = Cvt::fromHex(target, strlen(target));
+        const auto raw = Cvt::fromHex(target, size);
 
         switch (raw.size()) {
         case 4:
@@ -135,20 +131,45 @@ bool xmrig::Job::setTarget(const char *target)
         return 0;
     };
 
-    if ((m_target = parse(target, algorithm())) == 0) {
+    const size_t size = target ? strlen(target) : 0;
+
+    if (size < 4 || (m_target = parse(target, size, algorithm())) == 0) {
         return false;
     }
 
     m_diff = toDiff(m_target);
 
 #   ifdef XMRIG_PROXY_PROJECT
-    assert(sizeof(m_rawTarget) > (size * 2));
+    if (size >= sizeof(m_rawTarget)) {
+        return false;
+    }
 
     memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, std::min(size * 2, sizeof(m_rawTarget)));
+    memcpy(m_rawTarget, target, size);
 #   endif
 
     return true;
+}
+
+
+size_t xmrig::Job::nonceOffset() const
+{
+    switch (algorithm().family()) {
+    case Algorithm::KAWPOW:
+        return 32;
+
+    case Algorithm::GHOSTRIDER:
+        return 76;
+
+    default:
+        break;
+    }
+
+    if (algorithm() == Algorithm::RX_YADA) {
+        return 147;
+    }
+
+    return 39;
 }
 
 
@@ -181,26 +202,6 @@ void xmrig::Job::setSigKey(const char *sig_key)
 #   endif
 }
 
-
-int32_t xmrig::Job::nonceOffset() const
-{
-    switch (algorithm().family()) {
-    case Algorithm::KAWPOW:
-        return 32;
-
-    case Algorithm::GHOSTRIDER:
-        return 76;
-
-    default:
-        break;
-    }
-
-    if (algorithm() == Algorithm::RX_YADA) {
-        return 147;
-    }
-
-    return 39;
-}
 
 uint32_t xmrig::Job::getNumTransactions() const
 {
