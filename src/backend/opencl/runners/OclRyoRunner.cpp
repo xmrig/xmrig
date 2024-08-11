@@ -67,7 +67,7 @@ size_t xmrig::OclRyoRunner::bufferSize() const
 }
 
 
-void xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void xmrig::OclRyoRunner::run(uint32_t nonce, uint32_t /*nonce_offset*/, uint32_t *hashOutput)
 {
     static const cl_uint zero = 0;
 
