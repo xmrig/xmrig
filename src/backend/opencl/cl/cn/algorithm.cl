@@ -24,8 +24,8 @@
 #define ALGO_RX_ARQ         0x72121061
 #define ALGO_RX_XEQ         0x72121000
 #define ALGO_RX_SFX         0x72151273
-#define ALGO_RX_KEVA        0x7214116b
 #define ALGO_RX_GRAFT       0x72151267
+#define ALGO_RX_YADA        0x72151279
 #define ALGO_AR2_CHUKWA     0x61130000
 #define ALGO_AR2_CHUKWA_V2  0x61140000
 #define ALGO_AR2_WRKZ       0x61120000

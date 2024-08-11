@@ -80,6 +80,7 @@ if (WITH_OPENCL)
     if (WITH_RANDOMX)
         list(APPEND HEADERS_BACKEND_OPENCL
              src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h
+             src/backend/opencl/kernels/rx/Blake2bInitialHashBigKernel.h
              src/backend/opencl/kernels/rx/Blake2bInitialHashDoubleKernel.h
              src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.h
              src/backend/opencl/kernels/rx/ExecuteVmKernel.h
@@ -97,6 +98,7 @@ if (WITH_OPENCL)
         list(APPEND SOURCES_BACKEND_OPENCL
              src/backend/opencl/generators/ocl_generic_rx_generator.cpp
              src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
+             src/backend/opencl/kernels/rx/Blake2bInitialHashBigKernel.cpp
              src/backend/opencl/kernels/rx/Blake2bInitialHashDoubleKernel.cpp
              src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
              src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp

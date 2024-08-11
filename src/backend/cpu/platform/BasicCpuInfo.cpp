@@ -64,7 +64,7 @@ static_assert(kCpuFlagsSize == ICpuInfo::FLAG_MAX, "kCpuFlagsSize and FLAG_MAX m
 
 
 #ifdef XMRIG_FEATURE_MSR
-constexpr size_t kMsrArraySize                                  = 6;
+constexpr size_t kMsrArraySize                                  = 7;
 static const std::array<const char *, kMsrArraySize> msrNames   = { MSR_NAMES_LIST };
 static_assert(kMsrArraySize == ICpuInfo::MSR_MOD_MAX, "kMsrArraySize and MSR_MOD_MAX mismatch");
 #endif
@@ -258,6 +258,11 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                         m_arch = ARCH_ZEN3;
                         m_msrMod = MSR_MOD_RYZEN_19H;
                     }
+                    break;
+
+                case 0x1a:
+                    m_arch = ARCH_ZEN5;
+                    m_msrMod = MSR_MOD_RYZEN_1AH_ZEN5;
                     break;
 
                 default:

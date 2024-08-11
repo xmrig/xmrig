@@ -365,7 +365,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
 
     Job job(has<EXT_NICEHASH>(), m_pool.algorithm(), m_rpcId);
 
-    if (!job.setId(params["job_id"].GetString())) {
+    if (!job.setId(Json::getString(params, "job_id"))) {
         *code = 3;
         return false;
     }
@@ -402,7 +402,7 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         }
     }
 
-    if (!job.setTarget(params["target"].GetString())) {
+    if (!job.setTarget(Json::getString(params, "target"))) {
         *code = 5;
         return false;
     }

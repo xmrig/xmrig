@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,39 +22,29 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <cstdlib>
-#include <csignal>
-#include <cerrno>
-#include <unistd.h>
+#ifndef XMRIG_BLAKE2BINITIALHASHBIGKERNEL_H
+#define XMRIG_BLAKE2BINITIALHASHBIGKERNEL_H
 
 
-#include "App.h"
-#include "base/io/log/Log.h"
-#include "core/Controller.h"
+#include "backend/opencl/wrappers/OclKernel.h"
 
 
-bool xmrig::App::background(int &rc)
+namespace xmrig {
+
+
+class Blake2bInitialHashBigKernel : public OclKernel
 {
-    if (!m_controller->isBackground()) {
-        return false;
-    }
+public:
+    inline Blake2bInitialHashBigKernel(cl_program program) : OclKernel(program, "blake2b_initial_hash_big") {}
 
-    int i = fork();
-    if (i < 0) {
-        rc = 1;
+    void enqueue(cl_command_queue queue, size_t threads);
+    void setArgs(cl_mem out, cl_mem blockTemplate);
+    void setBlobSize(size_t size);
+    void setNonce(uint32_t nonce, uint32_t nonce_offset);
+};
 
-        return true;
-    }
 
-    if (i > 0) {
-        rc = 0;
+} // namespace xmrig
 
-        return true;
-    }
 
-    if (setsid() < 0) {
-        LOG_ERR("setsid() failed (errno = %d)", errno);
-    }
-
-    return false;
-}
+#endif /* XMRIG_BLAKE2BINITIALHASHBIGKERNEL_H */

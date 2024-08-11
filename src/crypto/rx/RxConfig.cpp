@@ -53,13 +53,17 @@ static const std::array<const char *, RxConfig::ModeMax> modeNames = { "auto", "
 
 
 #ifdef XMRIG_FEATURE_MSR
-constexpr size_t kMsrArraySize = 6;
+constexpr size_t kMsrArraySize = 7;
 
 static const std::array<MsrItems, kMsrArraySize> msrPresets = {
     MsrItems(),
     MsrItems{{ 0xC0011020, 0ULL }, { 0xC0011021, 0x40ULL, ~0x20ULL }, { 0xC0011022, 0x1510000ULL }, { 0xC001102b, 0x2000cc16ULL }},
     MsrItems{{ 0xC0011020, 0x0004480000000000ULL }, { 0xC0011021, 0x001c000200000040ULL, ~0x20ULL }, { 0xC0011022, 0xc000000401570000ULL }, { 0xC001102b, 0x2000cc10ULL }},
     MsrItems{{ 0xC0011020, 0x0004400000000000ULL }, { 0xC0011021, 0x0004000000000040ULL, ~0x20ULL }, { 0xC0011022, 0x8680000401570000ULL }, { 0xC001102b, 0x2040cc10ULL }},
+
+    // TODO: Tune it for Zen5 when it's available
+    MsrItems{{ 0xC0011020, 0x0004400000000000ULL }, { 0xC0011021, 0x0004000000000040ULL, ~0x20ULL }, { 0xC0011022, 0x8680000401570000ULL }, { 0xC001102b, 0x2040cc10ULL }},
+
     MsrItems{{ 0x1a4, 0xf }},
     MsrItems()
 };

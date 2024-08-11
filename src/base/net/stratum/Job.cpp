@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -24,10 +24,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <cassert>
 #include <cstring>
-
 
 #include "base/net/stratum/Job.h"
 #include "base/tools/Alignment.h"
@@ -112,32 +110,66 @@ bool xmrig::Job::setSeedHash(const char *hash)
 
 bool xmrig::Job::setTarget(const char *target)
 {
-    if (!target) {
+    static auto parse = [](const char *target, size_t size, const Algorithm &algorithm) -> uint64_t {
+        if (algorithm == Algorithm::RX_YADA) {
+            return strtoull(target, nullptr, 16);
+        }
+
+        const auto raw = Cvt::fromHex(target, size);
+
+        switch (raw.size()) {
+        case 4:
+            return 0xFFFFFFFFFFFFFFFFULL / (0xFFFFFFFFULL / uint64_t(*reinterpret_cast<const uint32_t *>(raw.data())));
+
+        case 8:
+            return *reinterpret_cast<const uint64_t *>(raw.data());
+
+        default:
+            break;
+        }
+
+        return 0;
+    };
+
+    const size_t size = target ? strlen(target) : 0;
+
+    if (size < 4 || (m_target = parse(target, size, algorithm())) == 0) {
         return false;
     }
-
-    const auto raw    = Cvt::fromHex(target, strlen(target));
-    const size_t size = raw.size();
-
-    if (size == 4) {
-        m_target = 0xFFFFFFFFFFFFFFFFULL / (0xFFFFFFFFULL / uint64_t(*reinterpret_cast<const uint32_t *>(raw.data())));
-    }
-    else if (size == 8) {
-        m_target = *reinterpret_cast<const uint64_t *>(raw.data());
-    }
-    else {
-        return false;
-    }
-
-#   ifdef XMRIG_PROXY_PROJECT
-    assert(sizeof(m_rawTarget) > (size * 2));
-
-    memset(m_rawTarget, 0, sizeof(m_rawTarget));
-    memcpy(m_rawTarget, target, std::min(size * 2, sizeof(m_rawTarget)));
-#   endif
 
     m_diff = toDiff(m_target);
+
+#   ifdef XMRIG_PROXY_PROJECT
+    if (size >= sizeof(m_rawTarget)) {
+        return false;
+    }
+
+    memset(m_rawTarget, 0, sizeof(m_rawTarget));
+    memcpy(m_rawTarget, target, size);
+#   endif
+
     return true;
+}
+
+
+size_t xmrig::Job::nonceOffset() const
+{
+    switch (algorithm().family()) {
+    case Algorithm::KAWPOW:
+        return 32;
+
+    case Algorithm::GHOSTRIDER:
+        return 76;
+
+    default:
+        break;
+    }
+
+    if (algorithm() == Algorithm::RX_YADA) {
+        return 147;
+    }
+
+    return 39;
 }
 
 
@@ -170,14 +202,6 @@ void xmrig::Job::setSigKey(const char *sig_key)
 #   endif
 }
 
-
-int32_t xmrig::Job::nonceOffset() const
-{
-   auto f = algorithm().family();
-   if (f == Algorithm::KAWPOW)     return 32;
-   if (f == Algorithm::GHOSTRIDER) return 76;
-   return 39;
-}
 
 uint32_t xmrig::Job::getNumTransactions() const
 {
