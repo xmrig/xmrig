@@ -68,7 +68,6 @@ struct RandomX_ConfigurationBase
 	// Common parameters for all RandomX variants
 	enum Params : uint64_t
 	{
-		SuperscalarLatency = 170,
 		DatasetExtraSize = 33554368,
 		JumpBits = 8,
 		JumpOffset = 8,
@@ -83,6 +82,7 @@ struct RandomX_ConfigurationBase
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
+        uint32_t SuperscalarLatency;
 
 	uint32_t ScratchpadL1_Size;
 	uint32_t ScratchpadL2_Size;
