@@ -83,7 +83,6 @@ struct RandomX_ConfigurationBase
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
-	uint32_t SuperscalarLatency;
 
 	uint32_t ScratchpadL1_Size;
 	uint32_t ScratchpadL2_Size;
