@@ -69,6 +69,7 @@ struct RandomX_ConfigurationBase
 	enum Params : uint64_t
 	{
 		DatasetExtraSize = 33554368,
+		SuperscalarMaxLatency = 170,
 		JumpBits = 8,
 		JumpOffset = 8,
 		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
