@@ -114,7 +114,8 @@ jobs:
     steps:
       - name: Prepare CentOS 7 tools
         run: |
-          sed -i 's/mirror/vault/g' /etc/yum.repos.d/CentOS-Base.repo
+          sed -i 's/mirrorlist/vault/g' /etc/yum.repos.d/CentOS-Base.repo
+          cat /etc/yum.repos.d/*
           yum install -y centos-release-scl epel-release
           yum install -y devtoolset-9
           yum install -y wget git cmake3 automake libtool autoconf libstdc++-static glibc-static perl-IPC-Cmd
