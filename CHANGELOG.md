@@ -1,3 +1,11 @@
+# v6.22.0
+- [#2411](https://github.com/xmrig/xmrig/pull/2411) Added support for [Yada](https://yadacoin.io/) (`rx/yada` algorithm).
+- [#3492](https://github.com/xmrig/xmrig/pull/3492) Fixed `--background` option on Unix systems.
+- [#3518](https://github.com/xmrig/xmrig/pull/3518) Possible fix for corrupted API output in rare cases.
+- [#3522](https://github.com/xmrig/xmrig/pull/3522) Removed `rx/keva` algorithm.
+- [#3525](https://github.com/xmrig/xmrig/pull/3525) Added Zen5 detection.
+- [#3528](https://github.com/xmrig/xmrig/pull/3528) Added `rx/yada` OpenCL support.
+
 # v6.21.3
 - [#3462](https://github.com/xmrig/xmrig/pull/3462) RandomX: correct memcpy size for JIT initialization.
 
