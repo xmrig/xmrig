@@ -136,6 +136,7 @@ jobs:
           echo 'gpgcheck=1'                                                     >>/etc/yum.repos.d/CentOS-Base.repo
           echo 'enabled=0'                                                      >>/etc/yum.repos.d/CentOS-Base.repo
           echo 'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7'            >>/etc/yum.repos.d/CentOS-Base.repo
+          yum clean all
           yum install -y centos-release-scl epel-release
           yum install -y devtoolset-9
           yum install -y wget git cmake3 automake libtool autoconf libstdc++-static glibc-static perl-IPC-Cmd
