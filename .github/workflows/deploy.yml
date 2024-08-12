@@ -112,11 +112,6 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:12.04
     steps:
-      - name: Test
-        run: |
-          env
-          echo xxx ${{ github.ref }} xxx
-          echo git checkout ${GITHUB_REF:10}
       - name: Prepare build tools
         run: |
           sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
@@ -132,7 +127,7 @@ jobs:
       - name: Checkout code
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
-          git checkout ${GITHUB_REF:10}
+          git checkout $GITHUB_REF_NAME
       - name: Build project on Ubuntu 12.04
         run: |
           cd scripts && ./build_deps.sh && cd ..
@@ -163,7 +158,7 @@ jobs:
           prerelease: false
       - name: Set version
         id: version
-        run: echo ::set-output name=VERSION::${GITHUB_REF:10}
+        run: echo ::set-output name=VERSION::$GITHUB_REF_NAME
       - name: Download Windows build artifacts
         uses: actions/download-artifact@v1
         with:
@@ -239,7 +234,7 @@ jobs:
           cp ../windows_build/windows_build.zip xmrig.zip
           unzip xmrig.zip
           zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys
-          git commit -m "xmrig "${GITHUB_REF:10}" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
+          git commit -m "xmrig "$GITHUB_REF_NAME" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
           git push
           cd ..
       - name: Update hiveos repo
@@ -251,9 +246,9 @@ jobs:
           tar xf ../ubuntu12_build/ubuntu12_build.tar.gz
           mv xmrig mo_xmrig/xmrig
           mv config.json mo_xmrig/config_global.json
-          export VER=${GITHUB_REF:10}
+          export VER=$GITHUB_REF_NAME
           export VER=${VER//-/_}
           tar -zcvf mo_xmrig-$VER.tar.gz mo_xmrig
           git add mo_xmrig-$VER.tar.gz mo_xmrig/xmrig mo_xmrig/config_global.json
-          git commit -m "xmrig "${GITHUB_REF:10}" based release" mo_xmrig-$VER.tar.gz
+          git commit -m "xmrig "$GITHUB_REF_NAME" based release" mo_xmrig-$VER.tar.gz
           git push
