@@ -125,6 +125,7 @@ jobs:
           git clone --depth 1 git://sourceware.org/git/binutils-gdb.git
           cd binutils-gdb && git checkout binutils-2_38 && CC=gcc ./configure && make -j$(nproc) && make install && cd ..
       - name: Checkout code
+        run: |
           git clone https://github.com/MoneroOcean/xmrig.git && cd xmrig
           git checkout ${GITHUB_REF:10}
       - name: Build project on Ubuntu 12.04
