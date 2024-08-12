@@ -112,6 +112,12 @@ jobs:
     runs-on: ubuntu-latest
     container: ubuntu:12.04
     steps:
+      - name: Test
+        run: |
+          env
+          echo xxx ${{ github.ref }} xxx
+          echo git checkout ${{GITHUB_REF}}
+          echo git checkout ${GITHUB_REF:10}
       - name: Prepare build tools
         run: |
           sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
