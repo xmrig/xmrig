@@ -576,6 +576,11 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
 #   ifdef XMRIG_ALGO_RANDOMX
     const bool ready = d_ptr->initRX();
+
+    // Always reset nonce on RandomX dataset change
+    if (!ready) {
+        d_ptr->reset = true;
+    }
 #   else
     constexpr const bool ready = true;
 #   endif
