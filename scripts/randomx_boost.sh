@@ -8,7 +8,7 @@ else
 	modprobe msr allow_writes=on
 fi
 
-if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
+if grep -E 'AMD Ryzen|AMD EPYC|AuthenticAMD' /proc/cpuinfo > /dev/null;
 	then
 	if grep "cpu family[[:space:]]\{1,\}:[[:space:]]25" /proc/cpuinfo > /dev/null;
 		then
