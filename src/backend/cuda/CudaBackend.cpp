@@ -452,15 +452,16 @@ void xmrig::CudaBackend::setJob(const Job &job)
 
 void xmrig::CudaBackend::start(IWorker *worker, bool ready)
 {
-    mutex.lock();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
 
-    if (d_ptr->status.started(ready)) {
-        d_ptr->status.print();
+        if (d_ptr->status.started(ready)) {
+            d_ptr->status.print();
 
-        CudaWorker::ready = true;
+            CudaWorker::ready = true;
+        }
+
     }
-
-    mutex.unlock();
 
     if (ready) {
         worker->start();
