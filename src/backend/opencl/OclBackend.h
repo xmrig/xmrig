@@ -70,7 +70,7 @@ protected:
 #   endif
 
 private:
-    OclBackendPrivate *d_ptr;
+    std::shared_ptr<OclBackendPrivate> d_ptr;
 };
 
 

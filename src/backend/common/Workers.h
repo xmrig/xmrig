@@ -52,7 +52,6 @@ public:
     XMRIG_DISABLE_COPY_MOVE(Workers)
 
     Workers();
-    ~Workers();
 
     inline void start(const std::vector<T> &data)   { start(data, true); }
 
@@ -67,20 +66,20 @@ public:
 #   endif
 
 private:
-    static IWorker *create(Thread<T> *handle);
+    static std::shared_ptr<IWorker> create(Thread<T> *handle);
     static void *onReady(void *arg);
 
     void start(const std::vector<T> &data, bool sleep);
 
-    std::vector<Thread<T> *> m_workers;
-    WorkersPrivate *d_ptr;
+    std::vector<std::shared_ptr<Thread<T>>> m_workers;
+    std::shared_ptr<WorkersPrivate> d_ptr;
 };
 
 
 template<class T>
 void xmrig::Workers<T>::jobEarlyNotification(const Job &job)
 {
-    for (Thread<T>* t : m_workers) {
+    for (auto& t : m_workers) {
         if (t->worker()) {
             t->worker()->jobEarlyNotification(job);
         }
@@ -89,20 +88,20 @@ void xmrig::Workers<T>::jobEarlyNotification(const Job &job)
 
 
 template<>
-IWorker *Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
+std::shared_ptr<IWorker> Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle);
 extern template class Workers<CpuLaunchData>;
 
 
 #ifdef XMRIG_FEATURE_OPENCL
 template<>
-IWorker *Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
+std::shared_ptr<IWorker> Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle);
 extern template class Workers<OclLaunchData>;
 #endif
 
 
 #ifdef XMRIG_FEATURE_CUDA
 template<>
-IWorker *Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle);
+std::shared_ptr<IWorker> Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle);
 extern template class Workers<CudaLaunchData>;
 #endif
 

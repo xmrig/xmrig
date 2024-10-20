@@ -65,22 +65,22 @@ public:
         }
     }
 #   else
-    inline ~Thread() { m_thread.join(); delete m_worker; }
+    inline ~Thread() { m_thread.join(); }
 
     inline void start(void *(*callback)(void *))    { m_thread = std::thread(callback, this); }
 #   endif
 
     inline const T &config() const                  { return m_config; }
     inline IBackend *backend() const                { return m_backend; }
-    inline IWorker *worker() const                  { return m_worker; }
+    inline IWorker* worker() const                  { return m_worker.get(); }
     inline size_t id() const                        { return m_id; }
-    inline void setWorker(IWorker *worker)          { m_worker = worker; }
+    inline void setWorker(std::shared_ptr<IWorker> worker) { m_worker = worker; }
 
 private:
     const size_t m_id    = 0;
     const T m_config;
     IBackend *m_backend;
-    IWorker *m_worker       = nullptr;
+    std::shared_ptr<IWorker> m_worker;
 
     #ifdef XMRIG_OS_APPLE
     pthread_t m_thread{};

@@ -46,7 +46,7 @@ protected:
     void init(const RxSeed &seed, uint32_t threads, bool hugePages, bool oneGbPages, RxConfig::Mode mode, int priority) override;
 
 private:
-    RxBasicStoragePrivate *d_ptr;
+    std::shared_ptr<RxBasicStoragePrivate> d_ptr;
 };
 
 

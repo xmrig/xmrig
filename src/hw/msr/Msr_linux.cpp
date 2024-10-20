@@ -72,11 +72,9 @@ private:
     const bool m_available;
 };
 
-
 } // namespace xmrig
 
-
-xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
+xmrig::Msr::Msr() : d_ptr(std::make_shared<MsrPrivate>())
 {
     if (!isAvailable()) {
         LOG_WARN("%s " YELLOW_BOLD("msr kernel module is not available"), tag());
@@ -86,7 +84,6 @@ xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
 
 xmrig::Msr::~Msr()
 {
-    delete d_ptr;
 }
 
 

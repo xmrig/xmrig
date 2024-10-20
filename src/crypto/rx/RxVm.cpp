@@ -25,7 +25,7 @@
 #include "crypto/rx/RxVm.h"
 
 
-randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node)
+std::shared_ptr<randomx_vm> xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node)
 {
     int flags = 0;
 
@@ -46,13 +46,8 @@ randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
         flags |= RANDOMX_FLAG_AMD;
     }
 
-    return randomx_create_vm(static_cast<randomx_flags>(flags), !dataset->get() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
+    return std::shared_ptr<randomx_vm>(randomx_create_vm(
+        static_cast<randomx_flags>(flags), !dataset->get() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node),
+        randomx_destroy_vm);
 }
 
-
-void xmrig::RxVm::destroy(randomx_vm* vm)
-{
-    if (vm) {
-        randomx_destroy_vm(vm);
-    }
-}

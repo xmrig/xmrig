@@ -49,7 +49,7 @@ public:
 
 protected:
     inline bool isActive() const override           { return m_active >= 0; }
-    inline IClient *client() const override         { return isActive() ? active() : m_pools[m_index]; }
+    inline IClient* client() const override         { return isActive() ? active() : m_pools[m_index].get(); }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -67,7 +67,7 @@ protected:
     void onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok) override;
 
 private:
-    inline IClient *active() const { return m_pools[static_cast<size_t>(m_active)]; }
+    inline IClient* active() const { return m_pools[static_cast<size_t>(m_active)].get(); }
 
     const bool m_quiet;
     const int m_retries;
@@ -75,7 +75,7 @@ private:
     int m_active            = -1;
     IStrategyListener *m_listener;
     size_t m_index          = 0;
-    std::vector<IClient*> m_pools;
+    std::vector<std::shared_ptr<IClient>> m_pools;
 };
 
 

@@ -73,7 +73,7 @@ public:
 
     bool isEqual(const Pools &other) const;
     int donateLevel() const;
-    IStrategy *createStrategy(IStrategyListener *listener) const;
+    std::shared_ptr<IStrategy> createStrategy(IStrategyListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     size_t active() const;
     uint32_t benchSize() const;

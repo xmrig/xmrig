@@ -75,13 +75,13 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_pools.emplace_back(kDonateHost, 3333, m_userId, nullptr, nullptr, 0, true, false, mode);
 
     if (m_pools.size() > 1) {
-        m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
+        m_strategy = std::make_shared<FailoverStrategy>(m_pools, 10, 2, this, true);
     }
     else {
-        m_strategy = new SinglePoolStrategy(m_pools.front(), 10, 2, this, true);
+        m_strategy = std::make_shared<SinglePoolStrategy>(m_pools.front(), 10, 2, this, true);
     }
 
-    m_timer = new Timer(this);
+    m_timer = std::make_shared<Timer>(this);
 
     setState(STATE_IDLE);
 }
@@ -89,8 +89,8 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
 
 xmrig::DonateStrategy::~DonateStrategy()
 {
-    delete m_timer;
-    delete m_strategy;
+    m_timer.reset();
+    m_strategy.reset();
 
     if (m_proxy) {
         m_proxy->deleteLater();
@@ -237,7 +237,7 @@ void xmrig::DonateStrategy::onVerifyAlgorithm(const IClient *client, const Algor
 }
 
 
-void xmrig::DonateStrategy::onVerifyAlgorithm(IStrategy *, const  IClient *client, const Algorithm &algorithm, bool *ok)
+void xmrig::DonateStrategy::onVerifyAlgorithm(IStrategy *, const IClient *client, const Algorithm &algorithm, bool *ok)
 {
     m_listener->onVerifyAlgorithm(this, client, algorithm, ok);
 }
@@ -249,7 +249,7 @@ void xmrig::DonateStrategy::onTimer(const Timer *)
 }
 
 
-xmrig::IClient *xmrig::DonateStrategy::createProxy()
+std::shared_ptr<xmrig::IClient> xmrig::DonateStrategy::createProxy()
 {
     if (m_controller->config()->pools().proxyDonate() == Pools::PROXY_DONATE_NONE) {
         return nullptr;
@@ -267,7 +267,7 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     pool.setAlgo(client->pool().algorithm());
     pool.setProxy(client->pool().proxy());
 
-    IClient *proxy = new Client(-1, Platform::userAgent(), this);
+    std::shared_ptr<IClient> proxy = std::make_shared<Client>(-1, Platform::userAgent(), this);
     proxy->setPool(pool);
     proxy->setQuiet(true);
 

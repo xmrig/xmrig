@@ -49,7 +49,7 @@ public:
     void send();
 
 private:
-    AsyncPrivate *d_ptr;
+    std::shared_ptr<AsyncPrivate> d_ptr;
 };
 
 

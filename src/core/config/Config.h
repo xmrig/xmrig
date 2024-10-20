@@ -101,7 +101,7 @@ public:
     void getJSON(rapidjson::Document &doc) const override;
 
 private:
-    ConfigPrivate *d_ptr;
+    std::shared_ptr<ConfigPrivate> d_ptr;
 };
 
 

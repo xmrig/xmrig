@@ -42,14 +42,6 @@ xmrig::NUMAMemoryPool::NUMAMemoryPool(size_t size, bool hugePages) :
 }
 
 
-xmrig::NUMAMemoryPool::~NUMAMemoryPool()
-{
-    for (auto kv : m_map) {
-        delete kv.second;
-    }
-}
-
-
 bool xmrig::NUMAMemoryPool::isHugePages(uint32_t node) const
 {
     if (!m_size) {
@@ -81,7 +73,7 @@ void xmrig::NUMAMemoryPool::release(uint32_t node)
 
 xmrig::IMemoryPool *xmrig::NUMAMemoryPool::get(uint32_t node) const
 {
-    return m_map.count(node) ? m_map.at(node) : nullptr;
+    return m_map.count(node) ? m_map.at(node).get() : nullptr;
 }
 
 
@@ -89,8 +81,9 @@ xmrig::IMemoryPool *xmrig::NUMAMemoryPool::getOrCreate(uint32_t node) const
 {
     auto pool = get(node);
     if (!pool) {
-        pool = new MemoryPool(m_nodeSize, m_hugePages, node);
-        m_map.insert({ node, pool });
+        auto new_pool = std::make_shared<MemoryPool>(m_nodeSize, m_hugePages, node);
+        m_map.emplace(node, new_pool);
+        pool = new_pool.get();
     }
 
     return pool;

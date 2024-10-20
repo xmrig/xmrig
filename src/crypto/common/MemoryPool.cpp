@@ -49,15 +49,9 @@ xmrig::MemoryPool::MemoryPool(size_t size, bool hugePages, uint32_t node)
 
     constexpr size_t alignment = 1 << 24;
 
-    m_memory = new VirtualMemory(size * pageSize + alignment, hugePages, false, false, node);
+    m_memory = std::make_shared<VirtualMemory>(size * pageSize + alignment, hugePages, false, false, node);
 
     m_alignOffset = (alignment - (((size_t)m_memory->scratchpad()) % alignment)) % alignment;
-}
-
-
-xmrig::MemoryPool::~MemoryPool()
-{
-    delete m_memory;
 }
 
 

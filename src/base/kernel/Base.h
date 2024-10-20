@@ -64,7 +64,7 @@ protected:
 #   endif
 
 private:
-    BasePrivate *d_ptr;
+    std::shared_ptr<BasePrivate> d_ptr;
 };
 
 

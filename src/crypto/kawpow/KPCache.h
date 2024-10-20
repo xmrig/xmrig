@@ -41,8 +41,8 @@ public:
 
     XMRIG_DISABLE_COPY_MOVE(KPCache)
 
-    KPCache();
-    ~KPCache();
+    KPCache() = default;
+    ~KPCache() = default;
 
     bool init(uint32_t epoch);
 
@@ -61,7 +61,7 @@ public:
     static KPCache s_cache;
 
 private:
-    VirtualMemory* m_memory = nullptr;
+    std::shared_ptr<VirtualMemory> m_memory;
     size_t m_size = 0;
     uint32_t m_epoch = 0xFFFFFFFFUL;
     std::vector<uint32_t> m_DAGCache;
