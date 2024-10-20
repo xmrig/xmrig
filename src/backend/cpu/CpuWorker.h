@@ -26,6 +26,8 @@
 #include "base/tools/Object.h"
 #include "net/JobResult.h"
 
+#include <unordered_map>
+
 
 #ifdef XMRIG_ALGO_RANDOMX
 class randomx_vm;
@@ -55,7 +57,7 @@ public:
     size_t threads() const override
     {
 #       ifdef XMRIG_ALGO_GHOSTRIDER
-        return ((m_algorithm.family() == Algorithm::GHOSTRIDER) && m_ghHelper) ? 2 : 1;
+        return ((m_algorithm_family == Algorithm::GHOSTRIDER) && m_ghHelper) ? 2 : 1;
 #       else
         return 1;
 #       endif
@@ -71,7 +73,7 @@ protected:
     inline void jobEarlyNotification(const Job&) override   {}
 
 private:
-    inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }
+    cn_hash_fun fn(const Algorithm &algorithm) const;
 
 #   ifdef XMRIG_ALGO_RANDOMX
     void allocateRandomX_VM();
@@ -84,8 +86,10 @@ private:
     void consumeJob();
 
     alignas(8) uint8_t m_hash[N * 32]{ 0 };
-    const Algorithm m_algorithm;
+    const uint32_t m_algorithm_family;
+    const size_t m_algorithm_l3;
     const Assembly m_assembly;
+    std::unordered_map<Algorithm::Id, cn_hash_fun> m_hash_fns;
     const bool m_hwAES;
     const bool m_yield;
     const CnHash::AlgoVariant m_av;

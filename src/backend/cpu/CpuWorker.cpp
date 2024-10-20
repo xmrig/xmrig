@@ -67,7 +67,8 @@ VirtualMemory* cn_heavyZen3Memory = nullptr;
 template<size_t N>
 xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     Worker(id, data.affinity, data.priority),
-    m_algorithm(data.algorithm),
+    m_algorithm_family(data.algorithm.family()),
+    m_algorithm_l3(data.algorithm.l3()),
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
     m_yield(data.yield),
@@ -82,24 +83,29 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     const uint32_t model = Cpu::info()->model();
     const bool is_vermeer = (arch == ICpuInfo::ARCH_ZEN3) && (model == 0x21);
     const bool is_raphael = (arch == ICpuInfo::ARCH_ZEN4) && (model == 0x61);
-    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm.family() == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (is_vermeer || is_raphael)) {
+    if ((N == 1) && (m_av == CnHash::AV_SINGLE) && (m_algorithm_family == Algorithm::CN_HEAVY) && (m_assembly != Assembly::NONE) && (is_vermeer || is_raphael)) {
         std::lock_guard<std::mutex> lock(cn_heavyZen3MemoryMutex);
         if (!cn_heavyZen3Memory) {
             // Round up number of threads to the multiple of 8
             const size_t num_threads = ((m_threads + 7) / 8) * 8;
-            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * num_threads, data.hugePages, false, false, node());
+            cn_heavyZen3Memory = new VirtualMemory(m_algorithm_l3 * num_threads, data.hugePages, false, false, node());
         }
         m_memory = cn_heavyZen3Memory;
     }
     else
 #   endif
     {
-        m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
+        m_memory = new VirtualMemory(m_algorithm_l3 * N, data.hugePages, false, true, node());
     }
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     m_ghHelper = ghostrider::create_helper_thread(affinity(), data.priority, data.affinities);
 #   endif
+
+    std::vector<Algorithm> family = Algorithm::all([this](const Algorithm &algo) -> bool { return m_algorithm_family == algo.family(); });
+    for (auto& algorithm : family) {
+        m_hash_fns.emplace(algorithm.id(), CnHash::fn(algorithm, m_av, m_assembly));
+    }
 }
 
 
@@ -122,6 +128,23 @@ xmrig::CpuWorker<N>::~CpuWorker()
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     ghostrider::destroy_helper_thread(m_ghHelper);
 #   endif
+}
+
+template<size_t N>
+xmrig::cn_hash_fun xmrig::CpuWorker<N>::fn(const Algorithm &algorithm) const {
+#if 1
+    if (!algorithm.isValid()) {
+        return nullptr;
+    }
+
+    const auto it = m_hash_fns.find(algorithm.id());
+    if (it != m_hash_fns.end()) {
+        return it->second;
+    }
+    return nullptr;
+#else
+    return CnHash::fn(algorithm, m_av, m_assembly);
+#endif
 }
 
 
@@ -159,7 +182,7 @@ template<size_t N>
 bool xmrig::CpuWorker<N>::selfTest()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (m_algorithm.family() == Algorithm::RANDOM_X) {
+    if (m_algorithm_family == Algorithm::RANDOM_X) {
         return N == 1;
     }
 #   endif
@@ -167,12 +190,12 @@ bool xmrig::CpuWorker<N>::selfTest()
     allocateCnCtx();
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (m_algorithm.family() == Algorithm::GHOSTRIDER) {
+    if (m_algorithm_family == Algorithm::GHOSTRIDER) {
         return (N == 8) && verify(Algorithm::GHOSTRIDER_RTM, test_output_gr);
     }
 #   endif
 
-    if (m_algorithm.family() == Algorithm::CN) {
+    if (m_algorithm_family == Algorithm::CN) {
         const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
                         verify(Algorithm::CN_1,      test_output_v1)   &&
                         verify(Algorithm::CN_2,      test_output_v2)   &&
@@ -190,14 +213,14 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 
 #   ifdef XMRIG_ALGO_CN_LITE
-    if (m_algorithm.family() == Algorithm::CN_LITE) {
+    if (m_algorithm_family == Algorithm::CN_LITE) {
         return verify(Algorithm::CN_LITE_0,    test_output_v0_lite) &&
                verify(Algorithm::CN_LITE_1,    test_output_v1_lite);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
-    if (m_algorithm.family() == Algorithm::CN_HEAVY) {
+    if (m_algorithm_family == Algorithm::CN_HEAVY) {
         return verify(Algorithm::CN_HEAVY_0,    test_output_v0_heavy)  &&
                verify(Algorithm::CN_HEAVY_XHV,  test_output_xhv_heavy) &&
                verify(Algorithm::CN_HEAVY_TUBE, test_output_tube_heavy);
@@ -205,20 +228,20 @@ bool xmrig::CpuWorker<N>::selfTest()
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_PICO
-    if (m_algorithm.family() == Algorithm::CN_PICO) {
+    if (m_algorithm_family == Algorithm::CN_PICO) {
         return verify(Algorithm::CN_PICO_0, test_output_pico_trtl) &&
                verify(Algorithm::CN_PICO_TLO, test_output_pico_tlo);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_CN_FEMTO
-    if (m_algorithm.family() == Algorithm::CN_FEMTO) {
+    if (m_algorithm_family == Algorithm::CN_FEMTO) {
         return verify(Algorithm::CN_UPX2, test_output_femto_upx2);
     }
 #   endif
 
 #   ifdef XMRIG_ALGO_ARGON2
-    if (m_algorithm.family() == Algorithm::ARGON2) {
+    if (m_algorithm_family == Algorithm::ARGON2) {
         return verify(Algorithm::AR2_CHUKWA, argon2_chukwa_test_out) &&
                verify(Algorithm::AR2_CHUKWA_V2, argon2_chukwa_v2_test_out) &&
                verify(Algorithm::AR2_WRKZ, argon2_wrkz_test_out);
@@ -262,7 +285,7 @@ void xmrig::CpuWorker<N>::start()
         while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
             const Job &job = m_job.currentJob();
 
-            if (job.algorithm().l3() != m_algorithm.l3()) {
+            if (job.algorithm().l3() != m_algorithm_l3) {
                 break;
             }
 
@@ -489,11 +512,11 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
 #       ifdef XMRIG_ALGO_CN_HEAVY
         // cn-heavy optimization for Zen3 CPUs
         if (m_memory == cn_heavyZen3Memory) {
-            shift = (id() / 8) * m_algorithm.l3() * 8 + (id() % 8) * 64;
+            shift = (id() / 8) * m_algorithm_l3 * 8 + (id() % 8) * 64;
         }
 #       endif
 
-        CnCtx::create(m_ctx, m_memory->scratchpad() + shift, m_algorithm.l3(), N);
+        CnCtx::create(m_ctx, m_memory->scratchpad() + shift, m_algorithm_l3, N);
     }
 }
 
