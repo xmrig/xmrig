@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2010, 2012 Université Bordeaux
  * Copyright © 2011-2015 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -287,6 +287,7 @@ static __hwloc_inline int hwloc__check_membind_policy(hwloc_membind_policy_t pol
       || policy == HWLOC_MEMBIND_FIRSTTOUCH
       || policy == HWLOC_MEMBIND_BIND
       || policy == HWLOC_MEMBIND_INTERLEAVE
+      || policy == HWLOC_MEMBIND_WEIGHTED_INTERLEAVE
       || policy == HWLOC_MEMBIND_NEXTTOUCH)
     return 0;
   return -1;

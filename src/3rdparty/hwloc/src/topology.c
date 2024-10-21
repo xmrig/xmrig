@@ -465,6 +465,20 @@ hwloc_debug_print_objects(int indent __hwloc_attribute_unused, hwloc_obj_t obj)
 #define hwloc_debug_print_objects(indent, obj) do { /* nothing */ } while (0)
 #endif /* !HWLOC_DEBUG */
 
+int hwloc_obj_set_subtype(hwloc_topology_t topology __hwloc_attribute_unused, hwloc_obj_t obj, const char *subtype)
+{
+  char *new = NULL;
+  if (subtype) {
+    new = strdup(subtype);
+    if (!new)
+      return -1;
+  }
+  if (obj->subtype)
+    free(obj->subtype);
+  obj->subtype = new;
+  return 0;
+}
+
 void hwloc__free_infos(struct hwloc_info_s *infos, unsigned count)
 {
   unsigned i;

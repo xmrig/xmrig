@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -220,7 +220,7 @@ static void hwloc_win_get_function_ptrs(void)
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-    kernel32 = LoadLibrary("kernel32.dll");
+    kernel32 = LoadLibrary(TEXT("kernel32.dll"));
     if (kernel32) {
       GetActiveProcessorGroupCountProc =
 	(PFN_GETACTIVEPROCESSORGROUPCOUNT) GetProcAddress(kernel32, "GetActiveProcessorGroupCount");
@@ -249,12 +249,12 @@ static void hwloc_win_get_function_ptrs(void)
     }
 
     if (!QueryWorkingSetExProc) {
-      HMODULE psapi = LoadLibrary("psapi.dll");
+      HMODULE psapi = LoadLibrary(TEXT("psapi.dll"));
       if (psapi)
         QueryWorkingSetExProc = (PFN_QUERYWORKINGSETEX) GetProcAddress(psapi, "QueryWorkingSetEx");
     }
 
-    ntdll = GetModuleHandle("ntdll");
+    ntdll = GetModuleHandle(TEXT("ntdll"));
     RtlGetVersionProc = (PFN_RTLGETVERSION) GetProcAddress(ntdll, "RtlGetVersion");
 
 #if HWLOC_HAVE_GCC_W_CAST_FUNCTION_TYPE

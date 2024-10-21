@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2019 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -572,5 +572,36 @@ typedef SSIZE_T ssize_t;
 #    define putenv _putenv
 #  endif
 #endif
+
+static __inline float
+hwloc__pci_link_speed(unsigned generation, unsigned lanes)
+{
+  float lanespeed;
+  /*
+   * These are single-direction bandwidths only.
+   *
+   * Gen1 used NRZ with 8/10 encoding.
+   * PCIe Gen1 = 2.5GT/s signal-rate per lane x 8/10    =  0.25GB/s data-rate per lane
+   * PCIe Gen2 = 5  GT/s signal-rate per lane x 8/10    =  0.5 GB/s data-rate per lane
+   * Gen3 switched to NRZ with 128/130 encoding.
+   * PCIe Gen3 = 8  GT/s signal-rate per lane x 128/130 =  1   GB/s data-rate per lane
+   * PCIe Gen4 = 16 GT/s signal-rate per lane x 128/130 =  2   GB/s data-rate per lane
+   * PCIe Gen5 = 32 GT/s signal-rate per lane x 128/130 =  4   GB/s data-rate per lane
+   * Gen6 switched to PAM with with 242/256 FLIT (242B payload protected by 8B CRC + 6B FEC).
+   * PCIe Gen6 = 64 GT/s signal-rate per lane x 242/256 =  8   GB/s data-rate per lane
+   * PCIe Gen7 = 128GT/s signal-rate per lane x 242/256 = 16   GB/s data-rate per lane
+   */
+
+  /* lanespeed in Gbit/s */
+  if (generation <= 2)
+    lanespeed = 2.5f * generation * 0.8f;
+  else if (generation <= 5)
+    lanespeed = 8.0f * (1<<(generation-3)) * 128/130;
+  else
+    lanespeed = 8.0f * (1<<(generation-3)) * 242/256; /* assume Gen8 will be 256 GT/s and so on */
+
+  /* linkspeed in GB/s */
+  return lanespeed * lanes / 8;
+}
 
 #endif /* HWLOC_PRIVATE_MISC_H */
