@@ -56,13 +56,12 @@ xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientList
     m_listener(listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
-    m_client        = new Client(id, agent, this);
+    m_client        = std::make_shared<Client>(id, agent, this);
 }
 
 
 xmrig::SelfSelectClient::~SelfSelectClient()
 {
-    delete m_client;
 }
 
 

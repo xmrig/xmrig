@@ -67,27 +67,23 @@ xmrig::Network::Network(Controller *controller) :
     controller->api()->addListener(this);
 #   endif
 
-    m_state = new NetworkState(this);
+    m_state = std::make_shared<NetworkState>(this);
 
     const Pools &pools = controller->config()->pools();
-    m_strategy = pools.createStrategy(m_state);
+    m_strategy = pools.createStrategy(m_state.get());
 
     if (pools.donateLevel() > 0) {
-        m_donate = new DonateStrategy(controller, this);
+        m_donate = std::make_shared<DonateStrategy>(controller, this);
     }
 
-    m_timer = new Timer(this, kTickInterval, kTickInterval);
+    static constexpr int kTickInterval = 1 * 1000;
+    m_timer = std::make_shared<Timer>(this, kTickInterval, kTickInterval);
 }
 
 
 xmrig::Network::~Network()
 {
     JobResults::stop();
-
-    delete m_timer;
-    delete m_donate;
-    delete m_strategy;
-    delete m_state;
 }
 
 
@@ -118,7 +114,7 @@ void xmrig::Network::execCommand(char command)
 
 void xmrig::Network::onActive(IStrategy *strategy, IClient *client)
 {
-    if (m_donate && m_donate == strategy) {
+    if (m_donate && m_donate.get() == strategy) {
         LOG_NOTICE("%s " WHITE_BOLD("dev donate started"), Tags::network());
         return;
     }
@@ -157,19 +153,18 @@ void xmrig::Network::onConfigChanged(Config *config, Config *previousConfig)
 
     config->pools().print();
 
-    delete m_strategy;
-    m_strategy = config->pools().createStrategy(m_state);
+    m_strategy = config->pools().createStrategy(m_state.get());
     connect();
 }
 
 
 void xmrig::Network::onJob(IStrategy *strategy, IClient *client, const Job &job, const rapidjson::Value &)
 {
-    if (m_donate && m_donate->isActive() && m_donate != strategy) {
+    if (m_donate && m_donate->isActive() && m_donate.get() != strategy) {
         return;
     }
 
-    setJob(client, job, m_donate == strategy);
+    setJob(client, job, m_donate.get() == strategy);
 }
 
 
@@ -210,7 +205,7 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
 
 void xmrig::Network::onPause(IStrategy *strategy)
 {
-    if (m_donate && m_donate == strategy) {
+    if (m_donate && m_donate.get() == strategy) {
         LOG_NOTICE("%s " WHITE_BOLD("dev donate finished"), Tags::network());
         m_strategy->resume();
     }
@@ -292,7 +287,7 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
     }
 
     if (!donate && m_donate) {
-        static_cast<DonateStrategy *>(m_donate)->update(client, job);
+        static_cast<DonateStrategy &>(*m_donate).update(client, job);
     }
 
     m_controller->miner()->setJob(job, donate);

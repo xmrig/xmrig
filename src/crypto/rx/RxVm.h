@@ -38,8 +38,7 @@ class RxDataset;
 class RxVm
 {
 public:
-    static randomx_vm *create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node);
-    static void destroy(randomx_vm *vm);
+    static std::shared_ptr<randomx_vm> create(RxDataset *dataset, uint8_t *scratchpad, bool softAes, const Assembly &assembly, uint32_t node);
 };
 
 

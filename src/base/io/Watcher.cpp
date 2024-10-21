@@ -36,7 +36,7 @@ xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
     m_listener(listener),
     m_path(path)
 {
-    m_timer = new Timer(this);
+    m_timer = std::make_shared<Timer>(this);
 
     m_fsEvent = new uv_fs_event_t;
     m_fsEvent->data = this;
@@ -48,8 +48,6 @@ xmrig::Watcher::Watcher(const String &path, IWatcherListener *listener) :
 
 xmrig::Watcher::~Watcher()
 {
-    delete m_timer;
-
     Handle::close(m_fsEvent);
 }
 

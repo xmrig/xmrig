@@ -127,7 +127,7 @@ public:
 
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
-    IClient *createClient(int id, IClientListener *listener) const;
+    std::shared_ptr<IClient> createClient(int id, IClientListener *listener) const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
     std::string printableName() const;
 

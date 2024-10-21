@@ -283,7 +283,7 @@ const char *xmrig::ocl_tag()
 
 
 xmrig::OclBackend::OclBackend(Controller *controller) :
-    d_ptr(new OclBackendPrivate(controller))
+    d_ptr(std::make_shared<OclBackendPrivate>(controller))
 {
     d_ptr->workers.setBackend(this);
 }
@@ -291,7 +291,7 @@ xmrig::OclBackend::OclBackend(Controller *controller) :
 
 xmrig::OclBackend::~OclBackend()
 {
-    delete d_ptr;
+    d_ptr.reset();
 
     OclLib::close();
 

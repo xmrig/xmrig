@@ -49,8 +49,6 @@ xmrig::RxQueue::~RxQueue()
     m_cv.notify_one();
 
     m_thread.join();
-
-    delete m_storage;
 }
 
 
@@ -90,12 +88,12 @@ void xmrig::RxQueue::enqueue(const RxSeed &seed, const std::vector<uint32_t> &no
     if (!m_storage) {
 #       ifdef XMRIG_FEATURE_HWLOC
         if (!nodeset.empty()) {
-            m_storage = new RxNUMAStorage(nodeset);
+            m_storage = std::make_shared<RxNUMAStorage>(nodeset);
         }
         else
 #       endif
         {
-            m_storage = new RxBasicStorage();
+            m_storage = std::make_shared<RxBasicStorage>();
         }
     }
 

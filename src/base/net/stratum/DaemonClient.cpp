@@ -87,14 +87,13 @@ xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
     BaseClient(id, listener)
 {
     m_httpListener  = std::make_shared<HttpListener>(this);
-    m_timer         = new Timer(this);
+    m_timer         = std::make_shared<Timer>(this);
     m_key           = m_storage.add(this);
 }
 
 
 xmrig::DaemonClient::~DaemonClient()
 {
-    delete m_timer;
     delete m_ZMQSocket;
 }
 
@@ -103,9 +102,6 @@ void xmrig::DaemonClient::deleteLater()
 {
     if (m_pool.zmq_port() >= 0) {
         ZMQClose(true);
-    }
-    else {
-        delete this;
     }
 }
 
