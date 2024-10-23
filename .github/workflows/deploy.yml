@@ -22,7 +22,7 @@ jobs:
           copy bin\WinRing0\WinRing0x64.sys .
           7z a -tzip -mx windows_build.zip xmrig.exe config.json WinRing0x64.sys
       - name: Upload Windows build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: windows_build
           path: windows_build.zip
@@ -44,7 +44,7 @@ jobs:
           cp src/config.json .
           tar cfz ubuntu_build.tar.gz xmrig config.json
       - name: Upload Ubuntu build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu_build
           path: ubuntu_build.tar.gz
@@ -73,7 +73,7 @@ jobs:
           cp src/config.json .
           tar cfz macos_build.tar.gz xmrig config.json
       - name: Upload MacOS build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: macos_build
           path: macos_build.tar.gz
@@ -102,7 +102,7 @@ jobs:
           cp src/config.json .
           tar cfz macos_build_intel.tar.gz xmrig config.json
       - name: Upload MacOS build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: macos_build_intel
           path: macos_build_intel.tar.gz
@@ -136,7 +136,7 @@ jobs:
           cp src/config.json .
           tar cfz ubuntu12_build.tar.gz xmrig config.json
       - name: Upload Ubuntu 12.04 build artifacts
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu12_build
           path: ubuntu12_build.tar.gz
