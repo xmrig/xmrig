@@ -108,14 +108,13 @@ jobs:
           path: macos_build_intel.tar.gz
 
   build_lin_ub12:
-    name: Build Ubuntu 14.10 artifacts
+    name: Build Ubuntu 12.04 artifacts
     runs-on: ubuntu-latest
-    container: ubuntu:14.10
+    container: ubuntu:12.04
     steps:
       - name: Prepare build tools
         run: |
           sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
-          cat /etc/apt/sources.list
           apt-get update
           apt-get install -y python-software-properties
           add-apt-repository -y ppa:ubuntu-toolchain-r/test
@@ -129,21 +128,40 @@ jobs:
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout $GITHUB_REF_NAME
-      - name: Build project on Ubuntu 14.10
+      - name: Create cache for artifacts
+        uses: actions/cache@v4
+        with:
+          path: artifacts
+          key: artifacts-key
+      - name: Build project on Ubuntu 12.04
         run: |
           cd scripts && ./build_deps.sh && cd ..
           /opt/cmake-3.27.9-linux-x86_64/bin/cmake . -DXMRIG_DEPS=scripts/deps
           make -j$(nproc)
           cp src/config.json .
-          tar cfz ubuntu12_build.tar.gz xmrig config.json
-      - name: Upload Ubuntu 14.10 build artifacts
+          mkdir artifacts
+          tar cfz artifacts/ubuntu12_build.tar.gz xmrig config.json
+
+  build_lin_ub12_upload:
+    name: Upload Ubuntu 12.04 artifacts
+    runs-on: ubuntu-latest
+    needs:
+      - build_lin_ub12
+    steps:
+      - name: Restore cached artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: artifacts
+          key: artifacts-key
+      - name: Upload Ubuntu 12.04 build artifacts
+        working-directory: artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu12_build
           path: ubuntu12_build.tar.gz
 
   deploy:
-    needs: [build_win, build_lin, build_macos, build_macos_intel, build_lin_ub12]
+    needs: [build_win, build_lin, build_macos, build_macos_intel, build_lin_ub12_upload]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
@@ -161,23 +179,23 @@ jobs:
         id: version
         run: echo ::set-output name=VERSION::$GITHUB_REF_NAME
       - name: Download Windows build artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: windows_build
       - name: Download Ubuntu build artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: ubuntu_build
       - name: Download MacOS build artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: macos_build
       - name: Download MacOS (Intel) build artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: macos_build_intel
-      - name: Download Ubuntu 14.10 build artifacts
-        uses: actions/download-artifact@v1
+      - name: Download Ubuntu 12.04 build artifacts
+        uses: actions/download-artifact@v4
         with:
           name: ubuntu12_build
       - name: Upload Windows build release asset
@@ -216,7 +234,7 @@ jobs:
           asset_path: macos_build_intel/macos_build_intel.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac-intel.tar.gz
           asset_content_type: application/zip
-      - name: Upload Ubuntu 14.10 build release asset
+      - name: Upload Ubuntu 12.04 build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
