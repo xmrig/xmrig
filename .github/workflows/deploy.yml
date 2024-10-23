@@ -127,10 +127,11 @@ jobs:
           git clone --depth 1 git://sourceware.org/git/binutils-gdb.git /tmp/binutils-gdb
           (cd /tmp/binutils-gdb && git checkout binutils-2_38 && CC=gcc ./configure && make -j$(nproc) && make install)
 
-          git clone https://github.com/MoneroOcean/xmrig.git .
+          git clone https://github.com/MoneroOcean/xmrig.git
+          cd xmrig
           git checkout $GITHUB_REF_NAME
 
-          cd scripts && ./build_deps.sh && cd ..
+          (cd scripts && ./build_deps.sh && cd ..)
           /opt/cmake-3.27.9-linux-x86_64/bin/cmake . -DXMRIG_DEPS=scripts/deps
           make -j$(nproc)
           cp src/config.json .
