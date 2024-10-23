@@ -115,6 +115,7 @@ jobs:
       - name: Prepare build tools
         run: |
           #sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+          cat /etc/apt/sources.list
           apt-get update
           apt-get install -y python-software-properties
           add-apt-repository -y ppa:ubuntu-toolchain-r/test
