@@ -110,10 +110,12 @@ jobs:
   build_lin_ub12:
     name: Build Ubuntu 12.04 artifacts
     runs-on: ubuntu-latest
-    container: ubuntu:12.04
     steps:
-      - name: Prepare build tools
+      - name: Run build inside docker
         run: |
+          mkdir /tmp/docker
+          (cat <<EOF
+          set -x
           sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
           apt-get update
           apt-get install -y python-software-properties
@@ -124,43 +126,25 @@ jobs:
           curl -sSL https://cmake.org/files/v3.27/cmake-3.27.9-linux-x86_64.tar.gz | tar -xzC /opt
           git clone --depth 1 git://sourceware.org/git/binutils-gdb.git /tmp/binutils-gdb
           (cd /tmp/binutils-gdb && git checkout binutils-2_38 && CC=gcc ./configure && make -j$(nproc) && make install)
-      - name: Checkout code
-        run: |
+
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout $GITHUB_REF_NAME
-      - name: Create cache for artifacts
-        uses: actions/cache@v1
-        with:
-          path: artifacts
-          key: artifacts-key
-      - name: Build project on Ubuntu 12.04
-        run: |
+
           cd scripts && ./build_deps.sh && cd ..
           /opt/cmake-3.27.9-linux-x86_64/bin/cmake . -DXMRIG_DEPS=scripts/deps
           make -j$(nproc)
           cp src/config.json .
-          mkdir artifacts
-          tar cfz artifacts/ubuntu12_build.tar.gz xmrig config.json
-
-  build_lin_ub12_upload:
-    name: Upload Ubuntu 12.04 artifacts
-    runs-on: ubuntu-latest
-    needs:
-      - build_lin_ub12
-    steps:
-      - name: Restore cached artifacts
-        uses: actions/cache/restore@v1
-        with:
-          path: artifacts
-          key: artifacts-key
+          tar cfz /tmp/docker/ubuntu12_build.tar.gz xmrig config.json
+          EOF
+          ) | docker run -i ubuntu:12.04 -v /tmp/docker:/tmp/docker /bin/bash -c 'cat'
       - name: Upload Ubuntu 12.04 build artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu12_build
-          path: artifacts/ubuntu12_build.tar.gz
+          path: /tmp/docker/ubuntu12_build.tar.gz
 
   deploy:
-    needs: [build_win, build_lin, build_macos, build_macos_intel, build_lin_ub12_upload]
+    needs: [build_win, build_lin, build_macos, build_macos_intel, build_lin_ub12]
     name: Create release and upload artifacts
     runs-on: ubuntu-latest
     steps:
