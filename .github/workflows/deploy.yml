@@ -198,7 +198,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ubuntu_build/ubuntu_build.tar.gz
+          asset_path: ubuntu_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64.tar.gz
           asset_content_type: application/zip
       - name: Upload MacOS build release asset
@@ -207,7 +207,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: macos_build/macos_build.tar.gz
+          asset_path: macos_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac64.tar.gz
           asset_content_type: application/zip
       - name: Upload MacOS (Intel) build release asset
@@ -216,7 +216,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: macos_build_intel/macos_build_intel.tar.gz
+          asset_path: macos_build_intel.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac-intel.tar.gz
           asset_content_type: application/zip
       - name: Upload Ubuntu 12.04 build release asset
@@ -225,7 +225,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ubuntu12_build/ubuntu12_build.tar.gz
+          asset_path: ubuntu12_build.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-lin64-compat.tar.gz
           asset_content_type: application/zip
       - name: Update xmrig_setup repo
@@ -234,8 +234,8 @@ jobs:
           cd xmrig_setup
           git config user.name  MoneroOcean
           git config user.email support@moneroocean.stream
-          cp ../ubuntu12_build/ubuntu12_build.tar.gz xmrig.tar.gz
-          cp ../windows_build/windows_build.zip xmrig.zip
+          cp ../ubuntu12_build.tar.gz xmrig.tar.gz
+          cp ../windows_build.zip xmrig.zip
           unzip xmrig.zip
           zip -u offline_miner_setup.zip xmrig.exe config.json WinRing0x64.sys
           git commit -m "xmrig "$GITHUB_REF_NAME" based release" xmrig.tar.gz xmrig.zip offline_miner_setup.zip
@@ -247,7 +247,7 @@ jobs:
           cd hiveos
           git config user.name  MoneroOcean
           git config user.email support@moneroocean.stream
-          tar xf ../ubuntu12_build/ubuntu12_build.tar.gz
+          tar xf ../ubuntu12_build.tar.gz
           mv xmrig mo_xmrig/xmrig
           mv config.json mo_xmrig/config_global.json
           export VER=$GITHUB_REF_NAME
