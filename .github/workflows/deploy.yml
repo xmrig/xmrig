@@ -136,6 +136,7 @@ jobs:
           cp src/config.json .
           tar cfz /tmp/docker/ubuntu12_build.tar.gz xmrig config.json
           EOF
+          chmod +x /tmp/docker/script.sh
           docker run -i -v /tmp/docker:/tmp/docker ubuntu:12.04 /bin/bash -c /tmp/docker/script.sh
       - name: Upload Ubuntu 12.04 build artifacts
         uses: actions/upload-artifact@v4
