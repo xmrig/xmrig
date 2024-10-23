@@ -136,7 +136,7 @@ jobs:
           cp src/config.json .
           tar cfz ubuntu12_build.tar.gz xmrig config.json
       - name: Upload Ubuntu 12.04 build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: ubuntu12_build
           path: ubuntu12_build.tar.gz
