@@ -129,7 +129,7 @@ jobs:
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout $GITHUB_REF_NAME
       - name: Create cache for artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v1
         with:
           path: artifacts
           key: artifacts-key
@@ -149,7 +149,7 @@ jobs:
       - build_lin_ub12
     steps:
       - name: Restore cached artifacts
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v1
         with:
           path: artifacts
           key: artifacts-key
