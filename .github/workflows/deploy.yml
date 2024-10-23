@@ -108,9 +108,9 @@ jobs:
           path: macos_build_intel.tar.gz
 
   build_lin_ub12:
-    name: Build Ubuntu 12.04 artifacts
+    name: Build Ubuntu 14.04 artifacts
     runs-on: ubuntu-latest
-    container: ubuntu:12.04
+    container: ubuntu:14.04
     steps:
       - name: Prepare build tools
         run: |
@@ -128,15 +128,15 @@ jobs:
         run: |
           git clone https://github.com/MoneroOcean/xmrig.git .
           git checkout $GITHUB_REF_NAME
-      - name: Build project on Ubuntu 12.04
+      - name: Build project on Ubuntu 14.04
         run: |
           cd scripts && ./build_deps.sh && cd ..
           /opt/cmake-3.27.9-linux-x86_64/bin/cmake . -DXMRIG_DEPS=scripts/deps
           make -j$(nproc)
           cp src/config.json .
           tar cfz ubuntu12_build.tar.gz xmrig config.json
-      - name: Upload Ubuntu 12.04 build artifacts
-        uses: actions/upload-artifact@v3
+      - name: Upload Ubuntu 14.04 build artifacts
+        uses: actions/upload-artifact@v4
         with:
           name: ubuntu12_build
           path: ubuntu12_build.tar.gz
@@ -175,7 +175,7 @@ jobs:
         uses: actions/download-artifact@v1
         with:
           name: macos_build_intel
-      - name: Download Ubuntu 12.04 build artifacts
+      - name: Download Ubuntu 14.04 build artifacts
         uses: actions/download-artifact@v1
         with:
           name: ubuntu12_build
@@ -215,7 +215,7 @@ jobs:
           asset_path: macos_build_intel/macos_build_intel.tar.gz
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-mac-intel.tar.gz
           asset_content_type: application/zip
-      - name: Upload Ubuntu 12.04 build release asset
+      - name: Upload Ubuntu 14.04 build release asset
         uses: actions/upload-release-asset@v1.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
