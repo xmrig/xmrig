@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
- * Copyright © 2010-2022 Inria.  All rights reserved.
+ * Copyright © 2010-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -210,6 +210,7 @@ extern "C" {
 
 #define hwloc_obj_get_info_by_name HWLOC_NAME(obj_get_info_by_name)
 #define hwloc_obj_add_info HWLOC_NAME(obj_add_info)
+#define hwloc_obj_set_subtype HWLOC_NAME(obj_set_subtype)
 
 #define HWLOC_CPUBIND_PROCESS HWLOC_NAME_CAPS(CPUBIND_PROCESS)
 #define HWLOC_CPUBIND_THREAD HWLOC_NAME_CAPS(CPUBIND_THREAD)
@@ -232,6 +233,7 @@ extern "C" {
 #define HWLOC_MEMBIND_FIRSTTOUCH HWLOC_NAME_CAPS(MEMBIND_FIRSTTOUCH)
 #define HWLOC_MEMBIND_BIND HWLOC_NAME_CAPS(MEMBIND_BIND)
 #define HWLOC_MEMBIND_INTERLEAVE HWLOC_NAME_CAPS(MEMBIND_INTERLEAVE)
+#define HWLOC_MEMBIND_WEIGHTED_INTERLEAVE HWLOC_NAME_CAPS(MEMBIND_WEIGHTED_INTERLEAVE)
 #define HWLOC_MEMBIND_NEXTTOUCH HWLOC_NAME_CAPS(MEMBIND_NEXTTOUCH)
 #define HWLOC_MEMBIND_MIXED HWLOC_NAME_CAPS(MEMBIND_MIXED)
 
@@ -560,6 +562,7 @@ extern "C" {
 
 /* opencl.h */
 
+#define hwloc_cl_device_pci_bus_info_khr HWLOC_NAME(cl_device_pci_bus_info_khr)
 #define hwloc_cl_device_topology_amd HWLOC_NAME(cl_device_topology_amd)
 #define hwloc_opencl_get_device_pci_busid HWLOC_NAME(opencl_get_device_pci_ids)
 #define hwloc_opencl_get_device_cpuset HWLOC_NAME(opencl_get_device_cpuset)
@@ -714,6 +717,8 @@ extern "C" {
 #define hwloc__obj_type_is_cache HWLOC_NAME(_obj_type_is_cache)
 #define hwloc__obj_type_is_dcache HWLOC_NAME(_obj_type_is_dcache)
 #define hwloc__obj_type_is_icache HWLOC_NAME(_obj_type_is_icache)
+
+#define hwloc__pci_link_speed HWLOC_NAME(_pci_link_speed)
 
 /* private/cpuid-x86.h */
 

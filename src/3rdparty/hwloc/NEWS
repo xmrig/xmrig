@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2023 Inria.  All rights reserved.
+Copyright © 2009-2024 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -15,6 +15,71 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.11.2
+--------------
+* Add missing CPU info attrs on aarch64 on Linux.
+* Use ACPI CPPC on Linux to get better information about cpukinds,
+  at least on AMD CPUs.
+* Fix crash when manipulating cpukinds after topology
+  duplication, thanks to Hadrien Grasland for the report.
+* Fix missing input target checks in memattr functions,
+  thanks to Hadrien Grasland for the report.
+* Fix a memory leak when ignoring NUMA distances on FreeBSD.
+* Fix build failure on old Linux distributions without accessat().
+* Fix non-Windows importing of XML topologies and CPUID dumps exported
+  on Windows.
+* hwloc-calc --cpuset-output-format systemd-dbus-api now allows
+  to generate AllowedCPUs information for systemd slices.
+  See the hwloc-calc manpage for examples. Thanks to Pierre Neyron.
+* Some fixes in manpage EXAMPLES and split them into subsections.
+
+
+Version 2.11.1
+--------------
+* Fix bash completions, thanks Tavis Rudd.
+
+
+Version 2.11.0
+--------------
+* API
+  + Add HWLOC_MEMBIND_WEIGHTED_INTERLEAVE memory binding policy on
+    Linux 6.9+. Thanks to Honggyu Kim for the patch.
+    - weighted_interleave_membind is added to membind support bits.
+    - The "weighted" policy is added to the hwloc-bind tool.
+  + Add hwloc_obj_set_subtype(). Thanks to Hadrien Grasland for the report.
+* GPU support
+  + Don't hide the GPU NUMA node on NVIDIA Grace Hopper.
+  + Get Intel GPU OpenCL device locality.
+  + Add bandwidths between subdevices in the LevelZero XeLinkBandwidth
+    matrix.
+  + Fix PCI Gen4+ link speed of NVIDIA GPU obtained from NVML,
+    thanks to Akram Sbaih for the report.
+* Windows support
+  + Fix Windows support when UNICODE is enabled, several hwloc features
+    were missing, thanks to Martin for the report.
+  + Fix the enabling of CUDA in Windows CMake build,
+    Thanks to Moritz Kreutzer for the patch.
+  + Fix CUDA/OpenCL test source path in Windows CMake.
+* Tools
+  + Option --best-memattr may now return multiple nodes. Additional
+    configuration flags may be given to tweak its behavior.
+  + hwloc-info has a new --get-attr option to get a single attribute.
+  + hwloc-info now supports "levels", "support" and "topology"
+    special keywords for backward compatibility for hwloc 3.0.
+  + The --taskset command-line option is superseded by the new
+    --cpuset-output-format which also allows to export as list.
+  + hwloc-calc may now import bitmasks described as a list of bits
+    with the new "--cpuset-input-format list".
+* Misc
+  + The MemoryTiersNr info attribute in the root object now says how many
+    memory tiers were built. Thanks to Antoine Morvan for the report.
+  + Fix the management of infinite cpusets in the bitmap printf/sscanf
+    API as well as in command-line tools.
+  + Add section "Compiling software on top of hwloc's C API" in the
+    documentation with examples for GNU Make and CMake,
+    thanks to Florent Pruvost for the help.
 
 
 Version 2.10.0

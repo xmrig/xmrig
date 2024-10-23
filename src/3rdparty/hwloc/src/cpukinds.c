@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2022 Inria.  All rights reserved.
+ * Copyright © 2020-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -50,6 +50,7 @@ hwloc_internal_cpukinds_dup(hwloc_topology_t new, hwloc_topology_t old)
     return -1;
   new->cpukinds = kinds;
   new->nr_cpukinds = old->nr_cpukinds;
+  new->nr_cpukinds_allocated = old->nr_cpukinds;
   memcpy(kinds, old->cpukinds, old->nr_cpukinds * sizeof(*kinds));
 
   for(i=0;i<old->nr_cpukinds; i++) {
