@@ -113,6 +113,7 @@ jobs:
     steps:
       - name: Run build inside docker
         run: |
+          set -x
           mkdir /tmp/docker
           (cat <<EOF
           set -x
