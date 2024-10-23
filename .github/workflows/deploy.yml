@@ -113,9 +113,8 @@ jobs:
     steps:
       - name: Run build inside docker
         run: |
-          set -x
           mkdir /tmp/docker
-          (cat <<EOF
+          cat >/tmp/docker/script.sh <<EOF
           set -x
           sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
           apt-get update
@@ -137,7 +136,7 @@ jobs:
           cp src/config.json .
           tar cfz /tmp/docker/ubuntu12_build.tar.gz xmrig config.json
           EOF
-          ) | docker run -i -v /tmp/docker:/tmp/docker ubuntu:12.04 /bin/bash -c 'cat'
+          docker run -i -v /tmp/docker:/tmp/docker ubuntu:12.04 /bin/bash -c /tmp/docker/script.sh
       - name: Upload Ubuntu 12.04 build artifacts
         uses: actions/upload-artifact@v4
         with:
