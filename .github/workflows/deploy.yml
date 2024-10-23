@@ -154,11 +154,10 @@ jobs:
           path: artifacts
           key: artifacts-key
       - name: Upload Ubuntu 12.04 build artifacts
-        working-directory: artifacts
         uses: actions/upload-artifact@v4
         with:
           name: ubuntu12_build
-          path: ubuntu12_build.tar.gz
+          path: artifacts/ubuntu12_build.tar.gz
 
   deploy:
     needs: [build_win, build_lin, build_macos, build_macos_intel, build_lin_ub12_upload]
