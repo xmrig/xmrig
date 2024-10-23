@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Inria.  All rights reserved.
+ * Copyright © 2010-2024 Inria.  All rights reserved.
  * Copyright © 2011-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -624,8 +624,8 @@ void * hwloc_distances_add_create(hwloc_topology_t topology,
     return NULL;
   }
   if ((kind & ~HWLOC_DISTANCES_KIND_ALL)
-      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_FROM_ALL) != 1
-      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_MEANS_ALL) != 1) {
+      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_FROM_ALL) > 1
+      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_MEANS_ALL) > 1) {
     errno = EINVAL;
     return NULL;
   }

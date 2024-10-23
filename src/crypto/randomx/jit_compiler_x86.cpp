@@ -267,8 +267,8 @@ namespace randomx {
 						initDatasetAVX2 = false;
 						break;
 					case xmrig::ICpuInfo::ARCH_ZEN5:
-						// TODO: test it
-						initDatasetAVX2 = false;
+						// AVX2 init is 49% faster on Zen5
+						initDatasetAVX2 = true;
 						break;
 					}
 				}

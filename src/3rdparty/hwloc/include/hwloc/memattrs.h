@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2023 Inria.  All rights reserved.
+ * Copyright © 2019-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -69,7 +69,10 @@ extern "C" {
  * @{
  */
 
-/** \brief Memory node attributes. */
+/** \brief Predefined memory attribute IDs.
+ * See ::hwloc_memattr_id_t for the generic definition of IDs
+ * for predefined or custom attributes.
+ */
 enum hwloc_memattr_id_e {
   /** \brief
    * The \"Capacity\" is returned in bytes (local_memory attribute in objects).
@@ -78,6 +81,8 @@ enum hwloc_memattr_id_e {
    *
    * No initiator is involved when looking at this attribute.
    * The corresponding attribute flags are ::HWLOC_MEMATTR_FLAG_HIGHER_FIRST.
+   *
+   * Capacity values may not be modified using hwloc_memattr_set_value().
    * \hideinitializer
    */
   HWLOC_MEMATTR_ID_CAPACITY = 0,
@@ -93,6 +98,8 @@ enum hwloc_memattr_id_e {
    *
    * No initiator is involved when looking at this attribute.
    * The corresponding attribute flags are ::HWLOC_MEMATTR_FLAG_HIGHER_FIRST.
+
+   * Locality values may not be modified using hwloc_memattr_set_value().
    * \hideinitializer
    */
   HWLOC_MEMATTR_ID_LOCALITY = 1,
@@ -173,11 +180,19 @@ enum hwloc_memattr_id_e {
 
   /* TODO persistence? */
 
-  HWLOC_MEMATTR_ID_MAX /**< \private Sentinel value */
+  HWLOC_MEMATTR_ID_MAX /**< \private
+                        * Sentinel value for predefined attributes.
+                        * Dynamically registered custom attributes start here.
+                        */
 };
 
 /** \brief A memory attribute identifier.
- * May be either one of ::hwloc_memattr_id_e or a new id returned by hwloc_memattr_register().
+ *
+ * hwloc predefines some commonly-used attributes in ::hwloc_memattr_id_e.
+ * One may then dynamically register custom ones with hwloc_memattr_register(),
+ * they will be assigned IDs immediately after the predefined ones.
+ * See \ref hwlocality_memattrs_manage for more information about
+ * existing attribute IDs.
  */
 typedef unsigned hwloc_memattr_id_t;
 
@@ -283,6 +298,10 @@ hwloc_get_local_numanode_objs(hwloc_topology_t topology,
  * (it does not have the flag ::HWLOC_MEMATTR_FLAG_NEED_INITIATOR),
  * location \p initiator is ignored and may be \c NULL.
  *
+ * \p target_node cannot be \c NULL. If \p attribute is ::HWLOC_MEMATTR_ID_CAPACITY,
+ * \p target_node must be a NUMA node. If it is ::HWLOC_MEMATTR_ID_LOCALITY,
+ * \p target_node must have a CPU set.
+ *
  * \p flags must be \c 0 for now.
  *
  * \return 0 on success.
@@ -352,6 +371,8 @@ hwloc_memattr_get_best_target(hwloc_topology_t topology,
  * The returned initiator should not be modified or freed,
  * it belongs to the topology.
  *
+ * \p target_node cannot be \c NULL.
+ *
  * \p flags must be \c 0 for now.
  *
  * \return 0 on success.
@@ -362,99 +383,9 @@ hwloc_memattr_get_best_target(hwloc_topology_t topology,
 HWLOC_DECLSPEC int
 hwloc_memattr_get_best_initiator(hwloc_topology_t topology,
                                  hwloc_memattr_id_t attribute,
-                                 hwloc_obj_t target,
+                                 hwloc_obj_t target_node,
                                  unsigned long flags,
                                  struct hwloc_location *best_initiator, hwloc_uint64_t *value);
-
-/** @} */
-
-
-/** \defgroup hwlocality_memattrs_manage Managing memory attributes
- * @{
- */
-
-/** \brief Return the name of a memory attribute.
- *
- * \return 0 on success.
- * \return -1 with errno set to \c EINVAL if the attribute does not exist.
- */
-HWLOC_DECLSPEC int
-hwloc_memattr_get_name(hwloc_topology_t topology,
-                       hwloc_memattr_id_t attribute,
-                       const char **name);
-
-/** \brief Return the flags of the given attribute.
- *
- * Flags are a OR'ed set of ::hwloc_memattr_flag_e.
- *
- * \return 0 on success.
- * \return -1 with errno set to \c EINVAL if the attribute does not exist.
- */
-HWLOC_DECLSPEC int
-hwloc_memattr_get_flags(hwloc_topology_t topology,
-                        hwloc_memattr_id_t attribute,
-                        unsigned long *flags);
-
-/** \brief Memory attribute flags.
- * Given to hwloc_memattr_register() and returned by hwloc_memattr_get_flags().
- */
-enum hwloc_memattr_flag_e {
-  /** \brief The best nodes for this memory attribute are those with the higher values.
-   * For instance Bandwidth.
-   */
-  HWLOC_MEMATTR_FLAG_HIGHER_FIRST = (1UL<<0),
-  /** \brief The best nodes for this memory attribute are those with the lower values.
-   * For instance Latency.
-   */
-  HWLOC_MEMATTR_FLAG_LOWER_FIRST = (1UL<<1),
-  /** \brief The value returned for this memory attribute depends on the given initiator.
-   * For instance Bandwidth and Latency, but not Capacity.
-   */
-  HWLOC_MEMATTR_FLAG_NEED_INITIATOR = (1UL<<2)
-};
-
-/** \brief Register a new memory attribute.
- *
- * Add a specific memory attribute that is not defined in ::hwloc_memattr_id_e.
- * Flags are a OR'ed set of ::hwloc_memattr_flag_e. It must contain at least
- * one of ::HWLOC_MEMATTR_FLAG_HIGHER_FIRST or ::HWLOC_MEMATTR_FLAG_LOWER_FIRST.
- *
- * \return 0 on success.
- * \return -1 with errno set to \c EBUSY if another attribute already uses this name.
- */
-HWLOC_DECLSPEC int
-hwloc_memattr_register(hwloc_topology_t topology,
-                       const char *name,
-                       unsigned long flags,
-                       hwloc_memattr_id_t *id);
-
-/** \brief Set an attribute value for a specific target NUMA node.
- *
- * If the attribute does not relate to a specific initiator
- * (it does not have the flag ::HWLOC_MEMATTR_FLAG_NEED_INITIATOR),
- * location \p initiator is ignored and may be \c NULL.
- *
- * The initiator will be copied into the topology,
- * the caller should free anything allocated to store the initiator,
- * for instance the cpuset.
- *
- * \p flags must be \c 0 for now.
- *
- * \note The initiator \p initiator should be of type ::HWLOC_LOCATION_TYPE_CPUSET
- * when referring to accesses performed by CPU cores.
- * ::HWLOC_LOCATION_TYPE_OBJECT is currently unused internally by hwloc,
- * but users may for instance use it to provide custom information about
- * host memory accesses performed by GPUs.
- *
- * \return 0 on success or -1 on error.
- */
-HWLOC_DECLSPEC int
-hwloc_memattr_set_value(hwloc_topology_t topology,
-                        hwloc_memattr_id_t attribute,
-                        hwloc_obj_t target_node,
-                        struct hwloc_location *initiator,
-                        unsigned long flags,
-                        hwloc_uint64_t value);
 
 /** \brief Return the target NUMA nodes that have some values for a given attribute.
  *
@@ -519,6 +450,8 @@ hwloc_memattr_get_targets(hwloc_topology_t topology,
  * The returned initiators should not be modified or freed,
  * they belong to the topology.
  *
+ * \p target_node cannot be \c NULL.
+ *
  * \p flags must be \c 0 for now.
  *
  * If the attribute does not relate to a specific initiator
@@ -538,6 +471,131 @@ hwloc_memattr_get_initiators(hwloc_topology_t topology,
                              hwloc_obj_t target_node,
                              unsigned long flags,
                              unsigned *nr, struct hwloc_location *initiators, hwloc_uint64_t *values);
+
+/** @} */
+
+
+/** \defgroup hwlocality_memattrs_manage Managing memory attributes
+ *
+ * Memory attribues are identified by an ID (::hwloc_memattr_id_t)
+ * and a name. hwloc_memattr_get_name() and hwloc_memattr_get_by_name()
+ * convert between them (or return error if the attribute does not exist).
+ *
+ * The set of valid ::hwloc_memattr_id_t is a contigous set starting at \c 0.
+ * It first contains predefined attributes, as listed
+ * in ::hwloc_memattr_id_e (from \c 0 to \c HWLOC_MEMATTR_ID_MAX-1).
+ * Then custom attributes may be dynamically registered with
+ * hwloc_memattr_register(). They will get the following IDs
+ * (\c HWLOC_MEMATTR_ID_MAX for the first one, etc.).
+ *
+ * To iterate over all valid attributes
+ * (either predefined or dynamically registered custom ones),
+ * one may iterate over IDs starting from \c 0 until hwloc_memattr_get_name()
+ * or hwloc_memattr_get_flags() returns an error.
+ *
+ * The values for an existing attribute or for custom dynamically registered ones
+ * may be set or modified with hwloc_memattr_set_value().
+ *
+ * @{
+ */
+
+/** \brief Return the name of a memory attribute.
+ *
+ * The output pointer \p name cannot be \c NULL.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c EINVAL if the attribute does not exist.
+ */
+HWLOC_DECLSPEC int
+hwloc_memattr_get_name(hwloc_topology_t topology,
+                       hwloc_memattr_id_t attribute,
+                       const char **name);
+
+/** \brief Return the flags of the given attribute.
+ *
+ * Flags are a OR'ed set of ::hwloc_memattr_flag_e.
+ *
+ * The output pointer \p flags cannot be \c NULL.
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c EINVAL if the attribute does not exist.
+ */
+HWLOC_DECLSPEC int
+hwloc_memattr_get_flags(hwloc_topology_t topology,
+                        hwloc_memattr_id_t attribute,
+                        unsigned long *flags);
+
+/** \brief Memory attribute flags.
+ * Given to hwloc_memattr_register() and returned by hwloc_memattr_get_flags().
+ */
+enum hwloc_memattr_flag_e {
+  /** \brief The best nodes for this memory attribute are those with the higher values.
+   * For instance Bandwidth.
+   */
+  HWLOC_MEMATTR_FLAG_HIGHER_FIRST = (1UL<<0),
+  /** \brief The best nodes for this memory attribute are those with the lower values.
+   * For instance Latency.
+   */
+  HWLOC_MEMATTR_FLAG_LOWER_FIRST = (1UL<<1),
+  /** \brief The value returned for this memory attribute depends on the given initiator.
+   * For instance Bandwidth and Latency, but not Capacity.
+   */
+  HWLOC_MEMATTR_FLAG_NEED_INITIATOR = (1UL<<2)
+};
+
+/** \brief Register a new memory attribute.
+ *
+ * Add a new custom memory attribute.
+ * Flags are a OR'ed set of ::hwloc_memattr_flag_e. It must contain one of
+ * ::HWLOC_MEMATTR_FLAG_HIGHER_FIRST or ::HWLOC_MEMATTR_FLAG_LOWER_FIRST but not both.
+ *
+ * The new attribute \p id is immediately after the last existing attribute ID
+ * (which is either the ID of the last registered attribute if any,
+ * or the ID of the last predefined attribute in ::hwloc_memattr_id_e).
+ *
+ * \return 0 on success.
+ * \return -1 with errno set to \c EINVAL if an invalid set of flags is given.
+ * \return -1 with errno set to \c EBUSY if another attribute already uses this name.
+ */
+HWLOC_DECLSPEC int
+hwloc_memattr_register(hwloc_topology_t topology,
+                       const char *name,
+                       unsigned long flags,
+                       hwloc_memattr_id_t *id);
+
+/** \brief Set an attribute value for a specific target NUMA node.
+ *
+ * If the attribute does not relate to a specific initiator
+ * (it does not have the flag ::HWLOC_MEMATTR_FLAG_NEED_INITIATOR),
+ * location \p initiator is ignored and may be \c NULL.
+ *
+ * The initiator will be copied into the topology,
+ * the caller should free anything allocated to store the initiator,
+ * for instance the cpuset.
+ *
+ * \p target_node cannot be \c NULL.
+ *
+ * \p attribute cannot be ::HWLOC_MEMATTR_FLAG_ID_CAPACITY or
+ * ::HWLOC_MEMATTR_FLAG_ID_LOCALITY.
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \note The initiator \p initiator should be of type ::HWLOC_LOCATION_TYPE_CPUSET
+ * when referring to accesses performed by CPU cores.
+ * ::HWLOC_LOCATION_TYPE_OBJECT is currently unused internally by hwloc,
+ * but users may for instance use it to provide custom information about
+ * host memory accesses performed by GPUs.
+ *
+ * \return 0 on success or -1 on error.
+ */
+HWLOC_DECLSPEC int
+hwloc_memattr_set_value(hwloc_topology_t topology,
+                        hwloc_memattr_id_t attribute,
+                        hwloc_obj_t target_node,
+                        struct hwloc_location *initiator,
+                        unsigned long flags,
+                        hwloc_uint64_t value);
+
 /** @} */
 
 #ifdef __cplusplus

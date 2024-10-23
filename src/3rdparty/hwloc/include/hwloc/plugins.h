@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2022 Inria.  All rights reserved.
+ * Copyright © 2013-2024 Inria.  All rights reserved.
  * Copyright © 2016 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -644,6 +644,19 @@ HWLOC_DECLSPEC struct hwloc_obj * hwloc_pci_find_parent_by_busid(struct hwloc_to
  * PCI locality, hwloc_pci_find_parent_by_busid() should be preferred.
  */
 HWLOC_DECLSPEC struct hwloc_obj * hwloc_pci_find_by_busid(struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func);
+
+
+/** @} */
+
+
+
+
+/** \defgroup hwlocality_components_distances Components and Plugins: distances
+ *
+ * \note These structures and functions may change when ::HWLOC_COMPONENT_ABI is modified.
+ *
+ * @{
+ */
 
 /** \brief Handle to a new distances structure during its addition to the topology. */
 typedef void * hwloc_backend_distances_add_handle_t;

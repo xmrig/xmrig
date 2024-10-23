@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -245,6 +245,7 @@ int hwloc_bitmap_copy(struct hwloc_bitmap_s * dst, const struct hwloc_bitmap_s *
 /* Strings always use 32bit groups */
 #define HWLOC_PRIxSUBBITMAP		"%08lx"
 #define HWLOC_BITMAP_SUBSTRING_SIZE	32
+#define HWLOC_BITMAP_SUBSTRING_FULL_VALUE 0xFFFFFFFFUL
 #define HWLOC_BITMAP_SUBSTRING_LENGTH	(HWLOC_BITMAP_SUBSTRING_SIZE/4)
 #define HWLOC_BITMAP_STRING_PER_LONG	(HWLOC_BITS_PER_LONG/HWLOC_BITMAP_SUBSTRING_SIZE)
 
@@ -261,6 +262,7 @@ int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, const stru
   const unsigned long accum_mask = ~0UL;
 #else /* HWLOC_BITS_PER_LONG != HWLOC_BITMAP_SUBSTRING_SIZE */
   const unsigned long accum_mask = ((1UL << HWLOC_BITMAP_SUBSTRING_SIZE) - 1) << (HWLOC_BITS_PER_LONG - HWLOC_BITMAP_SUBSTRING_SIZE);
+  int merge_with_infinite_prefix = 0;
 #endif /* HWLOC_BITS_PER_LONG != HWLOC_BITMAP_SUBSTRING_SIZE */
 
   HWLOC__BITMAP_CHECK(set);
@@ -279,6 +281,9 @@ int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, const stru
       res = size>0 ? (int)size - 1 : 0;
     tmp += res;
     size -= res;
+#if HWLOC_BITS_PER_LONG > HWLOC_BITMAP_SUBSTRING_SIZE
+    merge_with_infinite_prefix = 1;
+#endif
   }
 
   i=(int) set->ulongs_count-1;
@@ -294,16 +299,24 @@ int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, const stru
   }
 
   while (i>=0 || accumed) {
+    unsigned long value;
+
     /* Refill accumulator */
     if (!accumed) {
       accum = set->ulongs[i--];
       accumed = HWLOC_BITS_PER_LONG;
     }
+    value = (accum & accum_mask) >> (HWLOC_BITS_PER_LONG - HWLOC_BITMAP_SUBSTRING_SIZE);
 
-    if (accum & accum_mask) {
+#if HWLOC_BITS_PER_LONG > HWLOC_BITMAP_SUBSTRING_SIZE
+    if (merge_with_infinite_prefix && value == HWLOC_BITMAP_SUBSTRING_FULL_VALUE) {
+      /* first full subbitmap merged with infinite prefix */
+      res = 0;
+    } else
+#endif
+    if (value) {
       /* print the whole subset if not empty */
-        res = hwloc_snprintf(tmp, size, needcomma ? ",0x" HWLOC_PRIxSUBBITMAP : "0x" HWLOC_PRIxSUBBITMAP,
-		     (accum & accum_mask) >> (HWLOC_BITS_PER_LONG - HWLOC_BITMAP_SUBSTRING_SIZE));
+      res = hwloc_snprintf(tmp, size, needcomma ? ",0x" HWLOC_PRIxSUBBITMAP : "0x" HWLOC_PRIxSUBBITMAP, value);
       needcomma = 1;
     } else if (i == -1 && accumed == HWLOC_BITMAP_SUBSTRING_SIZE) {
       /* print a single 0 to mark the last subset */
@@ -323,6 +336,7 @@ int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, const stru
 #else
     accum <<= HWLOC_BITMAP_SUBSTRING_SIZE;
     accumed -= HWLOC_BITMAP_SUBSTRING_SIZE;
+    merge_with_infinite_prefix = 0;
 #endif
 
     if (res >= size)
@@ -362,7 +376,8 @@ int hwloc_bitmap_sscanf(struct hwloc_bitmap_s *set, const char * __hwloc_restric
 {
   const char * current = string;
   unsigned long accum = 0;
-  int count=0;
+  int count = 0;
+  int ulongcount;
   int infinite = 0;
 
   /* count how many substrings there are */
@@ -383,9 +398,20 @@ int hwloc_bitmap_sscanf(struct hwloc_bitmap_s *set, const char * __hwloc_restric
     count--;
   }
 
-  if (hwloc_bitmap_reset_by_ulongs(set, (count + HWLOC_BITMAP_STRING_PER_LONG - 1) / HWLOC_BITMAP_STRING_PER_LONG) < 0)
+  ulongcount = (count + HWLOC_BITMAP_STRING_PER_LONG - 1) / HWLOC_BITMAP_STRING_PER_LONG;
+  if (hwloc_bitmap_reset_by_ulongs(set, ulongcount) < 0)
     return -1;
-  set->infinite = 0;
+
+  set->infinite = 0; /* will be updated later */
+
+#if HWLOC_BITS_PER_LONG != HWLOC_BITMAP_SUBSTRING_SIZE
+  if (infinite && (count % HWLOC_BITMAP_STRING_PER_LONG) != 0) {
+    /* accumulate substrings of the first ulong that are hidden in the infinite prefix */
+    int i;
+    for(i = (count % HWLOC_BITMAP_STRING_PER_LONG); i < HWLOC_BITMAP_STRING_PER_LONG; i++)
+      accum |= (HWLOC_BITMAP_SUBSTRING_FULL_VALUE << (i*HWLOC_BITMAP_SUBSTRING_SIZE));
+  }
+#endif
 
   while (*current != '\0') {
     unsigned long val;
@@ -544,6 +570,9 @@ int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, co
   ssize_t size = buflen;
   char *tmp = buf;
   int res, ret = 0;
+#if HWLOC_BITS_PER_LONG == 64
+  int merge_with_infinite_prefix = 0;
+#endif
   int started = 0;
   int i;
 
@@ -563,6 +592,9 @@ int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, co
       res = size>0 ? (int)size - 1 : 0;
     tmp += res;
     size -= res;
+#if HWLOC_BITS_PER_LONG == 64
+    merge_with_infinite_prefix = 1;
+#endif
   }
 
   i=set->ulongs_count-1;
@@ -582,7 +614,11 @@ int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, co
     if (started) {
       /* print the whole subset */
 #if HWLOC_BITS_PER_LONG == 64
-      res = hwloc_snprintf(tmp, size, "%016lx", val);
+      if (merge_with_infinite_prefix && (val & 0xffffffff00000000UL) == 0xffffffff00000000UL) {
+        res = hwloc_snprintf(tmp, size, "%08lx", val & 0xffffffffUL);
+      } else  {
+        res = hwloc_snprintf(tmp, size, "%016lx", val);
+      }
 #else
       res = hwloc_snprintf(tmp, size, "%08lx", val);
 #endif
@@ -599,6 +635,9 @@ int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, co
       res = size>0 ? (int)size - 1 : 0;
     tmp += res;
     size -= res;
+#if HWLOC_BITS_PER_LONG == 64
+    merge_with_infinite_prefix = 0;
+#endif
   }
 
   /* if didn't display anything, display 0x0 */
@@ -679,6 +718,10 @@ int hwloc_bitmap_taskset_sscanf(struct hwloc_bitmap_s *set, const char * __hwloc
       goto failed;
 
     set->ulongs[count-1] = val;
+    if (infinite && tmpchars != HWLOC_BITS_PER_LONG/4) {
+      /* infinite prefix with partial substring, fill remaining bits */
+      set->ulongs[count-1] |= (~0ULL)<<(4*tmpchars);
+    }
 
     current += tmpchars;
     chars -= tmpchars;

@@ -326,7 +326,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         }
     }
 
-    if (scratchpad == 2 * oneMiB) {
+    // This code is supposed to run only on Intel CPUs
+    if ((vendor() == VENDOR_INTEL) && (scratchpad == 2 * oneMiB)) {
         if (L2 && (cores.size() * oneMiB) == L2 && L2_associativity == 16 && L3 >= L2) {
             L3    = L2;
             extra = L2;
