@@ -189,7 +189,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: windows_build/windows_build.zip
+          asset_path: windows_build.zip
           asset_name: xmrig-${{steps.version.outputs.VERSION}}-win64.zip
           asset_content_type: application/zip
       - name: Upload Ubuntu build release asset
