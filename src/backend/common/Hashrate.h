@@ -48,7 +48,7 @@ public:
     ~Hashrate();
 
     inline double calc(size_t ms) const                                     { const double data = hashrate(0U, ms); return std::isnormal(data) ? data : 0.0; }
-    inline double calc(size_t threadId, size_t ms) const                    { return hashrate(threadId + 1, ms); }
+    inline double calc(size_t threadId, size_t ms) const                    { const double data = hashrate(threadId + 1, ms); return std::isnormal(data) ? data : 0.0; }
     inline size_t threads() const                                           { return m_threads > 0U ? m_threads - 1U : 0U; }
     inline void add(size_t threadId, uint64_t count, uint64_t timestamp)    { addData(threadId + 1U, count, timestamp); }
     inline void add(uint64_t count, uint64_t timestamp)                     { addData(0U, count, timestamp); }
