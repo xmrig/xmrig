@@ -1,6 +1,6 @@
 # Maximum CPU usage
 
-Please read this document carefully, `max-threads-hint` (was known as `max-cpu-usage`) option is most confusing option in the miner with many myth and legends.
+Please read this document carefully, `max-threads-hint` (was known as `max-cpu-usage`) option is most confusing option in the miner with many myths and legends.
 This option is just hint for automatic configuration and can't precise define CPU usage.
 
 ### Option definition
