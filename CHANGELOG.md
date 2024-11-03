@@ -1,3 +1,7 @@
+# v6.22.2
+- [#3569](https://github.com/xmrig/xmrig/pull/3569) Fixed corrupted API output in some rare conditions.
+- [#3571](https://github.com/xmrig/xmrig/pull/3571) Fixed number of threads on the new Intel Core Ultra CPUs.
+
 # v6.22.1
 - [#3531](https://github.com/xmrig/xmrig/pull/3531) Always reset nonce on RandomX dataset change.
 - [#3534](https://github.com/xmrig/xmrig/pull/3534) Fixed threads auto-config on Zen5.
