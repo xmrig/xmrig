@@ -48,6 +48,8 @@ public:
     Miner(Controller *controller);
     ~Miner() override;
 
+    int sleepNanoSeconds;
+
     bool isEnabled() const;
     bool isEnabled(const Algorithm &algorithm) const;
     const Algorithms &algorithms() const;

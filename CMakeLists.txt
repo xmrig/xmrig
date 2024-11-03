@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(xmrig)
 
+option(WITH_DONATION        "Enable donation" ON)
 option(WITH_HWLOC           "Enable hwloc support" ON)
 option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
 option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
@@ -133,6 +134,13 @@ set(SOURCES_CRYPTO
 
 if (CMAKE_C_COMPILER_ID MATCHES GNU)
     set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
+endif()
+
+if(WITH_DONATION)
+    message("-- Donation state: enabled")
+else()
+    message("-- Donation state: disabled")
+    add_definitions(-DXMRIG_NO_DONATE)
 endif()
 
 if (WITH_VAES)
