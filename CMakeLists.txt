@@ -187,6 +187,13 @@ else()
             )
 
         set(EXTRA_LIBS pthread rt dl)
+
+        find_package(X11)
+
+        if(X11_FOUND)
+            include_directories(${X11_INCLUDE_DIR})
+            add_definitions(-DXMRIG_X11_FOUND)
+        endif()
     elseif (XMRIG_OS_FREEBSD)
         set(EXTRA_LIBS kvm pthread)
     endif()
