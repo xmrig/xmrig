@@ -45,6 +45,8 @@ static const char *kJobId               = "job_id";
 static const char *kNextSeedHash        = "next_seed_hash";
 static const char *kPrevHash            = "prev_hash";
 static const char *kSeedHash            = "seed_hash";
+static const char *kStatus              = "status";
+static const char *kStatusOk            = "OK";
 
 static const char * const required_fields[] = { kBlocktemplateBlob, kBlockhashingBlob, kHeight, kDifficulty, kPrevHash };
 
@@ -55,8 +57,9 @@ xmrig::SelfSelectClient::SelfSelectClient(int id, const char *agent, IClientList
     m_submitToOrigin(submitToOrigin),
     m_listener(listener)
 {
-    m_httpListener  = std::make_shared<HttpListener>(this);
-    m_client        = new Client(id, agent, this);
+    m_httpListener       = std::make_shared<HttpListener>(this);
+    m_client             = new Client(id, agent, this);
+    m_last_submit_req_id = -1;
 }
 
 
@@ -129,6 +132,20 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
         return false;
     }
 
+    if (isSubmitBlockResponse(id)) {
+        xmrig::String submit_status = Json::getString(result, kStatus);
+        submit_status.toUpper();
+        if (submit_status == kStatusOk) {
+            // Ensure that the latest block template is available after block submission
+            getBlockTemplate();
+            return true;
+        }
+
+        LOG_ERR("[%s] " RED_BOLD("block not submitted to origin. status = \"%s\""), pool().daemon().url().data(), submit_status.data());
+        return false;
+    }
+
+
     for (auto field : required_fields) {
         if (!result.HasMember(field)) {
             LOG_ERR("[%s] required field " RED_BOLD("\"%s\"") RED_S " not found", pool().daemon().url().data(), field);
@@ -158,6 +175,10 @@ bool xmrig::SelfSelectClient::parseResponse(int64_t id, rapidjson::Value &result
     return true;
 }
 
+bool xmrig::SelfSelectClient::isSubmitBlockResponse(int64_t id)
+{
+    return m_last_submit_req_id > -1 && id == m_last_submit_req_id;
+}
 
 void xmrig::SelfSelectClient::getBlockTemplate()
 {
@@ -282,8 +303,8 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     Value params(kArrayType);
     params.PushBack(m_blocktemplate.toJSON(), doc.GetAllocator());
 
-    JsonRequest::create(doc, m_sequence, "submitblock", params);
-    m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
+    m_last_submit_req_id = m_sequence;
+    JsonRequest::create(doc, m_sequence++, "submitblock", params);
 
     FetchRequest req(HTTP_POST, pool().daemon().host(), pool().daemon().port(), "/json_rpc", doc, pool().daemon().isTLS(), isQuiet());
     fetch(tag(), std::move(req), m_httpListener);
