@@ -218,9 +218,12 @@ void MoBenchmark::onJobResult(const JobResult& result) {
         for (auto backend : m_controller->miner()->backends()) {
             const Hashrate *hr = backend->hashrate();
             if (!hr) continue;
-            t[0] += hr->calc(Hashrate::ShortInterval);
-            t[1] += hr->calc(Hashrate::MediumInterval);
-            t[2] += hr->calc(Hashrate::LargeInterval);
+            auto hr_pair = hr->calc(Hashrate::ShortInterval);
+            if (hr_pair.first) t[0] += hr_pair.second;
+            hr_pair = hr->calc(Hashrate::MediumInterval)
+            if (hr_pair.first) t[1] += hr_pair.second;
+            hr_pair = hr->calc(Hashrate::LargeInterval)
+            if (hr_pair.first) t[2] += hr_pair.second;
         }
         double hashrate = 0.0f;
         if (!(hashrate = t[2]))
