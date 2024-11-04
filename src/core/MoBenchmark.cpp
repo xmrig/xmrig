@@ -220,9 +220,9 @@ void MoBenchmark::onJobResult(const JobResult& result) {
             if (!hr) continue;
             auto hr_pair = hr->calc(Hashrate::ShortInterval);
             if (hr_pair.first) t[0] += hr_pair.second;
-            hr_pair = hr->calc(Hashrate::MediumInterval)
+            hr_pair = hr->calc(Hashrate::MediumInterval);
             if (hr_pair.first) t[1] += hr_pair.second;
-            hr_pair = hr->calc(Hashrate::LargeInterval)
+            hr_pair = hr->calc(Hashrate::LargeInterval);
             if (hr_pair.first) t[2] += hr_pair.second;
         }
         double hashrate = 0.0f;
