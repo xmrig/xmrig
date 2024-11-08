@@ -18,7 +18,6 @@
 
 
 #include "hw/msr/Msr.h"
-#include "3rdparty/fmt/core.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/log/Log.h"
 
@@ -29,6 +28,7 @@
 #include <cstdio>
 #include <dirent.h>
 #include <fcntl.h>
+#include <fmt/core.h>
 #include <fstream>
 #include <sys/stat.h>
 #include <sys/types.h>

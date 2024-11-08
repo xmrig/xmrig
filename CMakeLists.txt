@@ -32,6 +32,7 @@ option(WITH_VAES            "Enable VAES instructions for Cryptonight" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
 option(WITH_SECURE_JIT      "Enable secure access to JIT memory" OFF)
 option(WITH_DMI             "Enable DMI/SMBIOS reader" ON)
+option(WITH_BUNDLED_FMT     "Force use of bundled fmt library" ON)
 
 option(BUILD_STATIC         "Build static binary" OFF)
 option(ARM_V8               "Force ARMv8 (64 bit) architecture, use with caution if automatic detection fails, but you sure it may work" OFF)
@@ -198,6 +199,7 @@ add_definitions(-D__STDC_FORMAT_MACROS -DUNICODE -D_FILE_OFFSET_BITS=64)
 find_package(UV REQUIRED)
 
 include(cmake/flags.cmake)
+include(cmake/fmt.cmake)
 include(cmake/randomx.cmake)
 include(cmake/argon2.cmake)
 include(cmake/kawpow.cmake)
@@ -229,7 +231,7 @@ include(src/hw/api/api.cmake)
 include(src/hw/dmi/dmi.cmake)
 
 include_directories(src)
-include_directories(src/3rdparty)
+include_directories(src/3rdparty/CL)
 include_directories(${UV_INCLUDE_DIR})
 
 if (WITH_DEBUG_LOG)
@@ -237,7 +239,7 @@ if (WITH_DEBUG_LOG)
 endif()
 
 add_executable(${CMAKE_PROJECT_NAME} ${HEADERS} ${SOURCES} ${SOURCES_OS} ${HEADERS_CRYPTO} ${SOURCES_CRYPTO} ${SOURCES_SYSLOG} ${TLS_SOURCES} ${XMRIG_ASM_SOURCES})
-target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY} ${ETHASH_LIBRARY} ${GHOSTRIDER_LIBRARY})
+target_link_libraries(${CMAKE_PROJECT_NAME} ${XMRIG_ASM_LIBRARY} ${OPENSSL_LIBRARIES} ${UV_LIBRARIES} ${EXTRA_LIBS} ${CPUID_LIB} ${ARGON2_LIBRARY} ${ETHASH_LIBRARY} ${GHOSTRIDER_LIBRARY} ${FMT_LIBRARY})
 
 if (WIN32)
     add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_SOURCE_DIR}/bin/WinRing0/WinRing0x64.sys" $<TARGET_FILE_DIR:${CMAKE_PROJECT_NAME}>)

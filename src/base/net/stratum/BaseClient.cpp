@@ -17,13 +17,14 @@
  */
 
 #include "base/net/stratum/BaseClient.h"
-#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/Env.h"
 #include "base/io/log/Log.h"
 #include "base/io/log/Tags.h"
 #include "base/kernel/interfaces/IClientListener.h"
 #include "base/net/stratum/SubmitResult.h"
+
+#include <fmt/core.h>
 
 
 namespace xmrig {
