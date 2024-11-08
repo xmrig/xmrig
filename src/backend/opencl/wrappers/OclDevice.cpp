@@ -35,15 +35,16 @@
 #include <map>
 
 
-// NOLINTNEXTLINE(modernize-use-using)
-typedef union
-{
-    struct { cl_uint type; cl_uint data[5]; } raw;
-    struct { cl_uint type; cl_char unused[17]; cl_char bus; cl_char device; cl_char function; } pcie;
-} topology_amd;
-
-
 namespace xmrig {
+
+
+struct topology_amd {
+    cl_uint type;
+    cl_char unused[17];
+    cl_char bus;
+    cl_char device;
+    cl_char function;
+};
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -138,18 +139,18 @@ xmrig::OclDevice::OclDevice(uint32_t index, cl_device_id id, cl_platform_id plat
     m_type      = getType(m_name);
 
     if (m_extensions.contains("cl_amd_device_attribute_query")) {
-        topology_amd topology;
-
-        if (OclLib::getDeviceInfo(id, CL_DEVICE_TOPOLOGY_AMD, sizeof(topology), &topology, nullptr) == CL_SUCCESS && topology.raw.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
-            m_topology = PciTopology(static_cast<uint32_t>(topology.pcie.bus), static_cast<uint32_t>(topology.pcie.device), static_cast<uint32_t>(topology.pcie.function));
+        topology_amd topology{};
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_TOPOLOGY_AMD, sizeof(topology), &topology) == CL_SUCCESS && topology.type == CL_DEVICE_TOPOLOGY_TYPE_PCIE_AMD) {
+            m_topology = { topology.bus, topology.device, topology.function };
         }
+
         m_board = OclLib::getString(id, CL_DEVICE_BOARD_NAME_AMD);
     }
     else if (m_extensions.contains("cl_nv_device_attribute_query")) {
         cl_uint bus = 0;
-        if (OclLib::getDeviceInfo(id, CL_DEVICE_PCI_BUS_ID_NV, sizeof(bus), &bus, nullptr) == CL_SUCCESS) {
+        if (OclLib::getDeviceInfo(id, CL_DEVICE_PCI_BUS_ID_NV, sizeof(bus), &bus) == CL_SUCCESS) {
             cl_uint slot  = OclLib::getUint(id, CL_DEVICE_PCI_SLOT_ID_NV);
-            m_topology = PciTopology(bus, (slot >> 3) & 0xff, slot & 7);
+            m_topology = { bus, (slot >> 3) & 0xff, slot & 7 };
         }
     }
 }
