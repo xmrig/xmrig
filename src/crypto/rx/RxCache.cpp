@@ -35,7 +35,7 @@ static_assert(RANDOMX_FLAG_JIT == 8, "RANDOMX_FLAG_JIT flag mismatch");
 
 xmrig::RxCache::RxCache(bool hugePages, uint32_t nodeId)
 {
-    m_memory = new VirtualMemory(maxSize(), hugePages, false, false, nodeId);
+    m_memory = std::make_shared<VirtualMemory>(maxSize(), hugePages, false, false, nodeId);
 
     create(m_memory->raw());
 }
@@ -50,8 +50,6 @@ xmrig::RxCache::RxCache(uint8_t *memory)
 xmrig::RxCache::~RxCache()
 {
     randomx_release_cache(m_cache);
-
-    delete m_memory;
 }
 
 

@@ -105,7 +105,7 @@ private:
     bool m_active                   = false;
     bool m_quiet                    = false;
     const bool m_submitToOrigin;
-    IClient *m_client;
+    std::shared_ptr<IClient> m_client;
     IClientListener *m_listener;
     int m_retries                   = 5;
     int64_t m_failures              = 0;

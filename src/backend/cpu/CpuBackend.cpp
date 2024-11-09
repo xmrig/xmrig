@@ -242,7 +242,7 @@ const char *xmrig::cpu_tag()
 
 
 xmrig::CpuBackend::CpuBackend(Controller *controller) :
-    d_ptr(new CpuBackendPrivate(controller))
+    d_ptr(std::make_shared<CpuBackendPrivate>(controller))
 {
     d_ptr->workers.setBackend(this);
 }
@@ -250,7 +250,6 @@ xmrig::CpuBackend::CpuBackend(Controller *controller) :
 
 xmrig::CpuBackend::~CpuBackend()
 {
-    delete d_ptr;
 }
 
 

@@ -19,6 +19,7 @@
 #ifndef XMRIG_TASKBAR_H
 #define XMRIG_TASKBAR_H
 
+#include <memory>
 
 namespace xmrig {
 
@@ -39,7 +40,7 @@ private:
     bool m_active = false;
     bool m_enabled = true;
 
-    TaskbarPrivate* d_ptr = nullptr;
+    std::shared_ptr<TaskbarPrivate> d_ptr;
 
     void updateTaskbarColor();
 };

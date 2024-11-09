@@ -51,7 +51,7 @@ public:
 };
 
 
-static BenchStatePrivate *d_ptr = nullptr;
+static std::shared_ptr<BenchStatePrivate> d_ptr;
 std::atomic<uint64_t> BenchState::m_data{};
 
 
@@ -61,7 +61,7 @@ std::atomic<uint64_t> BenchState::m_data{};
 
 bool xmrig::BenchState::isDone()
 {
-    return d_ptr == nullptr;
+    return !d_ptr;
 }
 
 
@@ -105,14 +105,13 @@ uint64_t xmrig::BenchState::start(size_t threads, const IBackend *backend)
 
 void xmrig::BenchState::destroy()
 {
-    delete d_ptr;
-    d_ptr = nullptr;
+    d_ptr.reset();
 }
 
 
 void xmrig::BenchState::done()
 {
-    assert(d_ptr != nullptr && d_ptr->async && d_ptr->remaining > 0);
+    assert(d_ptr && d_ptr->async && d_ptr->remaining > 0);
 
     const uint64_t ts = Chrono::steadyMSecs();
 
@@ -129,15 +128,15 @@ void xmrig::BenchState::done()
 
 void xmrig::BenchState::init(IBenchListener *listener, uint32_t size)
 {
-    assert(d_ptr == nullptr);
+    assert(!d_ptr);
 
-    d_ptr = new BenchStatePrivate(listener, size);
+    d_ptr = std::make_shared<BenchStatePrivate>(listener, size);
 }
 
 
 void xmrig::BenchState::setSize(uint32_t size)
 {
-    assert(d_ptr != nullptr);
+    assert(d_ptr);
 
     d_ptr->size = size;
 }

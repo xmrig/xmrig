@@ -66,17 +66,10 @@ public:
 
 
     LogPrivate() = default;
+    ~LogPrivate() = default;
 
 
-    inline ~LogPrivate()
-    {
-        for (auto backend : m_backends) {
-            delete backend;
-        }
-    }
-
-
-    inline void add(ILogBackend *backend) { m_backends.push_back(backend); }
+    inline void add(std::shared_ptr<ILogBackend> backend) { m_backends.emplace_back(backend); }
 
 
     void print(Log::Level level, const char *fmt, va_list args)
@@ -108,7 +101,7 @@ public:
         }
 
         if (!m_backends.empty()) {
-            for (auto backend : m_backends) {
+            for (auto& backend : m_backends) {
                 backend->print(ts, level, m_buf, offset, size, true);
                 backend->print(ts, level, txt.c_str(), offset ? (offset - 11) : 0, txt.size(), false);
             }
@@ -188,13 +181,13 @@ private:
 
     char m_buf[Log::kMaxBufferSize]{};
     std::mutex m_mutex;
-    std::vector<ILogBackend*> m_backends;
+    std::vector<std::shared_ptr<ILogBackend>> m_backends;
 };
 
 
 bool Log::m_background      = false;
 bool Log::m_colors          = true;
-LogPrivate *Log::d          = nullptr;
+std::shared_ptr<LogPrivate> Log::d{};
 uint32_t Log::m_verbose     = 0;
 
 
@@ -202,7 +195,7 @@ uint32_t Log::m_verbose     = 0;
 
 
 
-void xmrig::Log::add(ILogBackend *backend)
+void xmrig::Log::add(std::shared_ptr<ILogBackend> backend)
 {
     assert(d != nullptr);
 
@@ -214,14 +207,13 @@ void xmrig::Log::add(ILogBackend *backend)
 
 void xmrig::Log::destroy()
 {
-    delete d;
-    d = nullptr;
+    d.reset();
 }
 
 
 void xmrig::Log::init()
 {
-    d = new LogPrivate();
+    d = std::make_shared<LogPrivate>();
 }
 
 

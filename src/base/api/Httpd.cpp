@@ -69,13 +69,13 @@ bool xmrig::Httpd::start()
     bool tls = false;
 
 #   ifdef XMRIG_FEATURE_TLS
-    m_http = new HttpsServer(m_httpListener);
+    m_http = std::make_shared<HttpsServer>(m_httpListener);
     tls = m_http->setTls(m_base->config()->tls());
 #   else
-    m_http = new HttpServer(m_httpListener);
+    m_http = std::make_shared<HttpServer>(m_httpListener);
 #   endif
 
-    m_server = new TcpServer(config.host(), config.port(), m_http);
+    m_server = std::make_shared<TcpServer>(config.host(), config.port(), m_http.get());
 
     const int rc = m_server->bind();
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CSI "1;%dm%s:%d" " " RED_BOLD("%s"),
@@ -112,9 +112,6 @@ bool xmrig::Httpd::start()
 
 void xmrig::Httpd::stop()
 {
-    delete m_server;
-    delete m_http;
-
     m_server = nullptr;
     m_http   = nullptr;
     m_port   = 0;

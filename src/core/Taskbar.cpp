@@ -65,14 +65,13 @@ struct TaskbarPrivate
 };
 
 
-Taskbar::Taskbar() : d_ptr(new TaskbarPrivate())
+Taskbar::Taskbar() : d_ptr(std::make_shared<TaskbarPrivate>())
 {
 }
 
 
 Taskbar::~Taskbar()
 {
-    delete d_ptr;
 }
 
 

@@ -94,7 +94,7 @@ private:
     void onReady();
 
     IRxListener *m_listener = nullptr;
-    IRxStorage *m_storage   = nullptr;
+    std::shared_ptr<IRxStorage> m_storage;
     RxSeed m_seed;
     State m_state = STATE_IDLE;
     std::condition_variable m_cv;

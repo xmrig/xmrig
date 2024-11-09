@@ -53,7 +53,7 @@ public:
     inline int64_t sequence() const override                                        { return 0; }
     inline int64_t submit(const JobResult &) override                               { return 0; }
     inline void connect(const Pool &pool) override                                  { setPool(pool); }
-    inline void deleteLater() override                                              { delete this; }
+    inline void deleteLater() override                                              {}
     inline void setAlgo(const Algorithm &algo) override                             {}
     inline void setEnabled(bool enabled) override                                   {}
     inline void setProxy(const ProxyUrl &proxy) override                            {}
