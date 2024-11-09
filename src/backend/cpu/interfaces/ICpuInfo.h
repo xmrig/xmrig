@@ -29,6 +29,10 @@
 #ifdef XMRIG_FEATURE_HWLOC
 using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
 using hwloc_topology_t      = struct hwloc_topology *;
+#define MEMBIND_SUCCESS    1
+#define MEMBIND_FAIL_SUPP -1
+#define MEMBIND_FAIL_NODE -2
+#define MEMBIND_FAIL_BIND -3
 #endif
 
 
@@ -126,7 +130,7 @@ public:
     virtual uint32_t model() const                                                  = 0;
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    virtual bool membind(hwloc_const_bitmap_t nodeset)                              = 0;
+    virtual int8_t membind(hwloc_const_bitmap_t nodeset)                            = 0;
     virtual const std::vector<uint32_t> &nodeset() const                            = 0;
     virtual hwloc_topology_t topology() const                                       = 0;
 #   endif
