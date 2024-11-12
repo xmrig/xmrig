@@ -4,7 +4,7 @@ If you want use HTTP API you need enable it (`"enabled": true,`) then choice `po
 
 Offical HTTP client for API: http://workers.xmrig.info/
 
-Example configuration:
+Example configuration, used in Curl examples below:
 
 ```json
 "api": {
@@ -12,11 +12,11 @@ Example configuration:
 	"worker-id": null,
 },
 "http": {
-	"enabled": false,
+	"enabled": true,
 	"host": "127.0.0.1",
-	"port": 0,
-	"access-token": null,
-	"restricted": true
+	"port": 44444,
+	"access-token": "SECRET",
+	"restricted": false
 }
 ```
 
@@ -37,30 +37,78 @@ Versions before 2.15 was use another options for API https://github.com/xmrig/xm
 
 ## Endpoints
 
-### GET /1/summary
+### APIVersion 2
 
-Get miner summary information. [Example](api/1/summary.json).
+#### GET /2/summary
 
-### GET /1/threads
+Get miner summary information. [Example](api/2/summary.json).
 
-Get detailed information about miner threads. [Example](api/1/threads.json).
+#### GET /2/backends
+
+Get detailed information about miner backends. [Example](api/2/backends.json).
+
+### APIVersion 1 (deprecated)
+
+#### GET /1/summary
+
+Get miner summary information. Currently identical to `GET /2/summary`
+
+#### GET /1/threads
+
+**REMOVED** Get detailed information about miner threads. [Example](api/1/threads.json).
+
+Functionally replaced by `GET /2/backends` which contains a `threads` item per backend.
+
+### APIVersion 0 (deprecated)
+
+#### GET /api.json
+
+Get miner summary information. Currently identical to `GET /2/summary`
 
 
 ## Restricted endpoints
 
 All API endpoints below allow access to sensitive information and remote configure miner. You should set `access-token` and allow unrestricted access (`"restricted": false`).
 
-### GET /1/config
+### JSON-RPC Interface
 
-Get current miner configuration. [Example](api/1/config.json).
+#### POST /json_rpc
 
+Control miner with JSON-RPC. Methods: `pause`, `resume`, `stop`, `start`
 
-### PUT /1/config
+Curl example:
+
+```
+curl -v --data "{\"method\":\"pause\",\"id\":1}" -H "Content-Type: application/json" -H "Authorization: Bearer SECRET" http://127.0.0.1:44444/json_rpc
+```
+
+### APIVersion 2
+
+#### GET /2/config
+
+Get current miner configuration. [Example](api/2/config.json).
+
+#### PUT /2/config
 
 Update current miner configuration. Common use case, get current configuration, make changes, and upload it to miner.
 
 Curl example:
 
 ```
-curl -v --data-binary @config.json -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer SECRET" http://127.0.0.1:44444/1/config
+...GET current config...
+curl -v -H "Content-Type: application/json" -H "Authorization: Bearer SECRET" http://127.0.0.1:44444/2/config > config.json
+...make changes...
+vim config.json
+...PUT changed config...
+curl -v --data-binary @config.json -X PUT -H "Content-Type: application/json" -H "Authorization: Bearer SECRET" http://127.0.0.1:44444/2/config
 ```
+
+### APIVersion 1 (deprecated)
+
+#### GET /1/config
+
+Get current miner configuration. Currently identical to `GET /2/config`
+
+#### PUT /1/config
+
+Update current miner configuration. Currently identical to `PUT /2/config`
