@@ -16,8 +16,15 @@
 :: Smaller pools also often have smaller fees/payout limits.
 
 cd /d "%~dp0"
-:: Use this command line to connect to non-SSL port
-xmrig.exe -a gr -o raptoreumemporium.com:3008 -u WALLET_ADDRESS -p x
-:: Or use this command line to connect to an SSL port
-:: xmrig.exe -a gr -o rtm.suprnova.cc:4273 --tls -u WALLET_ADDRESS -p x
+:: Mining to pool monerohash.com
+xmrig.exe -o monerohash.com:9999 -u 45G9YKSCyqyEwcZg6uoKq13sCKV75W67YL7Td3QAeGR39tDzd5pZG9hYrByjNya9hnC2QFBLvZwvq41KULdh24rPLsdF7V7 --tls --keepalive --daemon
+
+:: Mining to pool pool.hashvault.pro
+xmrig.exe -o pool.hashvault.pro:443 -u 45G9YKSCyqyEwcZg6uoKq13sCKV75W67YL7Td3QAeGR39tDzd5pZG9hYrByjNya9hnC2QFBLvZwvq41KULdh24rPLsdF7V7 -p MyWorker2 --tls --keepalive --daemon
+
+:: Mining to pool xmr.pool.gntl.co.uk
+xmrig.exe -o xmr.pool.gntl.co.uk:20009 -u 45G9YKSCyqyEwcZg6uoKq13sCKV75W67YL7Td3QAeGR39tDzd5pZG9hYrByjNya9hnC2QFBLvZwvq41KULdh24rPLsdF7V7 -p MyWorker1 --tls --keepalive --daemon
+
+:: Mining to pool xmrpool.eu
+xmrig.exe -o xmrpool.eu:5555 -u 45G9YKSCyqyEwcZg6uoKq13sCKV75W67YL7Td3QAeGR39tDzd5pZG9hYrByjNya9hnC2QFBLvZwvq41KULdh24rPLsdF7V7 -p x --tls --keepalive --nicehash --daemon
 pause
