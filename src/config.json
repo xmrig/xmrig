@@ -62,8 +62,8 @@
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
+            "url": "xmrpool.eu:9999",
+            "user": "45G9YKSCyqyEwcZg6uoKq13sCKV75W67YL7Td3QAeGR39tDzd5pZG9hYrByjNya9hnC2QFBLvZwvq41KULdh24rPLsdF7V7",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
