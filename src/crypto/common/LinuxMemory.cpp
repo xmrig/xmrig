@@ -60,7 +60,11 @@ bool xmrig::LinuxMemory::reserve(size_t size, uint32_t node, size_t hugePageSize
         return false;
     }
 
+#   ifdef XMRIG_FEATURE_AUTO_HUGEPAGE
     return write_nr_hugepages(node, hugePageSize, std::max<size_t>(nr_hugepages(node, hugePageSize), 0) + (required - available));
+#   else
+    return false;
+#   endif
 }
 
 
