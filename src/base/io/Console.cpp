@@ -28,16 +28,25 @@ xmrig::Console::Console(IConsoleListener *listener)
         return;
     }
 
-    m_tty = new uv_tty_t;
-    m_tty->data = this;
-    uv_tty_init(uv_default_loop(), m_tty, 0, 1);
+    m_input = reinterpret_cast<uv_stream_t*>(new uv_tty_t);
+    m_input->data = this;
+    uv_tty_init(uv_default_loop(), reinterpret_cast<uv_tty_t*>(m_input), 0, 1);
 
-    if (!uv_is_readable(reinterpret_cast<uv_stream_t*>(m_tty))) {
-        return;
+    if (uv_is_readable(reinterpret_cast<uv_stream_t*>(m_input))) {
+        uv_tty_set_mode(reinterpret_cast<uv_tty_t*>(m_input), UV_TTY_MODE_RAW);
+        uv_read_start(m_input, Console::onAllocBuffer, Console::onRead);
+    } else {
+        /* Direct TTY connection doesn't work, so use stdin as pipe as fallback. 
+         * N.B. Requires pipe to be flushed on the producer side before it is received in our stdin. 
+         * For example if you run xmrig from another process and send commands to the stdin of the xmrig process, 
+         * flush that stream after writing a character to it.
+         */
+        m_input = reinterpret_cast<uv_stream_t*>(new uv_pipe_t);
+        m_input->data = this;
+        uv_pipe_init(uv_default_loop(), reinterpret_cast<uv_pipe_t*>(m_input), 0);
+        uv_pipe_open(reinterpret_cast<uv_pipe_t*>(m_input), 0);
+        uv_read_start(m_input, Console::onAllocBuffer, Console::onRead);
     }
-
-    uv_tty_set_mode(m_tty, UV_TTY_MODE_RAW);
-    uv_read_start(reinterpret_cast<uv_stream_t*>(m_tty), Console::onAllocBuffer, Console::onRead);
 }
 
 
@@ -45,7 +54,7 @@ xmrig::Console::~Console()
 {
     uv_tty_reset_mode();
 
-    Handle::close(m_tty);
+    Handle::close(m_input);
 }
 
 
