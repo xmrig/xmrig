@@ -94,7 +94,13 @@ static inline const std::string &usage()
 #   ifdef XMRIG_ALGO_RANDOMX
     u += "      --huge-pages-jit          enable huge pages support for RandomX JIT code\n";
 #   endif
+#   ifdef XMRIG_FEATURE_ASM
+#   ifdef XMRIG_FEATURE_ASM_AMD
     u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel, ryzen, bulldozer\n";
+#   else
+    u += "      --asm=ASM                 ASM optimizations, possible values: auto, none, intel\n";
+#   endif
+#   endif
 
 #   if defined(__x86_64__) || defined(_M_AMD64)
     u += "      --argon2-impl=IMPL        argon2 implementation: x86_64, SSE2, SSSE3, XOP, AVX2, AVX-512F\n";
