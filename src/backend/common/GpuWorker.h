@@ -49,6 +49,8 @@ protected:
     std::atomic<uint32_t> m_index   = {};
     uint64_t m_hashCount[2]         = {};
     uint64_t m_timestamp[2]         = {};
+
+    uint64_t m_count                = 0;
 };
 
 

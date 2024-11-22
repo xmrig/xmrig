@@ -232,8 +232,8 @@ bool xmrig::CpuWorker<N>::selfTest()
 template<size_t N>
 void xmrig::CpuWorker<N>::hashrateData(uint64_t &hashCount, uint64_t &, uint64_t &rawHashes) const
 {
-    hashCount = m_count;
-    rawHashes = m_count;
+    hashCount = m_count.load(std::memory_order_relaxed);
+    rawHashes = hashCount;
 }
 
 
@@ -351,7 +351,8 @@ void xmrig::CpuWorker<N>::start()
                         JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
                     }
                 }
-                m_count += N;
+                
+                m_count.fetch_add(N, std::memory_order_relaxed);
             }
 
             if (m_yield) {
