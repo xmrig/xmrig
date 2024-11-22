@@ -38,6 +38,8 @@
 #include <fstream>
 #include <limits>
 
+#include <X11/extensions/scrnsaver.h>
+
 
 #include "base/kernel/Platform.h"
 #include "version.h"
@@ -175,5 +177,19 @@ bool xmrig::Platform::isOnBatteryPower()
 
 uint64_t xmrig::Platform::idleTime()
 {
-    return std::numeric_limits<uint64_t>::max();
+    Display *dpy = XOpenDisplay(nullptr);
+ 
+    if (!dpy) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    XScreenSaverInfo *info = XScreenSaverAllocInfo();
+    XScreenSaverQueryInfo(dpy, DefaultRootWindow(dpy), info);
+
+    uint64_t idle = info->idle;
+
+    XFree(info);
+    XCloseDisplay(dpy);
+
+    return idle;
 }
