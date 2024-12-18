@@ -27,6 +27,7 @@
 
 
 #include "backend/cuda/runners/CudaBaseRunner.h"
+#include "base/tools/Buffer.h"
 
 
 namespace xmrig {
@@ -46,6 +47,7 @@ protected:
 private:
     bool m_ready             = false;
     const bool m_datasetHost = false;
+    Buffer m_seed;
     size_t m_intensity       = 0;
 };
 
