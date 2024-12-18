@@ -36,12 +36,16 @@
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
-#include "crypto/ghostrider/ghostrider.h"
 #include "net/JobResults.h"
 
 
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/randomx/randomx.h"
+#endif
+
+
+#ifdef XMRIG_ALGO_GHOSTRIDER
+#include "crypto/ghostrider/ghostrider.h"
 #endif
 
 
