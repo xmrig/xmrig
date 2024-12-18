@@ -55,6 +55,15 @@ bool xmrig::CudaRxRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t 
 
 bool xmrig::CudaRxRunner::set(const Job &job, uint8_t *blob)
 {
+    if (!m_datasetHost && (m_seed != job.seed())) {
+        m_seed = job.seed();
+
+        if (m_ready) {
+            auto dataset = Rx::dataset(job, 0);
+            callWrapper(CudaLib::rxUpdateDataset(m_ctx, dataset->raw(), dataset->size(false)));
+        }
+    }
+
     const bool rc = CudaBaseRunner::set(job, blob);
     if (!rc || m_ready) {
         return rc;

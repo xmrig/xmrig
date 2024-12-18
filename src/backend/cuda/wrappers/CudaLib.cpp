@@ -68,6 +68,7 @@ static const char *kPluginVersion                       = "pluginVersion";
 static const char *kRelease                             = "release";
 static const char *kRxHash                              = "rxHash";
 static const char *kRxPrepare                           = "rxPrepare";
+static const char *kRxUpdateDataset                     = "rxUpdateDataset";
 static const char *kSetJob                              = "setJob";
 static const char *kSetJob_v2                           = "setJob_v2";
 static const char *kVersion                             = "version";
@@ -92,6 +93,7 @@ using pluginVersion_t                                   = const char * (*)();
 using release_t                                         = void (*)(nvid_ctx *);
 using rxHash_t                                          = bool (*)(nvid_ctx *, uint32_t, uint64_t, uint32_t *, uint32_t *);
 using rxPrepare_t                                       = bool (*)(nvid_ctx *, const void *, size_t, bool, uint32_t);
+using rxUpdateDataset_t                                 = bool (*)(nvid_ctx *, const void *, size_t);
 using setJob_t                                          = bool (*)(nvid_ctx *, const void *, size_t, uint32_t);
 using setJob_v2_t                                       = bool (*)(nvid_ctx *, const void *, size_t, const char *);
 using version_t                                         = uint32_t (*)(Version);
@@ -116,6 +118,7 @@ static pluginVersion_t pPluginVersion                   = nullptr;
 static release_t pRelease                               = nullptr;
 static rxHash_t pRxHash                                 = nullptr;
 static rxPrepare_t pRxPrepare                           = nullptr;
+static rxUpdateDataset_t pRxUpdateDataset               = nullptr;
 static setJob_t pSetJob                                 = nullptr;
 static setJob_v2_t pSetJob_v2                           = nullptr;
 static version_t pVersion                               = nullptr;
@@ -203,6 +206,12 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
+}
+
+
+bool xmrig::CudaLib::rxUpdateDataset(nvid_ctx* ctx, const void* dataset, size_t datasetSize) noexcept
+{
+    return pRxUpdateDataset(ctx, dataset, datasetSize);
 }
 
 
@@ -388,6 +397,7 @@ void xmrig::CudaLib::load()
     DLSYM(Release);
     DLSYM(RxHash);
     DLSYM(RxPrepare);
+    DLSYM(RxUpdateDataset);
     DLSYM(KawPowHash);
     DLSYM(KawPowPrepare_v2);
     DLSYM(KawPowStopHash);
