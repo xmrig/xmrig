@@ -80,17 +80,17 @@ int xmrig::Pools::donateLevel() const
 }
 
 
-xmrig::IStrategy *xmrig::Pools::createStrategy(IStrategyListener *listener) const
+std::shared_ptr<xmrig::IStrategy> xmrig::Pools::createStrategy(IStrategyListener *listener) const
 {
     if (active() == 1) {
         for (const Pool &pool : m_data) {
             if (pool.isEnabled()) {
-                return new SinglePoolStrategy(pool, retryPause(), retries(), listener);
+                return std::make_shared<SinglePoolStrategy>(pool, retryPause(), retries(), listener);
             }
         }
     }
 
-    auto strategy = new FailoverStrategy(retryPause(), retries(), listener);
+    auto strategy = std::make_shared<FailoverStrategy>(retryPause(), retries(), listener);
     for (const Pool &pool : m_data) {
         if (pool.isEnabled()) {
             strategy->add(pool);
@@ -154,7 +154,7 @@ void xmrig::Pools::load(const IJsonReader &reader)
 
         Pool pool(value);
         if (pool.isValid()) {
-            m_data.push_back(std::move(pool));
+            m_data.emplace_back(std::move(pool));
         }
     }
 

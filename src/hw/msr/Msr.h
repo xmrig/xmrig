@@ -59,7 +59,7 @@ private:
     bool rdmsr(uint32_t reg, int32_t cpu, uint64_t &value) const;
     bool wrmsr(uint32_t reg, uint64_t value, int32_t cpu);
 
-    MsrPrivate *d_ptr = nullptr;
+    std::shared_ptr<MsrPrivate> d_ptr;
 };
 
 

@@ -133,12 +133,10 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
         for (uint32_t nonce : bundle.nonces) {
             *bundle.job.nonce() = nonce;
 
-            randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
+            randomx_calculate_hash(vm.get(), bundle.job.blob(), bundle.job.size(), hash);
 
             checkHash(bundle, results, nonce, hash, errors);
         }
-
-        RxVm::destroy(vm);
 #       endif
     }
     else if (algorithm.family() == Algorithm::ARGON2) {
@@ -303,7 +301,7 @@ private:
 };
 
 
-static JobResultsPrivate *handler = nullptr;
+static std::shared_ptr<JobResultsPrivate> handler;
 
 
 } // namespace xmrig
@@ -317,19 +315,17 @@ void xmrig::JobResults::done(const Job &job)
 
 void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)
 {
-    assert(handler == nullptr);
+    assert(!handler);
 
-    handler = new JobResultsPrivate(listener, hwAES);
+    handler = std::make_shared<JobResultsPrivate>(listener, hwAES);
 }
 
 
 void xmrig::JobResults::stop()
 {
-    assert(handler != nullptr);
+    assert(handler);
 
-    delete handler;
-
-    handler = nullptr;
+    handler.reset();
 }
 
 
@@ -347,7 +343,7 @@ void xmrig::JobResults::submit(const Job& job, uint32_t nonce, const uint8_t* re
 
 void xmrig::JobResults::submit(const JobResult &result)
 {
-    assert(handler != nullptr);
+    assert(handler);
 
     if (handler) {
         handler->submit(result);

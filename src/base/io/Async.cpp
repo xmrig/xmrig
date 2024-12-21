@@ -128,7 +128,7 @@ public:
 } // namespace xmrig
 
 
-xmrig::Async::Async(Callback callback) : d_ptr(new AsyncPrivate())
+xmrig::Async::Async(Callback callback) : d_ptr(std::make_shared<AsyncPrivate>())
 {
     d_ptr->callback     = std::move(callback);
     d_ptr->async        = new uv_async_t;
@@ -151,8 +151,6 @@ xmrig::Async::Async(IAsyncListener *listener) : d_ptr(new AsyncPrivate())
 xmrig::Async::~Async()
 {
     Handle::close(d_ptr->async);
-
-    delete d_ptr;
 }
 
 

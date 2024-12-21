@@ -69,7 +69,7 @@ private:
     bool m_jit              = true;
     Buffer m_seed;
     randomx_cache *m_cache  = nullptr;
-    VirtualMemory *m_memory = nullptr;
+    std::shared_ptr<VirtualMemory> m_memory;
 };
 
 

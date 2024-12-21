@@ -66,7 +66,7 @@ private:
     Base *m_base;
     char m_id[32]{};
     const uint64_t m_timestamp;
-    Httpd *m_httpd  = nullptr;
+    std::shared_ptr<Httpd> m_httpd;
     std::vector<IApiListener *> m_listeners;
     String m_workerId;
     uint8_t m_ticks = 0;

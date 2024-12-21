@@ -66,7 +66,7 @@ void xmrig::SinglePoolStrategy::resume()
         return;
     }
 
-    m_listener->onJob(this, m_client, m_client->job(), rapidjson::Value(rapidjson::kNullType));
+    m_listener->onJob(this, m_client.get(), m_client->job(), rapidjson::Value(rapidjson::kNullType));
 }
 
 

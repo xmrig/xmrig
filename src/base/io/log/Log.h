@@ -23,6 +23,7 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 
 namespace xmrig {
@@ -49,7 +50,7 @@ public:
 
     constexpr static size_t kMaxBufferSize = 16384;
 
-    static void add(ILogBackend *backend);
+    static void add(std::shared_ptr<ILogBackend> backend);
     static void destroy();
     static void init();
     static void print(const char *fmt, ...);
@@ -66,7 +67,7 @@ public:
 private:
     static bool m_background;
     static bool m_colors;
-    static LogPrivate *d;
+    static std::shared_ptr<LogPrivate> d;
     static uint32_t m_verbose;
 };
 

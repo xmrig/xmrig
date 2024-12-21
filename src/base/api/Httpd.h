@@ -55,13 +55,13 @@ private:
 
     const Base *m_base;
     std::shared_ptr<IHttpListener> m_httpListener;
-    TcpServer *m_server     = nullptr;
+    std::shared_ptr<TcpServer> m_server;
     uint16_t m_port         = 0;
 
 #   ifdef XMRIG_FEATURE_TLS
-    HttpsServer *m_http     = nullptr;
+    std::shared_ptr<HttpsServer> m_http;
 #   else
-    HttpServer *m_http      = nullptr;
+    std::shared_ptr<HttpServer> m_http;
 #   endif
 };
 

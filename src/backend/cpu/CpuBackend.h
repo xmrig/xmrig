@@ -70,7 +70,7 @@ protected:
 #   endif
 
 private:
-    CpuBackendPrivate *d_ptr;
+    std::shared_ptr<CpuBackendPrivate> d_ptr;
 };
 
 

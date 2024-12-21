@@ -80,11 +80,10 @@ public:
     inline ~BasePrivate()
     {
 #       ifdef XMRIG_FEATURE_API
-        delete api;
+        api.reset();
 #       endif
 
-        delete config;
-        delete watcher;
+        watcher.reset();
 
         NetBuffer::destroy();
     }
@@ -98,27 +97,25 @@ public:
     }
 
 
-    inline void replace(Config *newConfig)
+    inline void replace(std::shared_ptr<Config> newConfig)
     {
-        Config *previousConfig = config;
+        auto previousConfig = config;
         config = newConfig;
 
         for (IBaseListener *listener : listeners) {
-            listener->onConfigChanged(config, previousConfig);
+            listener->onConfigChanged(config.get(), previousConfig.get());
         }
-
-        delete previousConfig;
     }
 
 
-    Api *api            = nullptr;
-    Config *config      = nullptr;
+    std::shared_ptr<Api> api;
+    std::shared_ptr<Config> config;
     std::vector<IBaseListener *> listeners;
-    Watcher *watcher    = nullptr;
+    std::shared_ptr<Watcher> watcher;
 
 
 private:
-    inline static Config *load(Process *process)
+    inline static std::shared_ptr<Config> load(Process *process)
     {
         JsonChain chain;
         ConfigTransform transform;
@@ -127,29 +124,29 @@ private:
         ConfigTransform::load(chain, process, transform);
 
         if (read(chain, config)) {
-            return config.release();
+            return config;
         }
 
         chain.addFile(Process::location(Process::DataLocation, "config.json"));
         if (read(chain, config)) {
-            return config.release();
+            return config;
         }
 
         chain.addFile(Process::location(Process::HomeLocation,  "." APP_ID ".json"));
         if (read(chain, config)) {
-            return config.release();
+            return config;
         }
 
         chain.addFile(Process::location(Process::HomeLocation, ".config" XMRIG_DIR_SEPARATOR APP_ID ".json"));
         if (read(chain, config)) {
-            return config.release();
+            return config;
         }
 
 #       ifdef XMRIG_FEATURE_EMBEDDED_CONFIG
         chain.addRaw(default_config);
 
         if (read(chain, config)) {
-            return config.release();
+            return config;
         }
 #       endif
 
@@ -162,7 +159,7 @@ private:
 
 
 xmrig::Base::Base(Process *process)
-    : d_ptr(new BasePrivate(process))
+    : d_ptr(std::make_shared<BasePrivate>(process))
 {
 
 }
@@ -170,7 +167,6 @@ xmrig::Base::Base(Process *process)
 
 xmrig::Base::~Base()
 {
-    delete d_ptr;
 }
 
 
@@ -183,7 +179,7 @@ bool xmrig::Base::isReady() const
 int xmrig::Base::init()
 {
 #   ifdef XMRIG_FEATURE_API
-    d_ptr->api = new Api(this);
+    d_ptr->api = std::make_shared<Api>(this);
     d_ptr->api->addListener(this);
 #   endif
 
@@ -193,16 +189,16 @@ int xmrig::Base::init()
         Log::setBackground(true);
     }
     else {
-        Log::add(new ConsoleLog(config()->title()));
+        Log::add(std::make_shared<ConsoleLog>(config()->title()));
     }
 
     if (config()->logFile()) {
-        Log::add(new FileLog(config()->logFile()));
+        Log::add(std::make_shared<FileLog>(config()->logFile()));
     }
 
 #   ifdef HAVE_SYSLOG_H
     if (config()->isSyslog()) {
-        Log::add(new SysLog());
+        Log::add(std::make_shared<SysLog>());
     }
 #   endif
 
@@ -221,7 +217,7 @@ void xmrig::Base::start()
     }
 
     if (config()->isWatch()) {
-        d_ptr->watcher = new Watcher(config()->fileName(), this);
+        d_ptr->watcher = std::make_shared<Watcher>(config()->fileName(), this);
     }
 }
 
@@ -232,8 +228,7 @@ void xmrig::Base::stop()
     api()->stop();
 #   endif
 
-    delete d_ptr->watcher;
-    d_ptr->watcher = nullptr;
+    d_ptr->watcher.reset();
 }
 
 
@@ -241,7 +236,7 @@ xmrig::Api *xmrig::Base::api() const
 {
     assert(d_ptr->api != nullptr);
 
-    return d_ptr->api;
+    return d_ptr->api.get();
 }
 
 
@@ -258,18 +253,14 @@ bool xmrig::Base::reload(const rapidjson::Value &json)
         return false;
     }
 
-    auto config = new Config();
+    auto config = std::make_shared<Config>();
     if (!config->read(reader, d_ptr->config->fileName())) {
-        delete config;
-
         return false;
     }
 
     const bool saved = config->save();
 
     if (config->isWatch() && d_ptr->watcher && saved) {
-        delete config;
-
         return true;
     }
 
@@ -279,11 +270,11 @@ bool xmrig::Base::reload(const rapidjson::Value &json)
 }
 
 
-xmrig::Config *xmrig::Base::config() const
+xmrig::Config* xmrig::Base::config() const
 {
-    assert(d_ptr->config != nullptr);
+    assert(d_ptr->config);
 
-    return d_ptr->config;
+    return d_ptr->config.get();
 }
 
 
@@ -300,12 +291,10 @@ void xmrig::Base::onFileChanged(const String &fileName)
     JsonChain chain;
     chain.addFile(fileName);
 
-    auto config = new Config();
+    auto config = std::make_shared<Config>();
 
     if (!config->read(chain, chain.fileName())) {
         LOG_ERR("%s " RED("reloading failed"), Tags::config());
-
-        delete config;
         return;
     }
 
