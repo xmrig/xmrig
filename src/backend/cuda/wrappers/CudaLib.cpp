@@ -19,10 +19,10 @@
 #include <stdexcept>
 #include <uv.h>
 
-
 #include "backend/cuda/wrappers/CudaLib.h"
 #include "base/io/Env.h"
 #include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "base/kernel/Process.h"
 #include "crypto/rx/RxAlgo.h"
 
@@ -205,13 +205,23 @@ bool xmrig::CudaLib::rxHash(nvid_ctx *ctx, uint32_t startNonce, uint64_t target,
 
 bool xmrig::CudaLib::rxPrepare(nvid_ctx *ctx, const void *dataset, size_t datasetSize, bool dataset_host, uint32_t batchSize) noexcept
 {
+#   ifdef XMRIG_ALGO_RANDOMX
+    if (!pRxUpdateDataset) {
+        LOG_WARN("%s" YELLOW_BOLD("CUDA plugin is outdated. Please update to the latest version"), Tags::randomx());
+    }
+#   endif
+
     return pRxPrepare(ctx, dataset, datasetSize, dataset_host, batchSize);
 }
 
 
-bool xmrig::CudaLib::rxUpdateDataset(nvid_ctx* ctx, const void* dataset, size_t datasetSize) noexcept
+bool xmrig::CudaLib::rxUpdateDataset(nvid_ctx *ctx, const void *dataset, size_t datasetSize) noexcept
 {
-    return pRxUpdateDataset(ctx, dataset, datasetSize);
+    if (pRxUpdateDataset) {
+        return pRxUpdateDataset(ctx, dataset, datasetSize);
+    }
+
+    return true;
 }
 
 
@@ -397,7 +407,6 @@ void xmrig::CudaLib::load()
     DLSYM(Release);
     DLSYM(RxHash);
     DLSYM(RxPrepare);
-    DLSYM(RxUpdateDataset);
     DLSYM(KawPowHash);
     DLSYM(KawPowPrepare_v2);
     DLSYM(KawPowStopHash);
@@ -410,6 +419,8 @@ void xmrig::CudaLib::load()
         DLSYM(DeviceInfo_v2);
         DLSYM(SetJob_v2);
     }
+
+    uv_dlsym(&cudaLib, kRxUpdateDataset, reinterpret_cast<void**>(&pRxUpdateDataset));
 
     pInit();
 }
