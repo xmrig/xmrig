@@ -1,0 +1,35 @@
+name: Build
+
+on: [push, pull_request, workflow_dispatch]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      working-dir: ./build
+    steps:
+    - name: Install packages
+      run: |
+        sudo apt-get install -y build-essential libuv1-dev libssl-dev libhwloc-dev
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Create directory
+      run: mkdir build
+    - name: Configure build
+      working-directory: ${{env.working-dir}}
+      run: cmake ..
+    - name: Build
+      working-directory: ${{env.working-dir}}
+      run: make -j 6
+    - name: Make executable
+      working-directory: ${{env.working-dir}}
+      run: chmod u+x ./xmrig
+    - uses: actions/upload-artifact@v3
+      with:
+        name: my-xmrig
+        path: build/xmrig
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: build/xmrig
