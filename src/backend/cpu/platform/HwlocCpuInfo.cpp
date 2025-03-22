@@ -320,8 +320,13 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             L2 += l2->attr->cache.size;
             L2_associativity = l2->attr->cache.associativity;
 
-            if (L3_exclusive && l2->attr->cache.size >= scratchpad) {
-                extra += scratchpad;
+            if (L3_exclusive) {
+                if (vendor() == VENDOR_AMD) {
+                    extra += std::min<size_t>(l2->attr->cache.size, scratchpad);
+                }
+                else if (l2->attr->cache.size >= scratchpad) {
+                    extra += scratchpad;
+                }
             }
         }
     }
