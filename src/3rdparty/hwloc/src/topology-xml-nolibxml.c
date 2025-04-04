@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2011 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -41,7 +41,7 @@ typedef struct hwloc__nolibxml_import_state_data_s {
 static char *
 hwloc__nolibxml_import_ignore_spaces(char *buffer)
 {
-  return buffer + strspn(buffer, " \t\n");
+  return buffer + strspn(buffer, " \t\n\r");
 }
 
 static int

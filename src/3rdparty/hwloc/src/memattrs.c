@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2023 Inria.  All rights reserved.
+ * Copyright © 2020-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -14,13 +14,26 @@
  */
 
 static __hwloc_inline
-hwloc_uint64_t hwloc__memattr_get_convenience_value(hwloc_memattr_id_t id,
-                                                    hwloc_obj_t node)
+int hwloc__memattr_get_convenience_value(hwloc_memattr_id_t id,
+                                         hwloc_obj_t node,
+                                         hwloc_uint64_t *valuep)
 {
-  if (id == HWLOC_MEMATTR_ID_CAPACITY)
-    return node->attr->numanode.local_memory;
-  else if (id == HWLOC_MEMATTR_ID_LOCALITY)
-    return hwloc_bitmap_weight(node->cpuset);
+  if (id == HWLOC_MEMATTR_ID_CAPACITY) {
+    if (node->type != HWLOC_OBJ_NUMANODE) {
+      errno = EINVAL;
+      return -1;
+    }
+    *valuep = node->attr->numanode.local_memory;
+    return 0;
+  }
+  else if (id == HWLOC_MEMATTR_ID_LOCALITY) {
+    if (!node->cpuset) {
+      errno = EINVAL;
+      return -1;
+    }
+    *valuep = hwloc_bitmap_weight(node->cpuset);
+    return 0;
+  }
   else
     assert(0);
   return 0; /* shut up the compiler */
@@ -622,7 +635,7 @@ hwloc_memattr_get_targets(hwloc_topology_t topology,
       if (found<max) {
         targets[found] = node;
         if (values)
-          values[found] = hwloc__memattr_get_convenience_value(id, node);
+          hwloc__memattr_get_convenience_value(id, node, &values[found]);
       }
       found++;
     }
@@ -748,7 +761,7 @@ hwloc_memattr_get_initiators(hwloc_topology_t topology,
   struct hwloc_internal_memattr_target_s *imtg;
   unsigned i, max;
 
-  if (flags) {
+  if (flags || !target_node) {
     errno = EINVAL;
     return -1;
   }
@@ -810,7 +823,7 @@ hwloc_memattr_get_value(hwloc_topology_t topology,
   struct hwloc_internal_memattr_s *imattr;
   struct hwloc_internal_memattr_target_s *imtg;
 
-  if (flags) {
+  if (flags || !target_node) {
     errno = EINVAL;
     return -1;
   }
@@ -823,8 +836,7 @@ hwloc_memattr_get_value(hwloc_topology_t topology,
 
   if (imattr->iflags & HWLOC_IMATTR_FLAG_CONVENIENCE) {
     /* convenience attributes */
-    *valuep = hwloc__memattr_get_convenience_value(id, target_node);
-    return 0;
+    return hwloc__memattr_get_convenience_value(id, target_node, valuep);
   }
 
   /* normal attributes */
@@ -936,7 +948,7 @@ hwloc_memattr_set_value(hwloc_topology_t topology,
 {
   struct hwloc_internal_location_s iloc, *ilocp;
 
-  if (flags) {
+  if (flags || !target_node) {
     errno = EINVAL;
     return -1;
   }
@@ -1007,10 +1019,10 @@ hwloc_memattr_get_best_target(hwloc_topology_t topology,
     /* convenience attributes */
     for(j=0; ; j++) {
       hwloc_obj_t node = hwloc_get_obj_by_type(topology, HWLOC_OBJ_NUMANODE, j);
-      hwloc_uint64_t value;
+      hwloc_uint64_t value = 0;
       if (!node)
         break;
-      value = hwloc__memattr_get_convenience_value(id, node);
+      hwloc__memattr_get_convenience_value(id, node, &value);
       hwloc__update_best_target(&best, &best_value, &found,
                                 node, value,
                                 imattr->flags & HWLOC_MEMATTR_FLAG_HIGHER_FIRST);
@@ -1093,7 +1105,7 @@ hwloc_memattr_get_best_initiator(hwloc_topology_t topology,
   int found;
   unsigned i;
 
-  if (flags) {
+  if (flags || !target_node) {
     errno = EINVAL;
     return -1;
   }
@@ -1805,6 +1817,12 @@ hwloc__apply_memory_tiers_subtypes(hwloc_topology_t topology,
         break; /* each node is in a single tier */
       }
     }
+  }
+  if (nr_tiers > 1) {
+    hwloc_obj_t root = hwloc_get_root_obj(topology);
+    char tmp[20];
+    snprintf(tmp, sizeof(tmp), "%u", nr_tiers);
+    hwloc__add_info_nodup(&root->infos, &root->infos_count, "MemoryTiersNr", tmp, 1);
   }
 }
 

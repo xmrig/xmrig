@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -872,6 +872,10 @@ hwloc__xml_import_object(hwloc_topology_t topology,
 	  /* deal with possible future type */
 	  obj->type = HWLOC_OBJ_GROUP;
 	  obj->attr->group.kind = HWLOC_GROUP_KIND_INTEL_MODULE;
+	} else if (!strcasecmp(attrvalue, "Cluster")) {
+	  /* deal with possible future type */
+	  obj->type = HWLOC_OBJ_GROUP;
+	  obj->attr->group.kind = HWLOC_GROUP_KIND_LINUX_CLUSTER;
 	} else if (!strcasecmp(attrvalue, "MemCache")) {
 	  /* ignore possible future type */
 	  obj->type = _HWLOC_OBJ_FUTURE;
@@ -1344,7 +1348,7 @@ hwloc__xml_v2import_support(hwloc_topology_t topology,
     HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_support) == 4*sizeof(void*));
     HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_discovery_support) == 6);
     HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_cpubind_support) == 11);
-    HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_membind_support) == 15);
+    HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_membind_support) == 16);
     HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_misc_support) == 1);
 #endif
 
@@ -1378,6 +1382,7 @@ hwloc__xml_v2import_support(hwloc_topology_t topology,
     else DO(membind,firsttouch_membind);
     else DO(membind,bind_membind);
     else DO(membind,interleave_membind);
+    else DO(membind,weighted_interleave_membind);
     else DO(membind,nexttouch_membind);
     else DO(membind,migrate_membind);
     else DO(membind,get_area_memlocation);
@@ -1436,6 +1441,10 @@ hwloc__xml_v2import_distances(hwloc_topology_t topology,
     }
     else if (!strcmp(attrname, "kind")) {
       kind = strtoul(attrvalue, NULL, 10);
+      /* forward compat with "HOPS" kind in v3 */
+      if (kind & (1UL<<5))
+        /* hops becomes latency */
+        kind = (kind & ~(1UL<<5)) | HWLOC_DISTANCES_KIND_MEANS_LATENCY;
     }
     else if (!strcmp(attrname, "name")) {
       name = attrvalue;
@@ -3087,7 +3096,7 @@ hwloc__xml_v2export_support(hwloc__xml_export_state_t parentstate, hwloc_topolog
   HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_support) == 4*sizeof(void*));
   HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_discovery_support) == 6);
   HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_cpubind_support) == 11);
-  HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_membind_support) == 15);
+  HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_membind_support) == 16);
   HWLOC_BUILD_ASSERT(sizeof(struct hwloc_topology_misc_support) == 1);
 #endif
 
@@ -3132,6 +3141,7 @@ hwloc__xml_v2export_support(hwloc__xml_export_state_t parentstate, hwloc_topolog
   DO(membind,firsttouch_membind);
   DO(membind,bind_membind);
   DO(membind,interleave_membind);
+  DO(membind,weighted_interleave_membind);
   DO(membind,nexttouch_membind);
   DO(membind,migrate_membind);
   DO(membind,get_area_memlocation);

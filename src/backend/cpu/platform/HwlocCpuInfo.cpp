@@ -326,7 +326,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
         }
     }
 
-    if (scratchpad == 2 * oneMiB) {
+    // This code is supposed to run only on Intel CPUs
+    if ((vendor() == VENDOR_INTEL) && (scratchpad == 2 * oneMiB)) {
         if (L2 && (cores.size() * oneMiB) == L2 && L2_associativity == 16 && L3 >= L2) {
             L3    = L2;
             extra = L2;
@@ -341,7 +342,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if ((algorithm.family() == Algorithm::RANDOM_X) && L3_exclusive && (PUs > cores.size()) && (PUs < cores.size() * 2)) {
+    if ((vendor() == VENDOR_INTEL) && (algorithm.family() == Algorithm::RANDOM_X) && L3_exclusive && (PUs < cores.size() * 2)) {
         // Use all L3+L2 on latest Intel CPUs with P-cores, E-cores and exclusive L3 cache
         cacheHashes = (L3 + L2) / scratchpad;
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2023 Inria.  All rights reserved.
+ * Copyright © 2010-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -28,18 +28,18 @@ extern "C" {
 
 /** \brief Matrix of distances between a set of objects.
  *
- * This matrix often contains latencies between NUMA nodes
+ * The most common matrix contains latencies between NUMA nodes
  * (as reported in the System Locality Distance Information Table (SLIT)
  * in the ACPI specification), which may or may not be physically accurate.
  * It corresponds to the latency for accessing the memory of one node
  * from a core in another node.
- * The corresponding kind is ::HWLOC_DISTANCES_KIND_FROM_OS | ::HWLOC_DISTANCES_KIND_FROM_USER.
+ * The corresponding kind is ::HWLOC_DISTANCES_KIND_MEANS_LATENCY | ::HWLOC_DISTANCES_KIND_FROM_USER.
  * The name of this distances structure is "NUMALatency".
- * Others distance structures include and "XGMIBandwidth", "XGMIHops",
- * "XeLinkBandwidth" and "NVLinkBandwidth".
  *
  * The matrix may also contain bandwidths between random sets of objects,
  * possibly provided by the user, as specified in the \p kind attribute.
+ * Others common distance structures include and "XGMIBandwidth", "XGMIHops",
+ * "XeLinkBandwidth" and "NVLinkBandwidth".
  *
  * Pointers \p objs and \p values should not be replaced, reallocated, freed, etc.
  * However callers are allowed to modify \p kind as well as the contents
@@ -70,11 +70,10 @@ struct hwloc_distances_s {
  * The \p kind attribute of struct hwloc_distances_s is a OR'ed set
  * of kinds.
  *
- * A kind of format HWLOC_DISTANCES_KIND_FROM_* specifies where the
- * distance information comes from, if known.
- *
- * A kind of format HWLOC_DISTANCES_KIND_MEANS_* specifies whether
- * values are latencies or bandwidths, if applicable.
+ * Each distance matrix may have only one kind among HWLOC_DISTANCES_KIND_FROM_*
+ * specifying where distance information comes from,
+ * and one kind among HWLOC_DISTANCES_KIND_MEANS_* specifying
+ * whether values are latencies or bandwidths.
  */
 enum hwloc_distances_kind_e {
   /** \brief These distances were obtained from the operating system or hardware.
@@ -357,6 +356,8 @@ typedef void * hwloc_distances_add_handle_t;
  * Otherwise, it will be copied internally and may later be freed by the caller.
  *
  * \p kind specifies the kind of distance as a OR'ed set of ::hwloc_distances_kind_e.
+ * Only one kind of meaning and one kind of provenance may be given if appropriate
+ * (e.g. ::HWLOC_DISTANCES_KIND_MEANS_BANDWIDTH and ::HWLOC_DISTANCES_KIND_FROM_USER).
  * Kind ::HWLOC_DISTANCES_KIND_HETEROGENEOUS_TYPES will be automatically set
  * according to objects having different types in hwloc_distances_add_values().
  *
@@ -403,7 +404,8 @@ HWLOC_DECLSPEC int hwloc_distances_add_values(hwloc_topology_t topology,
 /** \brief Flags for adding a new distances to a topology. */
 enum hwloc_distances_add_flag_e {
   /** \brief Try to group objects based on the newly provided distance information.
-   * This is ignored for distances between objects of different types.
+   * Grouping is only performed when the distances structure contains latencies,
+   * and when all objects are of the same type.
    * \hideinitializer
    */
   HWLOC_DISTANCES_ADD_FLAG_GROUP = (1UL<<0),

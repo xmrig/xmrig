@@ -11,6 +11,22 @@
 #ifndef HWLOC_PRIVATE_CPUID_X86_H
 #define HWLOC_PRIVATE_CPUID_X86_H
 
+/* A macro for annotating memory as uninitialized when building with MSAN
+ * (and otherwise having no effect). See below for why this is used with
+ * our custom assembly.
+ */
+#ifdef __has_feature
+#define HWLOC_HAS_FEATURE(name) __has_feature(name)
+#else
+#define HWLOC_HAS_FEATURE(name) 0
+#endif
+#if HWLOC_HAS_FEATURE(memory_sanitizer) || defined(MEMORY_SANITIZER)
+#include <sanitizer/msan_interface.h>
+#define HWLOC_ANNOTATE_MEMORY_IS_INITIALIZED(ptr, len) __msan_unpoison(ptr, len)
+#else
+#define HWLOC_ANNOTATE_MEMORY_IS_INITIALIZED(ptr, len)
+#endif
+
 #if (defined HWLOC_X86_32_ARCH) && (!defined HWLOC_HAVE_MSVC_CPUIDEX)
 static __hwloc_inline int hwloc_have_x86_cpuid(void)
 {
@@ -71,12 +87,18 @@ static __hwloc_inline void hwloc_x86_cpuid(unsigned *eax, unsigned *ebx, unsigne
   "movl %k2,%1\n\t"
   : "+a" (*eax), "=m" (*ebx), "=&r"(sav_rbx),
     "+c" (*ecx), "=&d" (*edx));
+  /* MSAN does not recognize the effect of the above assembly on the memory operand
+   * (`"=m"(*ebx)`). This may get improved in MSAN at some point in the future, e.g.
+   * see https://github.com/llvm/llvm-project/pull/77393. */
+  HWLOC_ANNOTATE_MEMORY_IS_INITIALIZED(ebx, sizeof *ebx);
 #elif defined(HWLOC_X86_32_ARCH)
   __asm__(
   "mov %%ebx,%1\n\t"
   "cpuid\n\t"
   "xchg %%ebx,%1\n\t"
   : "+a" (*eax), "=&SD" (*ebx), "+c" (*ecx), "=&d" (*edx));
+  /* See above. */
+  HWLOC_ANNOTATE_MEMORY_IS_INITIALIZED(ebx, sizeof *ebx);
 #else
 #error unknown architecture
 #endif

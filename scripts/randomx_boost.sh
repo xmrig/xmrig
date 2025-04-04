@@ -8,7 +8,7 @@ else
 	modprobe msr allow_writes=on
 fi
 
-if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
+if grep -E 'AMD Ryzen|AMD EPYC|AuthenticAMD' /proc/cpuinfo > /dev/null;
 	then
 	if grep "cpu family[[:space:]]\{1,\}:[[:space:]]25" /proc/cpuinfo > /dev/null;
 		then
@@ -28,6 +28,14 @@ if grep -E 'AMD Ryzen|AMD EPYC' /proc/cpuinfo > /dev/null;
 					wrmsr -a 0xc001102b 0x2000cc10
 					echo "MSR register values for Zen3 applied"
 				fi
+		elif grep "cpu family[[:space:]]\{1,\}:[[:space:]]26" /proc/cpuinfo > /dev/null;
+			then
+				echo "Detected Zen5 CPU"
+				wrmsr -a 0xc0011020 0x4400000000000
+				wrmsr -a 0xc0011021 0x4000000000040
+				wrmsr -a 0xc0011022 0x8680000401570000
+				wrmsr -a 0xc001102b 0x2040cc10
+				echo "MSR register values for Zen5 applied"
 		else
 			echo "Detected Zen1/Zen2 CPU"
 			wrmsr -a 0xc0011020 0
