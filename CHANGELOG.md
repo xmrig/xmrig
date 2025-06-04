@@ -1,3 +1,9 @@
+# v6.22.3
+- [#3605](https://github.com/xmrig/xmrig/pull/3605) CUDA backend: added missing RandomX dataset update.
+- [#3646](https://github.com/xmrig/xmrig/pull/3646) Optimized auto-config for AMD CPUs with less than 2 MB L3 cache per thread.
+- [#3652](https://github.com/xmrig/xmrig/pull/3652) Fixed possible crash when submitting RandomX benchmark.
+- [#3662](https://github.com/xmrig/xmrig/pull/3662) Fixed OpenCL kernel compilation error on some platforms.
+
 # v6.22.2
 - [#3569](https://github.com/xmrig/xmrig/pull/3569) Fixed corrupted API output in some rare conditions.
 - [#3571](https://github.com/xmrig/xmrig/pull/3571) Fixed number of threads on the new Intel Core Ultra CPUs.

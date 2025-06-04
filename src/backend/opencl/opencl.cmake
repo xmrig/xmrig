@@ -5,13 +5,7 @@ if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
 endif()
 
 if (WITH_OPENCL)
-    add_definitions(/DXMRIG_FEATURE_OPENCL)
-    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
-    if (XMRIG_OS_APPLE)
-        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
-    elseif (WITH_OPENCL_VERSION)
-        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
-    endif()
+    add_definitions(/DXMRIG_FEATURE_OPENCL /DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
@@ -70,6 +64,13 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclLib.cpp
         src/backend/opencl/wrappers/OclPlatform.cpp
         )
+
+    if (XMRIG_OS_APPLE)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
+        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/OclDevice_mac.cpp)
+    elseif (WITH_OPENCL_VERSION)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
+    endif()
 
     if (WIN32)
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)

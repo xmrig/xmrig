@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,9 +19,7 @@
 #ifndef XMRIG_PCITOPOLOGY_H
 #define XMRIG_PCITOPOLOGY_H
 
-
 #include <cstdio>
-
 
 #include "base/tools/String.h"
 
@@ -33,7 +31,14 @@ class PciTopology
 {
 public:
     PciTopology() = default;
-    PciTopology(uint32_t bus, uint32_t device, uint32_t function) : m_valid(true), m_bus(bus), m_device(device), m_function(function) {}
+
+    template<typename T>
+    inline PciTopology(T bus, T device, T function)
+        : m_valid(true),
+          m_bus(static_cast<uint8_t>(bus)),
+          m_device(static_cast<uint8_t>(device)),
+          m_function(static_cast<uint8_t>(function))
+    {}
 
     inline bool isEqual(const PciTopology &other) const     { return m_valid == other.m_valid && toUint32() == other.toUint32(); }
     inline bool isValid() const                             { return m_valid; }
@@ -70,4 +75,4 @@ private:
 } // namespace xmrig
 
 
-#endif /* XMRIG_PCITOPOLOGY_H */
+#endif // XMRIG_PCITOPOLOGY_H
