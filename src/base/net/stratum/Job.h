@@ -7,8 +7,8 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2019      Howard Chu  <https://github.com/hyc>
- * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -67,7 +67,7 @@ public:
 
     inline bool isNicehash() const                      { return m_nicehash; }
     inline bool isValid() const                         { return (m_size > 0 && m_diff > 0) || !m_poolWallet.isEmpty(); }
-    inline bool setId(const char *id)                   { return m_id = id; }
+    inline bool setId(const char *id)                   { return (m_id = id); }
     inline const Algorithm &algorithm() const           { return m_algorithm; }
     inline const Buffer &seed() const                   { return m_seed; }
     inline const String &clientId() const               { return m_clientId; }
