@@ -57,7 +57,7 @@ private:
 
     char m_buf[1] = { 0 };
     IConsoleListener *m_listener;
-    uv_tty_t *m_tty = nullptr;
+    uv_stream_t *m_input = nullptr;
 };
 
 
