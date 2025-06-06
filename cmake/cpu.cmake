@@ -29,6 +29,8 @@ else()
     set(WITH_VAES OFF)
 endif()
 
+add_definitions(-DRAPIDJSON_WRITE_DEFAULT_FLAGS=6) # rapidjson::kWriteNanAndInfFlag | rapidjson::kWriteNanAndInfNullFlag
+
 if (ARM_V8)
     set(ARM_TARGET 8)
 elseif (ARM_V7)
