@@ -20,6 +20,7 @@
 
 
 #include "base/api/Api.h"
+#include "3rdparty/rapidjson/writer.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/api/requests/HttpApiRequest.h"
 #include "base/crypto/keccak.h"
@@ -31,7 +32,6 @@
 #include "base/tools/Chrono.h"
 #include "base/tools/Cvt.h"
 #include "core/config/Config.h"
-#include "rapidjson/writer.h"
 #include "version.h"
 
 
