@@ -169,6 +169,12 @@ bool xmrig::Platform::isOnBatteryPower()
             return (status == "Discharging");
         }
     }
+    std::ifstream f("/sys/class/power_supply/macsmc-battery/status");
+    if (f.is_open()) {
+        std::string status;
+        f >> status;
+        return (status == "Discharging");
+    }
     return false;
 }
 
