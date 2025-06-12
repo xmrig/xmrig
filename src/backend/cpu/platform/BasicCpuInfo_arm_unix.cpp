@@ -20,6 +20,9 @@
 #include "base/tools/String.h"
 
 
+#include <fstream>
+
+
 #if __ARM_FEATURE_CRYPTO
 #   include <sys/auxv.h>
 #   if !defined(XMRIG_OS_FREEBSD)
