@@ -38,7 +38,7 @@ elseif (ARM_V7)
 endif()
 
 if (NOT ARM_TARGET)
-    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|armv8-a)$")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64|ARM64|armv8-a)$")
         set(ARM_TARGET 8)
     elseif (CMAKE_SYSTEM_PROCESSOR MATCHES "^(armv7|armv7f|armv7s|armv7k|armv7-a|armv7l|armv7ve)$")
         set(ARM_TARGET 7)

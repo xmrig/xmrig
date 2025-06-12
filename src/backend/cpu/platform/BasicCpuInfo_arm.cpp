@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -25,7 +25,7 @@
 #include <thread>
 
 
-#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
+#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__) && !defined(XMRIG_OS_WIN)
 #   include <sys/auxv.h>
 #   if !defined(XMRIG_OS_FREEBSD)
 #       include <asm/hwcap.h>
@@ -74,6 +74,8 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
 #   elif defined(XMRIG_OS_FREEBSD)
     uint64_t isar0 = READ_SPECIALREG(id_aa64isar0_el1);
     m_flags.set(FLAG_AES, ID_AA64ISAR0_AES_VAL(isar0) >= ID_AA64ISAR0_AES_BASE);
+#   elif (defined(XMRIG_OS_WIN))
+    m_flags.set(FLAG_AES, true); // FIXME
 #   else
     m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
 #   endif

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #include <windows.h>
 
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #   include <fcntl.h>
 #   include <sys/stat.h>
 #   include <ext/stdio_filebuf.h>
@@ -39,7 +39,7 @@
 namespace xmrig {
 
 
-#if defined(_MSC_VER) || defined (__GNUC__)
+#if defined(_MSC_VER) || (defined(__GNUC__) && !defined(__clang__))
 static std::wstring toUtf16(const char *str)
 {
     const int size = static_cast<int>(strlen(str));
@@ -62,7 +62,7 @@ static std::wstring toUtf16(const char *str)
     if (!ifs.is_open()) {                                                               \
         return false;                                                                   \
     }
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !defined(__clang__)
 #   define OPEN_IFS(name)                                                               \
     const int fd = _wopen(toUtf16(name).c_str(), _O_RDONLY | _O_BINARY);                \
     if (fd == -1) {                                                                     \
@@ -103,7 +103,7 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     if (!ofs.is_open()) {
         return false;
     }
-#   elif defined(__GNUC__)
+#   elif defined(__GNUC__) && !defined(__clang__)
     const int fd = _wopen(toUtf16(fileName).c_str(), _O_WRONLY | _O_BINARY | _O_CREAT | _O_TRUNC, _S_IWRITE);
     if (fd == -1) {
         return false;
