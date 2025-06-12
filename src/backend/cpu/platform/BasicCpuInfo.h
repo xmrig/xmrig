@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -85,6 +85,8 @@ private:
     uint32_t m_family       = 0;
     uint32_t m_model        = 0;
     uint32_t m_stepping     = 0;
+#   else
+    void init_arm();
 #   endif
 
     Assembly m_assembly     = Assembly::NONE;
