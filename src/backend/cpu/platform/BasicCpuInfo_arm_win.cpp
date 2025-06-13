@@ -18,10 +18,15 @@
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 
+#include <Windows.h>
+
 
 void xmrig::BasicCpuInfo::init_arm()
 {
-#   if __ARM_FEATURE_CRYPTO
-    m_flags.set(FLAG_AES, true); // FIXME
-#   endif
+    DWORD size         = sizeof(m_brand) - 1;
+    const char *subkey = "HARDWARE\\DESCRIPTION\\System\\CentralProcessor\\0";
+
+    RegGetValueA(HKEY_LOCAL_MACHINE, subkey, "ProcessorNameString", RRF_RT_REG_SZ, nullptr, m_brand, &size);
+
+    m_flags.set(FLAG_AES, IsProcessorFeaturePresent(PF_ARM_V8_CRYPTO_INSTRUCTIONS_AVAILABLE));
 }
