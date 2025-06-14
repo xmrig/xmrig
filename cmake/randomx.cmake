@@ -1,4 +1,12 @@
 if (WITH_RANDOMX)
+    include(CheckFunctionExists)
+
+    check_function_exists(posix_memalign HAVE_POSIX_MEMALIGN)
+
+    if(HAVE_POSIX_MEMALIGN)
+        add_definitions(/DHAVE_POSIX_MEMALIGN)
+    endif()
+
     add_definitions(/DXMRIG_ALGO_RANDOMX)
     set(WITH_ARGON2 ON)
 
