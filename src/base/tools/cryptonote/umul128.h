@@ -23,15 +23,22 @@
 
 #pragma once
 
-
 #include <cstdint>
 
-#ifdef XMRIG_64_BIT
-#   ifdef _MSC_VER
+#if defined(XMRIG_64_BIT)
+#   if defined(_MSC_VER)
 #       include <intrin.h>
-#       pragma intrinsic(_umul128)
-#       define __umul128 _umul128
-#   elif defined __GNUC__
+#       if defined(XMRIG_ARM)
+            #pragma intrinsic(__umulh)
+            static inline uint64_t __umul128(uint64_t a, uint64_t b, uint64_t *high) {
+                *high = __umulh(a, b);
+                return a * b;
+            }
+#       else
+#           pragma intrinsic(_umul128)
+#           define __umul128 _umul128
+#       endif
+#   elif defined(__GNUC__)
         static inline uint64_t _umul128(uint64_t a, uint64_t b, uint64_t* hi)
         {
             unsigned __int128 r = (unsigned __int128) a * (unsigned __int128) b;
