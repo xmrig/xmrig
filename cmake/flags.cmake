@@ -84,7 +84,7 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         endif()
     endif()
 
-    if (BUILD_STATIC OR WIN32)
+    if ((WIN32 AND ARM_TARGET) OR BUILD_STATIC)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static")
     endif()
 endif()
