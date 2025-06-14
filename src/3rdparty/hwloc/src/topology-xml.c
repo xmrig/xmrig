@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2024 Inria.  All rights reserved.
+ * Copyright © 2009-2025 Inria.  All rights reserved.
  * Copyright © 2009-2011, 2020 Université Bordeaux
  * Copyright © 2009-2018 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -410,6 +410,20 @@ hwloc__xml_import_object_attr(struct hwloc_topology *topology,
     default:
       if (hwloc__xml_verbose())
 	fprintf(stderr, "%s: ignoring osdev_type attribute for non-osdev object\n",
+		state->global->msgprefix);
+      break;
+    }
+  }
+
+  else if (!strcmp(name, "numanode_type")) {
+    switch (obj->type) {
+    case HWLOC_OBJ_NUMANODE: {
+      /* ignored for now, here for possible forward compat */
+      break;
+    }
+    default:
+      if (hwloc__xml_verbose())
+	fprintf(stderr, "%s: ignoring numanode_type attribute for non-NUMA object\n",
 		state->global->msgprefix);
       break;
     }
@@ -876,14 +890,19 @@ hwloc__xml_import_object(hwloc_topology_t topology,
 	  /* deal with possible future type */
 	  obj->type = HWLOC_OBJ_GROUP;
 	  obj->attr->group.kind = HWLOC_GROUP_KIND_LINUX_CLUSTER;
-	} else if (!strcasecmp(attrvalue, "MemCache")) {
+	}
+#if 0
+        /* reenable if there's ever a future type that should be ignored without being an error */
+        else if (!strcasecmp(attrvalue, "MemCache")) {
 	  /* ignore possible future type */
 	  obj->type = _HWLOC_OBJ_FUTURE;
 	  ignored = 1;
 	  if (hwloc__xml_verbose())
 	    fprintf(stderr, "%s: %s object not-supported, will be ignored\n",
 		    state->global->msgprefix, attrvalue);
-	} else {
+	}
+#endif
+        else {
 	  if (hwloc__xml_verbose())
 	    fprintf(stderr, "%s: unrecognized object type string %s\n",
 		    state->global->msgprefix, attrvalue);
@@ -958,22 +977,22 @@ hwloc__xml_import_object(hwloc_topology_t topology,
     if (hwloc__obj_type_is_normal(obj->type)) {
       if (!hwloc__obj_type_is_normal(parent->type)) {
 	if (hwloc__xml_verbose())
-	  fprintf(stderr, "normal object %s cannot be child of non-normal parent %s\n",
-		  hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
+	  fprintf(stderr, "%s: normal object %s cannot be child of non-normal parent %s\n",
+		  state->global->msgprefix, hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
 	goto error_with_object;
       }
     } else if (hwloc__obj_type_is_memory(obj->type)) {
       if (hwloc__obj_type_is_io(parent->type) || HWLOC_OBJ_MISC == parent->type) {
 	if (hwloc__xml_verbose())
-	  fprintf(stderr, "Memory object %s cannot be child of non-normal-or-memory parent %s\n",
-		  hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
+	  fprintf(stderr, "%s: Memory object %s cannot be child of non-normal-or-memory parent %s\n",
+		  state->global->msgprefix, hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
 	goto error_with_object;
       }
     } else if (hwloc__obj_type_is_io(obj->type)) {
       if (hwloc__obj_type_is_memory(parent->type) || HWLOC_OBJ_MISC == parent->type) {
 	if (hwloc__xml_verbose())
-	  fprintf(stderr, "I/O object %s cannot be child of non-normal-or-I/O parent %s\n",
-		  hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
+	  fprintf(stderr, "%s: I/O object %s cannot be child of non-normal-or-I/O parent %s\n",
+		  state->global->msgprefix, hwloc_obj_type_string(obj->type), hwloc_obj_type_string(parent->type));
 	goto error_with_object;
       }
     }

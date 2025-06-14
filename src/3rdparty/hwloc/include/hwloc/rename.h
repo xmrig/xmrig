@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
- * Copyright © 2010-2024 Inria.  All rights reserved.
+ * Copyright © 2010-2025 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -409,8 +409,10 @@ extern "C" {
 #define hwloc_local_numanode_flag_e HWLOC_NAME(local_numanode_flag_e)
 #define HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY HWLOC_NAME_CAPS(LOCAL_NUMANODE_FLAG_LARGER_LOCALITY)
 #define HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY HWLOC_NAME_CAPS(LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY)
+#define HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY HWLOC_NAME_CAPS(LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY)
 #define HWLOC_LOCAL_NUMANODE_FLAG_ALL HWLOC_NAME_CAPS(LOCAL_NUMANODE_FLAG_ALL)
 #define hwloc_get_local_numanode_objs HWLOC_NAME(get_local_numanode_objs)
+#define hwloc_topology_get_default_nodeset HWLOC_NAME(topology_get_default_nodeset)
 
 #define hwloc_memattr_get_name HWLOC_NAME(memattr_get_name)
 #define hwloc_memattr_get_flags HWLOC_NAME(memattr_get_flags)
@@ -599,7 +601,9 @@ extern "C" {
 /* levelzero.h */
 
 #define hwloc_levelzero_get_device_cpuset HWLOC_NAME(levelzero_get_device_cpuset)
+#define hwloc_levelzero_get_sysman_device_cpuset HWLOC_NAME(levelzero_get_sysman_device_cpuset)
 #define hwloc_levelzero_get_device_osdev HWLOC_NAME(levelzero_get_device_osdev)
+#define hwloc_levelzero_get_sysman_device_osdev HWLOC_NAME(levelzero_get_sysman_device_osdev)
 
 /* gl.h */
 
@@ -812,6 +816,8 @@ extern "C" {
 
 #define hwloc_topology_setup_defaults HWLOC_NAME(topology_setup_defaults)
 #define hwloc_topology_clear HWLOC_NAME(topology_clear)
+
+#define hwloc__reconnect HWLOC_NAME(_reconnect)
 
 #define hwloc__attach_memory_object HWLOC_NAME(insert_memory_object)
 

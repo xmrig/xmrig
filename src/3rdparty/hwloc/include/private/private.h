@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009      CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2025 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  *
@@ -301,6 +301,9 @@ extern void hwloc__reorder_children(hwloc_obj_t parent);
 
 extern void hwloc_topology_setup_defaults(struct hwloc_topology *topology);
 extern void hwloc_topology_clear(struct hwloc_topology *topology);
+
+#define _HWLOC_RECONNECT_FLAG_KEEPSTRUCTURE (1UL<<0)
+extern int hwloc__reconnect(struct hwloc_topology *topology, unsigned long flags);
 
 /* insert memory object as memory child of normal parent */
 extern struct hwloc_obj * hwloc__attach_memory_object(struct hwloc_topology *topology, hwloc_obj_t parent,

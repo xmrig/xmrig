@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2024 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -113,24 +113,42 @@ HWLOC_DECLSPEC int hwloc_bitmap_copy(hwloc_bitmap_t dst, hwloc_const_bitmap_t sr
  * Bitmap/String Conversion
  */
 
-/** \brief Stringify a bitmap.
+/** \brief Stringify a bitmap in the default hwloc format.
+ *
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
+ * Print the bits set inside a bitmap as a comma-separated list of hexadecimal 32-bit blocks.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as <tt>"0xffffffff,0x00000006,0x00000002"</tt>.
  *
  * Up to \p buflen characters may be written in buffer \p buf.
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
  * \return the number of characters that were actually written if not truncating,
- * or that would have been written (not including the ending \\0).
+ * or that would have been written (not including the ending \c \0).
+ * \return -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
 
-/** \brief Stringify a bitmap into a newly allocated string.
+/** \brief Stringify a bitmap into a newly allocated string in the default hwloc format.
  *
- * \return 0 on success, -1 on error.
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
+ * Print the bits set inside a bitmap as a comma-separated list of hexadecimal 32-bit blocks.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as <tt>"0xffffffff,0x00000006,0x00000002"</tt>.
+ *
+ * \return the number of characters that were written (not including the ending \c \0).
+ * \return -1 on error, for instance with \p errno set to \c ENOMEM on failure to allocate the output string.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
-/** \brief Parse a bitmap string and stores it in bitmap \p bitmap.
+/** \brief Parse a bitmap string as the default hwloc format and stores it in bitmap \p bitmap.
+ *
+ * <b>Note that if the bitmap is a CPU or nodeset, the input string must contain physical indexes.</b>
+ *
+ * The input string should be a comma-separared list of hexadecimal 32-bit blocks.
+ * String <tt>"0xffffffff,0x6,0x2"</tt> is parsed as a bitmap containing all bits between 64 and 95,
+ * and bits 33, 34 and 1.
  *
  * \return 0 on success, -1 on error.
  */
@@ -138,26 +156,45 @@ HWLOC_DECLSPEC int hwloc_bitmap_sscanf(hwloc_bitmap_t bitmap, const char * __hwl
 
 /** \brief Stringify a bitmap in the list format.
  *
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
  * Lists are comma-separated indexes or ranges.
  * Ranges are dash separated indexes.
- * The last range may not have an ending indexes if the bitmap is infinitely set.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as <tt>"1,33-34,64-95"</tt>.
+ * The last range may not have an ending index if the bitmap is infinitely set.
  *
  * Up to \p buflen characters may be written in buffer \p buf.
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
  * \return the number of characters that were actually written if not truncating,
- * or that would have been written (not including the ending \\0).
+ * or that would have been written (not including the ending \c \0).
+ * \return -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_list_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
 
 /** \brief Stringify a bitmap into a newly allocated list string.
  *
- * \return 0 on success, -1 on error.
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
+ * Lists are comma-separated indexes or ranges.
+ * Ranges are dash separated indexes.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as <tt>"1,33-34,64-95"</tt>.
+ * The last range may not have an ending index if the bitmap is infinitely set.
+ *
+ * \return the number of characters that were written (not including the ending \c \0).
+ * \return -1 on error, for instance with \p errno set to \c ENOMEM on failure to allocate the output string.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_list_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
 /** \brief Parse a list string and stores it in bitmap \p bitmap.
+ *
+ * <b>Note that if the bitmap is a CPU or nodeset, the input string must contain physical indexes.</b>
+ *
+ * Lists are comma-separated indexes or ranges.
+ * Ranges are dash separated indexes.
+ * String <tt>"1,33-34,64-95"</tt> is parsed as a bitmap containing bits 1, 33, 34, and all from 64 to 95.
+ * The last range may not have an ending index if the bitmap is infinitely set.
  *
  * \return 0 on success, -1 on error.
  */
@@ -165,25 +202,43 @@ HWLOC_DECLSPEC int hwloc_bitmap_list_sscanf(hwloc_bitmap_t bitmap, const char * 
 
 /** \brief Stringify a bitmap in the taskset-specific format.
  *
- * The taskset command manipulates bitmap strings that contain a single
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
+ * The taskset program manipulates bitmap strings that contain a single
  * (possible very long) hexadecimal number starting with 0x.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as </tt>"0xffffffff0000000600000002"</tt>.
  *
  * Up to \p buflen characters may be written in buffer \p buf.
  *
  * If \p buflen is 0, \p buf may safely be \c NULL.
  *
  * \return the number of characters that were actually written if not truncating,
- * or that would have been written (not including the ending \\0).
+ * or that would have been written (not including the ending \c \0).
+ * \return -1 on error.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_taskset_snprintf(char * __hwloc_restrict buf, size_t buflen, hwloc_const_bitmap_t bitmap);
 
 /** \brief Stringify a bitmap into a newly allocated taskset-specific string.
  *
- * \return 0 on success, -1 on error.
+ * <b>Note that if the bitmap is a CPU or nodeset, it contains physical indexes.</b>
+ *
+ * The taskset program manipulates bitmap strings that contain a single
+ * (possible very long) hexadecimal number starting with 0x.
+ * A bitmap containing bits 1, 33, 34, and all from 64 to 95 is printed as <tt>"0xffffffff0000000600000002"</tt>.
+ *
+ * \return the number of characters that were written (not including the ending \c \0).
+ * \return -1 on error, for instance with \p errno set to \c ENOMEM on failure to allocate the output string.
  */
 HWLOC_DECLSPEC int hwloc_bitmap_taskset_asprintf(char ** strp, hwloc_const_bitmap_t bitmap);
 
 /** \brief Parse a taskset-specific bitmap string and stores it in bitmap \p bitmap.
+ *
+ * <b>Note that if the bitmap is a CPU or nodeset, the input string must contain physical indexes.</b>
+ *
+ * The taskset program manipulates bitmap strings that contain a single
+ * (possible very long) hexadecimal number starting with 0x.
+ * String <tt>"0xffffffff0000000600000002"</tt> is parsed as a bitmap containing all bits between 64 and 95,
+ * and bits 33, 34 and 1.
  *
  * \return 0 on success, -1 on error.
  */
