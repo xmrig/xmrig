@@ -15,12 +15,16 @@
 .global FN_PREFIX(cnv1_double_mainloop_asm)
 .global FN_PREFIX(cnv1_quad_mainloop_asm)
 .global FN_PREFIX(cnv2_mainloop_ivybridge_asm)
+#ifdef XMRIG_FEATURE_ASM_AMD
 .global FN_PREFIX(cnv2_mainloop_ryzen_asm)
 .global FN_PREFIX(cnv2_mainloop_bulldozer_asm)
+#endif
 .global FN_PREFIX(cnv2_double_mainloop_sandybridge_asm)
 .global FN_PREFIX(cnv2_rwz_mainloop_asm)
 .global FN_PREFIX(cnv2_rwz_double_mainloop_asm)
+#ifdef XMRIG_FEATURE_ASM_AMD
 .global FN_PREFIX(cnv2_upx_double_mainloop_zen3_asm)
+#endif
 
 ALIGN(64)
 FN_PREFIX(cnv1_single_mainloop_asm):
@@ -58,6 +62,7 @@ FN_PREFIX(cnv2_mainloop_ivybridge_asm):
 	ret 0
 	mov eax, 3735929054
 
+#ifdef XMRIG_FEATURE_ASM_AMD
 ALIGN(64)
 FN_PREFIX(cnv2_mainloop_ryzen_asm):
 	sub rsp, 48
@@ -75,6 +80,7 @@ FN_PREFIX(cnv2_mainloop_bulldozer_asm):
 	add rsp, 48
 	ret 0
 	mov eax, 3735929054
+#endif
 
 ALIGN(64)
 FN_PREFIX(cnv2_double_mainloop_sandybridge_asm):
@@ -103,6 +109,7 @@ FN_PREFIX(cnv2_rwz_double_mainloop_asm):
 	ret 0
 	mov eax, 3735929054
 
+#ifdef XMRIG_FEATURE_ASM_AMD
 ALIGN(64)
 FN_PREFIX(cnv2_upx_double_mainloop_zen3_asm):
 	sub rsp, 48
@@ -111,6 +118,7 @@ FN_PREFIX(cnv2_upx_double_mainloop_zen3_asm):
 	add rsp, 48
 	ret 0
 	mov eax, 3735929054
+#endif
 
 #if defined(__linux__) && defined(__ELF__)
 .section .note.GNU-stack,"",%progbits

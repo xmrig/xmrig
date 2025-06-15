@@ -41,10 +41,12 @@ randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
         flags |= RANDOMX_FLAG_JIT;
     }
 
+#   ifdef XMRIG_FEATURE_ASM_AMD
     const auto asmId = assembly == Assembly::AUTO ? Cpu::info()->assembly() : assembly.id();
     if ((asmId == Assembly::RYZEN) || (asmId == Assembly::BULLDOZER)) {
         flags |= RANDOMX_FLAG_AMD;
     }
+#   endif
 
     return randomx_create_vm(static_cast<randomx_flags>(flags), !dataset->get() ? dataset->cache()->get() : nullptr, dataset->get(), scratchpad, node);
 }
