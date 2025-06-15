@@ -1,10 +1,16 @@
 if (WITH_RANDOMX)
-    include(CheckFunctionExists)
+    include(CheckSymbolExists)
 
-    check_function_exists(posix_memalign HAVE_POSIX_MEMALIGN)
-
-    if(HAVE_POSIX_MEMALIGN)
-        add_definitions(/DHAVE_POSIX_MEMALIGN)
+    if (WIN32)
+        check_symbol_exists(_aligned_malloc "stdlib.h" HAVE_ALIGNED_MALLOC)
+        if (HAVE_ALIGNED_MALLOC)
+            add_compile_definitions(HAVE_ALIGNED_MALLOC)
+        endif()
+    else()
+        check_symbol_exists(posix_memalign "stdlib.h" HAVE_POSIX_MEMALIGN)
+        if (HAVE_POSIX_MEMALIGN)
+            add_compile_definitions(HAVE_POSIX_MEMALIGN)
+        endif()
     endif()
 
     add_definitions(/DXMRIG_ALGO_RANDOMX)
