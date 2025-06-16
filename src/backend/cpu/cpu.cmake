@@ -49,8 +49,15 @@ endif()
 if (XMRIG_ARM)
     list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/BasicCpuInfo_arm.cpp)
 
-    if (XMRIG_OS_UNIX)
-        list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/lscpu_arm.cpp)
+    if (XMRIG_OS_WIN)
+        list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/BasicCpuInfo_arm_win.cpp)
+    elseif(XMRIG_OS_APPLE)
+        list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/BasicCpuInfo_arm_mac.cpp)
+    else()
+        list(APPEND SOURCES_BACKEND_CPU
+            src/backend/cpu/platform/lscpu_arm.cpp
+            src/backend/cpu/platform/BasicCpuInfo_arm_unix.cpp
+        )
     endif()
 else()
     list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/BasicCpuInfo.cpp)

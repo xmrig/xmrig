@@ -1,5 +1,5 @@
 Copyright © 2009 CNRS
-Copyright © 2009-2024 Inria.  All rights reserved.
+Copyright © 2009-2025 Inria.  All rights reserved.
 Copyright © 2009-2013 Université Bordeaux
 Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
 Copyright © 2020 Hewlett Packard Enterprise.  All rights reserved.
@@ -15,6 +15,52 @@ $HEADER$
 This file contains the main features as well as overviews of specific
 bug fixes (and other actions) for each version of hwloc since version
 0.9.
+
+
+Version 2.12.1
+--------------
+* Add hwloc-calc's --default-nodes option to hwloc-bind and hwloc-info.
+* Improve the --best-memattr "default" fallback, try to use "default"
+  memory nodes, and add verbose messages and warnings if some
+  performance info are incomplete or missing.
+  Thanks to Antoine Morvan for the report.
+* Fix CPU and memory binding on different locations,
+  thanks to Antoine Morvan for the report.
+* Add HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY and enable it by
+  default in hwloc-calc --local-memory for finding local NUMA nodes
+  that do not exactly match input locations.
+  Thanks to Antoine Morvan for the report.
+* Fix a possible crash in the x86 backend when Qemu is configured to
+  expose multicore/thread CPUs that are actually single-core/thread.
+  Thanks to Georg Pfuetzenreuter.
+
+
+Version 2.12.0
+--------------
+* Add hwloc_topology_get_default_nodeset() for the set of default
+  NUMA nodes.
+  - hwloc-calc now has --default-nodes option.
+* Rework oneAPI LevelZero support to use zesInit() and avoid the need
+  to set ZES_ENABLE_SYSMAN=1 in the environment.
+  - zesDriverGetDeviceByUuidExp() is now required in the L0 runtime.
+  - ZES/Sysman variants were added in hwloc/levelzero.h to specifically
+    handle ZES/Sysman device handles.
+* Fix the locality of AMD GPU partitions, thanks to Edgar Leon for
+  reporting and debugging the issue.
+* Better detect Cray Slingshot NICs, thanks to Edgar Leon.
+* Add support for Die objects and Module groups on Windows.
+* Only filter-out Dies that are identical to their Packages
+  when it applies to all Dies.
+* Improve hwloc-calc to handle CPU-less NUMA nodes or platforms with
+  heterogeneous memory without requiring --nodeset-output.
+* hwloc-calc now accepts counting/listing cpukinds and memory tiers
+  with -N and -I cpukind/memorytier.
+* The systemd-dbus-api output of hwloc-calc has changed, and
+  --nodeset-output-format was added, to support NUMA node outputs.
+  Thanks to Pierre Neyron.
+* Update NVLink bandwidth and CUDA capabilities up to NVIDIA Blackwell.
+* Fix some NUMA syscalls on Linux for platforms with old libc headers.
+* Some minor fixes in distances.
 
 
 Version 2.11.2

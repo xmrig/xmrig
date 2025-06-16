@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2024 Inria.  All rights reserved.
+ * Copyright © 2009-2025 Inria.  All rights reserved.
  * Copyright © 2009-2012 Université Bordeaux
  * Copyright © 2009-2020 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -112,7 +112,7 @@ extern "C" {
  * Two stable releases of the same series usually have the same ::HWLOC_API_VERSION
  * even if their HWLOC_VERSION are different.
  */
-#define HWLOC_API_VERSION 0x00020b00
+#define HWLOC_API_VERSION 0x00020c00
 
 /** \brief Indicate at runtime which hwloc API version was used at build time.
  *
@@ -346,9 +346,10 @@ typedef enum {
 			 *
 			 * Some operating systems (e.g. Linux) may expose a single die per package
 			 * even if the hardware does not support dies at all. To avoid showing
-			 * such non-existing dies, the corresponding hwloc backend may filter them out.
+			 * such non-existing dies, hwloc will filter them out if all of them are
+                         * identical to packages.
 			 * This is functionally equivalent to ::HWLOC_TYPE_FILTER_KEEP_STRUCTURE
-			 * being enforced.
+			 * being enforced for Dies versus Packages.
 			 */
 
   HWLOC_OBJ_TYPE_MAX    /**< \private Sentinel value */
@@ -1047,7 +1048,7 @@ HWLOC_DECLSPEC const char * hwloc_obj_type_string (hwloc_obj_type_t type) __hwlo
  * If \p size is 0, \p string may safely be \c NULL.
  *
  * \return the number of characters that were actually written if not truncating,
- * or that would have been written (not including the ending \\0).
+ * or that would have been written (not including the ending \c \0).
  */
 HWLOC_DECLSPEC int hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_t size,
 					   hwloc_obj_t obj,
@@ -1062,7 +1063,7 @@ HWLOC_DECLSPEC int hwloc_obj_type_snprintf(char * __hwloc_restrict string, size_
  * If \p size is 0, \p string may safely be \c NULL.
  *
  * \return the number of characters that were actually written if not truncating,
- * or that would have been written (not including the ending \\0).
+ * or that would have been written (not including the ending \c \0).
  */
 HWLOC_DECLSPEC int hwloc_obj_attr_snprintf(char * __hwloc_restrict string, size_t size,
 					   hwloc_obj_t obj, const char * __hwloc_restrict separator,
@@ -2002,7 +2003,7 @@ HWLOC_DECLSPEC int hwloc_topology_set_xml(hwloc_topology_t __hwloc_restrict topo
  * a file, as with hwloc_topology_set_xml()).
  *
  * Gather topology information from the XML memory buffer given at
- * \p buffer and of length \p size (including an ending \0).
+ * \p buffer and of length \p size (including an ending \c \0).
  * This buffer may have been filled earlier with
  * hwloc_topology_export_xmlbuffer() in hwloc/export.h.
  *

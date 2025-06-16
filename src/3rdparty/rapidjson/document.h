@@ -75,7 +75,7 @@ class GenericDocument;
     User can define this to use CrtAllocator or MemoryPoolAllocator.
 */
 #ifndef RAPIDJSON_DEFAULT_ALLOCATOR
-#define RAPIDJSON_DEFAULT_ALLOCATOR MemoryPoolAllocator<CrtAllocator>
+#define RAPIDJSON_DEFAULT_ALLOCATOR ::RAPIDJSON_NAMESPACE::MemoryPoolAllocator<::RAPIDJSON_NAMESPACE::CrtAllocator>
 #endif
 
 /*! \def RAPIDJSON_DEFAULT_STACK_ALLOCATOR
@@ -85,7 +85,7 @@ class GenericDocument;
     User can define this to use CrtAllocator or MemoryPoolAllocator.
 */
 #ifndef RAPIDJSON_DEFAULT_STACK_ALLOCATOR
-#define RAPIDJSON_DEFAULT_STACK_ALLOCATOR CrtAllocator
+#define RAPIDJSON_DEFAULT_STACK_ALLOCATOR ::RAPIDJSON_NAMESPACE::CrtAllocator
 #endif
 
 /*! \def RAPIDJSON_VALUE_DEFAULT_OBJECT_CAPACITY
@@ -1033,7 +1033,7 @@ public:
                 return false;
             for (ConstMemberIterator lhsMemberItr = MemberBegin(); lhsMemberItr != MemberEnd(); ++lhsMemberItr) {
                 typename RhsType::ConstMemberIterator rhsMemberItr = rhs.FindMember(lhsMemberItr->name);
-                if (rhsMemberItr == rhs.MemberEnd() || lhsMemberItr->value != rhsMemberItr->value)
+                if (rhsMemberItr == rhs.MemberEnd() || (!(lhsMemberItr->value == rhsMemberItr->value)))
                     return false;
             }
             return true;
@@ -1042,7 +1042,7 @@ public:
             if (data_.a.size != rhs.data_.a.size)
                 return false;
             for (SizeType i = 0; i < data_.a.size; i++)
-                if ((*this)[i] != rhs[i])
+                if (!((*this)[i] == rhs[i]))
                     return false;
             return true;
 
@@ -1078,6 +1078,7 @@ public:
     */
     template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::OrExpr<internal::IsPointer<T>,internal::IsGenericValue<T> >), (bool)) operator==(const T& rhs) const { return *this == GenericValue(rhs); }
 
+#ifndef __cpp_impl_three_way_comparison
     //! Not-equal-to operator
     /*! \return !(*this == rhs)
      */
@@ -1092,7 +1093,6 @@ public:
      */
     template <typename T> RAPIDJSON_DISABLEIF_RETURN((internal::IsGenericValue<T>), (bool)) operator!=(const T& rhs) const { return !(*this == rhs); }
 
-#ifndef __cpp_lib_three_way_comparison
     //! Equal-to operator with arbitrary types (symmetric version)
     /*! \return (rhs == lhs)
      */
@@ -1230,13 +1230,28 @@ public:
         else {
             RAPIDJSON_ASSERT(false);    // see above note
 
-            // This will generate -Wexit-time-destructors in clang
-            // static GenericValue NullValue;
-            // return NullValue;
-
-            // Use static buffer and placement-new to prevent destruction
-            static char buffer[sizeof(GenericValue)];
+#if RAPIDJSON_HAS_CXX11
+            // Use thread-local storage to prevent races between threads.
+            // Use static buffer and placement-new to prevent destruction, with
+            // alignas() to ensure proper alignment.
+            alignas(GenericValue) thread_local static char buffer[sizeof(GenericValue)];
             return *new (buffer) GenericValue();
+#elif defined(_MSC_VER) && _MSC_VER < 1900
+            // There's no way to solve both thread locality and proper alignment
+            // simultaneously.
+            __declspec(thread) static char buffer[sizeof(GenericValue)];
+            return *new (buffer) GenericValue();
+#elif defined(__GNUC__) || defined(__clang__)
+            // This will generate -Wexit-time-destructors in clang, but that's
+            // better than having under-alignment.
+            __thread static GenericValue buffer;
+            return buffer;
+#else
+            // Don't know what compiler this is, so don't know how to ensure
+            // thread-locality.
+            static GenericValue buffer;
+            return buffer;
+#endif
         }
     }
     template <typename SourceAllocator>
@@ -2430,13 +2445,14 @@ private:
             data_.f.flags = kShortStringFlag;
             data_.ss.SetLength(s.length);
             str = data_.ss.str;
+            std::memmove(str, s, s.length * sizeof(Ch));
         } else {
             data_.f.flags = kCopyStringFlag;
             data_.s.length = s.length;
             str = static_cast<Ch *>(allocator.Malloc((s.length + 1) * sizeof(Ch)));
             SetStringPointer(str);
+            std::memcpy(str, s, s.length * sizeof(Ch));
         }
-        std::memcpy(str, s, s.length * sizeof(Ch));
         str[s.length] = '\0';
     }
 
@@ -2486,6 +2502,7 @@ public:
     typedef typename Encoding::Ch Ch;                       //!< Character type derived from Encoding.
     typedef GenericValue<Encoding, Allocator> ValueType;    //!< Value type of the document.
     typedef Allocator AllocatorType;                        //!< Allocator type from template parameter.
+    typedef StackAllocator StackAllocatorType;              //!< StackAllocator type from template parameter.
 
     //! Constructor
     /*! Creates an empty document of specified type.

@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2024 Inria.  All rights reserved.
+ * Copyright © 2010-2025 Inria.  All rights reserved.
  * Copyright © 2010-2013 Université Bordeaux
  * Copyright © 2010-2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -653,7 +653,13 @@ static void look_proc(struct hwloc_backend *backend, struct procinfo *infos, uns
   cpuid_or_from_dump(&eax, &ebx, &ecx, &edx, src_cpuiddump);
   infos->apicid = ebx >> 24;
   if (edx & (1 << 28)) {
-    legacy_max_log_proc = 1 << hwloc_flsl(((ebx >> 16) & 0xff) - 1);
+    unsigned ebx_16_23 = (ebx >> 16) & 0xff;
+    if (ebx_16_23) {
+      legacy_max_log_proc = 1 << hwloc_flsl(ebx_16_23 - 1);
+    } else {
+      hwloc_debug("HTT bit set in CPUID 0x01.edx, but legacy_max_proc = 0 in ebx, assuming legacy_max_log_proc = 1\n");
+      legacy_max_log_proc = 1;
+    }
   } else {
     hwloc_debug("HTT bit not set in CPUID 0x01.edx, assuming legacy_max_log_proc = 1\n");
     legacy_max_log_proc = 1;
@@ -1742,7 +1748,7 @@ hwloc_x86_discover(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
 
   if (topology->levels[0][0]->cpuset) {
     /* somebody else discovered things, reconnect levels so that we can look at them */
-    hwloc_topology_reconnect(topology, 0);
+    hwloc__reconnect(topology, 0);
     if (topology->nb_levels == 2 && topology->level_nbobjects[1] == data->nbprocs) {
       /* only PUs were discovered, as much as we would, complete the topology with everything else */
       alreadypus = 1;

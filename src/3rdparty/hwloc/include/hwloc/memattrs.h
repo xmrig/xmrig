@@ -1,5 +1,5 @@
 /*
- * Copyright © 2019-2024 Inria.  All rights reserved.
+ * Copyright © 2019-2025 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -57,6 +57,11 @@ extern "C" {
  * Memory attributes are also used internally to build Memory Tiers which provide
  * an easy way to distinguish NUMA nodes of different kinds, as explained
  * in \ref heteromem.
+ *
+ * Beside tiers, hwloc defines a set of "default" nodes where normal memory
+ * allocations should be made from (see hwloc_topology_get_default_nodeset()).
+ * This is also useful for dividing the machine into a set of non-overlapping
+ * NUMA domains, for instance for binding tasks per domain.
  *
  * \sa An example is available in doc/examples/memory-attributes.c in the source tree.
  *
@@ -245,6 +250,16 @@ enum hwloc_local_numanode_flag_e {
    */
   HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY = (1UL<<1),
 
+  /** \breif Select NUMA nodes whose locality intersects the given cpuset.
+   * This includes larger and smaller localities as well as localities
+   * that are partially included.
+   * For instance, if the locality is one core of both packages, a NUMA node
+   * local to one package is neither larger nor smaller than this locality,
+   * but it intersects it.
+   * \hideinitializer
+   */
+  HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY = (1UL<<3),
+
   /** \brief Select all NUMA nodes in the topology.
    * The initiator \p initiator is ignored.
    * \hideinitializer
@@ -290,7 +305,57 @@ hwloc_get_local_numanode_objs(hwloc_topology_t topology,
                               hwloc_obj_t *nodes,
                               unsigned long flags);
 
-
+/** \brief Return the set of default NUMA nodes
+ *
+ * In machines with heterogeneous memory, some NUMA nodes are considered
+ * the default ones, i.e. where basic allocations should be made from.
+ * These are usually DRAM nodes.
+ *
+ * Other nodes may be reserved for specific use (I/O device memory, e.g. GPU memory),
+ * small but high performance (HBM), large but slow memory (NVM), etc.
+ * Buffers should usually not be allocated from there unless explicitly required.
+ *
+ * This function fills \p nodeset with the bits of NUMA nodes considered default.
+ *
+ * It is guaranteed that these nodes have non-intersecting CPU sets,
+ * i.e. cores may not have multiple local NUMA nodes anymore.
+ * Hence this may be used to iterate over the platform divided into separate
+ * NUMA localities, for instance for binding one task per NUMA domain.
+ *
+ * Any core that had some local NUMA node(s) in the initial topology should
+ * still have one in the default nodeset. Corner cases where this would be
+ * wrong consist in asymmetric platforms with missing DRAM nodes, or topologies
+ * that were already restricted to less NUMA nodes.
+ *
+ * The returned nodeset may be passed to hwloc_topology_restrict() with
+ * ::HWLOC_RESTRICT_FLAG_BYNODESET to remove all non-default nodes from
+ * the topology. The resulting topology will be easier to use when iterating
+ * over (now homogeneous) NUMA nodes.
+ *
+ * The heuristics for finding default nodes relies on memory tiers and subtypes
+ * (see \ref heteromem) as well as the assumption that hardware vendors list
+ * default nodes first in hardware tables.
+ *
+ * \p flags must be \c 0 for now.
+ *
+ * \return 0 on success.
+ * \return -1 on error.
+ *
+ * \note The returned nodeset usually contains all nodes from a single memory
+ * tier, likely the DRAM one.
+ *
+ * \note The returned nodeset is included in the list of available nodes
+ * returned by hwloc_topology_get_topology_nodeset(). It is strictly smaller
+ * if the machine has heterogeneous memory.
+ *
+ * \note The heuristics may return a suboptimal set of nodes if hwloc could
+ * not guess memory types and/or if some default nodes were removed earlier
+ * from the topology (e.g. with hwloc_topology_restrict()).
+ */
+HWLOC_DECLSPEC int
+hwloc_topology_get_default_nodeset(hwloc_topology_t topology,
+                                   hwloc_nodeset_t nodeset,
+                                   unsigned long flags);
 
 /** \brief Return an attribute value for a specific target NUMA node.
  *

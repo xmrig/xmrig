@@ -322,7 +322,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
 
             if (L3_exclusive) {
                 if (vendor() == VENDOR_AMD) {
-                    extra += std::min<size_t>(l2->attr->cache.size, scratchpad);
+                    // For some reason, AMD CPUs can use only half of the exclusive L2/L3 cache combo efficiently
+                    extra += std::min<size_t>(l2->attr->cache.size / 2, scratchpad);
                 }
                 else if (l2->attr->cache.size >= scratchpad) {
                     extra += scratchpad;

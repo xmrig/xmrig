@@ -1,5 +1,5 @@
 /*
- * Copyright © 2020-2024 Inria.  All rights reserved.
+ * Copyright © 2020-2025 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -1158,6 +1158,8 @@ match_local_obj_cpuset(hwloc_obj_t node, hwloc_cpuset_t cpuset, unsigned long fl
 {
   if (flags & HWLOC_LOCAL_NUMANODE_FLAG_ALL)
     return 1;
+  if (flags & HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY)
+    return hwloc_bitmap_intersects(node->cpuset, cpuset);
   if ((flags & HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY)
       && hwloc_bitmap_isincluded(cpuset, node->cpuset))
     return 1;
@@ -1180,6 +1182,7 @@ hwloc_get_local_numanode_objs(hwloc_topology_t topology,
 
   if (flags & ~(HWLOC_LOCAL_NUMANODE_FLAG_SMALLER_LOCALITY
                 |HWLOC_LOCAL_NUMANODE_FLAG_LARGER_LOCALITY
+                |HWLOC_LOCAL_NUMANODE_FLAG_INTERSECT_LOCALITY
                 | HWLOC_LOCAL_NUMANODE_FLAG_ALL)) {
     errno = EINVAL;
     return -1;
@@ -1224,6 +1227,93 @@ hwloc_get_local_numanode_objs(hwloc_topology_t topology,
 
   *nrp = i;
   return 0;
+}
+
+static int compare_nodes_by_os_index(const void *_a, const void *_b)
+{
+  const hwloc_obj_t * a = _a, * b = _b;
+  return (*a)->os_index - (*b)->os_index;
+}
+
+int
+hwloc_topology_get_default_nodeset(hwloc_topology_t topology,
+                                   hwloc_nodeset_t nodeset,
+                                   unsigned long flags)
+{
+  hwloc_obj_t *nodes;
+  hwloc_bitmap_t remainingcpuset;
+  unsigned nrnodes, i;
+  const char *first_subtype;
+
+  if (flags) {
+    errno = EINVAL;
+    goto out;
+  }
+
+  remainingcpuset = hwloc_bitmap_dup(topology->levels[0][0]->cpuset);
+  if (!remainingcpuset)
+    goto out;
+
+  nrnodes = topology->slevels[HWLOC_SLEVEL_NUMANODE].nbobjs;
+  nodes = malloc(nrnodes * sizeof(*nodes));
+  if (!nodes)
+    goto out_with_remainingcpuset;
+
+  memcpy(nodes, topology->slevels[HWLOC_SLEVEL_NUMANODE].objs, nrnodes * sizeof(*nodes));
+  qsort(nodes, nrnodes, sizeof(*nodes), compare_nodes_by_os_index);
+
+  hwloc_bitmap_zero(nodeset);
+
+  /* always take the first node (FIXME: except if unexpected subtype?) */
+  first_subtype = nodes[0]->subtype;
+  hwloc_bitmap_set(nodeset, nodes[0]->os_index);
+  hwloc_bitmap_andnot(remainingcpuset, remainingcpuset, nodes[0]->cpuset);
+
+  /* use all non-intersecting nodes with same subtype */
+  for(i=1; i<nrnodes; i++) {
+    /* check same or no subtype */
+    if (first_subtype) {
+      if (!nodes[i]->subtype || strcmp(first_subtype, nodes[i]->subtype))
+        continue;
+    } else if (nodes[i]->subtype) {
+      continue;
+    }
+    /* take non-overlapping nodes */
+    if (hwloc_bitmap_isincluded(nodes[i]->cpuset, remainingcpuset) /* can be empty */) {
+      hwloc_bitmap_set(nodeset, nodes[i]->os_index);
+      hwloc_bitmap_andnot(remainingcpuset, remainingcpuset, nodes[i]->cpuset);
+    }
+    /* more needed? */
+    if (hwloc_bitmap_iszero(remainingcpuset))
+      goto done;
+  }
+
+  /* find more nodes to cover the entire topology cpuset.
+   * only take what's necessary: first nodes, non-empty */
+  for(i=1; i<nrnodes; i++) {
+    /* already taken? */
+    if (hwloc_bitmap_isset(nodeset, i))
+      continue;
+    /* take non-overlapping nodes, except empty  */
+    if (hwloc_bitmap_isincluded(nodes[i]->cpuset, remainingcpuset)
+        && !hwloc_bitmap_iszero(nodes[i]->cpuset)) {
+      hwloc_bitmap_set(nodeset, nodes[i]->os_index);
+      hwloc_bitmap_andnot(remainingcpuset, remainingcpuset, nodes[i]->cpuset);
+    }
+    /* more needed? */
+    if (hwloc_bitmap_iszero(remainingcpuset))
+      goto done;
+  }
+
+ done:
+  free(nodes);
+  hwloc_bitmap_free(remainingcpuset);
+  return 0;
+
+ out_with_remainingcpuset:
+  hwloc_bitmap_free(remainingcpuset);
+ out:
+  return -1;
 }
 
 
@@ -1433,10 +1523,15 @@ hwloc__group_memory_tiers(hwloc_topology_t topology,
     }
   }
 
-  /* Sort nodes.
-   * We could also sort by the existing subtype.
-   * KNL is the only case where subtypes are set in backends, but we set memattrs as well there.
-   * Also HWLOC_MEMTIERS_REFRESH would be a special value to ignore existing subtypes.
+  /* Sort nodes by tier type and bandwidth.
+   *
+   * We could also use the existing subtype but it's not clear it'd be better.
+   * For NVIDIA GPU, "GPUMemory" is set in the Linux backend, and used above to set tier type anyway.
+   * For KNL, the Linux backend sets subtypes and memattrs, sorting by memattrs already works fine.
+   * Existing subtypes could have been imported from XML, usually mostly OK except maybe SPM (fallback for I don't know)?
+   * An envvar (or HWLOC_MEMTIERS_REFRESH special value?) could be passed to ignore existing subtypes,
+   * but "GPUMemory" wouldn't be available anymore, we'd have to use something else like "PCIBusId",
+   * but that one might not always be specific to GPU-backed NUMA nodes?
    */
   hwloc_debug("Sorting memory node infos...\n");
   qsort(nodeinfos, n, sizeof(*nodeinfos), compare_node_infos_by_type_and_bw);

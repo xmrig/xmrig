@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2023 Inria.  All rights reserved.
+ * Copyright © 2013-2024 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -258,7 +258,7 @@ HWLOC_DECLSPEC int hwloc_topology_diff_export_xml(hwloc_topology_diff_t diff, co
 /** \brief Load a list of topology differences from a XML buffer.
  *
  * Build a list of differences from the XML memory buffer given
- * at \p xmlbuffer and of length \p buflen (including an ending \0).
+ * at \p xmlbuffer and of length \p buflen (including an ending \c \0).
  * This buffer may have been filled earlier with
  * hwloc_topology_diff_export_xmlbuffer().
  *
@@ -284,7 +284,7 @@ HWLOC_DECLSPEC int hwloc_topology_diff_load_xmlbuffer(const char *xmlbuffer, int
  * that contains the reference topology.
  * This attribute is given back when reading the diff from XML.
  *
- * The returned buffer ends with a \0 that is included in the returned
+ * The returned buffer ends with a \c \0 that is included in the returned
  * length.
  *
  * \return 0 on success, -1 on error.
