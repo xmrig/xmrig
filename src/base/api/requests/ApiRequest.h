@@ -60,7 +60,7 @@ protected:
     inline Source source() const override           { return m_source; }
     inline void done(int) override                  { m_state = STATE_DONE; }
 
-    int m_version       = 1;
+    int m_version       = 0;
     RequestType m_type  = REQ_UNKNOWN;
     State m_state       = STATE_NEW;
     String m_rpcMethod;

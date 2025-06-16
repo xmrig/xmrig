@@ -1,0 +1,136 @@
+{
+    "api": {
+        "id": null,
+        "worker-id": null
+    },
+    "http": {
+        "enabled": true,
+        "host": "127.0.0.1",
+        "port": 44444,
+        "access-token": "SECRET",
+        "restricted": false
+    },
+    "autosave": true,
+    "background": false,
+    "colors": true,
+    "title": true,
+    "randomx": {
+        "init": -1,
+        "init-avx2": -1,
+        "mode": "auto",
+        "1gb-pages": true,
+        "rdmsr": true,
+        "wrmsr": true,
+        "cache_qos": false,
+        "numa": true,
+        "scratchpad_prefetch_mode": 1
+    },
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "huge-pages-jit": true,
+        "hw-aes": null,
+        "priority": null,
+        "memory-pool": true,
+        "yield": true,
+        "asm": true,
+        "argon2-impl": null,
+        "argon2": [0, 2, 4, 6, 5, 7],
+        "astrobwt/v2": [1, 2, 3, 4, 5, 6, 7],
+        "cn": [
+            [1, 0],
+            [1, 2],
+            [1, 4]
+        ],
+        "cn-heavy": [
+            [1, 0],
+            [1, 2]
+        ],
+        "cn-lite": [
+            [1, 0],
+            [1, 2],
+            [1, 4],
+            [1, 6],
+            [1, 5],
+            [1, 7]
+        ],
+        "cn-pico": [
+            [2, 1],
+            [2, 2],
+            [2, 3],
+            [2, 4],
+            [2, 5],
+            [2, 6],
+            [2, 7]
+        ],
+        "cn/2": [
+            [1, 0],
+            [1, 2],
+            [1, 4]
+        ],
+        "cn/upx2": [
+            [2, 1],
+            [2, 2],
+            [2, 3],
+            [2, 4],
+            [2, 5],
+            [2, 6],
+            [2, 7]
+        ],
+        "ghostrider": [
+            [8, 0],
+            [8, 2],
+            [8, 4]
+        ],
+        "rx": [0, 2, 4],
+        "rx/arq": [1, 2, 3, 4, 5, 6, 7],
+        "rx/keva": [0, 2, 4, 6, 5, 7],
+        "rx/wow": [0, 2, 4, 6, 5, 7],
+        "cn-lite/0": false,
+        "cn/0": "cn"
+    },
+    "log-file": null,
+    "donate-level": 0,
+    "donate-over-proxy": 0,
+    "pools": [
+        {
+            "algo": null,
+            "coin": null,
+            "url": "some.pool:10064",
+            "user": "4blahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahblahbl",
+            "pass": "x",
+            "rig-id": null,
+            "nicehash": false,
+            "keepalive": true,
+            "enabled": true,
+            "tls": false,
+            "wss": false,
+            "daemon": false,
+            "socks5": null,
+            "self-select": null,
+            "submit-to-origin": false
+        }
+    ],
+    "retries": 5,
+    "retry-pause": 5,
+    "print-time": 64,
+    "syslog": false,
+    "tls": {
+        "enabled": false,
+        "protocols": null,
+        "cert": null,
+        "cert_key": null,
+        "ciphers": null,
+        "ciphersuites": null,
+        "dhparam": null
+    },
+    "dns": {
+        "ipv6": false,
+        "ttl": 30
+    },
+    "user-agent": null,
+    "verbose": 1,
+    "watch": true,
+    "pause-on-battery": false,
+    "pause-on-active": false
+}
