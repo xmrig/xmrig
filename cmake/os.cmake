@@ -1,4 +1,4 @@
-if (WIN32)
+if (WIN32 OR MINGW)
     set(XMRIG_OS_WIN ON)
 elseif (APPLE)
     set(XMRIG_OS_APPLE ON)
