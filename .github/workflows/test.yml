@@ -6,6 +6,9 @@ jobs:
   build_win:
     name: Windows build
     runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
     steps:
       - name: Checkout code
         uses: actions/checkout@master
