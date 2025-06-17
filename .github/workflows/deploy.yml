@@ -23,7 +23,6 @@ jobs:
             mingw-w64-ucrt-x86_64-toolchain
             cmake
             git
-    steps:
       - name: Checkout code
         uses: actions/checkout@master
       - name: Checkout deps
