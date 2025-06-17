@@ -11,6 +11,15 @@ jobs:
         uses: actions/checkout@master
       - name: Checkout deps
         run:  git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Setup MSYS2 + UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64           # selects the UCRT64 environment
+          update: true
+          install: >
+            base-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            cmake
       - name: Build project on Windows
         run: |
           cmake . -G "Unix Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
