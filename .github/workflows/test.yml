@@ -13,7 +13,7 @@ jobs:
         run:  git clone https://github.com/xmrig/xmrig-deps.git
       - name: Build project on Windows
         run: |
-          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
+          cmake . -G "Unix Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
           make -j2
 
   build_lin:
