@@ -8,7 +8,21 @@ name: Create release and build artifacts
 jobs:
   build_win:
     name: Build Windows artifacts
-    runs-on: windows-2019
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2 + UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64           # selects the UCRT64 environment
+          update: true
+          install: >
+            base-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            cmake
+            git
     steps:
       - name: Checkout code
         uses: actions/checkout@master
@@ -16,7 +30,7 @@ jobs:
         run:  git clone https://github.com/xmrig/xmrig-deps.git
       - name: Build project on Windows
         run: |
-          cmake . -G "MinGW Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
+          cmake . -G "Unix Makefiles" -DXMRIG_DEPS=xmrig-deps\gcc\x64
           make -j2
           copy src\config.json .
           copy bin\WinRing0\WinRing0x64.sys .
