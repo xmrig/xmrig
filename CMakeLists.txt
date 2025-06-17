@@ -174,6 +174,7 @@ if (XMRIG_OS_WIN)
         )
 
     set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv dbghelp)
+    add_library(${EXTRA_LIBS} PRIVATE ole32 oleaut32)
 elseif (XMRIG_OS_APPLE)
     list(APPEND SOURCES_OS
         src/App_unix.cpp
