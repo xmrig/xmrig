@@ -1,4 +1,4 @@
-if (WIN32 OR CMAKE_SYSTEM_NAME MATCHES "MSYS")
+if (WIN32)
     set(XMRIG_OS_WIN ON)
 elseif (APPLE)
     set(XMRIG_OS_APPLE ON)
