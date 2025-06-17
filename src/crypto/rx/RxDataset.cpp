@@ -35,6 +35,10 @@
 namespace xmrig {
 
 
+const char* envRXDatasetSingleThreadInit = std::getenv("XMRIG_RX_DATASET_SINGLE_THREAD_INIT");
+
+bool rx_dataset_single_thread_init = (envRXDatasetSingleThreadInit != nullptr);
+
 static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache, uint32_t startItem, uint32_t itemCount, int priority)
 {
     Platform::setThreadPriority(priority);
@@ -108,11 +112,16 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priorit
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
             threads.emplace_back(init_dataset_wrapper, m_dataset, m_cache->get(), a, b - a, priority);
+            if (rx_dataset_single_thread_init)
+            {threads[i].join();} // force it to be sequential
         }
 
-        for (uint32_t i = 0; i < numThreads; ++i) {
-            threads[i].join();
+        if (!rx_dataset_single_thread_init){
+            for (uint32_t i = 0; i < numThreads; ++i) {
+                threads[i].join();
+            }
         }
+
     }
     else {
         init_dataset_wrapper(m_dataset, m_cache->get(), 0, datasetItemCount, priority);
