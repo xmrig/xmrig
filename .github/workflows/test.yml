@@ -5,7 +5,7 @@ name: Test builds
 jobs:
   build_win:
     name: Windows build
-    runs-on: windows-2022
+    runs-on: windows-2025
     steps:
       - name: Checkout code
         uses: actions/checkout@master
