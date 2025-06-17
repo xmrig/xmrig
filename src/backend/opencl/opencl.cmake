@@ -72,7 +72,7 @@ if (WITH_OPENCL)
         add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
     endif()
 
-    if (WIN32)
+    if (WIN32 OR CMAKE_SYSTEM_NAME MATCHES "MSYS")
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
     else()
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)

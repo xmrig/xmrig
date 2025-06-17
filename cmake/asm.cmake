@@ -20,7 +20,7 @@ if (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
     else()
         enable_language(ASM)
 
-        if (WIN32 AND CMAKE_C_COMPILER_ID MATCHES GNU)
+	if ((WIN32 OR CMAKE_SYSTEM_NAME MATCHES "MSYS") AND CMAKE_C_COMPILER_ID MATCHES GNU)
             set(XMRIG_ASM_FILES
                 "src/crypto/cn/asm/win64/cn_main_loop.S"
                 "src/crypto/cn/asm/CryptonightR_template.S"

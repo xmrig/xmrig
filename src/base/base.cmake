@@ -145,7 +145,7 @@ set(SOURCES_BASE
    )
 
 
-if (WIN32)
+if (WIN32 OR CMAKE_SYSTEM_NAME MATCHES "MSYS")
     set(SOURCES_OS
         src/base/io/json/Json_win.cpp
         src/base/kernel/Platform_win.cpp
@@ -173,7 +173,7 @@ if (WITH_HWLOC)
 endif()
 
 
-if (NOT WIN32)
+if (NOT WIN32 AND NOT CMAKE_SYSTEM_NAME MATCHES "MSYS")
     CHECK_INCLUDE_FILE (syslog.h HAVE_SYSLOG_H)
     if (HAVE_SYSLOG_H)
         add_definitions(/DHAVE_SYSLOG_H)
