@@ -1,4 +1,18 @@
 if (WITH_RANDOMX)
+    include(CheckSymbolExists)
+
+    if (WIN32)
+        check_symbol_exists(_aligned_malloc "stdlib.h" HAVE_ALIGNED_MALLOC)
+        if (HAVE_ALIGNED_MALLOC)
+            add_compile_definitions(HAVE_ALIGNED_MALLOC)
+        endif()
+    else()
+        check_symbol_exists(posix_memalign "stdlib.h" HAVE_POSIX_MEMALIGN)
+        if (HAVE_POSIX_MEMALIGN)
+            add_compile_definitions(HAVE_POSIX_MEMALIGN)
+        endif()
+    endif()
+
     add_definitions(/DXMRIG_ALGO_RANDOMX)
     set(WITH_ARGON2 ON)
 

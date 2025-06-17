@@ -1,8 +1,8 @@
 /* XMRig
  * Copyright (c) 2000-2002 Alan Cox     <alan@redhat.com>
  * Copyright (c) 2005-2020 Jean Delvare <jdelvare@suse.de>
- * Copyright (c) 2018-2021 SChernykh    <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh    <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig        <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -88,7 +88,6 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
     }
 
     uint8_t *data = buf;
-    int i         = 0;
 
     while (data + 4 <= buf + m_size) {
         dmi_header h{};
@@ -97,7 +96,6 @@ bool xmrig::DmiReader::decode(uint8_t *buf)
         if (h.length < 4 || h.type == 127) {
             break;
         }
-        i++;
 
         uint8_t *next = data + h.length;
         while (static_cast<uint32_t>(next - buf + 1) < m_size && (next[0] != 0 || next[1] != 0)) {

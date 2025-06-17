@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2024 Inria.  All rights reserved.
+ * Copyright © 2010-2025 Inria.  All rights reserved.
  * See COPYING in top-level directory.
  */
 
@@ -227,17 +227,24 @@ enum hwloc_distances_transform_e {
   HWLOC_DISTANCES_TRANSFORM_LINKS = 1,
 
   /** \brief Merge switches with multiple ports into a single object.
-   * This currently only applies to NVSwitches where GPUs seem connected to different
-   * separate switch ports in the NVLinkBandwidth matrix. This transformation will
-   * replace all of them with the same port connected to all GPUs.
-   * Other ports are removed by applying ::HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL internally.
+   *
+   * This currently only applies to NVSwitches where GPUs seem connected
+   * to different switch ports. Switch ports must be objects with subtype
+   * "NVSwitch" as in the NVLinkBandwidth matrix.
+   *
+   * This transformation will replace all ports with only the first one,
+   * now connected to all GPUs. Other ports are removed by applying
+   * ::HWLOC_DISTANCES_TRANSFORM_REMOVE_NULL internally.
    * \hideinitializer
    */
   HWLOC_DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS = 2,
 
   /** \brief Apply a transitive closure to the matrix to connect objects across switches.
-   * This currently only applies to GPUs and NVSwitches in the NVLinkBandwidth matrix.
-   * All pairs of GPUs will be reported as directly connected.
+   *
+   * All pairs of GPUs will be reported as directly connected instead GPUs being
+   * only connected to switches.
+   *
+   * Switch ports must be objects with subtype "NVSwitch" as in the NVLinkBandwidth matrix.
    * \hideinitializer
    */
   HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE = 3

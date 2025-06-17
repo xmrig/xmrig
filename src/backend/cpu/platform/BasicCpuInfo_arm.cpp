@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,42 +16,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "base/tools/String.h"
-
-
 #include <array>
 #include <cstring>
-#include <fstream>
 #include <thread>
-
-
-#if __ARM_FEATURE_CRYPTO && !defined(__APPLE__)
-#   include <sys/auxv.h>
-#   if !defined(XMRIG_OS_FREEBSD)
-#       include <asm/hwcap.h>
-#   else
-#       include <stdint.h>
-#       include <machine/armreg.h>
-#       ifndef ID_AA64ISAR0_AES_VAL
-#           define ID_AA64ISAR0_AES_VAL ID_AA64ISAR0_AES
-#       endif
-#   endif
-#endif
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 #include "3rdparty/rapidjson/document.h"
-
-
-#if defined(XMRIG_OS_UNIX)
-namespace xmrig {
-
-extern String cpu_name_arm();
-
-} // namespace xmrig
-#elif defined(XMRIG_OS_MACOS)
-#   include <sys/sysctl.h>
-#endif
 
 
 xmrig::BasicCpuInfo::BasicCpuInfo() :
@@ -68,28 +39,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     memcpy(m_brand, "ARMv7", 5);
 #   endif
 
-#   if __ARM_FEATURE_CRYPTO
-#   if defined(__APPLE__)
-    m_flags.set(FLAG_AES, true);
-#   elif defined(XMRIG_OS_FREEBSD)
-    uint64_t isar0 = READ_SPECIALREG(id_aa64isar0_el1);
-    m_flags.set(FLAG_AES, ID_AA64ISAR0_AES_VAL(isar0) >= ID_AA64ISAR0_AES_BASE);
-#   else
-    m_flags.set(FLAG_AES, getauxval(AT_HWCAP) & HWCAP_AES);
-#   endif
-#   endif
-
-#   if defined(XMRIG_OS_UNIX)
-    auto name = cpu_name_arm();
-    if (!name.isNull()) {
-        strncpy(m_brand, name, sizeof(m_brand) - 1);
-    }
-
-    m_flags.set(FLAG_PDPE1GB, std::ifstream("/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages").good());
-#   elif defined(XMRIG_OS_MACOS)
-    size_t buflen = sizeof(m_brand);
-    sysctlbyname("machdep.cpu.brand_string", &m_brand, &buflen, nullptr, 0);
-#   endif
+    init_arm();
 }
 
 

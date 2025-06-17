@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009, 2011, 2012 CNRS.  All rights reserved.
- * Copyright © 2009-2020 Inria.  All rights reserved.
+ * Copyright © 2009-2021 Inria.  All rights reserved.
  * Copyright © 2009, 2011, 2012, 2015 Université Bordeaux.  All rights reserved.
  * Copyright © 2009-2020 Cisco Systems, Inc.  All rights reserved.
  * $COPYRIGHT$
@@ -16,10 +16,6 @@
 #define DECLSPEC_EXPORTS
 
 #define HWLOC_HAVE_MSVC_CPUIDEX 1
-
-/* #undef HAVE_MKSTEMP */
-
-#define HWLOC_HAVE_X86_CPUID 1
 
 /* Define to 1 if the system has the type `CACHE_DESCRIPTOR'. */
 #define HAVE_CACHE_DESCRIPTOR 0
@@ -132,7 +128,8 @@
 #define HAVE_DECL__SC_PAGE_SIZE 0
 
 /* Define to 1 if you have the <dirent.h> header file. */
-/* #undef HAVE_DIRENT_H */
+/* #define HAVE_DIRENT_H 1 */
+#undef HAVE_DIRENT_H
 
 /* Define to 1 if you have the <dlfcn.h> header file. */
 /* #undef HAVE_DLFCN_H */
@@ -285,7 +282,7 @@
 #define HAVE_STRING_H 1
 
 /* Define to 1 if you have the `strncasecmp' function. */
-/* #undef HAVE_STRNCASECMP */
+#define HAVE_STRNCASECMP 1
 
 /* Define to '1' if sysctl is present and usable */
 /* #undef HAVE_SYSCTL */
@@ -326,7 +323,8 @@
 /* #undef HAVE_UNAME */
 
 /* Define to 1 if you have the <unistd.h> header file. */
-/* #undef HAVE_UNISTD_H */
+/* #define HAVE_UNISTD_H 1 */
+#undef HAVE_UNISTD_H
 
 /* Define to 1 if you have the `uselocale' function. */
 /* #undef HAVE_USELOCALE */
@@ -661,7 +659,7 @@
 #define hwloc_pid_t HANDLE
 
 /* Define this to either strncasecmp or strncmp */
-/* #undef hwloc_strncasecmp */
+#define hwloc_strncasecmp strncasecmp
 
 /* Define this to the thread ID type */
 #define hwloc_thread_t HANDLE

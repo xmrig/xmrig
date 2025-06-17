@@ -20,7 +20,6 @@ else()
     endif()
 endif()
 
-
 if (XMRIG_OS_WIN)
     add_definitions(-DWIN32 -DXMRIG_OS_WIN)
 elseif(XMRIG_OS_APPLE)

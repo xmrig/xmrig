@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -19,7 +19,7 @@
 #include <windows.h>
 
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && !defined(__clang__)
 #   include <fcntl.h>
 #   include <sys/stat.h>
 #   include <ext/stdio_filebuf.h>
@@ -39,7 +39,7 @@
 namespace xmrig {
 
 
-#if defined(_MSC_VER) || defined (__GNUC__)
+#if defined(_MSC_VER) || defined(__GNUC__)
 static std::wstring toUtf16(const char *str)
 {
     const int size = static_cast<int>(strlen(str));
@@ -56,9 +56,9 @@ static std::wstring toUtf16(const char *str)
 #endif
 
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) || defined(_LIBCPP_HAS_OPEN_WITH_WCHAR)
 #   define OPEN_IFS(name)                                                               \
-    std::ifstream ifs(toUtf16(name), std::ios_base::in | std::ios_base::binary);        \
+    std::ifstream ifs(toUtf16(name).c_str(), std::ios_base::in | std::ios_base::binary);\
     if (!ifs.is_open()) {                                                               \
         return false;                                                                   \
     }
@@ -98,8 +98,8 @@ bool xmrig::Json::save(const char *fileName, const rapidjson::Document &doc)
     using namespace rapidjson;
     constexpr const std::ios_base::openmode mode = std::ios_base::out | std::ios_base::binary | std::ios_base::trunc;
 
-#   if defined(_MSC_VER)
-    std::ofstream ofs(toUtf16(fileName), mode);
+#   if defined(_MSC_VER) || defined(_LIBCPP_HAS_OPEN_WITH_WCHAR)
+    std::ofstream ofs(toUtf16(fileName).c_str(), mode);
     if (!ofs.is_open()) {
         return false;
     }

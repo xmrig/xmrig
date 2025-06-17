@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2024 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
 
 
 #include "base/api/Api.h"
+#include "3rdparty/rapidjson/writer.h"
 #include "base/api/interfaces/IApiListener.h"
 #include "base/api/requests/HttpApiRequest.h"
 #include "base/crypto/keccak.h"
@@ -31,7 +32,6 @@
 #include "base/tools/Chrono.h"
 #include "base/tools/Cvt.h"
 #include "core/config/Config.h"
-#include "core/Controller.h"
 #include "version.h"
 
 
@@ -44,6 +44,12 @@
 
 
 namespace xmrig {
+
+
+static_assert(
+    RAPIDJSON_WRITE_DEFAULT_FLAGS == (rapidjson::kWriteNanAndInfFlag | rapidjson::kWriteNanAndInfNullFlag),
+    "(rapidjson::kWriteNanAndInfFlag | rapidjson::kWriteNanAndInfNullFlag) required"
+    );
 
 
 static rapidjson::Value getResources(rapidjson::Document &doc)
