@@ -320,7 +320,8 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
             L2_associativity = l2->attr->cache.associativity;
 
             if (L3_exclusive) {
-                if (vendor() == VENDOR_AMD) {
+                if ((vendor() == VENDOR_AMD) && ((arch() == ARCH_ZEN4) || (arch() == ARCH_ZEN5))) {
+                    // Use extra L2 only on newer CPUs because older CPUs (Zen 3 and older) don't benefit from it.
                     // For some reason, AMD CPUs can use only half of the exclusive L2/L3 cache combo efficiently
                     extra += std::min<size_t>(l2->attr->cache.size / 2, scratchpad);
                 }
