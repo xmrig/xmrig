@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -18,13 +18,11 @@
 
 #include <cstdio>
 
-
 #ifdef _MSC_VER
 #   include "getopt/getopt.h"
 #else
 #   include <getopt.h>
 #endif
-
 
 #include "base/kernel/config/BaseTransform.h"
 #include "base/io/json/JsonChain.h"
@@ -37,7 +35,6 @@
 #include "base/net/stratum/Pools.h"
 #include "core/config/Config_platform.h"
 
-
 #ifdef XMRIG_FEATURE_TLS
 #   include "base/net/tls/TlsConfig.h"
 #endif
@@ -47,9 +44,9 @@ void xmrig::BaseTransform::load(JsonChain &chain, Process *process, IConfigTrans
 {
     using namespace rapidjson;
 
-    int key     = 0;
-    int argc    = process->arguments().argc();
-    char **argv = process->arguments().argv();
+    int key        = 0;
+    const int argc = process->arguments().argc();
+    char **argv    = process->arguments().argv();
 
     Document doc(kObjectType);
 
@@ -262,7 +259,8 @@ void xmrig::BaseTransform::transform(rapidjson::Document &doc, int key, const ch
     case IConfig::DaemonKey:      /* --daemon */
     case IConfig::SubmitToOriginKey: /* --submit-to-origin */
     case IConfig::VerboseKey:     /* --verbose */
-    case IConfig::DnsIPv6Key:     /* --dns-ipv6 */
+    case IConfig::DnsIPv4Key:     /* --ipv4 */
+    case IConfig::DnsIPv6Key:     /* --ipv6 */
         return transformBoolean(doc, key, true);
 
     case IConfig::ColorKey:          /* --no-color */
@@ -323,8 +321,11 @@ void xmrig::BaseTransform::transformBoolean(rapidjson::Document &doc, int key, b
     case IConfig::NoTitleKey: /* --no-title */
         return set(doc, BaseConfig::kTitle, enable);
 
-    case IConfig::DnsIPv6Key: /* --dns-ipv6 */
-        return set(doc, DnsConfig::kField, DnsConfig::kIPv6, enable);
+    case IConfig::DnsIPv4Key: /* --ipv4 */
+        return set(doc, DnsConfig::kField, DnsConfig::kIPv, 4);
+
+    case IConfig::DnsIPv6Key: /* --ipv6 */
+        return set(doc, DnsConfig::kField, DnsConfig::kIPv, 6);
 
     default:
         break;
