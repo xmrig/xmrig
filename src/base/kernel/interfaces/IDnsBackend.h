@@ -38,7 +38,6 @@ public:
     IDnsBackend()           = default;
     virtual ~IDnsBackend()  = default;
 
-    virtual const DnsRecords &records() const                                                                       = 0;
     virtual void resolve(const String &host, const std::weak_ptr<IDnsListener> &listener, const DnsConfig &config)  = 0;
 };
 

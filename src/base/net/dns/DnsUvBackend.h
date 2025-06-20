@@ -40,8 +40,6 @@ public:
     ~DnsUvBackend() override;
 
 protected:
-    inline const DnsRecords &records() const override   { return m_records; }
-
     void resolve(const String &host, const std::weak_ptr<IDnsListener> &listener, const DnsConfig &config) override;
 
 private:
