@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,9 +16,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSCONFIG_H
-#define XMRIG_DNSCONFIG_H
-
+#pragma once
 
 #include "3rdparty/rapidjson/fwd.h"
 
@@ -30,25 +28,22 @@ class DnsConfig
 {
 public:
     static const char *kField;
-    static const char *kIPv6;
+    static const char *kIPv;
     static const char *kTTL;
 
     DnsConfig() = default;
     DnsConfig(const rapidjson::Value &value);
 
-    inline bool isIPv6() const  { return m_ipv6; }
+    inline uint32_t ipv() const { return m_ipv; }
     inline uint32_t ttl() const { return m_ttl * 1000U; }
 
+    int ai_family() const;
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
 
-
 private:
-    bool m_ipv6     = false;
-    uint32_t m_ttl  = 30U;
+    uint32_t m_ttl = 30U;
+    uint32_t m_ipv = 0U;
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_DNSCONFIG_H */
+} // namespace xmrig
