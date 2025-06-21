@@ -569,7 +569,14 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 
     d_ptr->algorithm = job.algorithm();
 
-    mutex.lock();
+#   ifdef XMRIG_ALGO_RANDOMX
+    bool ready = false;
+#   else
+    constexpr const bool ready = true;
+#   endif
+
+    {
+    std::lock_guard<std::mutex> lock(mutex);
 
     const uint8_t index = donate ? 1 : 0;
 
@@ -588,14 +595,12 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    const bool ready = d_ptr->initRX();
+    ready = d_ptr->initRX();
 
     // Always reset nonce on RandomX dataset change
     if (!ready) {
         d_ptr->reset = true;
     }
-#   else
-    constexpr const bool ready = true;
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -604,7 +609,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 #   endif
 
-    mutex.unlock();
+    }
 
     d_ptr->active = true;
     d_ptr->m_taskbar.setActive(true);
