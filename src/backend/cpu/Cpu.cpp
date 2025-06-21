@@ -31,20 +31,20 @@
 #endif
 
 
-static xmrig::ICpuInfo *cpuInfo = nullptr;
+static std::shared_ptr<xmrig::ICpuInfo> cpuInfo;
 
 
 xmrig::ICpuInfo *xmrig::Cpu::info()
 {
-    if (cpuInfo == nullptr) {
+    if (!cpuInfo) {
 #       if defined(XMRIG_FEATURE_HWLOC)
-        cpuInfo = new HwlocCpuInfo();
+        cpuInfo = std::make_shared<HwlocCpuInfo>();
 #       else
-        cpuInfo = new BasicCpuInfo();
+        cpuInfo = std::make_shared<BasicCpuInfo>();
 #       endif
     }
 
-    return cpuInfo;
+    return cpuInfo.get();
 }
 
 
@@ -56,6 +56,5 @@ rapidjson::Value xmrig::Cpu::toJSON(rapidjson::Document &doc)
 
 void xmrig::Cpu::release()
 {
-    delete cpuInfo;
-    cpuInfo = nullptr;
+    cpuInfo.reset();
 }

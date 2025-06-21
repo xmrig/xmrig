@@ -49,7 +49,7 @@ public:
 
 protected:
     inline bool isActive() const override           { return m_active; }
-    inline IClient *client() const override         { return m_client; }
+    inline IClient* client() const override         { return m_client.get(); }
 
     int64_t submit(const JobResult &result) override;
     void connect() override;
@@ -68,7 +68,7 @@ protected:
 
 private:
     bool m_active;
-    IClient *m_client;
+    std::shared_ptr<IClient> m_client;
     IStrategyListener *m_listener;
 };
 

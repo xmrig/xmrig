@@ -44,7 +44,7 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(MemoryPool)
 
     MemoryPool(size_t size, bool hugePages, uint32_t node = 0);
-    ~MemoryPool() override;
+    ~MemoryPool() override = default;
 
 protected:
     bool isHugePages(uint32_t node) const override;
@@ -55,7 +55,7 @@ private:
     size_t m_refs           = 0;
     size_t m_offset         = 0;
     size_t m_alignOffset    = 0;
-    VirtualMemory *m_memory = nullptr;
+    std::shared_ptr<VirtualMemory> m_memory;
 };
 
 

@@ -42,8 +42,8 @@ public:
     inline ~RxBasicStoragePrivate() { deleteDataset(); }
 
     inline bool isReady(const Job &job) const   { return m_ready && m_seed == job; }
-    inline RxDataset *dataset() const           { return m_dataset; }
-    inline void deleteDataset()                 { delete m_dataset; m_dataset = nullptr; }
+    inline RxDataset *dataset() const           { return m_dataset.get(); }
+    inline void deleteDataset()                 { m_dataset.reset(); }
 
 
     inline void setSeed(const RxSeed &seed)
@@ -62,7 +62,7 @@ public:
     {
         const uint64_t ts = Chrono::steadyMSecs();
 
-        m_dataset = new RxDataset(hugePages, oneGbPages, true, mode, 0);
+        m_dataset = std::make_shared<RxDataset>(hugePages, oneGbPages, true, mode, 0);
         if (!m_dataset->cache()->get()) {
             deleteDataset();
 
@@ -115,7 +115,7 @@ private:
 
 
     bool m_ready         = false;
-    RxDataset *m_dataset = nullptr;
+    std::shared_ptr<RxDataset> m_dataset;
     RxSeed m_seed;
 };
 
@@ -131,7 +131,6 @@ xmrig::RxBasicStorage::RxBasicStorage() :
 
 xmrig::RxBasicStorage::~RxBasicStorage()
 {
-    delete d_ptr;
 }
 
 

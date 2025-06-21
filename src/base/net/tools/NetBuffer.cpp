@@ -23,22 +23,23 @@
 
 
 #include <cassert>
+#include <memory>
 #include <uv.h>
 
 
 namespace xmrig {
 
 
-static MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS> *pool = nullptr;
+static std::shared_ptr<MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS>> pool;
 
 
 inline MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS> *getPool()
 {
     if (!pool) {
-        pool = new MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS>();
+        pool = std::make_shared<MemPool<XMRIG_NET_BUFFER_CHUNK_SIZE, XMRIG_NET_BUFFER_INIT_CHUNKS>>();
     }
 
-    return pool;
+    return pool.get();
 }
 
 
@@ -59,8 +60,7 @@ void xmrig::NetBuffer::destroy()
 
     assert(pool->freeSize() == pool->size());
 
-    delete pool;
-    pool = nullptr;
+    pool.reset();
 }
 
 

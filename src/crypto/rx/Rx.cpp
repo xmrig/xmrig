@@ -40,7 +40,7 @@ class RxPrivate;
 
 
 static bool osInitialized   = false;
-static RxPrivate *d_ptr     = nullptr;
+static std::shared_ptr<RxPrivate> d_ptr;
 
 
 class RxPrivate
@@ -73,15 +73,13 @@ void xmrig::Rx::destroy()
     RxMsr::destroy();
 #   endif
 
-    delete d_ptr;
-
-    d_ptr = nullptr;
+    d_ptr.reset();
 }
 
 
 void xmrig::Rx::init(IRxListener *listener)
 {
-    d_ptr = new RxPrivate(listener);
+    d_ptr = std::make_shared<RxPrivate>(listener);
 }
 
 

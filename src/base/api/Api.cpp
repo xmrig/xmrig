@@ -101,8 +101,7 @@ xmrig::Api::~Api()
 #   ifdef XMRIG_FEATURE_HTTP
     if (m_httpd) {
         m_httpd->stop();
-        delete m_httpd;
-        m_httpd = nullptr; // Ensure the pointer is set to nullptr after deletion
+        m_httpd.reset();
     }
 #   endif
 }
@@ -122,12 +121,11 @@ void xmrig::Api::start()
 
 #   ifdef XMRIG_FEATURE_HTTP
     if (!m_httpd) {
-        m_httpd = new Httpd(m_base);
+        m_httpd = std::make_shared<Httpd>(m_base);
         if (!m_httpd->start()) {
             LOG_ERR("%s " RED_BOLD("HTTP API server failed to start."), Tags::network());
 
-            delete m_httpd; // Properly handle failure to start
-            m_httpd = nullptr;
+            m_httpd.reset();
         }
     }
 #   endif

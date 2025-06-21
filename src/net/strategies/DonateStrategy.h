@@ -47,7 +47,7 @@ public:
 
 protected:
     inline bool isActive() const override                                                                              { return state() == STATE_ACTIVE; }
-    inline IClient *client() const override                                                                            { return m_proxy ? m_proxy : m_strategy->client(); }
+    inline IClient *client() const override                                                                            { return m_proxy ? m_proxy.get() : m_strategy->client(); }
     inline void onJob(IStrategy *, IClient *client, const Job &job, const rapidjson::Value &params) override           { setJob(client, job, params); }
     inline void onJobReceived(IClient *client, const Job &job, const rapidjson::Value &params) override                { setJob(client, job, params); }
     inline void onResultAccepted(IClient *client, const SubmitResult &result, const char *error) override              { setResult(client, result, error); }
@@ -69,7 +69,7 @@ protected:
     void onLogin(IStrategy *strategy, IClient *client, rapidjson::Document &doc, rapidjson::Value &params) override;
     void onLoginSuccess(IClient *client) override;
     void onVerifyAlgorithm(const IClient *client, const Algorithm &algorithm, bool *ok) override;
-    void onVerifyAlgorithm(IStrategy *strategy, const  IClient *client, const Algorithm &algorithm, bool *ok) override;
+    void onVerifyAlgorithm(IStrategy *strategy, const IClient *client, const Algorithm &algorithm, bool *ok) override;
 
     void onTimer(const Timer *timer) override;
 
@@ -84,7 +84,7 @@ private:
 
     inline State state() const { return m_state; }
 
-    IClient *createProxy();
+    std::shared_ptr<IClient> createProxy();
     void idle(double min, double max);
     void setJob(IClient *client, const Job &job, const rapidjson::Value &params);
     void setParams(rapidjson::Document &doc, rapidjson::Value &params);
@@ -98,12 +98,12 @@ private:
     const uint64_t m_donateTime;
     const uint64_t m_idleTime;
     Controller *m_controller;
-    IClient *m_proxy                = nullptr;
-    IStrategy *m_strategy           = nullptr;
+    std::shared_ptr<IClient> m_proxy;
+    std::shared_ptr<IStrategy> m_strategy;
     IStrategyListener *m_listener;
     State m_state                   = STATE_NEW;
     std::vector<Pool> m_pools;
-    Timer *m_timer                  = nullptr;
+    std::shared_ptr<Timer> m_timer;
     uint64_t m_diff                 = 0;
     uint64_t m_height               = 0;
     uint64_t m_now                  = 0;

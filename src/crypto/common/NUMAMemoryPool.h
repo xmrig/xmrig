@@ -47,7 +47,7 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(NUMAMemoryPool)
 
     NUMAMemoryPool(size_t size, bool hugePages);
-    ~NUMAMemoryPool() override;
+    ~NUMAMemoryPool() override = default;
 
 protected:
     bool isHugePages(uint32_t node) const override;
@@ -61,7 +61,7 @@ private:
     bool m_hugePages        = true;
     size_t m_nodeSize       = 0;
     size_t m_size           = 0;
-    mutable std::map<uint32_t, IMemoryPool *> m_map;
+    mutable std::map<uint32_t, std::shared_ptr<IMemoryPool>> m_map;
 };
 
 

@@ -79,10 +79,7 @@ xmrig::RxDataset::RxDataset(RxCache *cache) :
 
 xmrig::RxDataset::~RxDataset()
 {
-    randomx_release_dataset(m_dataset);
-
     delete m_cache;
-    delete m_memory;
 }
 
 
@@ -107,7 +104,7 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priorit
         for (uint64_t i = 0; i < numThreads; ++i) {
             const uint32_t a = (datasetItemCount * i) / numThreads;
             const uint32_t b = (datasetItemCount * (i + 1)) / numThreads;
-            threads.emplace_back(init_dataset_wrapper, m_dataset, m_cache->get(), a, b - a, priority);
+            threads.emplace_back(init_dataset_wrapper, m_dataset.get(), m_cache->get(), a, b - a, priority);
         }
 
         for (uint32_t i = 0; i < numThreads; ++i) {
@@ -115,7 +112,7 @@ bool xmrig::RxDataset::init(const Buffer &seed, uint32_t numThreads, int priorit
         }
     }
     else {
-        init_dataset_wrapper(m_dataset, m_cache->get(), 0, datasetItemCount, priority);
+        init_dataset_wrapper(m_dataset.get(), m_cache->get(), 0, datasetItemCount, priority);
     }
 
     return true;
@@ -180,7 +177,7 @@ uint8_t *xmrig::RxDataset::tryAllocateScrathpad()
 
 void *xmrig::RxDataset::raw() const
 {
-    return m_dataset ? randomx_get_dataset_memory(m_dataset) : nullptr;
+    return m_dataset ? randomx_get_dataset_memory(m_dataset.get()) : nullptr;
 }
 
 
@@ -191,7 +188,7 @@ void xmrig::RxDataset::setRaw(const void *raw)
     }
 
     volatile size_t N = maxSize();
-    memcpy(randomx_get_dataset_memory(m_dataset), raw, N);
+    memcpy(randomx_get_dataset_memory(m_dataset.get()), raw, N);
 }
 
 
@@ -199,24 +196,22 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
 {
     if (m_mode == RxConfig::LightMode) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "fast RandomX mode disabled by config", Tags::randomx());
-
         return;
     }
 
     if (m_mode == RxConfig::AutoMode && uv_get_total_memory() < (maxSize() + RxCache::maxSize())) {
         LOG_ERR(CLEAR "%s" RED_BOLD_S "not enough memory for RandomX dataset", Tags::randomx());
-
         return;
     }
 
-    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node);
+    m_memory = std::make_shared<VirtualMemory>(maxSize(), hugePages, oneGbPages, false, m_node);
 
     if (m_memory->isOneGbPages()) {
         m_scratchpadOffset = maxSize() + RANDOMX_CACHE_MAX_SIZE;
         m_scratchpadLimit = m_memory->capacity();
     }
 
-    m_dataset = randomx_create_dataset(m_memory->raw());
+    m_dataset = std::shared_ptr<randomx_dataset>(randomx_create_dataset(m_memory->raw()), randomx_release_dataset);
 
 #   ifdef XMRIG_OS_LINUX
     if (oneGbPages && !isOneGbPages()) {

@@ -62,16 +62,9 @@ public:
 
 template<class T>
 xmrig::Workers<T>::Workers() :
-    d_ptr(new WorkersPrivate())
+    d_ptr(std::make_shared<WorkersPrivate>())
 {
 
-}
-
-
-template<class T>
-xmrig::Workers<T>::~Workers()
-{
-    delete d_ptr;
 }
 
 
@@ -88,7 +81,7 @@ bool xmrig::Workers<T>::tick(uint64_t)
     uint64_t hashCount      = 0;
     uint64_t rawHashes      = 0;
 
-    for (Thread<T> *handle : m_workers) {
+    for (auto& handle : m_workers) {
         IWorker *worker = handle->worker();
         if (worker) {
             worker->hashrateData(hashCount, ts, rawHashes);
@@ -135,10 +128,6 @@ void xmrig::Workers<T>::stop()
     Nonce::stop(T::backend());
 #   endif
 
-    for (Thread<T> *worker : m_workers) {
-        delete worker;
-    }
-
     m_workers.clear();
 
 #   ifdef XMRIG_MINER_PROJECT
@@ -166,7 +155,7 @@ void xmrig::Workers<T>::start(const std::vector<T> &data, const std::shared_ptr<
 
 
 template<class T>
-xmrig::IWorker *xmrig::Workers<T>::create(Thread<T> *)
+std::shared_ptr<xmrig::IWorker> xmrig::Workers<T>::create(Thread<T> *)
 {
     return nullptr;
 }
@@ -177,22 +166,21 @@ void *xmrig::Workers<T>::onReady(void *arg)
 {
     auto handle = static_cast<Thread<T>* >(arg);
 
-    IWorker *worker = create(handle);
-    assert(worker != nullptr);
+    std::shared_ptr<IWorker> worker = create(handle);
+    assert(worker);
 
     if (!worker || !worker->selfTest()) {
         LOG_ERR("%s " RED("thread ") RED_BOLD("#%zu") RED(" self-test failed"), T::tag(), worker ? worker->id() : 0);
 
-        handle->backend()->start(worker, false);
-        delete worker;
-
+        worker.reset();
+        handle->backend()->start(worker.get(), false);
         return nullptr;
     }
 
     assert(handle->backend() != nullptr);
 
     handle->setWorker(worker);
-    handle->backend()->start(worker, true);
+    handle->backend()->start(worker.get(), true);
 
     return nullptr;
 }
@@ -202,7 +190,7 @@ template<class T>
 void xmrig::Workers<T>::start(const std::vector<T> &data, bool /*sleep*/)
 {
     for (const auto &item : data) {
-        m_workers.push_back(new Thread<T>(d_ptr->backend, m_workers.size(), item));
+        m_workers.emplace_back(std::make_shared<Thread<T>>(d_ptr->backend, m_workers.size(), item));
     }
 
     d_ptr->hashrate = std::make_shared<Hashrate>(m_workers.size());
@@ -211,7 +199,7 @@ void xmrig::Workers<T>::start(const std::vector<T> &data, bool /*sleep*/)
     Nonce::touch(T::backend());
 #   endif
 
-    for (auto worker : m_workers) {
+    for (auto& worker : m_workers) {
         worker->start(Workers<T>::onReady);
     }
 }
@@ -221,34 +209,34 @@ namespace xmrig {
 
 
 template<>
-xmrig::IWorker *xmrig::Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
+std::shared_ptr<xmrig::IWorker> Workers<CpuLaunchData>::create(Thread<CpuLaunchData> *handle)
 {
 #   ifdef XMRIG_MINER_PROJECT
     switch (handle->config().intensity) {
     case 1:
-        return new CpuWorker<1>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<1>>(handle->id(), handle->config());
 
     case 2:
-        return new CpuWorker<2>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<2>>(handle->id(), handle->config());
 
     case 3:
-        return new CpuWorker<3>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<3>>(handle->id(), handle->config());
 
     case 4:
-        return new CpuWorker<4>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<4>>(handle->id(), handle->config());
 
     case 5:
-        return new CpuWorker<5>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<5>>(handle->id(), handle->config());
 
     case 8:
-        return new CpuWorker<8>(handle->id(), handle->config());
+        return std::make_shared<CpuWorker<8>>(handle->id(), handle->config());
     }
 
     return nullptr;
 #   else
     assert(handle->config().intensity == 1);
 
-    return new CpuWorker<1>(handle->id(), handle->config());
+    return std::make_shared<CpuWorker<1>>(handle->id(), handle->config());
 #   endif
 }
 
@@ -258,9 +246,9 @@ template class Workers<CpuLaunchData>;
 
 #ifdef XMRIG_FEATURE_OPENCL
 template<>
-xmrig::IWorker *xmrig::Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
+std::shared_ptr<xmrig::IWorker> Workers<OclLaunchData>::create(Thread<OclLaunchData> *handle)
 {
-    return new OclWorker(handle->id(), handle->config());
+    return std::make_shared<OclWorker>(handle->id(), handle->config());
 }
 
 
@@ -270,9 +258,9 @@ template class Workers<OclLaunchData>;
 
 #ifdef XMRIG_FEATURE_CUDA
 template<>
-xmrig::IWorker *xmrig::Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle)
+std::shared_ptr<xmrig::IWorker> Workers<CudaLaunchData>::create(Thread<CudaLaunchData> *handle)
 {
-    return new CudaWorker(handle->id(), handle->config());
+    return std::make_shared<CudaWorker>(handle->id(), handle->config());
 }
 
 

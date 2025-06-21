@@ -66,7 +66,7 @@ protected:
     void hashrateData(uint64_t &hashCount, uint64_t &timeStamp, uint64_t &rawHashes) const override;
     void start() override;
 
-    inline const VirtualMemory *memory() const override     { return m_memory; }
+    inline const VirtualMemory* memory() const override     { return m_memory.get(); }
     inline size_t intensity() const override                { return N; }
     inline void jobEarlyNotification(const Job&) override   {}
 
@@ -92,11 +92,11 @@ private:
     const Miner *m_miner;
     const size_t m_threads;
     cryptonight_ctx *m_ctx[N];
-    VirtualMemory *m_memory = nullptr;
+    std::shared_ptr<VirtualMemory> m_memory;
     WorkerJob<N> m_job;
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    randomx_vm *m_vm        = nullptr;
+    std::shared_ptr<randomx_vm> m_vm;
     Buffer m_seed;
 #   endif
 

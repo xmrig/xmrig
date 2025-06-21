@@ -38,17 +38,6 @@ std::mutex KPCache::s_cacheMutex;
 KPCache KPCache::s_cache;
 
 
-KPCache::KPCache()
-{
-}
-
-
-KPCache::~KPCache()
-{
-    delete m_memory;
-}
-
-
 bool KPCache::init(uint32_t epoch)
 {
     if (epoch >= sizeof(cache_sizes) / sizeof(cache_sizes[0])) {
@@ -63,8 +52,7 @@ bool KPCache::init(uint32_t epoch)
 
     const size_t size = cache_sizes[epoch];
     if (!m_memory || m_memory->size() < size) {
-        delete m_memory;
-        m_memory = new VirtualMemory(size, false, false, false);
+        m_memory = std::make_shared<VirtualMemory>(size, false, false, false);
     }
 
     const ethash_h256_t seedhash = ethash_get_seedhash(epoch);

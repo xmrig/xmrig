@@ -115,14 +115,13 @@ public:
 
 
 xmrig::Config::Config() :
-    d_ptr(new ConfigPrivate())
+    d_ptr(std::make_shared<ConfigPrivate>())
 {
 }
 
 
 xmrig::Config::~Config()
 {
-    delete d_ptr;
 }
 
 

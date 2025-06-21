@@ -47,7 +47,7 @@ xmrig::FailoverStrategy::FailoverStrategy(int retryPause, int retries, IStrategy
 
 xmrig::FailoverStrategy::~FailoverStrategy()
 {
-    for (IClient *client : m_pools) {
+    for (auto& client : m_pools) {
         client->deleteLater();
     }
 }
@@ -55,7 +55,7 @@ xmrig::FailoverStrategy::~FailoverStrategy()
 
 void xmrig::FailoverStrategy::add(const Pool &pool)
 {
-    IClient *client = pool.createClient(static_cast<int>(m_pools.size()), this);
+    std::shared_ptr<IClient> client = pool.createClient(static_cast<int>(m_pools.size()), this);
 
     client->setRetries(m_retries);
     client->setRetryPause(m_retryPause * 1000);
@@ -93,7 +93,7 @@ void xmrig::FailoverStrategy::resume()
 
 void xmrig::FailoverStrategy::setAlgo(const Algorithm &algo)
 {
-    for (IClient *client : m_pools) {
+    for (auto& client : m_pools) {
         client->setAlgo(algo);
     }
 }
@@ -101,7 +101,7 @@ void xmrig::FailoverStrategy::setAlgo(const Algorithm &algo)
 
 void xmrig::FailoverStrategy::setProxy(const ProxyUrl &proxy)
 {
-    for (IClient *client : m_pools) {
+    for (auto& client : m_pools) {
         client->setProxy(proxy);
     }
 }
@@ -109,7 +109,7 @@ void xmrig::FailoverStrategy::setProxy(const ProxyUrl &proxy)
 
 void xmrig::FailoverStrategy::stop()
 {
-    for (auto &pool : m_pools) {
+    for (auto& pool : m_pools) {
         pool->disconnect();
     }
 
@@ -122,7 +122,7 @@ void xmrig::FailoverStrategy::stop()
 
 void xmrig::FailoverStrategy::tick(uint64_t now)
 {
-    for (IClient *client : m_pools) {
+    for (auto& client : m_pools) {
         client->tick(now);
     }
 }

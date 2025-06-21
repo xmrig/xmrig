@@ -84,10 +84,10 @@ public:
 
     inline ~MinerPrivate()
     {
-        delete timer;
+        timer.reset();
 
-        for (IBackend *backend : backends) {
-            delete backend;
+        for (auto& backend : backends) {
+            backend.reset();
         }
 
 #       ifdef XMRIG_ALGO_RANDOMX
@@ -98,7 +98,7 @@ public:
 
     bool isEnabled(const Algorithm &algorithm) const
     {
-        for (IBackend *backend : backends) {
+        for (auto& backend : backends) {
             if (backend->isEnabled() && backend->isEnabled(algorithm)) {
                 return true;
             }
@@ -124,7 +124,7 @@ public:
             Nonce::reset(job.index());
         }
 
-        for (IBackend *backend : backends) {
+        for (auto& backend : backends) {
             backend->setJob(job);
         }
 
@@ -175,7 +175,7 @@ public:
 
         std::pair<bool, double> t[3] = { { true, 0.0 }, { true, 0.0 }, { true, 0.0 } };
 
-        for (IBackend *backend : backends) {
+        for (auto& backend : backends) {
             const Hashrate *hr = backend->hashrate();
             if (!hr) {
                 continue;
@@ -225,7 +225,7 @@ public:
 
         reply.SetArray();
 
-        for (IBackend *backend : backends) {
+        for (auto& backend : backends) {
             reply.PushBack(backend->toJSON(doc), allocator);
         }
     }
@@ -377,9 +377,9 @@ public:
     Controller *controller;
     Job job;
     mutable std::map<Algorithm::Id, double> maxHashrate;
-    std::vector<IBackend *> backends;
+    std::vector<std::shared_ptr<IBackend>> backends;
     String userJobId;
-    Timer *timer        = nullptr;
+    std::shared_ptr<Timer> timer;
     uint64_t ticks      = 0;
 
     Taskbar m_taskbar;
@@ -391,7 +391,7 @@ public:
 
 
 xmrig::Miner::Miner(Controller *controller)
-    : d_ptr(new MinerPrivate(controller))
+    : d_ptr(std::make_shared<MinerPrivate>(controller))
 {
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
@@ -413,26 +413,20 @@ xmrig::Miner::Miner(Controller *controller)
     controller->api()->addListener(this);
 #   endif
 
-    d_ptr->timer = new Timer(this);
+    d_ptr->timer = std::make_shared<Timer>(this);
 
     d_ptr->backends.reserve(3);
-    d_ptr->backends.push_back(new CpuBackend(controller));
+    d_ptr->backends.emplace_back(std::make_shared<CpuBackend>(controller));
 
 #   ifdef XMRIG_FEATURE_OPENCL
-    d_ptr->backends.push_back(new OclBackend(controller));
+    d_ptr->backends.emplace_back(std::make_shared<OclBackend>(controller));
 #   endif
 
 #   ifdef XMRIG_FEATURE_CUDA
-    d_ptr->backends.push_back(new CudaBackend(controller));
+    d_ptr->backends.emplace_back(std::make_shared<CudaBackend>(controller));
 #   endif
 
     d_ptr->rebuild();
-}
-
-
-xmrig::Miner::~Miner()
-{
-    delete d_ptr;
 }
 
 
@@ -454,7 +448,7 @@ const xmrig::Algorithms &xmrig::Miner::algorithms() const
 }
 
 
-const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
+const std::vector<std::shared_ptr<xmrig::IBackend>>& xmrig::Miner::backends() const
 {
     return d_ptr->backends;
 }
@@ -551,7 +545,7 @@ void xmrig::Miner::setEnabled(bool enabled)
 
 void xmrig::Miner::setJob(const Job &job, bool donate)
 {
-    for (IBackend *backend : d_ptr->backends) {
+    for (auto& backend : d_ptr->backends) {
         backend->prepare(job);
     }
 
@@ -619,7 +613,7 @@ void xmrig::Miner::stop()
 {
     Nonce::stop();
 
-    for (IBackend *backend : d_ptr->backends) {
+    for (auto& backend : d_ptr->backends) {
         backend->stop();
     }
 }
@@ -635,7 +629,7 @@ void xmrig::Miner::onConfigChanged(Config *config, Config *previousConfig)
 
     const Job job = this->job();
 
-    for (IBackend *backend : d_ptr->backends) {
+    for (auto& backend : d_ptr->backends) {
         backend->setJob(job);
     }
 }
@@ -649,7 +643,7 @@ void xmrig::Miner::onTimer(const Timer *)
 
     bool stopMiner = false;
 
-    for (IBackend *backend : d_ptr->backends) {
+    for (auto& backend : d_ptr->backends) {
         if (!backend->tick(d_ptr->ticks)) {
             stopMiner = true;
         }
@@ -734,7 +728,7 @@ void xmrig::Miner::onRequest(IApiRequest &request)
         }
     }
 
-    for (IBackend *backend : d_ptr->backends) {
+    for (auto& backend : d_ptr->backends) {
         backend->handleRequest(request);
     }
 }
