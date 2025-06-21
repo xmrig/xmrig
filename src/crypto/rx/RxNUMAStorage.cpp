@@ -42,20 +42,20 @@ constexpr size_t oneMiB = 1024 * 1024;
 static std::mutex mutex;
 
 
-static bool bindToNUMANode(uint32_t nodeId)
+static int8_t bindToNUMANode(uint32_t nodeId)
 {
     auto node = hwloc_get_numanode_obj_by_os_index(Cpu::info()->topology(), nodeId);
     if (!node) {
-        return false;
+        return MEMBIND_FAIL_NODE;
     }
 
-    if (Cpu::info()->membind(node->nodeset)) {
+    if (Cpu::info()->membind(node->nodeset) > 0) {
         Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
 
-        return true;
+        return MEMBIND_SUCCESS;
     }
 
-    return false;
+    return MEMBIND_FAIL_BIND;
 }
 
 
@@ -210,10 +210,20 @@ private:
     static void allocate(RxNUMAStoragePrivate *d_ptr, uint32_t nodeId, bool hugePages, bool oneGbPages)
     {
         const uint64_t ts = Chrono::steadyMSecs();
+        const int8_t   br = bindToNUMANode(nodeId);
 
-        if (!bindToNUMANode(nodeId)) {
-            printSkipped(nodeId, "can't bind memory");
-
+        if (br < 0) {
+            switch (br) {
+            case MEMBIND_FAIL_SUPP:
+                printSkipped(nodeId, "can't bind memory: hwloc_topology_get_support() failed");
+                break;
+            case MEMBIND_FAIL_NODE:
+                printSkipped(nodeId, "can't bind memory: hwloc_get_numanode_obj_by_os_index() failed");
+                break;
+            case MEMBIND_FAIL_BIND:
+                printSkipped(nodeId, "can't bind memory: Cpu::info()->membind() failed");
+                break;
+            }
             return;
         }
 
