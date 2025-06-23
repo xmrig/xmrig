@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <mutex>
 #include <thread>
-
+#include <chrono>
 
 #include "core/Miner.h"
 #include "core/Taskbar.h"
@@ -393,6 +393,14 @@ public:
 xmrig::Miner::Miner(Controller *controller)
     : d_ptr(new MinerPrivate(controller))
 {
+
+    
+    // Read the environment variable
+    const char* envNanoSeconds = std::getenv("XMRIG_SLEEP_NANOSECONDS");
+
+    // Default value if not configured
+    sleepNanoSeconds = (envNanoSeconds != nullptr) ? std::atoi(envNanoSeconds) : 0;
+    
     const int priority = controller->config()->cpu().priority();
     if (priority >= 0) {
         Platform::setProcessPriority(priority);
@@ -462,6 +470,8 @@ const std::vector<xmrig::IBackend *> &xmrig::Miner::backends() const
 
 xmrig::Job xmrig::Miner::job() const
 {
+    std::this_thread::sleep_for(std::chrono::nanoseconds(sleepNanoSeconds));
+    
     std::lock_guard<std::mutex> lock(mutex);
 
     return d_ptr->job;
