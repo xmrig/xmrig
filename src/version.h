@@ -64,6 +64,8 @@
 #    define APP_OS "Linux"
 #elif defined XMRIG_OS_FREEBSD
 #    define APP_OS "FreeBSD"
+#elif defined XMRIG_OS_OPENBSD
+#    define APP_OS "OpenBSD"
 #else
 #    define APP_OS "Unknown OS"
 #endif
