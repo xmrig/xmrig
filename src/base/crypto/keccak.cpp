@@ -166,7 +166,17 @@ void xmrig::keccakf(uint64_t st[25], int rounds)
 // compute a keccak hash (md) of given byte length from "in"
 typedef uint64_t state_t[25];
 
+// On compilers that support it (e.g. GCC/Clang), we mark this type with
+// __may_alias__ to prevent the compiler from assuming that objects of
+// different types cannot alias each other. This avoids incorrect
+// optimizations under strict aliasing rules.
+//
+// MSVC does not support __attribute__((__may_alias__)), so we use a plain typedef there.
+#ifndef _MSC_VER
 typedef uint64_t uint64_t_alias __attribute__((__may_alias__));
+#else
+typedef uint64_t uint64_t_alias;
+#endif
 
 void xmrig::keccak(const uint8_t *in, int inlen, uint8_t *md, int mdlen)
 {
