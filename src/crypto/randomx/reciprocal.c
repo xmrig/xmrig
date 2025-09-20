@@ -52,7 +52,10 @@ uint64_t randomx_reciprocal(uint64_t divisor) {
 
 	uint64_t quotient = p2exp63 / divisor, remainder = p2exp63 % divisor;
 
-	unsigned bsr = 64 - __builtin_clzll(divisor); //highest set bit in divisor
+	unsigned bsr = 0; //highest set bit in divisor
+
+	for (uint64_t bit = divisor; bit > 0; bit >>= 1)
+		bsr++;
 
 	for (unsigned shift = 0; shift < bsr; shift++) {
 		if (remainder >= divisor - remainder) {
