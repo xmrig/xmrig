@@ -142,7 +142,7 @@ DECL(randomx_program_aarch64):
 	ldp	q26, q27, [x0, 224]
 
 	# Load E 'and' mask
-	movi.2d	v29, #0x00FFFFFFFFFFFFFF
+	movi	v29.2d, #0x00FFFFFFFFFFFFFF
 
 	# Load E 'or' mask (stored in reg.f[0])
 	ldr	q30, [x0, 64]
@@ -206,29 +206,29 @@ DECL(randomx_program_aarch64_main_loop):
 
 	# Load group F registers (spAddr1)
 	ldr	q17, [x17]
-	sxtl.2d	v16, v17
-	scvtf.2d	v16, v16
-	sxtl2.2d	v17, v17
-	scvtf.2d	v17, v17
+	sxtl	v16.2d, v17.2s
+	scvtf	v16.2d, v16.2d
+	sxtl2	v17.2d, v17.4s
+	scvtf	v17.2d, v17.2d
 
 	ldr q19, [x17, 16]
-	sxtl.2d	v18, v19
-	scvtf.2d	v18, v18
-	sxtl2.2d	v19, v19
-	scvtf.2d	v19, v19
+	sxtl	v18.2d, v19.2s
+	scvtf	v18.2d, v18.2d
+	sxtl2	v19.2d, v19.4s
+	scvtf	v19.2d, v19.2d
 
 	# Load group E registers (spAddr1)
 	ldr	q21, [x17, 32]
-	sxtl.2d	v20, v21
-	scvtf.2d	v20, v20
-	sxtl2.2d	v21, v21
-	scvtf.2d	v21, v21
+	sxtl	v20.2d, v21.2s
+	scvtf	v20.2d, v20.2d
+	sxtl2	v21.2d, v21.4s
+	scvtf	v21.2d, v21.2d
 
 	ldr	q23, [x17, 48]
-	sxtl.2d	v22, v23
-	scvtf.2d	v22, v22
-	sxtl2.2d	v23, v23
-	scvtf.2d	v23, v23
+	sxtl	v22.2d, v23.2s
+	scvtf	v22.2d, v22.2d
+	sxtl2	v23.2d, v23.4s
+	scvtf	v23.2d, v23.2d
 
 	and	v20.16b, v20.16b, v29.16b
 	and	v21.16b, v21.16b, v29.16b
