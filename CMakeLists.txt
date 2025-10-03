@@ -39,7 +39,7 @@ option(ARM_V7               "Force ARMv7 (32 bit) architecture, use with caution
 option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
 
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 
 include (CheckIncludeFile)
