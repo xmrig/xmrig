@@ -241,9 +241,9 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     ar(m_amount);
     ar(m_outputType);
 
-    const bool is_fcmp_pp = (m_coin == Coin::MONERO) && (m_version.first >= 18);
+    const bool is_fcmp_pp = (m_coin == Coin::MONERO) && (m_version.first >= 17);
 
-    // output type must be txout_to_key (2) or txout_to_tagged_key (3) for versions < 18, and txout_to_carrot_v1 (0) for version FCMP++
+    // output type must be txout_to_key (2) or txout_to_tagged_key (3) for versions < 17, and txout_to_carrot_v1 (0) for version FCMP++
     if (is_fcmp_pp && (m_outputType == 0)) {
         // all good
     }
