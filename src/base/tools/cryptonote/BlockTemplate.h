@@ -148,6 +148,8 @@ private:
     Buffer m_hashes;
     Buffer m_minerTxMerkleTreeBranch;
     uint8_t m_rootHash[kHashSize]{};
+    uint8_t m_carrotViewTag[3]{};
+    uint8_t m_janusAnchor[16]{};
 };
 
 
