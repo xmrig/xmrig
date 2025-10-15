@@ -250,7 +250,7 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
                     break;
 
                 case 0x19:
-                    if (m_model == 0x61) {
+                    if ((m_model == 0x61) || (m_model == 0x75)) {
                         m_arch = ARCH_ZEN4;
                         m_msrMod = MSR_MOD_RYZEN_19H_ZEN4;
                     }
