@@ -29,9 +29,17 @@ randomx_vm *xmrig::RxVm::create(RxDataset *dataset, uint8_t *scratchpad, bool so
 {
     int flags = 0;
 
+    // On RISC-V, force software AES path even if CPU reports AES capability.
+    // The RandomX portable intrinsics will throw at runtime when HAVE_AES is not defined
+    // for this architecture. Until native AES intrinsics are wired for RISC-V, avoid
+    // setting HARD_AES to prevent "Platform doesn't support hardware AES" aborts.
+#   ifndef XMRIG_RISCV
     if (!softAes) {
        flags |= RANDOMX_FLAG_HARD_AES;
     }
+#   else
+    (void)softAes; // unused on RISC-V to force soft AES
+#   endif
 
     if (dataset->get()) {
         flags |= RANDOMX_FLAG_FULL_MEM;

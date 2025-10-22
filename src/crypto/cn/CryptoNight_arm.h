@@ -27,6 +27,9 @@
 #ifndef XMRIG_CRYPTONIGHT_ARM_H
 #define XMRIG_CRYPTONIGHT_ARM_H
 
+#ifdef XMRIG_RISCV
+#   include "crypto/cn/sse2rvv.h"
+#endif
 
 #include "base/crypto/keccak.h"
 #include "crypto/cn/CnAlgo.h"

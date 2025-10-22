@@ -87,7 +87,7 @@ static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t typ
 }
 
 
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
 static inline std::vector<hwloc_obj_t> findByType(hwloc_obj_t obj, hwloc_obj_type_t type)
 {
     std::vector<hwloc_obj_t> out;
@@ -207,7 +207,7 @@ bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 
 xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
-#   ifndef XMRIG_ARM
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     if (L2() == 0 && L3() == 0) {
         return BasicCpuInfo::threads(algorithm, limit);
     }
@@ -277,7 +277,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, ui
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
-#   ifndef XMRIG_ARM
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
