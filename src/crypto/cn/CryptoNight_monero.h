@@ -30,7 +30,7 @@
 #include <math.h>
 
 // VARIANT ALTERATIONS
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
     if (BASE == Algorithm::CN_1) { \
@@ -60,7 +60,7 @@
     }
 
 
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
 #   define VARIANT2_INIT(part) \
     __m128i division_result_xmm_##part = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[12])); \
     __m128i sqrt_result_xmm_##part     = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[13]));

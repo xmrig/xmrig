@@ -62,7 +62,7 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    elseif (WITH_ASM AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp
@@ -116,7 +116,7 @@ if (WITH_RANDOMX)
             )
     endif()
 
-    if (WITH_MSR AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
+    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_MSR)
         add_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=ON")
