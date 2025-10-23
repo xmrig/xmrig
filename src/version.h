@@ -75,6 +75,8 @@
 
 #ifdef XMRIG_ARM
 #   define APP_ARCH "ARMv" STR2(XMRIG_ARM)
+#elif defined(XMRIG_RISCV)
+#   define APP_ARCH "RISC-V"
 #else
 #   if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
 #       define APP_ARCH "x86-64"

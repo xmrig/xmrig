@@ -133,7 +133,7 @@ struct RandomX_ConfigurationBase
 	uint32_t ScratchpadL3Mask_Calculated;
 	uint32_t ScratchpadL3Mask64_Calculated;
 
-#	if (XMRIG_ARM == 8)
+#	if (XMRIG_ARM == 8) || defined(XMRIG_RISCV)
 	uint32_t Log2_ScratchpadL1;
 	uint32_t Log2_ScratchpadL2;
 	uint32_t Log2_ScratchpadL3;

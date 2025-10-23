@@ -57,6 +57,9 @@
 
 #if defined(XMRIG_ARM)
 #   include "crypto/cn/sse2neon.h"
+#elif defined(XMRIG_RISCV)
+    // RISC-V doesn't have SSE/NEON, provide minimal compatibility
+#   define _mm_pause() __asm__ __volatile__("nop")
 #elif defined(__GNUC__)
 #   include <x86intrin.h>
 #else
@@ -286,7 +289,7 @@ struct HelperThread
 
 void benchmark()
 {
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     static std::atomic<int> done{ 0 };
     if (done.exchange(1)) {
         return;
@@ -478,7 +481,7 @@ static inline bool findByType(hwloc_obj_t obj, hwloc_obj_type_t type, func lambd
 
 HelperThread* create_helper_thread(int64_t cpu_index, int priority, const std::vector<int64_t>& affinities)
 {
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     hwloc_bitmap_t helper_cpu_set = hwloc_bitmap_alloc();
     hwloc_bitmap_t main_threads_set = hwloc_bitmap_alloc();
 
@@ -807,7 +810,7 @@ void hash_octa(const uint8_t* data, size_t size, uint8_t* output, cryptonight_ct
     uint32_t cn_indices[6];
     select_indices(cn_indices, seed);
 
-#ifdef XMRIG_ARM
+#if defined(XMRIG_ARM) || defined(XMRIG_RISCV)
     uint32_t step[6] = { 1, 1, 1, 1, 1, 1 };
 #else
     uint32_t step[6] = { 4, 4, 1, 2, 4, 4 };
