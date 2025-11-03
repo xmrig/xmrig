@@ -71,7 +71,7 @@ char *xmrig::Platform::createUserAgent()
 
 
 #ifndef XMRIG_FEATURE_HWLOC
-#ifdef __DragonFly__
+#if defined(__DragonFly__) || defined(__HAIKU__)
 
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
@@ -100,7 +100,7 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
     return result;
 }
 
-#endif // __DragonFly__
+#endif // defined(__DragonFly__) || defined(__HAIKU__)
 #endif // XMRIG_FEATURE_HWLOC
 
 

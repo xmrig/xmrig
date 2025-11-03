@@ -31,7 +31,7 @@
 #include <libkern/OSByteOrder.h>
 #define ethash_swap_u32(input_) OSSwapInt32(input_)
 #define ethash_swap_u64(input_) OSSwapInt64(input_)
-#elif defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__)
+#elif defined(__FreeBSD__) || defined(__DragonFly__) || defined(__NetBSD__) || defined(__HAIKU__)
 #define ethash_swap_u32(input_) bswap32(input_)
 #define ethash_swap_u64(input_) bswap64(input_)
 #elif defined(__OpenBSD__)
