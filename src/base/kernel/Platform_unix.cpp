@@ -71,7 +71,7 @@ char *xmrig::Platform::createUserAgent()
 
 
 #ifndef XMRIG_FEATURE_HWLOC
-#if defined(__DragonFly__) || defined(XMRIG_OS_OPENBSD)
+#if defined(__DragonFly__) || defined(XMRIG_OS_OPENBSD) || defined(XMRIG_OS_HAIKU)
 
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
