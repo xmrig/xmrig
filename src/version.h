@@ -66,6 +66,8 @@
 #    define APP_OS "FreeBSD"
 #elif defined XMRIG_OS_OPENBSD
 #    define APP_OS "OpenBSD"
+#elif defined XMRIG_OS_HAIKU
+#    define APP_OS "Haiku"
 #else
 #    define APP_OS "Unknown OS"
 #endif
