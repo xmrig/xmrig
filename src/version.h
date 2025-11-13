@@ -33,7 +33,9 @@
 #define APP_VER_PATCH  1
 
 #ifdef _MSC_VER
-#   if (_MSC_VER >= 1930)
+#   if (_MSC_VER >= 1950)
+#       define MSVC_VERSION 2026
+#   elif (_MSC_VER >=1930 && _MSC_VER < 1950)
 #       define MSVC_VERSION 2022
 #   elif (_MSC_VER >= 1920 && _MSC_VER < 1930)
 #       define MSVC_VERSION 2019
