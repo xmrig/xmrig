@@ -32,6 +32,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cassert>
 #include "crypto/randomx/jit_compiler_rv64.hpp"
 #include "crypto/randomx/jit_compiler_rv64_static.hpp"
+#include "crypto/randomx/jit_compiler_rv64_vector.h"
+#include "crypto/randomx/jit_compiler_rv64_vector_static.h"
 #include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
@@ -618,20 +620,32 @@ namespace randomx {
 		entryProgram = state.code + LiteralPoolSize + sizeDataInit;
 		//jal x1, SuperscalarHash
 		emitJump(state, ReturnReg, LiteralPoolSize + offsetFixDataCall, SuperScalarHashOffset);
+
+		vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_sshash_end) - ((uint8_t*)randomx_riscv64_vector_sshash_begin);
+		vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
 	}
 
 	JitCompilerRV64::~JitCompilerRV64() {
 		freePagedMemory(state.code, CodeSize);
+		freePagedMemory(vectorCode, vectorCodeSize);
 	}
 
 	void JitCompilerRV64::enableWriting() const
 	{
 		xmrig::VirtualMemory::protectRW(entryDataInit, ExecutableSize);
+
+		if (vectorCode) {
+			xmrig::VirtualMemory::protectRW(vectorCode, vectorCodeSize);
+		}
 	}
 
 	void JitCompilerRV64::enableExecution() const
 	{
 		xmrig::VirtualMemory::protectRX(entryDataInit, ExecutableSize);
+
+		if (vectorCode) {
+			xmrig::VirtualMemory::protectRX(vectorCode, vectorCodeSize);
+		}
 	}
 
 	void JitCompilerRV64::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t) {
@@ -666,6 +680,11 @@ namespace randomx {
 
 	template<size_t N>
 	void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
+		if (optimizedDatasetInit > 0) {
+			entryDataInitOptimized = generateDatasetInitVectorRV64(vectorCode, vectorCodeSize, programs, RandomX_ConfigurationBase::CacheAccesses);
+			return;
+		}
+
 		state.codePos = SuperScalarHashOffset;
 		state.rcpCount = 0;
 		state.emit(codeSshInit, sizeSshInit);
@@ -702,6 +721,10 @@ namespace randomx {
 	}
 
 	template void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&)[RANDOMX_CACHE_MAX_ACCESSES]);
+
+	DatasetInitFunc* JitCompilerRV64::getDatasetInitFunc() {
+		return (DatasetInitFunc*)((optimizedDatasetInit > 0) ? entryDataInitOptimized : entryDataInit);
+	}
 
 	void JitCompilerRV64::v1_IADD_RS(HANDLER_ARGS) {
 		state.registerUsage[isn.dst] = i;

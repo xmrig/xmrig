@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2021, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2025, SChernykh       <https://github.com/SChernykh>
 
 All rights reserved.
 
@@ -26,67 +28,15 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <assert.h>
-#include "crypto/randomx/reciprocal.h"
+#pragma once
 
-/*
-	Calculates rcp = 2**x / divisor for highest integer x such that rcp < 2**64.
-	divisor must not be 0 or a power of 2
+#include <cstdint>
+#include <cstdlib>
 
-	Equivalent x86 assembly (divisor in rcx):
+namespace randomx {
 
-	mov edx, 1
-	mov r8, rcx
-	xor eax, eax
-	bsr rcx, rcx
-	shl rdx, cl
-	div r8
-	ret
+class SuperscalarProgram;
 
-*/
-uint64_t randomx_reciprocal(uint64_t divisor) {
+void* generateDatasetInitVectorRV64(uint8_t* buf, size_t buf_size, SuperscalarProgram* programs, size_t num_programs);
 
-	assert(divisor != 0);
-
-	const uint64_t p2exp63 = 1ULL << 63;
-
-	uint64_t quotient = p2exp63 / divisor, remainder = p2exp63 % divisor;
-
-	unsigned bsr = 0; //highest set bit in divisor
-
-	for (uint64_t bit = divisor; bit > 0; bit >>= 1)
-		bsr++;
-
-	for (unsigned shift = 0; shift < bsr; shift++) {
-		if (remainder >= divisor - remainder) {
-			quotient = quotient * 2 + 1;
-			remainder = remainder * 2 - divisor;
-		}
-		else {
-			quotient = quotient * 2;
-			remainder = remainder * 2;
-		}
-	}
-
-	return quotient;
-}
-
-#if !RANDOMX_HAVE_FAST_RECIPROCAL
-
-#ifdef __GNUC__
-uint64_t randomx_reciprocal_fast(uint64_t divisor)
-{
-	const uint64_t q = (1ULL << 63) / divisor;
-	const uint64_t r = (1ULL << 63) % divisor;
-
-	const uint64_t shift = 64 - __builtin_clzll(divisor);
-
-	return (q << shift) + ((r << shift) / divisor);
-}
-#else
-uint64_t randomx_reciprocal_fast(uint64_t divisor) {
-	return randomx_reciprocal(divisor);
-}
-#endif
-
-#endif
+} // namespace randomx
