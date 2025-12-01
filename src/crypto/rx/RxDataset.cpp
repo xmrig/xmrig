@@ -43,6 +43,12 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
         randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 5));
         randomx_init_dataset(dataset, cache, startItem + itemCount - 5, 5);
     }
+#ifdef XMRIG_RISCV
+    else if (itemCount % 4) {
+        randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 4));
+        randomx_init_dataset(dataset, cache, startItem + itemCount - 4, 4);
+    }
+#endif
     else {
         randomx_init_dataset(dataset, cache, startItem, itemCount);
     }

@@ -92,9 +92,7 @@ namespace randomx {
 		ProgramFunc* getProgramFunc() {
 			return (ProgramFunc*)entryProgram;
 		}
-		DatasetInitFunc* getDatasetInitFunc() {
-			return (DatasetInitFunc*)entryDataInit;
-		}
+		DatasetInitFunc* getDatasetInitFunc();
 		uint8_t* getCode() {
 			return state.code;
 		}
@@ -106,7 +104,12 @@ namespace randomx {
 		static InstructionGeneratorRV64 engine[256];
 	private:
 		CompilerState state;
+
+		uint8_t* vectorCode;
+		size_t vectorCodeSize;
+
 		void* entryDataInit;
+		void* entryDataInitOptimized;
 		void* entryProgram;
 
 	public:
