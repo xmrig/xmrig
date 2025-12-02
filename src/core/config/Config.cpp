@@ -54,6 +54,7 @@ constexpr static uint32_t kIdleTime     = 60U;
 
 const char *Config::kPauseOnBattery     = "pause-on-battery";
 const char *Config::kPauseOnActive      = "pause-on-active";
+const char *Config::kStartPaused        = "start-paused";
 
 
 #ifdef XMRIG_FEATURE_OPENCL
@@ -77,6 +78,7 @@ class ConfigPrivate
 {
 public:
     bool pauseOnBattery = false;
+    bool startPaused    = false;
     CpuConfig cpu;
     uint32_t idleTime   = 0;
 
@@ -129,6 +131,12 @@ xmrig::Config::~Config()
 bool xmrig::Config::isPauseOnBattery() const
 {
     return d_ptr->pauseOnBattery;
+}
+
+
+bool xmrig::Config::isStartPaused() const
+{
+    return d_ptr->startPaused;
 }
 
 
@@ -213,6 +221,7 @@ bool xmrig::Config::read(const IJsonReader &reader, const char *fileName)
     }
 
     d_ptr->pauseOnBattery = reader.getBool(kPauseOnBattery, d_ptr->pauseOnBattery);
+    d_ptr->startPaused    = reader.getBool(kStartPaused, d_ptr->startPaused);
     d_ptr->setIdleTime(reader.getValue(kPauseOnActive));
 
     d_ptr->cpu.read(reader.getValue(CpuConfig::kField));
@@ -305,4 +314,5 @@ void xmrig::Config::getJSON(rapidjson::Document &doc) const
     doc.AddMember(StringRef(kWatch),                    m_watch, allocator);
     doc.AddMember(StringRef(kPauseOnBattery),           isPauseOnBattery(), allocator);
     doc.AddMember(StringRef(kPauseOnActive),            (d_ptr->idleTime == 0U || d_ptr->idleTime == kIdleTime) ? Value(isPauseOnActive()) : Value(d_ptr->idleTime), allocator);
+    doc.AddMember(StringRef(kStartPaused),              isStartPaused(), allocator);
 }

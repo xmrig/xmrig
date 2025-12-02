@@ -153,6 +153,9 @@ void xmrig::ConfigTransform::transform(rapidjson::Document &doc, int key, const 
     case IConfig::PauseOnActiveKey: /* --pause-on-active */
         return set(doc, Config::kPauseOnActive, static_cast<uint64_t>(strtol(arg, nullptr, 10)));
 
+    case IConfig::StartPausedKey: /* --start-paused */
+        return set(doc, Config::kStartPaused, true);
+
 #   ifdef XMRIG_ALGO_ARGON2
     case IConfig::Argon2ImplKey: /* --argon2-impl */
         return set(doc, CpuConfig::kField, CpuConfig::kArgon2Impl, arg);
@@ -361,4 +364,3 @@ void xmrig::ConfigTransform::transformBenchmark(rapidjson::Document &doc, int ke
     }
 }
 #endif
-

@@ -46,6 +46,7 @@ public:
 
     static const char *kPauseOnBattery;
     static const char *kPauseOnActive;
+    static const char *kStartPaused;
 
 #   ifdef XMRIG_FEATURE_OPENCL
     static const char *kOcl;
@@ -69,6 +70,7 @@ public:
     inline bool isPauseOnActive() const { return idleTime() > 0; }
 
     bool isPauseOnBattery() const;
+    bool isStartPaused() const;
     const CpuConfig &cpu() const;
     uint32_t idleTime() const;
 
