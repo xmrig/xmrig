@@ -55,6 +55,18 @@ if (XMRIG_RISCV)
     if(ARCH STREQUAL "native")
         enable_language(ASM)
 
+        try_run(RANDOMX_VECTOR_RUN_FAIL
+            RANDOMX_VECTOR_COMPILE_OK
+            ${CMAKE_CURRENT_BINARY_DIR}/
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_vector.s
+            COMPILE_DEFINITIONS "-march=rv64gcv_zicbop")
+
+        if (RANDOMX_VECTOR_COMPILE_OK AND NOT RANDOMX_VECTOR_RUN_FAIL)
+            set(RVARCH "${RVARCH}v_zicbop")
+            add_definitions(-DXMRIG_RVV_ENABLED)
+            message(STATUS "RISC-V vector extension detected")
+        endif()
+
         try_run(RANDOMX_ZBA_RUN_FAIL
             RANDOMX_ZBA_COMPILE_OK
             ${CMAKE_CURRENT_BINARY_DIR}/
