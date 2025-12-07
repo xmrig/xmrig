@@ -315,7 +315,7 @@ void benchmark()
         constexpr uint32_t N = 1U << 21;
 
         VirtualMemory::init(0, N);
-        VirtualMemory* memory = new VirtualMemory(N * 8, true, false, false);
+        std::shared_ptr<VirtualMemory> memory = std::make_shared<VirtualMemory>(N * 8, true, false, false);
 
         // 2 MB cache per core by default
         size_t max_scratchpad_size = 1U << 21;
@@ -441,7 +441,6 @@ void benchmark()
         delete helper;
 
         CnCtx::release(ctx, 8);
-        delete memory;
     });
 
     t.join();

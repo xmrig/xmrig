@@ -46,12 +46,12 @@ public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(Miner)
 
     Miner(Controller *controller);
-    ~Miner() override;
+    ~Miner() override = default;
 
     bool isEnabled() const;
     bool isEnabled(const Algorithm &algorithm) const;
     const Algorithms &algorithms() const;
-    const std::vector<IBackend *> &backends() const;
+    const std::vector<std::shared_ptr<IBackend>> &backends() const;
     Job job() const;
     void execCommand(char command);
     void pause();
@@ -72,7 +72,7 @@ protected:
 #   endif
 
 private:
-    MinerPrivate *d_ptr;
+    std::shared_ptr<MinerPrivate> d_ptr;
 };
 
 

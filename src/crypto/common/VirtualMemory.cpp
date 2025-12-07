@@ -38,7 +38,7 @@ namespace xmrig {
 
 
 size_t VirtualMemory::m_hugePageSize    = VirtualMemory::kDefaultHugePageSize;
-static IMemoryPool *pool                = nullptr;
+static std::shared_ptr<IMemoryPool> pool;
 static std::mutex mutex;
 
 
@@ -113,7 +113,7 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t)
 
 void xmrig::VirtualMemory::destroy()
 {
-    delete pool;
+    pool.reset();
 }
 
 
@@ -125,10 +125,10 @@ void xmrig::VirtualMemory::init(size_t poolSize, size_t hugePageSize)
 
 #   ifdef XMRIG_FEATURE_HWLOC
     if (Cpu::info()->nodes() > 1) {
-        pool = new NUMAMemoryPool(align(poolSize, Cpu::info()->nodes()), hugePageSize > 0);
+        pool = std::make_shared<NUMAMemoryPool>(align(poolSize, Cpu::info()->nodes()), hugePageSize > 0);
     } else
 #   endif
     {
-        pool = new MemoryPool(poolSize, hugePageSize > 0);
+        pool = std::make_shared<MemoryPool>(poolSize, hugePageSize > 0);
     }
 }

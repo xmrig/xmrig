@@ -50,7 +50,7 @@ public:
     RxDataset(RxCache *cache);
     ~RxDataset();
 
-    inline randomx_dataset *get() const     { return m_dataset; }
+    inline randomx_dataset *get() const     { return m_dataset.get(); }
     inline RxCache *cache() const           { return m_cache; }
     inline void setCache(RxCache *cache)    { m_cache = cache; }
 
@@ -70,11 +70,11 @@ private:
 
     const RxConfig::Mode m_mode = RxConfig::FastMode;
     const uint32_t m_node;
-    randomx_dataset *m_dataset  = nullptr;
+    std::shared_ptr<randomx_dataset> m_dataset;
     RxCache *m_cache            = nullptr;
     size_t m_scratchpadLimit    = 0;
     std::atomic<size_t> m_scratchpadOffset{};
-    VirtualMemory *m_memory     = nullptr;
+    std::shared_ptr<VirtualMemory> m_memory;
 };
 
 

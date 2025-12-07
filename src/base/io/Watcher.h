@@ -60,7 +60,7 @@ private:
 
     IWatcherListener *m_listener;
     String m_path;
-    Timer *m_timer;
+    std::shared_ptr<Timer> m_timer;
     uv_fs_event_t *m_fsEvent;
 };
 

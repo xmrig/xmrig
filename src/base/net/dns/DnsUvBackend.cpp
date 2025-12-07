@@ -27,13 +27,13 @@
 namespace xmrig {
 
 
-static Storage<DnsUvBackend> *storage = nullptr;
+static std::shared_ptr<Storage<DnsUvBackend>> storage = nullptr;
 
 
 Storage<DnsUvBackend> &DnsUvBackend::getStorage()
 {
-    if (storage == nullptr) {
-        storage = new Storage<DnsUvBackend>();
+    if (!storage) {
+        storage = std::make_shared<Storage<DnsUvBackend>>();
     }
 
     return *storage;
@@ -65,8 +65,7 @@ xmrig::DnsUvBackend::~DnsUvBackend()
     storage->release(m_key);
 
     if (storage->isEmpty()) {
-        delete storage;
-        storage = nullptr;
+        storage.reset();
     }
 }
 

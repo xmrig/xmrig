@@ -221,42 +221,42 @@ bool xmrig::Pool::isEqual(const Pool &other) const
 }
 
 
-xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) const
+std::shared_ptr<xmrig::IClient> xmrig::Pool::createClient(int id, IClientListener* listener) const
 {
-    IClient *client = nullptr;
+    std::shared_ptr<xmrig::IClient> client;
 
     if (m_mode == MODE_POOL) {
 #       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
         const uint32_t f = m_algorithm.family();
         if ((f == Algorithm::KAWPOW) || (f == Algorithm::GHOSTRIDER) || (m_coin == Coin::RAVEN)) {
-            client = new EthStratumClient(id, Platform::userAgent(), listener);
+            client = std::make_shared<EthStratumClient>(id, Platform::userAgent(), listener);
         }
         else
 #       endif
         {
-            client = new Client(id, Platform::userAgent(), listener);
+            client = std::make_shared<Client>(id, Platform::userAgent(), listener);
         }
     }
 #   ifdef XMRIG_FEATURE_HTTP
     else if (m_mode == MODE_DAEMON) {
-        client = new DaemonClient(id, listener);
+        client = std::make_shared<DaemonClient>(id, listener);
     }
     else if (m_mode == MODE_SELF_SELECT) {
-        client = new SelfSelectClient(id, Platform::userAgent(), listener, m_submitToOrigin);
+        client = std::make_shared<SelfSelectClient>(id, Platform::userAgent(), listener, m_submitToOrigin);
     }
 #   endif
 #   if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
     else if (m_mode == MODE_AUTO_ETH) {
-        client = new AutoClient(id, Platform::userAgent(), listener);
+        client = std::make_shared<AutoClient>(id, Platform::userAgent(), listener);
     }
 #   endif
 #   ifdef XMRIG_FEATURE_BENCHMARK
     else if (m_mode == MODE_BENCHMARK) {
-        client = new BenchClient(m_benchmark, listener);
+        client = std::make_shared<BenchClient>(m_benchmark, listener);
     }
 #   endif
 
-    assert(client != nullptr);
+    assert(client);
 
     if (client) {
         client->setPool(*this);

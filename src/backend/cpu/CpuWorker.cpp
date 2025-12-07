@@ -57,7 +57,7 @@ static constexpr uint32_t kReserveCount = 32768;
 
 #ifdef XMRIG_ALGO_CN_HEAVY
 static std::mutex cn_heavyZen3MemoryMutex;
-VirtualMemory* cn_heavyZen3Memory = nullptr;
+std::shared_ptr<VirtualMemory> cn_heavyZen3Memory;
 #endif
 
 } // namespace xmrig
@@ -87,14 +87,14 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
         if (!cn_heavyZen3Memory) {
             // Round up number of threads to the multiple of 8
             const size_t num_threads = ((m_threads + 7) / 8) * 8;
-            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * num_threads, data.hugePages, false, false, node());
+            cn_heavyZen3Memory = std::make_shared<VirtualMemory>(m_algorithm.l3() * num_threads, data.hugePages, false, false, node());
         }
         m_memory = cn_heavyZen3Memory;
     }
     else
 #   endif
     {
-        m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
+        m_memory = std::make_shared<VirtualMemory>(m_algorithm.l3() * N, data.hugePages, false, true, node());
     }
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -107,7 +107,7 @@ template<size_t N>
 xmrig::CpuWorker<N>::~CpuWorker()
 {
 #   ifdef XMRIG_ALGO_RANDOMX
-    RxVm::destroy(m_vm);
+    m_vm.reset();
 #   endif
 
     CnCtx::release(m_ctx, N);
@@ -116,7 +116,7 @@ xmrig::CpuWorker<N>::~CpuWorker()
     if (m_memory != cn_heavyZen3Memory)
 #   endif
     {
-        delete m_memory;
+        m_memory.reset();
     }
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -148,7 +148,7 @@ void xmrig::CpuWorker<N>::allocateRandomX_VM()
     }
     else if (!dataset->get() && (m_job.currentJob().seed() != m_seed)) {
         // Update RandomX light VM with the new seed
-        randomx_vm_set_cache(m_vm, dataset->cache()->get());
+        randomx_vm_set_cache(m_vm.get(), dataset->cache()->get());
     }
     m_seed = m_job.currentJob().seed();
 }
@@ -296,7 +296,7 @@ void xmrig::CpuWorker<N>::start()
                     if (job.hasMinerSignature()) {
                         job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                     }
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    randomx_calculate_hash_first(m_vm.get(), tempHash, m_job.blob(), job.size());
                 }
 
                 if (!nextRound()) {
@@ -307,7 +307,7 @@ void xmrig::CpuWorker<N>::start()
                     memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
                     job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                 }
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                randomx_calculate_hash_next(m_vm.get(), tempHash, m_job.blob(), job.size(), m_hash);
             }
             else
 #           endif

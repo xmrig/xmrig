@@ -85,7 +85,7 @@ public:
 } // namespace xmrig
 
 
-xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
+xmrig::Msr::Msr() : d_ptr(std::make_shared<MsrPrivate>())
 {
     DWORD err = 0;
 
@@ -195,8 +195,6 @@ xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
 xmrig::Msr::~Msr()
 {
     d_ptr->uninstall();
-
-    delete d_ptr;
 }
 
 
