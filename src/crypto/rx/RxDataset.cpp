@@ -215,7 +215,7 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
         return;
     }
 
-    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node);
+    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node, VirtualMemory::kDefaultHugePageSize);
 
     if (m_memory->isOneGbPages()) {
         m_scratchpadOffset = maxSize() + RANDOMX_CACHE_MAX_SIZE;
