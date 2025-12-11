@@ -260,6 +260,12 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 }
 
 
+bool xmrig::VirtualMemory::adviseLargePages(void *p, size_t size)
+{
+    return false;
+}
+
+
 void xmrig::VirtualMemory::freeLargePagesMemory()
 {
     freeLargePagesMemory(m_scratchpad, m_size);

@@ -75,6 +75,16 @@ xmrig::VirtualMemory::VirtualMemory(size_t size, bool hugePages, bool oneGbPages
     }
 
     m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, alignSize));
+
+    // Huge pages failed to allocate, but try to enable transparent huge pages for the range
+    if (alignSize >= kDefaultHugePageSize) {
+        if (m_scratchpad) {
+            adviseLargePages(m_scratchpad, m_size);
+        }
+        else {
+            m_scratchpad = static_cast<uint8_t*>(_mm_malloc(m_size, 64));
+        }
+    }
 }
 
 

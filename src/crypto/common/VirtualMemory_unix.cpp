@@ -276,6 +276,16 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 }
 
 
+bool xmrig::VirtualMemory::adviseLargePages(void *p, size_t size)
+{
+#   ifdef XMRIG_OS_LINUX
+    return (madvise(p, size, MADV_HUGEPAGE) == 0);
+#   else
+    return false;
+#   endif
+}
+
+
 void xmrig::VirtualMemory::freeLargePagesMemory()
 {
     if (m_flags.test(FLAG_LOCK)) {
