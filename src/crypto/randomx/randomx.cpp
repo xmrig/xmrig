@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
 #elif (XMRIG_ARM == 8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+#include "crypto/randomx/jit_compiler_rv64_static.hpp"
 #endif
 
 #include "backend/cpu/Cpu.h"
@@ -190,7 +192,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 #	endif
 }
 
-#if (XMRIG_ARM == 8)
+#if (XMRIG_ARM == 8) || defined(XMRIG_RISCV)
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
@@ -273,6 +275,14 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	Log2_CacheSize = Log2((ArgonMemory * randomx::ArgonBlockSize) / randomx::CacheLineSize);
 
 #define JIT_HANDLE(x, prev) randomx::JitCompilerA64::engine[k] = &randomx::JitCompilerA64::h_##x
+
+#elif defined(XMRIG_RISCV)
+
+	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
+	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
+	Log2_ScratchpadL3 = Log2(ScratchpadL3_Size);
+
+#define JIT_HANDLE(x, prev) randomx::JitCompilerRV64::engine[k] = &randomx::JitCompilerRV64::v1_##x
 
 #else
 #define JIT_HANDLE(x, prev)

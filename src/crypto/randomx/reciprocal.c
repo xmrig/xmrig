@@ -73,8 +73,20 @@ uint64_t randomx_reciprocal(uint64_t divisor) {
 
 #if !RANDOMX_HAVE_FAST_RECIPROCAL
 
+#ifdef __GNUC__
+uint64_t randomx_reciprocal_fast(uint64_t divisor)
+{
+	const uint64_t q = (1ULL << 63) / divisor;
+	const uint64_t r = (1ULL << 63) % divisor;
+
+	const uint64_t shift = 64 - __builtin_clzll(divisor);
+
+	return (q << shift) + ((r << shift) / divisor);
+}
+#else
 uint64_t randomx_reciprocal_fast(uint64_t divisor) {
 	return randomx_reciprocal(divisor);
 }
+#endif
 
 #endif

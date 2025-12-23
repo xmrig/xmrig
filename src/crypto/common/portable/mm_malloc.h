@@ -26,7 +26,7 @@
 #define XMRIG_MM_MALLOC_PORTABLE_H
 
 
-#if defined(XMRIG_ARM) && !defined(__clang__)
+#if (defined(XMRIG_ARM) || defined(XMRIG_RISCV)) && !defined(__clang__)
 #include <stdlib.h>
 
 

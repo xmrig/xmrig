@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -45,7 +45,7 @@ namespace xmrig {
 
 
 // https://wiki.openssl.org/index.php/Diffie-Hellman_parameters
-#if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
+#if OPENSSL_VERSION_NUMBER < 0x30000000L || (defined(LIBRESSL_VERSION_NUMBER) && !defined(LIBRESSL_HAS_TLS1_3))
 static DH *get_dh2048()
 {
     static unsigned char dhp_2048[] = {
@@ -152,7 +152,7 @@ bool xmrig::TlsContext::load(const TlsConfig &config)
     SSL_CTX_set_options(m_ctx, SSL_OP_NO_SSLv2 | SSL_OP_NO_SSLv3);
     SSL_CTX_set_options(m_ctx, SSL_OP_CIPHER_SERVER_PREFERENCE);
 
-#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL || defined(LIBRESSL_HAS_TLS1_3)
     SSL_CTX_set_max_early_data(m_ctx, 0);
 #   endif
 
@@ -180,7 +180,7 @@ bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
         return true;
     }
 
-#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL && !defined(LIBRESSL_VERSION_NUMBER)
+#   if OPENSSL_VERSION_NUMBER >= 0x1010100fL || defined(LIBRESSL_HAS_TLS1_3)
     if (SSL_CTX_set_ciphersuites(m_ctx, ciphersuites) == 1) {
         return true;
     }
@@ -194,7 +194,7 @@ bool xmrig::TlsContext::setCipherSuites(const char *ciphersuites)
 
 bool xmrig::TlsContext::setDH(const char *dhparam)
 {
-#   if OPENSSL_VERSION_NUMBER < 0x30000000L || defined(LIBRESSL_VERSION_NUMBER)
+#   if OPENSSL_VERSION_NUMBER < 0x30000000L || (defined(LIBRESSL_VERSION_NUMBER) && !defined(LIBRESSL_HAS_TLS1_3))
     DH *dh = nullptr;
 
     if (dhparam != nullptr) {

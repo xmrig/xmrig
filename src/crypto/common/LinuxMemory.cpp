@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -35,15 +35,69 @@ constexpr size_t twoMiB = 2U * 1024U * 1024U;
 constexpr size_t oneGiB = 1024U * 1024U * 1024U;
 
 
-static inline std::string sysfs_path(uint32_t node, size_t hugePageSize, bool nr)
+static bool sysfs_write(const std::string &path, uint64_t value)
+{
+    std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
+    if (!file.is_open()) {
+        return false;
+    }
+
+    file << value;
+    file.flush();
+
+    return true;
+}
+
+
+static int64_t sysfs_read(const std::string &path)
+{
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        return -1;
+    }
+
+    uint64_t value = 0;
+    file >> value;
+
+    return value;
+}
+
+
+static std::string sysfs_path(uint32_t node, size_t hugePageSize, bool nr)
 {
     return fmt::format("/sys/devices/system/node/node{}/hugepages/hugepages-{}kB/{}_hugepages", node, hugePageSize / 1024, nr ? "nr" : "free");
 }
 
 
-static inline bool write_nr_hugepages(uint32_t node, size_t hugePageSize, uint64_t count)   { return LinuxMemory::write(sysfs_path(node, hugePageSize, true).c_str(), count); }
-static inline int64_t free_hugepages(uint32_t node, size_t hugePageSize)                    { return LinuxMemory::read(sysfs_path(node, hugePageSize, false).c_str()); }
-static inline int64_t nr_hugepages(uint32_t node, size_t hugePageSize)                      { return LinuxMemory::read(sysfs_path(node, hugePageSize, true).c_str()); }
+static std::string sysfs_path(size_t hugePageSize, bool nr)
+{
+    return fmt::format("/sys/kernel/mm/hugepages/hugepages-{}kB/{}_hugepages", hugePageSize / 1024, nr ? "nr" : "free");
+}
+
+
+static bool write_nr_hugepages(uint32_t node, size_t hugePageSize, uint64_t count)
+{
+    if (sysfs_write(sysfs_path(node, hugePageSize, true), count)) {
+        return true;
+    }
+
+    return sysfs_write(sysfs_path(hugePageSize, true), count);
+}
+
+
+static int64_t sysfs_read_hugepages(uint32_t node, size_t hugePageSize, bool nr)
+{
+    const int64_t value = sysfs_read(sysfs_path(node, hugePageSize, nr));
+    if (value >= 0) {
+        return value;
+    }
+
+    return sysfs_read(sysfs_path(hugePageSize, nr));
+}
+
+
+static inline int64_t free_hugepages(uint32_t node, size_t hugePageSize)                    { return sysfs_read_hugepages(node, hugePageSize, false); }
+static inline int64_t nr_hugepages(uint32_t node, size_t hugePageSize)                      { return sysfs_read_hugepages(node, hugePageSize, true); }
 
 
 } // namespace xmrig
@@ -61,32 +115,4 @@ bool xmrig::LinuxMemory::reserve(size_t size, uint32_t node, size_t hugePageSize
     }
 
     return write_nr_hugepages(node, hugePageSize, std::max<size_t>(nr_hugepages(node, hugePageSize), 0) + (required - available));
-}
-
-
-bool xmrig::LinuxMemory::write(const char *path, uint64_t value)
-{
-    std::ofstream file(path, std::ios::out | std::ios::binary | std::ios::trunc);
-    if (!file.is_open()) {
-        return false;
-    }
-
-    file << value;
-    file.flush();
-
-    return true;
-}
-
-
-int64_t xmrig::LinuxMemory::read(const char *path)
-{
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        return -1;
-    }
-
-    uint64_t value = 0;
-    file >> value;
-
-    return value;
 }

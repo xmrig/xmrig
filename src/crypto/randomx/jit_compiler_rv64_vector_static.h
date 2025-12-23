@@ -1,5 +1,7 @@
 /*
-Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2018-2020, tevador    <tevador@gmail.com>
+Copyright (c) 2019-2021, XMRig      <https://github.com/xmrig>, <support@xmrig.com>
+Copyright (c) 2025, SChernykh       <https://github.com/SChernykh>
 
 All rights reserved.
 
@@ -28,12 +30,29 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-#if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
-#include "crypto/randomx/jit_compiler_x86.hpp"
-#elif defined(__aarch64__)
-#include "crypto/randomx/jit_compiler_a64.hpp"
-#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
-#include "crypto/randomx/jit_compiler_rv64.hpp"
+#if defined(__cplusplus)
+#include <cstdint>
 #else
-#include "crypto/randomx/jit_compiler_fallback.hpp"
+#include <stdint.h>
+#endif
+
+#if defined(__cplusplus)
+extern "C" {
+#endif
+
+struct randomx_cache;
+
+void randomx_riscv64_vector_sshash_begin();
+void randomx_riscv64_vector_sshash_imul_rcp_literals();
+void randomx_riscv64_vector_sshash_dataset_init(struct randomx_cache* cache, uint8_t* output_buf, uint32_t startBlock, uint32_t endBlock);
+void randomx_riscv64_vector_sshash_cache_prefetch();
+void randomx_riscv64_vector_sshash_generated_instructions();
+void randomx_riscv64_vector_sshash_generated_instructions_end();
+void randomx_riscv64_vector_sshash_cache_prefetch();
+void randomx_riscv64_vector_sshash_xor();
+void randomx_riscv64_vector_sshash_set_cache_index();
+void randomx_riscv64_vector_sshash_end();
+
+#if defined(__cplusplus)
+}
 #endif

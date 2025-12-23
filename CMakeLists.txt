@@ -95,7 +95,7 @@ set(HEADERS_CRYPTO
     src/crypto/common/VirtualMemory.h
    )
 
-if (XMRIG_ARM)
+if (XMRIG_ARM OR XMRIG_RISCV)
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
 else()
     set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)

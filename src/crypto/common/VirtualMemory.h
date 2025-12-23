@@ -65,6 +65,7 @@ public:
     static void *allocateExecutableMemory(size_t size, bool hugePages);
     static void *allocateLargePagesMemory(size_t size);
     static void *allocateOneGbPagesMemory(size_t size);
+    static bool adviseLargePages(void *p, size_t size);
     static void destroy();
     static void flushInstructionCache(void *p, size_t size);
     static void freeLargePagesMemory(void *p, size_t size);

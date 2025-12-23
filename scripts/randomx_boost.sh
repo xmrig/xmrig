@@ -12,7 +12,7 @@ if grep -E 'AMD Ryzen|AMD EPYC|AuthenticAMD' /proc/cpuinfo > /dev/null;
 	then
 	if grep "cpu family[[:space:]]\{1,\}:[[:space:]]25" /proc/cpuinfo > /dev/null;
 		then
-			if grep "model[[:space:]]\{1,\}:[[:space:]]97" /proc/cpuinfo > /dev/null;
+			if grep "model[[:space:]]\{1,\}:[[:space:]]\(97\|117\)" /proc/cpuinfo > /dev/null;
 				then
 					echo "Detected Zen4 CPU"
 					wrmsr -a 0xc0011020 0x4400000000000

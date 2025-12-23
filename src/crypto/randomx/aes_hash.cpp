@@ -235,6 +235,131 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer) {
 template void fillAes4Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes4Rx4<false>(void *state, size_t outputSize, void *buffer);
 
+#if defined(XMRIG_RISCV) && defined(XMRIG_RVV_ENABLED)
+static constexpr uint32_t AES_HASH_1R_STATE02[8] = { 0x92b52c0d, 0x9fa856de, 0xcc82db47, 0xd7983aad, 0x6a770017, 0xae62c7d0, 0x5079506b, 0xe8a07ce4 };
+static constexpr uint32_t AES_HASH_1R_STATE13[8] = { 0x338d996e, 0x15c7b798, 0xf59e125a, 0xace78057, 0x630a240c, 0x07ad828d, 0x79a10005, 0x7e994948 };
+
+static constexpr uint32_t AES_GEN_1R_KEY02[8] = { 0x6daca553, 0x62716609, 0xdbb5552b, 0xb4f44917, 0x3f1262f1, 0x9f947ec6, 0xf4c0794f, 0x3e20e345 };
+static constexpr uint32_t AES_GEN_1R_KEY13[8] = { 0x6d7caf07, 0x846a710d, 0x1725d378, 0x0da1dc4e, 0x6aef8135, 0xb1ba317c, 0x16314c88, 0x49169154 };
+
+static constexpr uint32_t AES_HASH_1R_XKEY00[8] = { 0xf6fa8389, 0x8b24949f, 0x90dc56bf, 0x06890201, 0xf6fa8389, 0x8b24949f, 0x90dc56bf, 0x06890201 };
+static constexpr uint32_t AES_HASH_1R_XKEY11[8] = { 0x61b263d1, 0x51f4e03c, 0xee1043c6, 0xed18f99b, 0x61b263d1, 0x51f4e03c, 0xee1043c6, 0xed18f99b };
+
+static constexpr uint32_t AES_HASH_STRIDE[8] = { 0, 4, 8, 12, 32, 36, 40, 44 };
+
+template<int softAes, int unroll>
+void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state) {
+	PROFILE_SCOPE(RandomX_AES);
+
+	uint8_t* scratchpadPtr = (uint8_t*)scratchpad;
+	const uint8_t* scratchpadEnd = scratchpadPtr + scratchpadSize;
+
+	vuint32m1_t hash_state02 = __riscv_vle32_v_u32m1(AES_HASH_1R_STATE02, 8);
+	vuint32m1_t hash_state13 = __riscv_vle32_v_u32m1(AES_HASH_1R_STATE13, 8);
+
+	const vuint32m1_t key02 = __riscv_vle32_v_u32m1(AES_GEN_1R_KEY02, 8);
+	const vuint32m1_t key13 = __riscv_vle32_v_u32m1(AES_GEN_1R_KEY13, 8);
+
+	const vuint32m1_t stride = __riscv_vle32_v_u32m1(AES_HASH_STRIDE, 8);
+
+	vuint32m1_t fill_state02 = __riscv_vluxei32_v_u32m1((uint32_t*)fill_state + 0, stride, 8);
+	vuint32m1_t fill_state13 = __riscv_vluxei32_v_u32m1((uint32_t*)fill_state + 4, stride, 8);
+
+	const vuint8m1_t lutenc_index0 = __riscv_vle8_v_u8m1(lutEncIndex[0], 32);
+	const vuint8m1_t lutenc_index1 = __riscv_vle8_v_u8m1(lutEncIndex[1], 32);
+	const vuint8m1_t lutenc_index2 = __riscv_vle8_v_u8m1(lutEncIndex[2], 32);
+	const vuint8m1_t lutenc_index3 = __riscv_vle8_v_u8m1(lutEncIndex[3], 32);
+
+	const vuint8m1_t& lutdec_index0 = lutenc_index0;
+	const vuint8m1_t lutdec_index1 = __riscv_vle8_v_u8m1(lutDecIndex[1], 32);
+	const vuint8m1_t& lutdec_index2 = lutenc_index2;
+	const vuint8m1_t lutdec_index3 = __riscv_vle8_v_u8m1(lutDecIndex[3], 32);
+
+	//process 64 bytes at a time in 4 lanes
+	while (scratchpadPtr < scratchpadEnd) {
+#define HASH_STATE(k) \
+		hash_state02 = softaes_vector_double(hash_state02, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, 8), lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3); \
+		hash_state13 = softaes_vector_double(hash_state13, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, 8), lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
+
+#define FILL_STATE(k) \
+		fill_state02 = softaes_vector_double(fill_state02, key02, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3); \
+		fill_state13 = softaes_vector_double(fill_state13, key13, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3); \
+		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, fill_state02, 8); \
+		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, fill_state13, 8);
+
+		switch (softAes) {
+			case 0:
+				HASH_STATE(0);
+				HASH_STATE(1);
+
+				FILL_STATE(0);
+				FILL_STATE(1);
+
+				scratchpadPtr += 128;
+				break;
+
+			default:
+				switch (unroll) {
+					case 4:
+						HASH_STATE(0);
+						FILL_STATE(0);
+
+						HASH_STATE(1);
+						FILL_STATE(1);
+
+						HASH_STATE(2);
+						FILL_STATE(2);
+
+						HASH_STATE(3);
+						FILL_STATE(3);
+
+						scratchpadPtr += 64 * 4;
+						break;
+
+					case 2:
+						HASH_STATE(0);
+						FILL_STATE(0);
+
+						HASH_STATE(1);
+						FILL_STATE(1);
+
+						scratchpadPtr += 64 * 2;
+						break;
+
+					default:
+						HASH_STATE(0);
+						FILL_STATE(0);
+
+						scratchpadPtr += 64;
+						break;
+				}
+				break;
+		}
+	}
+
+#undef HASH_STATE
+#undef FILL_STATE
+
+	__riscv_vsuxei32_v_u32m1((uint32_t*)fill_state + 0, stride, fill_state02, 8);
+	__riscv_vsuxei32_v_u32m1((uint32_t*)fill_state + 4, stride, fill_state13, 8);
+
+	//two extra rounds to achieve full diffusion
+	const vuint32m1_t xkey00 = __riscv_vle32_v_u32m1(AES_HASH_1R_XKEY00, 8);
+	const vuint32m1_t xkey11 = __riscv_vle32_v_u32m1(AES_HASH_1R_XKEY11, 8);
+
+	hash_state02 = softaes_vector_double(hash_state02, xkey00, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
+	hash_state13 = softaes_vector_double(hash_state13, xkey00, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
+
+	hash_state02 = softaes_vector_double(hash_state02, xkey11, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
+	hash_state13 = softaes_vector_double(hash_state13, xkey11, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
+
+	//output hash
+	__riscv_vsuxei32_v_u32m1((uint32_t*)hash + 0, stride, hash_state02, 8);
+	__riscv_vsuxei32_v_u32m1((uint32_t*)hash + 4, stride, hash_state13, 8);
+}
+
+#else // defined(XMRIG_RISCV) && defined(XMRIG_RVV_ENABLED)
+
 template<int softAes, int unroll>
 void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state) {
 	PROFILE_SCOPE(RandomX_AES);
@@ -375,6 +500,7 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	rx_store_vec_i128((rx_vec_i128*)hash + 2, hash_state2);
 	rx_store_vec_i128((rx_vec_i128*)hash + 3, hash_state3);
 }
+#endif // defined(XMRIG_RISCV) && defined(XMRIG_RVV_ENABLED)
 
 template void hashAndFillAes1Rx4<0,2>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
 template void hashAndFillAes1Rx4<1,1>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
