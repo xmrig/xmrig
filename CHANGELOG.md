@@ -1,3 +1,17 @@
+# v6.25.0
+- [#3680](https://github.com/xmrig/xmrig/pull/3680) Added `armv8l` to the list of 32-bit ARM targets.
+- [#3708](https://github.com/xmrig/xmrig/pull/3708) Minor Aarch64 JIT changes (better instruction selection, don't emit instructions that add 0, etc).
+- [#3718](https://github.com/xmrig/xmrig/pull/3718) Solo mining: added support for FCMP++ hardfork.
+- [#3722](https://github.com/xmrig/xmrig/pull/3722) Added Zen4 (Hawk Point) CPUs detection.
+- [#3725](https://github.com/xmrig/xmrig/pull/3725) Added **RISC-V** support with JIT compiler.
+- [#3731](https://github.com/xmrig/xmrig/pull/3731) Added initial Haiku OS support.
+- [#3733](https://github.com/xmrig/xmrig/pull/3733) Added detection for MSVC/2026.
+- [#3736](https://github.com/xmrig/xmrig/pull/3736) RISC-V: added vectorized dataset init.
+- [#3740](https://github.com/xmrig/xmrig/pull/3740) RISC-V: added vectorized soft AES.
+- [#3743](https://github.com/xmrig/xmrig/pull/3743) Linux: added support for transparent huge pages.
+- Improved LibreSSL support.
+- Improved compatibility for automatically enabling huge pages on Linux systems without NUMA support.
+
 # v6.24.0
 - [#3671](https://github.com/xmrig/xmrig/pull/3671) Fixed detection of L2 cache size for some complex NUMA topologies.
 - [#3674](https://github.com/xmrig/xmrig/pull/3674) Fixed ARMv7 build.
