@@ -34,7 +34,7 @@ struct riscv_cpu_desc
     bool has_vector = false;
     bool has_crypto = false;
     
-    inline bool isReady() const { return !model.isNull(); }
+    inline bool isReady() const { return !isa.isNull(); }
 };
 
 static bool lookup_riscv(char *line, const char *pattern, String &value)
@@ -82,7 +82,7 @@ static bool read_riscv_cpuinfo(riscv_cpu_desc *desc)
         
         if (lookup_riscv(buf, "isa", desc->isa)) {
             // Check for vector extensions
-            if (strstr(buf, "zve") || strstr(buf, "v_")) {
+            if (strstr(buf, "zve64d") || strstr(buf, "v_")) {
                 desc->has_vector = true;
             }
             // Check for crypto extensions (AES, SHA, etc.)
@@ -96,7 +96,7 @@ static bool read_riscv_cpuinfo(riscv_cpu_desc *desc)
         
         lookup_riscv(buf, "uarch", desc->uarch);
 
-        if (desc->isReady() && !desc->isa.isNull()) {
+        if (desc->isReady()) {
             break;
         }
     }

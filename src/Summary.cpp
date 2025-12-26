@@ -89,11 +89,16 @@ static void print_cpu(const Config *)
 {
     const auto info = Cpu::info();
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %s %sAES%s",
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %s %s%sAES%s",
                "CPU",
                info->brand(),
                info->packages(),
                ICpuInfo::is64bit()    ? GREEN_BOLD("64-bit") : RED_BOLD("32-bit"),
+#ifdef XMRIG_RISCV
+               info->hasRISCV_Vector() ? GREEN_BOLD_S "RVV " : RED_BOLD_S "-RVV ",
+#else
+               "",
+#endif
                info->hasAES()         ? GREEN_BOLD_S : RED_BOLD_S "-",
                info->isVM()           ? RED_BOLD_S " VM" : ""
                );

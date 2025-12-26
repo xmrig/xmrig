@@ -282,7 +282,10 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
 	Log2_ScratchpadL3 = Log2(ScratchpadL3_Size);
 
-#define JIT_HANDLE(x, prev) randomx::JitCompilerRV64::engine[k] = &randomx::JitCompilerRV64::v1_##x
+#define JIT_HANDLE(x, prev) do { \
+		randomx::JitCompilerRV64::engine[k] = &randomx::JitCompilerRV64::v1_##x; \
+		randomx::JitCompilerRV64::inst_map[k] = static_cast<uint8_t>(randomx::InstructionType::x); \
+	} while (0)
 
 #else
 #define JIT_HANDLE(x, prev)

@@ -51,42 +51,74 @@ if (XMRIG_RISCV)
     # default build uses the RV64GC baseline
     set(RVARCH "rv64gc")
 
+    enable_language(ASM)
+
+    try_run(RANDOMX_VECTOR_RUN_FAIL
+        RANDOMX_VECTOR_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_vector.s
+        COMPILE_DEFINITIONS "-march=rv64gcv")
+
+    if (RANDOMX_VECTOR_COMPILE_OK AND NOT RANDOMX_VECTOR_RUN_FAIL)
+        set(RVARCH_V ON)
+        message(STATUS "RISC-V vector extension detected")
+    else()
+        set(RVARCH_V OFF)
+    endif()
+
+    try_run(RANDOMX_ZICBOP_RUN_FAIL
+        RANDOMX_ZICBOP_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zicbop.s
+        COMPILE_DEFINITIONS "-march=rv64gc_zicbop")
+
+    if (RANDOMX_ZICBOP_COMPILE_OK AND NOT RANDOMX_ZICBOP_RUN_FAIL)
+        set(RVARCH_ZICBOP ON)
+        message(STATUS "RISC-V zicbop extension detected")
+    else()
+        set(RVARCH_ZICBOP OFF)
+    endif()
+
+    try_run(RANDOMX_ZBA_RUN_FAIL
+        RANDOMX_ZBA_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zba.s
+        COMPILE_DEFINITIONS "-march=rv64gc_zba")
+
+    if (RANDOMX_ZBA_COMPILE_OK AND NOT RANDOMX_ZBA_RUN_FAIL)
+        set(RVARCH_ZBA ON)
+        message(STATUS "RISC-V zba extension detected")
+    else()
+        set(RVARCH_ZBA OFF)
+    endif()
+
+    try_run(RANDOMX_ZBB_RUN_FAIL
+        RANDOMX_ZBB_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zbb.s
+        COMPILE_DEFINITIONS "-march=rv64gc_zbb")
+
+    if (RANDOMX_ZBB_COMPILE_OK AND NOT RANDOMX_ZBB_RUN_FAIL)
+        set(RVARCH_ZBB ON)
+        message(STATUS "RISC-V zbb extension detected")
+    else()
+        set(RVARCH_ZBB OFF)
+    endif()
+
     # for native builds, enable Zba and Zbb if supported by the CPU
-    if(ARCH STREQUAL "native")
-        enable_language(ASM)
-
-        try_run(RANDOMX_VECTOR_RUN_FAIL
-            RANDOMX_VECTOR_COMPILE_OK
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_vector.s
-            COMPILE_DEFINITIONS "-march=rv64gcv_zicbop")
-
-        if (RANDOMX_VECTOR_COMPILE_OK AND NOT RANDOMX_VECTOR_RUN_FAIL)
-            set(RVARCH "${RVARCH}v_zicbop")
+    if (ARCH STREQUAL "native")
+        if (RVARCH_V)
+            set(RVARCH "${RVARCH}v")
             add_definitions(-DXMRIG_RVV_ENABLED)
-            message(STATUS "RISC-V vector extension detected")
         endif()
-
-        try_run(RANDOMX_ZBA_RUN_FAIL
-            RANDOMX_ZBA_COMPILE_OK
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zba.s
-            COMPILE_DEFINITIONS "-march=rv64gc_zba")
-
-        if (RANDOMX_ZBA_COMPILE_OK AND NOT RANDOMX_ZBA_RUN_FAIL)
+        if (RVARCH_ZICBOP)
+            set(RVARCH "${RVARCH}_zicbop")
+        endif()
+        if (RVARCH_ZBA)
             set(RVARCH "${RVARCH}_zba")
-            message(STATUS "RISC-V zba extension detected")
         endif()
-
-        try_run(RANDOMX_ZBB_RUN_FAIL
-            RANDOMX_ZBB_COMPILE_OK
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zbb.s
-            COMPILE_DEFINITIONS "-march=rv64gc_zbb")
-
-        if (RANDOMX_ZBB_COMPILE_OK AND NOT RANDOMX_ZBB_RUN_FAIL)
+        if (RVARCH_ZBB)
             set(RVARCH "${RVARCH}_zbb")
-            message(STATUS "RISC-V zbb extension detected")
         endif()
     endif()
 
