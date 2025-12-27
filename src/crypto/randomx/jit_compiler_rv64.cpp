@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <climits>
 #include <cassert>
+#include "backend/cpu/Cpu.h"
 #include "crypto/randomx/jit_compiler_rv64.hpp"
 #include "crypto/randomx/jit_compiler_rv64_static.hpp"
 #include "crypto/randomx/jit_compiler_rv64_vector.h"
@@ -621,13 +622,22 @@ namespace randomx {
 		//jal x1, SuperscalarHash
 		emitJump(state, ReturnReg, LiteralPoolSize + offsetFixDataCall, SuperScalarHashOffset);
 
-		vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_sshash_end) - ((uint8_t*)randomx_riscv64_vector_sshash_begin);
-		vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
+		if (xmrig::Cpu::info()->hasRISCV_Vector()) {
+			vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_code_end) - ((uint8_t*)randomx_riscv64_vector_code_begin);
+			vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
+
+			if (vectorCode) {
+				memcpy(vectorCode, reinterpret_cast<uint8_t*>(randomx_riscv64_vector_code_begin), vectorCodeSize);
+				entryProgramVector = vectorCode + (((uint8_t*)randomx_riscv64_vector_program_begin) - ((uint8_t*)randomx_riscv64_vector_code_begin));
+			}
+		}
 	}
 
 	JitCompilerRV64::~JitCompilerRV64() {
 		freePagedMemory(state.code, CodeSize);
-		freePagedMemory(vectorCode, vectorCodeSize);
+		if (vectorCode) {
+			freePagedMemory(vectorCode, vectorCodeSize);
+		}
 	}
 
 	void JitCompilerRV64::enableWriting() const
@@ -649,6 +659,11 @@ namespace randomx {
 	}
 
 	void JitCompilerRV64::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t) {
+		if (vectorCode) {
+			generateProgramVectorRV64(vectorCode, prog, pcfg, inst_map, nullptr, 0);
+			return;
+		}
+
 		emitProgramPrefix(state, prog, pcfg);
 		int32_t fixPos = state.codePos;
 		state.emit(codeDataRead, sizeDataRead);
@@ -659,6 +674,11 @@ namespace randomx {
 	}
 
 	void JitCompilerRV64::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
+		if (vectorCode) {
+			generateProgramVectorRV64(vectorCode, prog, pcfg, inst_map, entryDataInit, datasetOffset);
+			return;
+		}
+
 		emitProgramPrefix(state, prog, pcfg);
 		int32_t fixPos = state.codePos;
 		state.emit(codeDataReadLight, sizeDataReadLight);
@@ -680,9 +700,9 @@ namespace randomx {
 
 	template<size_t N>
 	void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
-		if (optimizedDatasetInit > 0) {
-			entryDataInitOptimized = generateDatasetInitVectorRV64(vectorCode, vectorCodeSize, programs, RandomX_ConfigurationBase::CacheAccesses);
-			return;
+		if (vectorCode) {
+			entryDataInitVector = generateDatasetInitVectorRV64(vectorCode, programs, RandomX_ConfigurationBase::CacheAccesses);
+			// No return here because we also need the scalar dataset init function for the light mode
 		}
 
 		state.codePos = SuperScalarHashOffset;
@@ -721,10 +741,6 @@ namespace randomx {
 	}
 
 	template void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&)[RANDOMX_CACHE_MAX_ACCESSES]);
-
-	DatasetInitFunc* JitCompilerRV64::getDatasetInitFunc() {
-		return (DatasetInitFunc*)((optimizedDatasetInit > 0) ? entryDataInitOptimized : entryDataInit);
-	}
 
 	void JitCompilerRV64::v1_IADD_RS(HANDLER_ARGS) {
 		state.registerUsage[isn.dst] = i;
@@ -1183,5 +1199,6 @@ namespace randomx {
 	void JitCompilerRV64::v1_NOP(HANDLER_ARGS) {
 	}
 
-InstructionGeneratorRV64 JitCompilerRV64::engine[256] = {};
+alignas(64) InstructionGeneratorRV64 JitCompilerRV64::engine[256] = {};
+alignas(64) uint8_t JitCompilerRV64::inst_map[256] = {};
 }

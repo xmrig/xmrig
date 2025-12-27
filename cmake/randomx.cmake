@@ -90,6 +90,22 @@ if (WITH_RANDOMX)
         # cheat because cmake and ccache hate each other
         set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_static.S PROPERTY LANGUAGE C)
         set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_vector_static.S PROPERTY LANGUAGE C)
+
+        set(RV64_VECTOR_FILE_ARCH "rv64gcv")
+
+        if (ARCH STREQUAL "native")
+            if (RVARCH_ZICBOP)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zicbop")
+            endif()
+            if (RVARCH_ZBA)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zba")
+            endif()
+            if (RVARCH_ZBB)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zbb")
+            endif()
+        endif()
+
+        set_source_files_properties(src/crypto/randomx/jit_compiler_rv64_vector_static.S PROPERTIES COMPILE_FLAGS "-march=${RV64_VECTOR_FILE_ARCH}")
     else()
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_fallback.cpp

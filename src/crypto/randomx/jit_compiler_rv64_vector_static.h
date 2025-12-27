@@ -42,6 +42,8 @@ extern "C" {
 
 struct randomx_cache;
 
+void randomx_riscv64_vector_code_begin();
+
 void randomx_riscv64_vector_sshash_begin();
 void randomx_riscv64_vector_sshash_imul_rcp_literals();
 void randomx_riscv64_vector_sshash_dataset_init(struct randomx_cache* cache, uint8_t* output_buf, uint32_t startBlock, uint32_t endBlock);
@@ -50,8 +52,23 @@ void randomx_riscv64_vector_sshash_generated_instructions();
 void randomx_riscv64_vector_sshash_generated_instructions_end();
 void randomx_riscv64_vector_sshash_cache_prefetch();
 void randomx_riscv64_vector_sshash_xor();
-void randomx_riscv64_vector_sshash_set_cache_index();
 void randomx_riscv64_vector_sshash_end();
+
+void randomx_riscv64_vector_program_params();
+void randomx_riscv64_vector_program_imul_rcp_literals();
+void randomx_riscv64_vector_program_begin();
+void randomx_riscv64_vector_program_main_loop_instructions();
+void randomx_riscv64_vector_program_main_loop_instructions_end();
+void randomx_riscv64_vector_program_main_loop_mx_xor();
+void randomx_riscv64_vector_program_main_loop_spaddr_xor();
+void randomx_riscv64_vector_program_main_loop_light_mode_data();
+void randomx_riscv64_vector_program_main_loop_instructions_end_light_mode();
+void randomx_riscv64_vector_program_main_loop_mx_xor_light_mode();
+void randomx_riscv64_vector_program_end();
+void randomx_riscv64_vector_program_scratchpad_prefetch();
+void randomx_riscv64_vector_program_scratchpad_prefetch_end();
+
+void randomx_riscv64_vector_code_end();
 
 #if defined(__cplusplus)
 }

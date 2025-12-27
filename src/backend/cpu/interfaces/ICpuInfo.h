@@ -85,6 +85,7 @@ public:
         FLAG_POPCNT,
         FLAG_CAT_L3,
         FLAG_VM,
+        FLAG_RISCV_VECTOR,
         FLAG_MAX
     };
 
@@ -109,6 +110,7 @@ public:
     virtual bool hasOneGbPages() const                                              = 0;
     virtual bool hasXOP() const                                                     = 0;
     virtual bool isVM() const                                                       = 0;
+    virtual bool hasRISCV_Vector() const                                            = 0;
     virtual bool jccErratum() const                                                 = 0;
     virtual const char *backend() const                                             = 0;
     virtual const char *brand() const                                               = 0;

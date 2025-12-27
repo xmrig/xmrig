@@ -58,7 +58,7 @@ namespace randomx {
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
-#		ifdef XMRIG_ARM
+#		if defined(XMRIG_ARM) || defined(XMRIG_RISCV)
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #		endif
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);

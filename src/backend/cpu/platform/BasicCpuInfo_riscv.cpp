@@ -55,6 +55,9 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
         strncpy(m_brand, name.data(), sizeof(m_brand) - 1);
     }
     
+    // Check for vector extensions
+    m_flags.set(FLAG_RISCV_VECTOR, has_riscv_vector());
+
     // Check for crypto extensions (Zknd/Zkne/Zknh - AES and SHA)
     m_flags.set(FLAG_AES, has_riscv_crypto());
     
