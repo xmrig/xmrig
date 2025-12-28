@@ -235,9 +235,17 @@ static void imm_to_x5(uint32_t imm, uint8_t*& p)
 		return;
 	}
 
-	// lui x5, imm_hi
+	if (imm_hi < (32 << 12)) {
+		//c.lui x5, imm_hi
+		emit16(0x6281 + (imm_hi >> 10));
+	}
+	else {
+		// lui x5, imm_hi
+		emit32(0x000002B7 + imm_hi);
+	}
+
 	// addiw x5, x5, imm_lo
-	emit64(0x0002829B000002B7ULL | imm_hi | (static_cast<uint64_t>(imm_lo) << 52))
+	emit32(0x0002829B | (imm_lo << 20));
 }
 
 static void loadFromScratchpad(uint32_t src, uint32_t dst, uint32_t mod, uint32_t imm, uint8_t*& p)
