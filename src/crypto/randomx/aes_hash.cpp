@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifdef XMRIG_RISCV
 #include "backend/cpu/Cpu.h"
 #include "crypto/randomx/aes_hash_rv64_vector.hpp"
+#include "crypto/randomx/aes_hash_rv64_zkn.hpp"
 #endif
 
 #define AES_HASH_1R_STATE0 0xd7983aad, 0xcc82db47, 0x9fa856de, 0x92b52c0d
@@ -67,6 +68,11 @@ template<int softAes>
 void hashAes1Rx4(const void *input, size_t inputSize, void *hash)
 {
 #ifdef XMRIG_RISCV
+	if (xmrig::Cpu::info()->hasAES()) {
+		hashAes1Rx4_zkn(input, inputSize, hash);
+		return;
+	}
+
 	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
 		hashAes1Rx4_RVV<softAes>(input, inputSize, hash);
 		return;
@@ -143,6 +149,11 @@ template<int softAes>
 void fillAes1Rx4(void *state, size_t outputSize, void *buffer)
 {
 #ifdef XMRIG_RISCV
+	if (xmrig::Cpu::info()->hasAES()) {
+		fillAes1Rx4_zkn(state, outputSize, buffer);
+		return;
+	}
+
 	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
 		fillAes1Rx4_RVV<softAes>(state, outputSize, buffer);
 		return;
@@ -195,6 +206,11 @@ template<int softAes>
 void fillAes4Rx4(void *state, size_t outputSize, void *buffer)
 {
 #ifdef XMRIG_RISCV
+	if (xmrig::Cpu::info()->hasAES()) {
+		fillAes4Rx4_zkn(state, outputSize, buffer);
+		return;
+	}
+
 	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
 		fillAes4Rx4_RVV<softAes>(state, outputSize, buffer);
 		return;
@@ -270,6 +286,11 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	PROFILE_SCOPE(RandomX_AES);
 
 #ifdef XMRIG_RISCV
+	if (xmrig::Cpu::info()->hasAES()) {
+		hashAndFillAes1Rx4_zkn(scratchpad, scratchpadSize, hash, fill_state);
+		return;
+	}
+
 	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
 		hashAndFillAes1Rx4_RVV<softAes, unroll>(scratchpad, scratchpadSize, hash, fill_state);
 		return;
