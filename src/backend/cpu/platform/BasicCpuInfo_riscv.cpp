@@ -34,7 +34,7 @@ namespace xmrig {
 
 extern String cpu_name_riscv();
 extern bool has_riscv_vector();
-extern bool has_riscv_crypto();
+extern bool has_riscv_aes();
 
 
 } // namespace xmrig
@@ -58,8 +58,8 @@ xmrig::BasicCpuInfo::BasicCpuInfo() :
     // Check for vector extensions
     m_flags.set(FLAG_RISCV_VECTOR, has_riscv_vector());
 
-    // Check for crypto extensions (Zknd/Zkne/Zknh - AES and SHA)
-    m_flags.set(FLAG_AES, has_riscv_crypto());
+    // Check for AES extensions (Zknd/Zkne)
+    m_flags.set(FLAG_AES, has_riscv_aes());
     
     // RISC-V typically supports 1GB huge pages
     m_flags.set(FLAG_PDPE1GB, std::ifstream("/sys/kernel/mm/hugepages/hugepages-1048576kB/nr_hugepages").good());

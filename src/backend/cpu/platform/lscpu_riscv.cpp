@@ -32,7 +32,7 @@ struct riscv_cpu_desc
     String isa;
     String uarch;
     bool has_vector = false;
-    bool has_crypto = false;
+    bool has_aes = false;
     
     inline bool isReady() const { return !isa.isNull(); }
 };
@@ -82,15 +82,13 @@ static bool read_riscv_cpuinfo(riscv_cpu_desc *desc)
         
         if (lookup_riscv(buf, "isa", desc->isa)) {
             // Check for vector extensions
-            if (strstr(buf, "zve64d") || strstr(buf, "v_")) {
+            if (strstr(buf, "zve64d") || strstr(buf, "v_") || strstr(buf, "vh_")) {
                 desc->has_vector = true;
             }
-            // Check for crypto extensions (AES, SHA, etc.)
-            // zkn* = NIST crypto suite, zks* = SM crypto suite
-            // Note: zba/zbb/zbc/zbs are bit-manipulation, NOT crypto
-            if (strstr(buf, "zknd") || strstr(buf, "zkne") || strstr(buf, "zknh") ||
-                strstr(buf, "zksed") || strstr(buf, "zksh")) {
-                desc->has_crypto = true;
+
+            // AES support requires both zknd and zkne extensions (they can be shown as a part of "zk" or "zkn")
+            if (strstr(buf, "zk_") || strstr(buf, "zkn_") || (strstr(buf, "zknd_") && strstr(buf, "zkne_"))) {
+                desc->has_aes = true;
             }
         }
         
@@ -128,11 +126,11 @@ bool has_riscv_vector()
     return false;
 }
 
-bool has_riscv_crypto()
+bool has_riscv_aes()
 {
     riscv_cpu_desc desc;
     if (read_riscv_cpuinfo(&desc)) {
-        return desc.has_crypto;
+        return desc.has_aes;
     }
     return false;
 }
