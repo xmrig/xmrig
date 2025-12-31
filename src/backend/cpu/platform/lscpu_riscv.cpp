@@ -81,14 +81,26 @@ static bool read_riscv_cpuinfo(riscv_cpu_desc *desc)
         lookup_riscv(buf, "model name", desc->model);
         
         if (lookup_riscv(buf, "isa", desc->isa)) {
-            // Check for vector extensions
-            if (strstr(buf, "zve64d") || strstr(buf, "v_") || strstr(buf, "vh_")) {
-                desc->has_vector = true;
-            }
+            desc->isa.toLower();
 
-            // AES support requires both zknd and zkne extensions (they can be shown as a part of "zk" or "zkn")
-            if (strstr(buf, "zk_") || strstr(buf, "zkn_") || (strstr(buf, "zknd_") && strstr(buf, "zkne_"))) {
-                desc->has_aes = true;
+            for (const String& s : desc->isa.split('_')) {
+                const char* p = s.data();
+                const size_t n = s.size();
+
+                if ((s.size() > 4) && (memcmp(p, "rv64", 4) == 0)) {
+                    for (size_t i = 4; i < n; ++i) {
+                        if (p[i] == 'v') {
+                            desc->has_vector = true;
+                            break;
+                        }
+                    }
+                }
+                else if (s == "zve64d") {
+                    desc->has_vector = true;
+                }
+                else if ((s == "zvkn") || (s == "zvknc") || (s == "zvkned") || (s == "zvkng")){
+                    desc->has_aes = true;
+                }
             }
         }
         

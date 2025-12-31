@@ -29,7 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-void hashAes1Rx4_zkn(const void *input, size_t inputSize, void *hash);
-void fillAes1Rx4_zkn(void *state, size_t outputSize, void *buffer);
-void fillAes4Rx4_zkn(void *state, size_t outputSize, void *buffer);
-void hashAndFillAes1Rx4_zkn(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
+void hashAes1Rx4_zvkned(const void *input, size_t inputSize, void *hash);
+void fillAes1Rx4_zvkned(void *state, size_t outputSize, void *buffer);
+void fillAes4Rx4_zvkned(void *state, size_t outputSize, void *buffer);
+void hashAndFillAes1Rx4_zvkned(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);

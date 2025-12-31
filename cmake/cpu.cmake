@@ -105,6 +105,32 @@ if (XMRIG_RISCV)
         set(RVARCH_ZBB OFF)
     endif()
 
+    try_run(RANDOMX_ZVKB_RUN_FAIL
+        RANDOMX_ZVKB_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zvkb.s
+        COMPILE_DEFINITIONS "-march=rv64gcv_zvkb")
+
+    if (RANDOMX_ZVKB_COMPILE_OK AND NOT RANDOMX_ZVKB_RUN_FAIL)
+        set(RVARCH_ZVKB ON)
+        message(STATUS "RISC-V zvkb extension detected")
+    else()
+        set(RVARCH_ZVKB OFF)
+    endif()
+
+    try_run(RANDOMX_ZVKNED_RUN_FAIL
+        RANDOMX_ZVKNED_COMPILE_OK
+        ${CMAKE_CURRENT_BINARY_DIR}/
+        ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/riscv64_zvkned.s
+        COMPILE_DEFINITIONS "-march=rv64gcv_zvkned")
+
+    if (RANDOMX_ZVKNED_COMPILE_OK AND NOT RANDOMX_ZVKNED_RUN_FAIL)
+        set(RVARCH_ZVKNED ON)
+        message(STATUS "RISC-V zvkned extension detected")
+    else()
+        set(RVARCH_ZVKNED OFF)
+    endif()
+
     # for native builds, enable Zba and Zbb if supported by the CPU
     if (ARCH STREQUAL "native")
         if (RVARCH_V)
@@ -118,6 +144,12 @@ if (XMRIG_RISCV)
         endif()
         if (RVARCH_ZBB)
             set(RVARCH "${RVARCH}_zbb")
+        endif()
+        if (RVARCH_ZVKB)
+            set(RVARCH "${RVARCH}_zvkb")
+        endif()
+        if (RVARCH_ZVKNED)
+            set(RVARCH "${RVARCH}_zvkned")
         endif()
     endif()
 
