@@ -94,6 +94,10 @@ void* generateDatasetInitVectorRV64(uint8_t* buf, SuperscalarProgram* programs, 
 
 			case SuperscalarInstructionType::IROR_C:
 				{
+#ifdef __riscv_zvkb
+					// 57 30 00 52 		vror.vi v0, v0, 0
+					EMIT(0x52003057 | (dst << 7) | (dst << 20) | ((imm32 & 31) << 15) | ((imm32 & 32) << 21));
+#else // __riscv_zvkb
 					const uint32_t shift_right = imm32 & 63;
 					const uint32_t shift_left = 64 - shift_right;
 
@@ -121,6 +125,7 @@ void* generateDatasetInitVectorRV64(uint8_t* buf, SuperscalarProgram* programs, 
 
 					// 57 00 20 2B vor.vv v0, v18, v0
 					EMIT(0x2B200057 | (dst << 7) | (dst << 15));
+#endif // __riscv_zvkb
 				}
 				break;
 
