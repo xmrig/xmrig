@@ -75,7 +75,6 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 .global DECL(randomx_riscv64_vector_program_main_loop_instructions_end_light_mode)
 .global DECL(randomx_riscv64_vector_program_main_loop_mx_xor_light_mode)
 .global DECL(randomx_riscv64_vector_program_scratchpad_prefetch)
-.global DECL(randomx_riscv64_vector_program_scratchpad_prefetch_end)
 
 .global DECL(randomx_riscv64_vector_program_end)
 
@@ -614,8 +613,7 @@ DECL(randomx_riscv64_vector_program_main_loop_mx_xor):
 	and x5, x5, x19		// x5 = (readReg2 ^ readReg3) & dataset mask
 	xor x14, x14, x5	// mx ^= (readReg2 ^ readReg3) & dataset mask
 
-	and x5, x14, x19	// x5 = mx & dataset mask
-	add x5, x5, x11		// x5 = &dataset[mx & dataset mask]
+	add x5, x14, x11	// x5 = &dataset[mx & dataset mask]
 
 #ifdef __riscv_zicbop
 	prefetch.r (x5)
@@ -643,7 +641,24 @@ DECL(randomx_riscv64_vector_program_main_loop_mx_xor):
 	ld x6, 56(x5)
 	xor x27, x27, x6
 
-randomx_riscv64_vector_program_main_loop_swap_mx_ma:
+DECL(randomx_riscv64_vector_program_scratchpad_prefetch):
+	xor x5, x20, x22	// spAddr0-spAddr1 = readReg0 ^ readReg1 (JIT compiler will substitute the actual registers)
+	srli x6, x5, 32		// x6 = spAddr1
+
+	and x5, x5, x9		// x5 = spAddr0 & 64-byte aligned L3 mask
+	and x6, x6, x9		// x6 = spAddr1 & 64-byte aligned L3 mask
+
+	c.add x5, x12		// x5 = &scratchpad[spAddr0 & 64-byte aligned L3 mask]
+	c.add x6, x12		// x6 = &scratchpad[spAddr1 & 64-byte aligned L3 mask]
+
+#ifdef __riscv_zicbop
+	prefetch.r (x5)
+	prefetch.r (x6)
+#else
+	ld x5, (x5)
+	ld x6, (x6)
+#endif
+
 	// swap mx <-> ma
 #ifdef __riscv_zbb
 	rori x14, x14, 32
@@ -847,27 +862,7 @@ DECL(randomx_riscv64_vector_program_main_loop_mx_xor_light_mode):
 
 	addi sp, sp, 192
 
-	j randomx_riscv64_vector_program_main_loop_swap_mx_ma
-
-DECL(randomx_riscv64_vector_program_scratchpad_prefetch):
-	xor x5, x20, x22	// spAddr0-spAddr1 = readReg0 ^ readReg1 (JIT compiler will substitute the actual registers)
-	srli x6, x5, 32		// x6 = spAddr1
-
-	and x5, x5, x9		// x5 = spAddr0 & 64-byte aligned L3 mask
-	and x6, x6, x9		// x6 = spAddr1 & 64-byte aligned L3 mask
-
-	c.add x5, x12		// x5 = &scratchpad[spAddr0 & 64-byte aligned L3 mask]
-	c.add x6, x12		// x6 = &scratchpad[spAddr1 & 64-byte aligned L3 mask]
-
-#ifdef __riscv_zicbop
-	prefetch.r (x5)
-	prefetch.r (x6)
-#else
-	ld x5, (x5)
-	ld x6, (x6)
-#endif
-
-DECL(randomx_riscv64_vector_program_scratchpad_prefetch_end):
+	j randomx_riscv64_vector_program_scratchpad_prefetch
 
 DECL(randomx_riscv64_vector_program_end):
 

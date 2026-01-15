@@ -360,44 +360,6 @@ void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguratio
 
 	uint8_t* last_modified[RegistersCount] = { p, p, p, p, p, p, p, p };
 
-	uint8_t readReg01[RegistersCount] = {};
-
-	readReg01[pcfg.readReg0] = 1;
-	readReg01[pcfg.readReg1] = 1;
-
-	uint32_t scratchpad_prefetch_pos = 0;
-
-	for (int32_t i = static_cast<int32_t>(prog.getSize()) - 1; i >= 0; --i) {
-		Instruction instr = prog(i);
-
-		const InstructionType inst_type = static_cast<InstructionType>(inst_map[instr.opcode]);
-
-		if (inst_type == InstructionType::CBRANCH) {
-			scratchpad_prefetch_pos = i;
-			break;
-		}
-
-		if (inst_type < InstructionType::FSWAP_R) {
-			const uint32_t src = instr.src % RegistersCount;
-			const uint32_t dst = instr.dst % RegistersCount;
-
-			if ((inst_type == InstructionType::ISWAP_R) && (src != dst) && (readReg01[src] || readReg01[dst])) {
-				scratchpad_prefetch_pos = i;
-				break;
-			}
-
-			if ((inst_type == InstructionType::IMUL_RCP) && readReg01[dst] && !isZeroOrPowerOf2(instr.getImm32())) {
-				scratchpad_prefetch_pos = i;
-				break;
-			}
-
-			if (readReg01[dst]) {
-				scratchpad_prefetch_pos = i;
-				break;
-			}
-		}
-	}
-
 	for (uint32_t i = 0, n = prog.getSize(); i < n; ++i) {
 		Instruction instr = prog(i);
 
@@ -853,16 +815,6 @@ void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguratio
 
 		default:
 			UNREACHABLE;
-		}
-
-		// Prefetch scratchpad lines for the next main loop iteration
-		// scratchpad_prefetch_pos is a conservative estimate of the earliest place in the code where we can do it
-		if (i == scratchpad_prefetch_pos) {
-			uint8_t* e = (uint8_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_scratchpad_prefetch_end));
-			const size_t n = e - ((uint8_t*)spaddr_xor2);
-
-			memcpy(p, spaddr_xor2, n);
-			p += n;
 		}
 	}
 
