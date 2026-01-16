@@ -38,8 +38,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/common.hpp"
 #include "crypto/rx/Profiler.h"
 
-#ifdef XMRIG_RISCV
 #include "backend/cpu/Cpu.h"
+
+#ifdef XMRIG_RISCV
 #include "crypto/randomx/aes_hash_rv64_vector.hpp"
 #include "crypto/randomx/aes_hash_rv64_zvkned.hpp"
 #endif
@@ -280,6 +281,10 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer)
 template void fillAes4Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes4Rx4<false>(void *state, size_t outputSize, void *buffer);
 
+#ifdef XMRIG_VAES
+void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
+#endif
+
 template<int softAes, int unroll>
 void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state)
 {
@@ -293,6 +298,13 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 
 	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
 		hashAndFillAes1Rx4_RVV<softAes, unroll>(scratchpad, scratchpadSize, hash, fill_state);
+		return;
+	}
+#endif
+
+#ifdef XMRIG_VAES
+	if (xmrig::Cpu::info()->arch() == xmrig::ICpuInfo::ARCH_ZEN5) {
+		hashAndFillAes1Rx4_VAES512(scratchpad, scratchpadSize, hash, fill_state);
 		return;
 	}
 #endif
