@@ -72,17 +72,19 @@ void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *h
 	const __m512i initial_hash_state = _mm512_load_si512(AES_HASH_1R_STATE);
 	const __m512i initial_fill_state = _mm512_load_si512(fill_state);
 
+	constexpr uint8_t mask = 0b11001100;
+
 	// enc_data[0] = hash_state[0]
 	// enc_data[1] = fill_state[1]
 	// enc_data[2] = hash_state[2]
 	// enc_data[3] = fill_state[3]
-	__m512i enc_data = _mm512_mask_blend_epi64(0b11001100, initial_hash_state, initial_fill_state);
+	__m512i enc_data = _mm512_mask_blend_epi64(mask, initial_hash_state, initial_fill_state);
 
 	// dec_data[0] = fill_state[0]
 	// dec_data[1] = hash_state[1]
 	// dec_data[2] = fill_state[2]
 	// dec_data[3] = hash_state[3]
-	__m512i dec_data = _mm512_mask_blend_epi64(0b00110011, initial_hash_state, initial_fill_state);
+	__m512i dec_data = _mm512_mask_blend_epi64(mask, initial_fill_state, initial_hash_state);
 
 	constexpr int PREFETCH_DISTANCE = 7168;
 
@@ -98,25 +100,25 @@ void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *h
 
 	for (int i = 0; i < 2; ++i) {
 		while (scratchpadPtr < scratchpadEnd) {
-			__m512i scratchpad_data = _mm512_load_si512(scratchpadPtr);
+			const __m512i scratchpad_data = _mm512_load_si512(scratchpadPtr);
 
 			// enc_key[0] = scratchpad_data[0]
 			// enc_key[1] = fill_key[1]
 			// enc_key[2] = scratchpad_data[2]
 			// enc_key[3] = fill_key[3]
-			enc_data = _mm512_aesenc_epi128(enc_data, _mm512_mask_blend_epi64(0b11001100, scratchpad_data, fill_key));
+			enc_data = _mm512_aesenc_epi128(enc_data, _mm512_mask_blend_epi64(mask, scratchpad_data, fill_key));
 
 			// dec_key[0] = fill_key[0]
 			// dec_key[1] = scratchpad_data[1]
 			// dec_key[2] = fill_key[2]
 			// dec_key[3] = scratchpad_data[3]
-			dec_data = _mm512_aesdec_epi128(dec_data, _mm512_mask_blend_epi64(0b00110011, scratchpad_data, fill_key));
+			dec_data = _mm512_aesdec_epi128(dec_data, _mm512_mask_blend_epi64(mask, fill_key, scratchpad_data));
 
 			// fill_state[0] = dec_data[0]
 			// fill_state[1] = enc_data[1]
 			// fill_state[2] = dec_data[2]
 			// fill_state[3] = enc_data[3]
-			_mm512_store_si512(scratchpadPtr, _mm512_mask_blend_epi64(0b00110011, enc_data, dec_data));
+			_mm512_store_si512(scratchpadPtr, _mm512_mask_blend_epi64(mask, dec_data, enc_data));
 
 			_mm_prefetch((const char*)prefetchPtr, _MM_HINT_T0);
 
@@ -127,7 +129,7 @@ void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *h
 		scratchpadEnd += PREFETCH_DISTANCE;
 	}
 
-	_mm512_store_si512(fill_state, _mm512_mask_blend_epi64(0b00110011, enc_data, dec_data));
+	_mm512_store_si512(fill_state, _mm512_mask_blend_epi64(mask, dec_data, enc_data));
 
 	//two extra rounds to achieve full diffusion
 	const __m512i xkey0 = _mm512_load_si512(AES_HASH_1R_XKEY0);
@@ -139,7 +141,7 @@ void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *h
 	dec_data = _mm512_aesdec_epi128(dec_data, xkey1);
 
 	//output hash
-	_mm512_store_si512(hash, _mm512_mask_blend_epi64(0b11001100, enc_data, dec_data));
+	_mm512_store_si512(hash, _mm512_mask_blend_epi64(mask, enc_data, dec_data));
 
 	// Just in case
 	_mm256_zeroupper();
