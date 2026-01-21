@@ -146,6 +146,10 @@ void xmrig::CudaWorker::start()
                 return;
             }
 
+            if (foundCount > 16) {
+                foundCount = 16;
+            }
+
             if (foundCount) {
                 JobResults::submit(m_job.currentJob(), foundNonce, foundCount, m_deviceIndex);
             }

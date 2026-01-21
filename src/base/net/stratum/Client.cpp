@@ -904,7 +904,13 @@ void xmrig::Client::read(ssize_t nread, const uv_buf_t *buf)
     else
 #   endif
     {
-        m_reader.parse(buf->base, size);
+        if (!m_reader.parse(buf->base, size)) {
+            if (!isQuiet()) {
+                LOG_ERR("%s " RED("read error: ") RED_BOLD("\"line too long\""), tag());
+            }
+
+            close();
+        }
     }
 }
 

@@ -57,7 +57,9 @@ void xmrig::NetBuffer::destroy()
         return;
     }
 
-    assert(pool->freeSize() == pool->size());
+    if (pool->freeSize() != pool->size()) {
+        return;
+    }
 
     delete pool;
     pool = nullptr;

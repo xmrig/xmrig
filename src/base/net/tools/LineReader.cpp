@@ -33,14 +33,14 @@ xmrig::LineReader::~LineReader()
 }
 
 
-void xmrig::LineReader::parse(char *data, size_t size)
+bool xmrig::LineReader::parse(char *data, size_t size)
 {
     assert(m_listener != nullptr && size > 0);
     if (!m_listener || size == 0) {
-        return;
+        return true;
     }
 
-    getline(data, size);
+    return getline(data, size);
 }
 
 
@@ -54,11 +54,11 @@ void xmrig::LineReader::reset()
 }
 
 
-void xmrig::LineReader::add(const char *data, size_t size)
+bool xmrig::LineReader::add(const char *data, size_t size)
 {
     if (size + m_pos > XMRIG_NET_BUFFER_CHUNK_SIZE) {
-        // it breaks correctness silently for long lines
-        return;
+        reset();
+        return false;
     }
 
     if (!m_buf) {
@@ -68,10 +68,12 @@ void xmrig::LineReader::add(const char *data, size_t size)
 
     memcpy(m_buf + m_pos, data, size);
     m_pos += size;
+
+    return true;
 }
 
 
-void xmrig::LineReader::getline(char *data, size_t size)
+bool xmrig::LineReader::getline(char *data, size_t size)
 {
     char *end        = nullptr;
     char *start      = data;
@@ -84,7 +86,9 @@ void xmrig::LineReader::getline(char *data, size_t size)
 
         const auto len = static_cast<size_t>(end - start);
         if (m_pos) {
-            add(start, len);
+            if (!add(start, len)) {
+                return false;
+            }
             m_listener->onLine(m_buf, m_pos - 1);
             m_pos = 0;
         }
@@ -97,8 +101,9 @@ void xmrig::LineReader::getline(char *data, size_t size)
     }
 
     if (remaining == 0) {
-        return reset();
+        reset();
+        return true;
     }
 
-    add(start, remaining);
+    return add(start, remaining);
 }

@@ -131,7 +131,10 @@ void xmrig::Client::Tls::read(const char *data, size_t size)
     int bytes_read = 0;
 
     while ((bytes_read = SSL_read(m_ssl, buf, sizeof(buf))) > 0) {
-        m_client->m_reader.parse(buf, static_cast<size_t>(bytes_read));
+        if (!m_client->m_reader.parse(buf, static_cast<size_t>(bytes_read))) {
+            m_client->close();
+            break;
+        }
     }
 }
 

@@ -44,12 +44,12 @@ public:
 
     inline void setListener(ILineListener *listener) { m_listener = listener; }
 
-    void parse(char *data, size_t size);
+    bool parse(char *data, size_t size);
     void reset();
 
 private:
-    void add(const char *data, size_t size);
-    void getline(char *data, size_t size);
+    bool add(const char *data, size_t size);
+    bool getline(char *data, size_t size);
 
     char *m_buf                 = nullptr;
     ILineListener *m_listener   = nullptr;
