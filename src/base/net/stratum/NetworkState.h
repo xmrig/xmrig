@@ -27,7 +27,6 @@
 
 #include <array>
 #include <string>
-#include <vector>
 
 
 namespace xmrig {
@@ -60,6 +59,8 @@ protected:
     void onResultAccepted(IStrategy *strategy, IClient *client, const SubmitResult &result, const char *error) override;
 
 private:
+    constexpr static size_t kLatencyWindow = 1024;
+
     uint32_t latency() const;
     uint64_t avgTime() const;
     uint64_t connectionTime() const;
@@ -70,7 +71,9 @@ private:
     bool m_active               = false;
     char m_pool[256]{};
     std::array<uint64_t, 10> m_topDiff { { } };
-    std::vector<uint16_t> m_latency;
+    std::array<uint16_t, kLatencyWindow> m_latency { { } };
+    size_t m_latencyCount      = 0;
+    size_t m_latencyPos        = 0;
     String m_fingerprint;
     String m_ip;
     String m_tls;

@@ -160,7 +160,7 @@
 # v6.16.2
 - [#2751](https://github.com/xmrig/xmrig/pull/2751) Fixed crash on CPUs supporting VAES and running GCC-compiled xmrig.
 - [#2761](https://github.com/xmrig/xmrig/pull/2761) Fixed broken auto-tuning in GCC Windows build.
-- [#2771](https://github.com/xmrig/xmrig/issues/2771) Fixed environment variables support for GhostRider and KawPow. 
+- [#2771](https://github.com/xmrig/xmrig/issues/2771) Fixed environment variables support for GhostRider and KawPow.
 - [#2769](https://github.com/xmrig/xmrig/pull/2769) Performance fixes:
   - Fixed several performance bottlenecks introduced in v6.16.1.
   - Fixed overall GCC-compiled build performance, it's the same speed as MSVC build now.
@@ -468,7 +468,7 @@
 - Compiler for Windows gcc builds updated to v10.1.
 
 # v5.11.1
-- [#1652](https://github.com/xmrig/xmrig/pull/1652) Up to 1% RandomX perfomance improvement on recent AMD CPUs.
+- [#1652](https://github.com/xmrig/xmrig/pull/1652) Up to 1% RandomX performance improvement on recent AMD CPUs.
 - [#1306](https://github.com/xmrig/xmrig/issues/1306) Fixed possible double connection to a pool.
 - [#1654](https://github.com/xmrig/xmrig/issues/1654) Fixed build with LibreSSL.
 
@@ -574,9 +574,9 @@
   - Added automatic huge pages configuration on Linux if use the miner with root privileges.
 - **Added [automatic Intel prefetchers configuration](https://xmrig.com/docs/miner/randomx-optimization-guide#intel-specific-optimizations) on Linux.**
    - Added new option `wrmsr` in `randomx` object with command line equivalent `--randomx-wrmsr=6`.
-- [#1396](https://github.com/xmrig/xmrig/pull/1396) [#1401](https://github.com/xmrig/xmrig/pull/1401) New performance optimizations for Ryzen CPUs. 
-- [#1385](https://github.com/xmrig/xmrig/issues/1385) Added `max-threads-hint` option support for RandomX dataset initialization threads.  
-- [#1386](https://github.com/xmrig/xmrig/issues/1386) Added `priority` option support for RandomX dataset initialization threads. 
+- [#1396](https://github.com/xmrig/xmrig/pull/1396) [#1401](https://github.com/xmrig/xmrig/pull/1401) New performance optimizations for Ryzen CPUs.
+- [#1385](https://github.com/xmrig/xmrig/issues/1385) Added `max-threads-hint` option support for RandomX dataset initialization threads.
+- [#1386](https://github.com/xmrig/xmrig/issues/1386) Added `priority` option support for RandomX dataset initialization threads.
 - For official builds all dependencies (libuv, hwloc, openssl) updated to recent versions.
 - Windows `msvc` builds now use Visual Studio 2019 instead of 2017.
 
@@ -622,7 +622,7 @@ This release based on 4.x.x series and include all features from v4.6.2-beta, ch
 - Removed command line option `--http-enabled`, HTTP API enabled automatically if any other `--http-*` option provided.
 - [#1172](https://github.com/xmrig/xmrig/issues/1172) **Added OpenCL mining backend.**
   - [#268](https://github.com/xmrig/xmrig-amd/pull/268) [#270](https://github.com/xmrig/xmrig-amd/pull/270) [#271](https://github.com/xmrig/xmrig-amd/pull/271) [#273](https://github.com/xmrig/xmrig-amd/pull/273) [#274](https://github.com/xmrig/xmrig-amd/pull/274) [#1171](https://github.com/xmrig/xmrig/pull/1171) Added RandomX support for OpenCL, thanks [@SChernykh](https://github.com/SChernykh).
-- Algorithm `cn/wow` removed, as no longer alive. 
+- Algorithm `cn/wow` removed, as no longer alive.
 
 # Previous versions
 [doc/CHANGELOG_OLD.md](doc/CHANGELOG_OLD.md)

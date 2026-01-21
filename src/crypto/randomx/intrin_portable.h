@@ -174,7 +174,7 @@ FORCE_INLINE void rx_set_rounding_mode(uint32_t mode) {
 	_mm_setcsr(rx_mxcsr_default | (mode << 13));
 }
 
-#elif defined(__PPC64__) && defined(__ALTIVEC__) && defined(__VSX__) //sadly only POWER7 and newer will be able to use SIMD acceleration. Earlier processors cant use doubles or 64 bit integers with SIMD
+#elif defined(__PPC64__) && defined(__ALTIVEC__) && defined(__VSX__) //sadly only POWER7 and newer will be able to use SIMD acceleration. Earlier processors can't use doubles or 64 bit integers with SIMD
 #include <cstdint>
 #include <stdexcept>
 #include <cstdlib>

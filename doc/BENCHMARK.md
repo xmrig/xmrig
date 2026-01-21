@@ -17,7 +17,7 @@ Double check that you see `Huge pages 100%` both for dataset and for all threads
 
 ### Benchmark with custom config
 
-You can run benchmark with any configuration you want. Just start without command line parameteres, use regular config.json and add `"benchmark":"1M",` on the next line after pool url. 
+You can run benchmark with any configuration you want. Just start without command line parameters, use regular config.json and add `"benchmark":"1M",` on the next line after pool url.
 
 # Stress test
 

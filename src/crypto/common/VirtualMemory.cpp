@@ -124,6 +124,7 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t)
 void xmrig::VirtualMemory::destroy()
 {
     delete pool;
+    pool = nullptr;
 }
 
 
