@@ -1,0 +1,3 @@
+[codespell]
+skip = ./src/3rdparty,./src/crypto/ghostrider,./src/crypto/randomx/blake2,./src/crypto/cn/sse2neon.h,./src/backend/opencl/cl/cn/groestl256.cl,./src/backend/opencl/cl/cn/jh.cl
+ignore-words-list = Carmel,vor

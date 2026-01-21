@@ -77,7 +77,7 @@ void keccak_f800_round(uint32_t st[25], const int r)
 void keccak_f800(uint32_t* st)
 {
     // Complete all 22 rounds as a separate impl to
-    // evaluate only first 8 words is wasteful of regsters
+    // evaluate only first 8 words is wasteful of registers
     for (int r = 0; r < 22; r++) {
         keccak_f800_round(st, r);
     }
@@ -181,7 +181,7 @@ __kernel void progpow_search(__global dag_t const* g_dag, __global uint* job_blo
         for (int i = 10; i < 25; i++)
             state[i] = ravencoin_rndc[i-10];
 
-        // Run intial keccak round
+        // Run initial keccak round
         keccak_f800(state);
 
         for (int i = 0; i < 8; i++)

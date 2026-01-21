@@ -231,7 +231,7 @@ RANDOMX_EXPORT unsigned long randomx_dataset_item_count(void);
  *
  * @param dataset is a pointer to a previously allocated randomx_dataset structure. Must not be NULL.
  * @param cache is a pointer to a previously allocated and initialized randomx_cache structure. Must not be NULL.
- * @param startItem is the item number where intialization should start.
+ * @param startItem is the item number where initialization should start.
  * @param itemCount is the number of items that should be initialized.
 */
 RANDOMX_EXPORT void randomx_init_dataset(randomx_dataset *dataset, randomx_cache *cache, unsigned long startItem, unsigned long itemCount);
