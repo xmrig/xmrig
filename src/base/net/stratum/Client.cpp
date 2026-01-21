@@ -554,6 +554,7 @@ int64_t xmrig::Client::send(size_t size)
     }
 
     m_expire = Chrono::steadyMSecs() + kResponseTimeout;
+    startTimeout();
     return m_sequence++;
 }
 
@@ -661,8 +662,6 @@ void xmrig::Client::onClose()
 
 void xmrig::Client::parse(char *line, size_t len)
 {
-    startTimeout();
-
     LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", url(), len, static_cast<int>(len), line);
 
     if (len < 22 || line[0] != '{') {
@@ -857,8 +856,6 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 void xmrig::Client::ping()
 {
     send(snprintf(m_sendBuf.data(), m_sendBuf.size(), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId.data()));
-
-    m_keepAlive = 0;
 }
 
 
