@@ -65,7 +65,7 @@ public:
         }
     }
 #   else
-    inline ~Thread() { m_thread.join(); delete m_worker; }
+    inline ~Thread() { if (m_thread.joinable()) { m_thread.join(); } delete m_worker; }
 
     inline void start(void *(*callback)(void *))    { m_thread = std::thread(callback, this); }
 #   endif
