@@ -59,7 +59,8 @@ static inline bool isReady()    { return !Nonce::isPaused() && CudaWorker::ready
 xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
     GpuWorker(id, data.thread.affinity(), -1, data.device.index()),
     m_algorithm(data.algorithm),
-    m_miner(data.miner)
+    m_miner(data.miner),
+    m_yieldSleep(data.thread.yieldSleep())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -159,7 +160,12 @@ void xmrig::CudaWorker::start()
             }
 
             storeStats();
-            std::this_thread::yield();
+            if (m_yieldSleep > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(m_yieldSleep));
+            }
+            else {
+                std::this_thread::yield();
+            }
         }
 
         if (isReady() && !consumeJob()) {

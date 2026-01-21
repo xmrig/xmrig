@@ -60,6 +60,7 @@ private:
     const Miner *m_miner;
     IOclRunner *m_runner = nullptr;
     OclSharedData &m_sharedData;
+    const uint32_t m_yieldSleep;
     WorkerJob<1> m_job;
 };
 

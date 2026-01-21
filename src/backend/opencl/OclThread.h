@@ -88,6 +88,7 @@ public:
     inline uint32_t stridedIndex() const                    { return m_stridedIndex; }
     inline uint32_t unrollFactor() const                    { return m_unrollFactor; }
     inline uint32_t worksize() const                        { return m_worksize; }
+    inline uint32_t yieldSleep() const                      { return m_yieldSleep; }
 
     inline bool operator!=(const OclThread &other) const    { return !isEqual(other); }
     inline bool operator==(const OclThread &other) const    { return isEqual(other); }
@@ -112,6 +113,7 @@ private:
     uint32_t m_bfactor              = 6;
     uint32_t m_index                = 0;
     uint32_t m_intensity            = 0;
+    uint32_t m_yieldSleep            = 0;
     uint32_t m_memChunk             = 2;
     uint32_t m_stridedIndex         = 2;
     uint32_t m_unrollFactor         = 8;

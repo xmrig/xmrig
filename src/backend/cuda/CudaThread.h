@@ -44,6 +44,7 @@ public:
     inline int32_t threads() const                           { return m_threads; }
     inline int64_t affinity() const                          { return m_affinity; }
     inline uint32_t index() const                            { return m_index; }
+    inline uint32_t yieldSleep() const                        { return m_yieldSleep; }
 
     inline bool operator!=(const CudaThread &other) const    { return !isEqual(other); }
     inline bool operator==(const CudaThread &other) const    { return isEqual(other); }
@@ -65,6 +66,8 @@ private:
     uint32_t m_bfactor      = 0;
     uint32_t m_bsleep       = 0;
 #   endif
+
+    uint32_t m_yieldSleep    = 0;
 };
 
 

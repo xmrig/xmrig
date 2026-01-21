@@ -58,6 +58,7 @@ private:
     const Algorithm m_algorithm;
     const Miner *m_miner;
     ICudaRunner *m_runner = nullptr;
+    const uint32_t m_yieldSleep;
     WorkerJob<1> m_job;
 };
 

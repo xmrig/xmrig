@@ -66,7 +66,8 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
     GpuWorker(id, data.affinity, -1, data.device.index()),
     m_algorithm(data.algorithm),
     m_miner(data.miner),
-    m_sharedData(OclSharedState::get(data.device.index()))
+    m_sharedData(OclSharedState::get(data.device.index())),
+    m_yieldSleep(data.thread.yieldSleep())
 {
     switch (m_algorithm.family()) {
     case Algorithm::RANDOM_X:
@@ -187,7 +188,12 @@ void xmrig::OclWorker::start()
             }
 
             storeStats(t);
-            std::this_thread::yield();
+            if (m_yieldSleep > 0) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(m_yieldSleep));
+            }
+            else {
+                std::this_thread::yield();
+            }
         }
 
         if (isReady() && !consumeJob()) {

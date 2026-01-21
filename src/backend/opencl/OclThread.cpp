@@ -31,6 +31,7 @@ static const char *kIntensity    = "intensity";
 static const char *kStridedIndex = "strided_index";
 static const char *kThreads      = "threads";
 static const char *kUnroll       = "unroll";
+static const char *kYieldSleep   = "yield_sleep";
 static const char *kWorksize     = "worksize";
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -51,6 +52,7 @@ xmrig::OclThread::OclThread(const rapidjson::Value &value)
     m_index         = Json::getUint(value, kIndex);
     m_worksize      = std::max(std::min(Json::getUint(value, kWorksize), 512U), 1U);
     m_unrollFactor  = std::max(std::min(Json::getUint(value, kUnroll, m_unrollFactor), 128U), 1U);
+    m_yieldSleep    = std::min(Json::getUint(value, kYieldSleep, m_yieldSleep), 1000U);
 
     setIntensity(Json::getUint(value, kIntensity));
 
@@ -100,6 +102,7 @@ bool xmrig::OclThread::isEqual(const OclThread &other) const
            other.m_gcnAsm       == m_gcnAsm &&
            other.m_index        == m_index &&
            other.m_intensity    == m_intensity &&
+           other.m_yieldSleep   == m_yieldSleep &&
            other.m_memChunk     == m_memChunk &&
            other.m_stridedIndex == m_stridedIndex &&
            other.m_unrollFactor == m_unrollFactor &&
@@ -117,6 +120,7 @@ rapidjson::Value xmrig::OclThread::toJSON(rapidjson::Document &doc) const
     out.AddMember(StringRef(kIndex),        index(), allocator);
     out.AddMember(StringRef(kIntensity),    intensity(), allocator);
     out.AddMember(StringRef(kWorksize),     worksize(), allocator);
+    out.AddMember(StringRef(kYieldSleep),   yieldSleep(), allocator);
 
     if (m_fields.test(STRIDED_INDEX_FIELD)) {
         Value si(kArrayType);
