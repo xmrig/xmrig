@@ -66,7 +66,7 @@ void hashAes1Rx4(const void *input, size_t inputSize, void *hash) {
 	rx_vec_i128 state0, state1, state2, state3;
 	rx_vec_i128 in0, in1, in2, in3;
 
-	//intial state
+	//initial state
 	state0 = rx_set_int_vec_i128(AES_HASH_1R_STATE0);
 	state1 = rx_set_int_vec_i128(AES_HASH_1R_STATE1);
 	state2 = rx_set_int_vec_i128(AES_HASH_1R_STATE2);

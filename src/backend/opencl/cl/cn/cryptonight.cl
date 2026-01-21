@@ -706,7 +706,7 @@ __kernel void cn2(__global uint4 *Scratchpad, __global ulong *states, __global u
     }
 
 #   if (ALGO_FAMILY == FAMILY_CN_HEAVY)
-    /* Also left over threads performe this loop.
+    /* Also left over threads perform this loop.
      * The left over thread results will be ignored
      */
     #pragma unroll 16
@@ -1005,7 +1005,7 @@ __kernel void Groestl(__global ulong *states, __global uint *BranchBuf, __global
         ulong State[8] = { 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0UL, 0x0001000000000000UL };
         ulong H[8], M[8];
 
-        // BUG: AMD driver 19.7.X crashs if this is written as loop
+        // BUG: AMD driver 19.7.X crashes if this is written as loop
         // Thx AMD for so bad software
         {
             ((ulong8 *)M)[0] = vload8(0, states);
