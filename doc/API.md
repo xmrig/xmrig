@@ -1,8 +1,8 @@
 # HTTP API
 
-If you want use HTTP API you need enable it (`"enabled": true,`) then choice `port` and optionaly `host`. API not available if miner built without HTTP support (`-DWITH_HTTP=OFF`).
+If you want use HTTP API you need enable it (`"enabled": true,`) then choice `port` and optionally `host`. API not available if miner built without HTTP support (`-DWITH_HTTP=OFF`).
 
-Offical HTTP client for API: http://workers.xmrig.info/
+Official HTTP client for API: http://workers.xmrig.info/
 
 Example configuration:
 

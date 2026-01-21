@@ -49,6 +49,15 @@ void xmrig::CnCtx::release(cryptonight_ctx **ctx, size_t count)
     }
 
     for (size_t i = 0; i < count; ++i) {
+        if (ctx[i] && ctx[i]->generated_code) {
+#           ifdef XMRIG_OS_WIN
+            VirtualMemory::freeLargePagesMemory(reinterpret_cast<void *>(ctx[i]->generated_code), 0);
+#           else
+            VirtualMemory::freeLargePagesMemory(reinterpret_cast<void *>(ctx[i]->generated_code), 0x4000);
+#           endif
+            ctx[i]->generated_code = nullptr;
+        }
+
         _mm_free(ctx[i]);
     }
 }
