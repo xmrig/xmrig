@@ -76,12 +76,10 @@ void xmrig::Controller::stop()
 {
     Base::stop();
 
-    if (m_miner) {
-        m_miner->stop();
-        m_miner.reset();
-    }
-
     m_network.reset();
+
+    m_miner->stop();
+    m_miner.reset();
 }
 
 

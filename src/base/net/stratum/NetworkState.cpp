@@ -210,7 +210,7 @@ void xmrig::NetworkState::printResults() const
     printHashes(m_accepted, m_hashes);
     printDiff(m_diff);
 
-    if (m_active && m_latencyCount > 0) {
+    if (m_active && !m_latency.empty()) {
         printAvgTime(avgTime());
     }
 
@@ -298,19 +298,13 @@ void xmrig::NetworkState::onResultAccepted(IStrategy *strategy, IClient *client,
 
 uint32_t xmrig::NetworkState::latency() const
 {
-    const size_t calls = m_latencyCount;
+    const size_t calls = m_latency.size();
     if (calls == 0) {
         return 0;
     }
 
-    std::array<uint16_t, kLatencyWindow> v;
-    const size_t start = (m_latencyPos + kLatencyWindow - calls) % kLatencyWindow;
-
-    for (size_t i = 0; i < calls; ++i) {
-        v[i] = m_latency[(start + i) % kLatencyWindow];
-    }
-
-    std::nth_element(v.begin(), v.begin() + calls / 2, v.begin() + calls);
+    auto v = m_latency;
+    std::nth_element(v.begin(), v.begin() + calls / 2, v.end());
 
     return v[calls / 2];
 }
@@ -318,11 +312,11 @@ uint32_t xmrig::NetworkState::latency() const
 
 uint64_t xmrig::NetworkState::avgTime() const
 {
-    if (m_latencyCount == 0) {
+    if (m_latency.empty()) {
         return 0;
     }
 
-    return connectionTime() / m_latencyCount;
+    return connectionTime() / m_latency.size();
 }
 
 
@@ -348,12 +342,7 @@ void xmrig::NetworkState::add(const SubmitResult &result, const char *error)
         std::sort(m_topDiff.rbegin(), m_topDiff.rend());
     }
 
-    m_latency[m_latencyPos] = result.elapsed > 0xFFFF ? 0xFFFF : static_cast<uint16_t>(result.elapsed);
-    m_latencyPos            = (m_latencyPos + 1) % kLatencyWindow;
-
-    if (m_latencyCount < kLatencyWindow) {
-        m_latencyCount++;
-    }
+    m_latency.push_back(result.elapsed > 0xFFFF ? 0xFFFF : static_cast<uint16_t>(result.elapsed));
 }
 
 
@@ -366,6 +355,5 @@ void xmrig::NetworkState::stop()
     m_fingerprint = nullptr;
 
     m_failures++;
-    m_latencyCount = 0;
-    m_latencyPos   = 0;
+    m_latency.clear();
 }

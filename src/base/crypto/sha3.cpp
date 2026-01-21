@@ -48,7 +48,7 @@
 #define KECCAK_ROUNDS 24
 
 
-/* *************************** Public Interface ************************ */
+/* *************************** Public Inteface ************************ */
 
 /* For Init or Reset call these: */
 sha3_return_t

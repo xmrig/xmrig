@@ -56,7 +56,6 @@
 
 
 #include <cassert>
-#include <atomic>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -67,9 +66,6 @@ namespace xmrig {
 
 
 #if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-class JobResultsPrivate;
-
-
 class JobBundle
 {
 public:
@@ -90,14 +86,14 @@ public:
 class JobBaton : public Baton<uv_work_t>
 {
 public:
-    inline JobBaton(std::list<JobBundle> &&bundles, JobResultsPrivate *owner, bool hwAES) :
+    inline JobBaton(std::list<JobBundle> &&bundles, IJobResultListener *listener, bool hwAES) :
         hwAES(hwAES),
-        owner(owner),
+        listener(listener),
         bundles(std::move(bundles))
     {}
 
     const bool hwAES;
-    JobResultsPrivate *owner;
+    IJobResultListener *listener;
     std::list<JobBundle> bundles;
     std::vector<JobResult> results;
     uint32_t errors = 0;
@@ -192,8 +188,6 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 
             checkHash(bundle, results, nonce, hash, errors);
         }
-
-        CnCtx::release(ctx, 1);
     }
 
     delete memory;
@@ -205,11 +199,6 @@ class JobResultsPrivate : public IAsyncListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(JobResultsPrivate)
-
-    constexpr static size_t kMaxQueuedResults = 4096;
-#   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-    constexpr static size_t kMaxQueuedBundles = 256;
-#   endif
 
     inline JobResultsPrivate(IJobResultListener *listener, bool hwAES) :
         m_hwAES(hwAES),
@@ -225,20 +214,9 @@ public:
     inline void submit(const JobResult &result)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-
-        if (m_stopping) {
-            return;
-        }
-
-        if (m_results.size() >= kMaxQueuedResults) {
-            return;
-        }
-
         m_results.push_back(result);
 
-        if (m_async && !m_pendingAsync.exchange(true)) {
-            m_async->send();
-        }
+        m_async->send();
     }
 
 
@@ -246,53 +224,11 @@ public:
     inline void submit(const Job &job, uint32_t *results, size_t count, uint32_t device_index)
     {
         std::lock_guard<std::mutex> lock(m_mutex);
-
-        if (count > 0xFF) {
-            count = 0xFF;
-        }
-
-        if (m_stopping) {
-            return;
-        }
-
-        if (m_bundles.size() >= kMaxQueuedBundles) {
-            return;
-        }
-
         m_bundles.emplace_back(job, results, count, device_index);
 
-        if (m_async && !m_pendingAsync.exchange(true)) {
-            m_async->send();
-        }
+        m_async->send();
     }
 #   endif
-
-
-    inline void stop()
-    {
-        bool deleteNow = false;
-
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            m_stopping = true;
-            m_listener = nullptr;
-            m_results.clear();
-
-#           if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
-            m_bundles.clear();
-            m_workScheduled = false;
-            m_deleteWhenDone = true;
-            deleteNow = (m_pendingWork == 0);
-#           else
-            deleteNow = true;
-#           endif
-        }
-
-        if (deleteNow) {
-            m_async.reset();
-            delete this;
-        }
-    }
 
 
 protected:
@@ -303,33 +239,23 @@ private:
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
     inline void submit()
     {
-        m_pendingAsync.store(false);
-
         std::list<JobBundle> bundles;
         std::list<JobResult> results;
 
         m_mutex.lock();
+        m_bundles.swap(bundles);
         m_results.swap(results);
-
-        const bool canScheduleWork = !m_workScheduled && !m_stopping && !m_bundles.empty();
-        if (canScheduleWork) {
-            m_bundles.swap(bundles);
-            m_workScheduled = true;
-            m_pendingWork++;
-        }
         m_mutex.unlock();
 
         for (const auto &result : results) {
-            if (m_listener) {
-                m_listener->onJobResult(result);
-            }
+            m_listener->onJobResult(result);
         }
 
         if (bundles.empty()) {
             return;
         }
 
-        auto baton = new JobBaton(std::move(bundles), this, m_hwAES);
+        auto baton = new JobBaton(std::move(bundles), m_listener, m_hwAES);
 
         uv_queue_work(uv_default_loop(), &baton->req,
             [](uv_work_t *req) {
@@ -342,67 +268,8 @@ private:
             [](uv_work_t *req, int) {
                 auto baton = static_cast<JobBaton*>(req->data);
 
-                if (baton->owner) {
-                    baton->owner->onBatonDone(std::move(baton->results));
-                }
-
-                delete baton;
-            }
-        );
-    }
-
-
-    inline void onBatonDone(std::vector<JobResult> &&results)
-    {
-        for (const auto &result : results) {
-            if (m_listener) {
-                m_listener->onJobResult(result);
-            }
-        }
-
-        std::list<JobBundle> bundles;
-
-        m_mutex.lock();
-
-        m_pendingWork--;
-
-        const bool canScheduleWork = !m_stopping && !m_bundles.empty();
-        if (canScheduleWork) {
-            m_bundles.swap(bundles);
-            m_pendingWork++;
-        }
-        else {
-            m_workScheduled = false;
-        }
-
-        const bool canDelete = m_deleteWhenDone && m_pendingWork == 0;
-        m_mutex.unlock();
-
-        if (canDelete) {
-            m_async.reset();
-            delete this;
-            return;
-        }
-
-        if (bundles.empty()) {
-            return;
-        }
-
-        auto baton = new JobBaton(std::move(bundles), this, m_hwAES);
-
-        uv_queue_work(uv_default_loop(), &baton->req,
-            [](uv_work_t *req) {
-                auto baton = static_cast<JobBaton*>(req->data);
-
-                for (JobBundle &bundle : baton->bundles) {
-                    getResults(bundle, baton->results, baton->errors, baton->hwAES);
-                }
-            },
-            [](uv_work_t *req, int) {
-                auto baton = static_cast<JobBaton*>(req->data);
-
-                if (baton->owner) {
-                    baton->owner->onBatonDone(std::move(baton->results));
+                for (const auto &result : baton->results) {
+                    baton->listener->onJobResult(result);
                 }
 
                 delete baton;
@@ -412,8 +279,6 @@ private:
 #   else
     inline void submit()
     {
-        m_pendingAsync.store(false);
-
         std::list<JobResult> results;
 
         m_mutex.lock();
@@ -421,9 +286,7 @@ private:
         m_mutex.unlock();
 
         for (const auto &result : results) {
-            if (m_listener) {
-                m_listener->onJobResult(result);
-            }
+            m_listener->onJobResult(result);
         }
     }
 #   endif
@@ -433,14 +296,9 @@ private:
     std::list<JobResult> m_results;
     std::mutex m_mutex;
     std::shared_ptr<Async> m_async;
-    std::atomic<bool> m_pendingAsync{ false };
-    bool m_stopping = false;
 
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
     std::list<JobBundle> m_bundles;
-    bool m_workScheduled = false;
-    uint32_t m_pendingWork = 0;
-    bool m_deleteWhenDone = false;
 #   endif
 };
 
@@ -467,12 +325,11 @@ void xmrig::JobResults::setListener(IJobResultListener *listener, bool hwAES)
 
 void xmrig::JobResults::stop()
 {
-    auto h = handler;
-    handler = nullptr;
+    assert(handler != nullptr);
 
-    if (h) {
-        h->stop();
-    }
+    delete handler;
+
+    handler = nullptr;
 }
 
 
@@ -490,6 +347,8 @@ void xmrig::JobResults::submit(const Job& job, uint32_t nonce, const uint8_t* re
 
 void xmrig::JobResults::submit(const JobResult &result)
 {
+    assert(handler != nullptr);
+
     if (handler) {
         handler->submit(result);
     }
