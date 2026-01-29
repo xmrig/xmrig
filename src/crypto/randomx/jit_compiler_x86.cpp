@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/superscalar.hpp"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "crypto/randomx/soft_aes.h"
 #include "crypto/rx/Profiler.h"
 
 #ifdef XMRIG_FIX_RYZEN
@@ -116,6 +117,7 @@ namespace randomx {
 	#define codeLoopLoadXOP ADDR(randomx_program_loop_load_xop)
 	#define codeProgramStart ADDR(randomx_program_start)
 	#define codeReadDataset ADDR(randomx_program_read_dataset)
+	#define codeReadDatasetV2 ADDR(randomx_program_read_dataset_v2)
 	#define codeReadDatasetLightSshInit ADDR(randomx_program_read_dataset_sshash_init)
 	#define codeReadDatasetLightSshFin ADDR(randomx_program_read_dataset_sshash_fin)
 	#define codeDatasetInit ADDR(randomx_dataset_init)
@@ -125,6 +127,8 @@ namespace randomx {
 	#define codeDatasetInitAVX2SshLoad ADDR(randomx_dataset_init_avx2_ssh_load)
 	#define codeDatasetInitAVX2SshPrefetch ADDR(randomx_dataset_init_avx2_ssh_prefetch)
 	#define codeLoopStore ADDR(randomx_program_loop_store)
+	#define codeLoopStoreHardAES ADDR(randomx_program_loop_store_hard_aes)
+	#define codeLoopStoreSoftAES ADDR(randomx_program_loop_store_soft_aes)
 	#define codeLoopEnd ADDR(randomx_program_loop_end)
 	#define codeEpilogue ADDR(randomx_program_epilogue)
 	#define codeProgramEnd ADDR(randomx_program_end)
@@ -136,10 +140,13 @@ namespace randomx {
 	#define prologueSize (codeLoopBegin - codePrologue)
 	#define loopLoadSize (codeLoopLoadXOP - codeLoopLoad)
 	#define loopLoadXOPSize (codeProgramStart - codeLoopLoadXOP)
-	#define readDatasetSize (codeReadDatasetLightSshInit - codeReadDataset)
+	#define readDatasetSize (codeReadDatasetV2 - codeReadDataset)
+	#define readDatasetV2Size (codeReadDatasetLightSshInit - codeReadDatasetV2)
 	#define readDatasetLightInitSize (codeReadDatasetLightSshFin - codeReadDatasetLightSshInit)
 	#define readDatasetLightFinSize (codeLoopStore - codeReadDatasetLightSshFin)
-	#define loopStoreSize (codeLoopEnd - codeLoopStore)
+	#define loopStoreSize (codeLoopStoreHardAES - codeLoopStore)
+	#define loopStoreHardAESSize (codeLoopStoreSoftAES - codeLoopStoreHardAES)
+	#define loopStoreSoftAESSize (codeLoopEnd - codeLoopStoreSoftAES)
 	#define datasetInitSize (codeDatasetInitAVX2Prologue - codeDatasetInit)
 	#define datasetInitAVX2PrologueSize (codeDatasetInitAVX2LoopEnd - codeDatasetInitAVX2Prologue)
 	#define datasetInitAVX2LoopEndSize (codeDatasetInitAVX2Epilogue - codeDatasetInitAVX2LoopEnd)
@@ -222,6 +229,8 @@ namespace randomx {
 
 	JitCompilerX86::JitCompilerX86(bool hugePagesEnable, bool optimizedInitDatasetEnable) {
 		BranchesWithin32B = xmrig::Cpu::info()->jccErratum();
+
+		hasAES = xmrig::Cpu::info()->hasAES();
 
 		hasAVX = xmrig::Cpu::info()->hasAVX();
 		hasAVX2 = xmrig::Cpu::info()->hasAVX2();
@@ -341,7 +350,14 @@ namespace randomx {
 		vm_flags = flags;
 
 		generateProgramPrologue(prog, pcfg);
-		emit(codeReadDataset, readDatasetSize, code, codePos);
+
+		if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+			emit(codeReadDatasetV2, readDatasetV2Size, code, codePos);
+		}
+		else {
+			emit(codeReadDataset, readDatasetSize, code, codePos);
+		}
+
 		generateProgramEpilogue(prog, pcfg);
 	}
 
@@ -424,8 +440,15 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgramPrologue(Program& prog, ProgramConfiguration& pcfg) {
 		codePos = ADDR(randomx_program_prologue_first_load) - ADDR(randomx_program_prologue);
-		*(uint32_t*)(code + codePos + 4) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
-		*(uint32_t*)(code + codePos + 14) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+
+		if (RandomX_CurrentConfig.Tweak_V2_AES && !hasAES) {
+			*(uint64_t*)(code + codePos + 9) = reinterpret_cast<uint64_t>(lutEnc);
+			*(uint64_t*)(code + codePos + 27) = reinterpret_cast<uint64_t>(lutDec);
+		}
+
+		*(uint32_t*)(code + codePos + 47) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+		*(uint32_t*)(code + codePos + 57) = RandomX_CurrentConfig.ScratchpadL3Mask64_Calculated;
+
 		if (hasAVX) {
 			uint32_t* p = (uint32_t*)(code + codePos + 61);
 			*p = (*p & 0xFF000000U) | 0x0077F8C5U; // vzeroupper
@@ -476,8 +499,21 @@ namespace randomx {
 		*(uint64_t*)(code + codePos) = 0xc03349c08b49ull + (static_cast<uint64_t>(pcfg.readReg0) << 16) + (static_cast<uint64_t>(pcfg.readReg1) << 40);
 		codePos += 6;
 		emit(RandomX_CurrentConfig.codePrefetchScratchpadTweaked, RandomX_CurrentConfig.codePrefetchScratchpadTweakedSize, code, codePos);
-		memcpy(code + codePos, codeLoopStore, loopStoreSize);
-		codePos += loopStoreSize;
+
+		if (RandomX_CurrentConfig.Tweak_V2_AES) {
+			if (hasAES) {
+				memcpy(code + codePos, codeLoopStoreHardAES, loopStoreHardAESSize);
+				codePos += loopStoreHardAESSize;
+			}
+			else {
+				memcpy(code + codePos, codeLoopStoreSoftAES, loopStoreSoftAESSize);
+				codePos += loopStoreSoftAESSize;
+			}
+		}
+		else {
+			memcpy(code + codePos, codeLoopStore, loopStoreSize);
+			codePos += loopStoreSize;
+		}
 
 		if (BranchesWithin32B) {
 			const uint32_t branch_begin = static_cast<uint32_t>(codePos);
@@ -1307,7 +1343,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		int32_t t = prevCFROUND;
 
-		if (t > prevFPOperation) {
+		if ((t > prevFPOperation) && !RandomX_CurrentConfig.Tweak_V2_CFROUND) {
 			if (vm_flags & RANDOMX_FLAG_AMD) {
 				memcpy(p + t, NOP26, 26);
 			}
@@ -1326,14 +1362,38 @@ namespace randomx {
 		*(uint32_t*)(p + pos + 3) = 0x00C8C148 + (rotate << 24);
 
 		if (vm_flags & RANDOMX_FLAG_AMD) {
-			*(uint64_t*)(p + pos + 7) = 0x742024443B0CE083ULL;
-			*(uint64_t*)(p + pos + 15) = 0x8900EB0414AE0F0AULL;
-			*(uint32_t*)(p + pos + 23) = 0x202444;
-			pos += 26;
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				*(uint32_t*)(p + pos + 7) = 0x1375F0A8;
+				pos += 11;
+			}
+			else {
+				pos += 7;
+			}
+			*(uint64_t*)(p + pos) = 0x742024443B0CE083ULL;
+			*(uint64_t*)(p + pos + 8) = 0x8900EB0414AE0F0AULL;
+			*(uint32_t*)(p + pos + 16) = 0x202444;
+			pos += 19;
 		}
 		else {
-			*(uint64_t*)(p + pos + 7) = 0x0414AE0F0CE083ULL;
-			pos += 14;
+			pos += 7;
+
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				if (BranchesWithin32B) {
+					const uint32_t branch_begin = static_cast<uint32_t>(pos + 2) & 31;
+
+					// If the jump crosses or touches 32-byte boundary, align it
+					if (branch_begin >= 30) {
+						const uint32_t alignment_size = 32 - branch_begin;
+						emit(NOPX[alignment_size - 1], alignment_size, code, pos);
+					}
+				}
+
+				*(uint32_t*)(p + pos) = 0x0775F0A8;
+				pos += 4;
+			}
+
+			*(uint64_t*)(p + pos) = 0x0414AE0F0CE083ULL;
+			pos += 7;
 		}
 
 		codePos = pos;
@@ -1343,7 +1403,7 @@ namespace randomx {
 		uint8_t* const p = code;
 		int32_t t = prevCFROUND;
 
-		if (t > prevFPOperation) {
+		if ((t > prevFPOperation) && !RandomX_CurrentConfig.Tweak_V2_CFROUND){
 			if (vm_flags & RANDOMX_FLAG_AMD) {
 				memcpy(p + t, NOP25, 25);
 			}
@@ -1361,14 +1421,38 @@ namespace randomx {
 		*(uint64_t*)(p + pos) = 0xC0F0FBC3C4ULL | (src << 32) | (rotate << 40);
 
 		if (vm_flags & RANDOMX_FLAG_AMD) {
-			*(uint64_t*)(p + pos + 6) = 0x742024443B0CE083ULL;
-			*(uint64_t*)(p + pos + 14) = 0x8900EB0414AE0F0AULL;
-			*(uint32_t*)(p + pos + 22) = 0x202444;
-			pos += 25;
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				*(uint32_t*)(p + pos + 6) = 0x1375F0A8;
+				pos += 10;
+			}
+			else {
+				pos += 6;
+			}
+			*(uint64_t*)(p + pos) = 0x742024443B0CE083ULL;
+			*(uint64_t*)(p + pos + 8) = 0x8900EB0414AE0F0AULL;
+			*(uint32_t*)(p + pos + 16) = 0x202444;
+			pos += 19;
 		}
 		else {
-			*(uint64_t*)(p + pos + 6) = 0x0414AE0F0CE083ULL;
-			pos += 13;
+			pos += 6;
+
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				if (BranchesWithin32B) {
+					const uint32_t branch_begin = static_cast<uint32_t>(pos + 2) & 31;
+
+					// If the jump crosses or touches 32-byte boundary, align it
+					if (branch_begin >= 30) {
+						const uint32_t alignment_size = 32 - branch_begin;
+						emit(NOPX[alignment_size - 1], alignment_size, code, pos);
+					}
+				}
+
+				*(uint32_t*)(p + pos) = 0x0775F0A8;
+				pos += 4;
+			}
+
+			*(uint64_t*)(p + pos) = 0x0414AE0F0CE083ULL;
+			pos += 7;
 		}
 
 		codePos = pos;

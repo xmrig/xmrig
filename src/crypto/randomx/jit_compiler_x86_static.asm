@@ -39,6 +39,7 @@ PUBLIC randomx_program_loop_load
 PUBLIC randomx_program_loop_load_xop
 PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
+PUBLIC randomx_program_read_dataset_v2
 PUBLIC randomx_program_read_dataset_sshash_init
 PUBLIC randomx_program_read_dataset_sshash_fin
 PUBLIC randomx_dataset_init
@@ -48,6 +49,8 @@ PUBLIC randomx_dataset_init_avx2_epilogue
 PUBLIC randomx_dataset_init_avx2_ssh_load
 PUBLIC randomx_dataset_init_avx2_ssh_prefetch
 PUBLIC randomx_program_loop_store
+PUBLIC randomx_program_loop_store_hard_aes
+PUBLIC randomx_program_loop_store_soft_aes
 PUBLIC randomx_program_loop_end
 PUBLIC randomx_program_epilogue
 PUBLIC randomx_sshash_load
@@ -90,19 +93,23 @@ randomx_program_prologue PROC
 randomx_program_prologue ENDP
 
 randomx_program_prologue_first_load PROC
+	sub rsp, 248
+	mov rdx, 01111111111111111h
+	mov [rsp+232], rdx ;# aes_lut_enc
+	mov rdx, 01111111111111111h
+	mov [rsp+240], rdx ;# aes_lut_dec
 	mov rdx, rax
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
-	sub rsp, 40
+	nop
+	nop
+	nop
 	mov dword ptr [rsp], 9FC0h
 	mov dword ptr [rsp+4], 0BFC0h
 	mov dword ptr [rsp+8], 0DFC0h
 	mov dword ptr [rsp+12], 0FFC0h
 	mov dword ptr [rsp+32], -1
-	nop
-	nop
-	nop
 	jmp randomx_program_imul_rcp_store
 randomx_program_prologue_first_load ENDP
 
@@ -135,6 +142,10 @@ randomx_program_read_dataset PROC
 	include asm/program_read_dataset.inc
 randomx_program_read_dataset ENDP
 
+randomx_program_read_dataset_v2 PROC
+	include asm/program_read_dataset_v2.inc
+randomx_program_read_dataset_v2 ENDP
+
 randomx_program_read_dataset_sshash_init PROC
 	include asm/program_read_dataset_sshash_init.inc
 randomx_program_read_dataset_sshash_init ENDP
@@ -146,6 +157,14 @@ randomx_program_read_dataset_sshash_fin ENDP
 randomx_program_loop_store PROC
 	include asm/program_loop_store.inc
 randomx_program_loop_store ENDP
+
+randomx_program_loop_store_hard_aes PROC
+	include asm/program_loop_store_hard_aes.inc
+randomx_program_loop_store_hard_aes ENDP
+
+randomx_program_loop_store_soft_aes PROC
+	include asm/program_loop_store_soft_aes.inc
+randomx_program_loop_store_soft_aes ENDP
 
 randomx_program_loop_end PROC
 	nop
