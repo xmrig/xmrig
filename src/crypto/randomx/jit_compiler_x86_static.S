@@ -48,9 +48,12 @@
 .global DECL(randomx_program_loop_load_xop)
 .global DECL(randomx_program_start)
 .global DECL(randomx_program_read_dataset)
+.global DECL(randomx_program_read_dataset_v2)
 .global DECL(randomx_program_read_dataset_sshash_init)
 .global DECL(randomx_program_read_dataset_sshash_fin)
 .global DECL(randomx_program_loop_store)
+.global DECL(randomx_program_loop_store_hard_aes)
+.global DECL(randomx_program_loop_store_soft_aes)
 .global DECL(randomx_program_loop_end)
 .global DECL(randomx_dataset_init)
 .global DECL(randomx_dataset_init_avx2_prologue)
@@ -101,19 +104,23 @@ DECL(randomx_program_prologue):
 	movapd xmm15, xmmword ptr [scaleMask+rip]
 
 DECL(randomx_program_prologue_first_load):
+	sub rsp, 248
+	mov rdx, 0x1111111111111111
+	mov [rsp+232], rdx ;# aes_lut_enc
+	mov rdx, 0x1111111111111111
+	mov [rsp+240], rdx ;# aes_lut_dec
 	mov rdx, rax
 	and eax, RANDOMX_SCRATCHPAD_MASK
 	ror rdx, 32
 	and edx, RANDOMX_SCRATCHPAD_MASK
-	sub rsp, 40
+	nop
+	nop
+	nop
 	mov dword ptr [rsp], 0x9FC0
 	mov dword ptr [rsp+4], 0xBFC0
 	mov dword ptr [rsp+8], 0xDFC0
 	mov dword ptr [rsp+12], 0xFFC0
 	mov dword ptr [rsp+32], -1
-	nop
-	nop
-	nop
 	jmp DECL(randomx_program_imul_rcp_store)
 
 .balign 64
@@ -139,6 +146,9 @@ DECL(randomx_program_start):
 DECL(randomx_program_read_dataset):
 	#include "asm/program_read_dataset.inc"
 
+DECL(randomx_program_read_dataset_v2):
+	#include "asm/program_read_dataset_v2.inc"
+
 DECL(randomx_program_read_dataset_sshash_init):
 	#include "asm/program_read_dataset_sshash_init.inc"
 
@@ -147,6 +157,12 @@ DECL(randomx_program_read_dataset_sshash_fin):
 
 DECL(randomx_program_loop_store):
 	#include "asm/program_loop_store.inc"
+
+DECL(randomx_program_loop_store_hard_aes):
+	#include "asm/program_loop_store_hard_aes.inc"
+
+DECL(randomx_program_loop_store_soft_aes):
+	#include "asm/program_loop_store_soft_aes.inc"
 
 DECL(randomx_program_loop_end):
 	nop

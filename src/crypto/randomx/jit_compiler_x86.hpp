@@ -97,6 +97,7 @@ namespace randomx {
 #		endif
 
 		bool BranchesWithin32B = false;
+		bool hasAES;
 		bool hasAVX;
 		bool hasAVX2;
 		bool initDatasetAVX2;
