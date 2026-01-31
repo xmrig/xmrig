@@ -83,6 +83,7 @@ namespace randomx {
 		uint32_t literalPos;
 		uint32_t num32bitLiterals = 0;
 		size_t allocatedSize = 0;
+		uint32_t vm_flags = 0;
 
 		void allocate(size_t size);
 

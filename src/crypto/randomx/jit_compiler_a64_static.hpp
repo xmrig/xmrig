@@ -38,9 +38,17 @@ extern "C" {
 	void randomx_program_aarch64_cacheline_align_mask1();
 	void randomx_program_aarch64_cacheline_align_mask2();
 	void randomx_program_aarch64_update_spMix1();
+	void randomx_program_aarch64_v2_FE_mix();
+	void randomx_program_aarch64_v1_FE_mix();
+	void randomx_program_aarch64_v2_FE_mix_soft_aes();
 	void randomx_program_aarch64_vm_instructions_end_light();
+	void randomx_program_aarch64_vm_instructions_end_light_tweak();
 	void randomx_program_aarch64_light_cacheline_align_mask();
 	void randomx_program_aarch64_light_dataset_offset();
+	void randomx_program_aarch64_vm_instructions_end_v1();
+	void randomx_program_aarch64_vm_instructions_end_v2();
+	void randomx_program_aarch64_vm_instructions_end_light_v1();
+	void randomx_program_aarch64_vm_instructions_end_light_v2();
 	void randomx_init_dataset_aarch64();
 	void randomx_init_dataset_aarch64_end();
 	void randomx_calc_dataset_item_aarch64();

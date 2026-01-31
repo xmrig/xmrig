@@ -114,7 +114,7 @@ JitCompilerA64::~JitCompilerA64()
 	freePagedMemory(code, allocatedSize);
 }
 
-void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t)
+void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t flags)
 {
 	if (!allocatedSize) {
 		allocate(CodeSize);
@@ -124,6 +124,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 		enableWriting();
 	}
 #endif
+
+	vm_flags = flags;
 
 	uint32_t codePos = MainLoopBegin + 4;
 
@@ -156,9 +158,9 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
 
 	mask = ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10);
-	// and w20, w9, CacheLineAlignMask
+	// and w20, w20, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_cacheline_align_mask1) - ((uint8_t*)randomx_program_aarch64));
-	emit32(0x121A0000 | 20 | (9 << 5) | mask, code, codePos);
+	emit32(0x121A0000 | 20 | (20 << 5) | mask, code, codePos);
 
 	// and w10, w10, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_cacheline_align_mask2) - ((uint8_t*)randomx_program_aarch64));
@@ -168,6 +170,38 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	// eor x10, config.readReg0, config.readReg1
 	codePos = ((uint8_t*)randomx_program_aarch64_update_spMix1) - ((uint8_t*)randomx_program_aarch64);
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
+
+	codePos = ((uint8_t*)randomx_program_aarch64_v2_FE_mix) - ((uint8_t*)randomx_program_aarch64);
+
+	// Enable RandomX v2 AES tweak
+	if (RandomX_CurrentConfig.Tweak_V2_AES) {
+		if (flags & RANDOMX_FLAG_HARD_AES) {
+			// Disable the jump to RandomX v1 FE mix code by writing "movi v28.4s, 0" instruction
+			emit32(0x4F00041C, code, codePos);
+		}
+		else {
+			// Jump to RandomX v2 FE mix soft AES code by writing "b randomx_program_aarch64_v2_FE_mix_soft_aes" instruction
+			const uint32_t offset = (uint8_t*)randomx_program_aarch64_v2_FE_mix_soft_aes - (uint8_t*)randomx_program_aarch64_v2_FE_mix;
+			emit32(ARMV8A::B | (offset / 4), code, codePos);
+		}
+	}
+	else {
+		// Restore the jump to RandomX v1 FE mix code
+		const uint32_t offset = (uint8_t*)randomx_program_aarch64_v1_FE_mix - (uint8_t*)randomx_program_aarch64_v2_FE_mix;
+		emit32(ARMV8A::B | (offset / 4), code, codePos);
+	}
+
+	// Apply v2 prefetch tweak
+	if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+		uint32_t dst = (((uint8_t*)randomx_program_aarch64_vm_instructions_end) - ((uint8_t*)randomx_program_aarch64));
+		uint32_t src = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_v2) - ((uint8_t*)randomx_program_aarch64));
+		memcpy(code + dst, code + src, 16);
+	}
+	else {
+		uint32_t dst = (((uint8_t*)randomx_program_aarch64_vm_instructions_end) - ((uint8_t*)randomx_program_aarch64));
+		uint32_t src = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_v1) - ((uint8_t*)randomx_program_aarch64));
+		memcpy(code + dst, code + src, 16);
+	}
 
 #	ifndef XMRIG_OS_APPLE
 	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
@@ -210,18 +244,50 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	// eor w20, config.readReg2, config.readReg3
 	emit32(ARMV8A::EOR32 | 20 | (IntRegMap[config.readReg2] << 5) | (IntRegMap[config.readReg3] << 16), code, codePos);
 
+	// Apply v2 prefetch tweak
+	if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+		uint32_t dst = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light_tweak) - ((uint8_t*)randomx_program_aarch64));
+		uint32_t src = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light_v2) - ((uint8_t*)randomx_program_aarch64));
+		memcpy(code + dst, code + src, 8);
+	}
+	else {
+		uint32_t dst = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light_tweak) - ((uint8_t*)randomx_program_aarch64));
+		uint32_t src = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light_v1) - ((uint8_t*)randomx_program_aarch64));
+		memcpy(code + dst, code + src, 8);
+	}
+
 	// Jump back to the main loop
 	const uint32_t offset = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light) - ((uint8_t*)randomx_program_aarch64)) - codePos;
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
 
-	// and w2, w9, CacheLineAlignMask
+	// and w2, w2, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_light_cacheline_align_mask) - ((uint8_t*)randomx_program_aarch64));
-	emit32(0x121A0000 | 2 | (9 << 5) | ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10), code, codePos);
+	emit32(0x121A0000 | 2 | (2 << 5) | ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10), code, codePos);
 
 	// Update spMix1
 	// eor x10, config.readReg0, config.readReg1
 	codePos = ((uint8_t*)randomx_program_aarch64_update_spMix1) - ((uint8_t*)randomx_program_aarch64);
 	emit32(ARMV8A::EOR | 10 | (IntRegMap[config.readReg0] << 5) | (IntRegMap[config.readReg1] << 16), code, codePos);
+
+	codePos = ((uint8_t*)randomx_program_aarch64_v2_FE_mix) - ((uint8_t*)randomx_program_aarch64);
+
+	// Enable RandomX v2 AES tweak
+	if (RandomX_CurrentConfig.Tweak_V2_AES) {
+		if (vm_flags & RANDOMX_FLAG_HARD_AES) {
+			// Disable the jump to RandomX v1 FE mix code by writing "movi v28.4s, 0" instruction
+			emit32(0x4F00041C, code, codePos);
+		}
+		else {
+			// Jump to RandomX v2 FE mix soft AES code by writing "b randomx_program_aarch64_v2_FE_mix_soft_aes" instruction
+			const uint32_t offset = (uint8_t*)randomx_program_aarch64_v2_FE_mix_soft_aes - (uint8_t*)randomx_program_aarch64_v2_FE_mix;
+			emit32(ARMV8A::B | (offset / 4), code, codePos);
+		}
+	}
+	else {
+		// Restore the jump to RandomX v1 FE mix code
+		const uint32_t offset = (uint8_t*)randomx_program_aarch64_v1_FE_mix - (uint8_t*)randomx_program_aarch64_v2_FE_mix;
+		emit32(ARMV8A::B | (offset / 4), code, codePos);
+	}
 
 	// Apply dataset offset
 	codePos = ((uint8_t*)randomx_program_aarch64_light_dataset_offset) - ((uint8_t*)randomx_program_aarch64);
@@ -1035,19 +1101,19 @@ void JitCompilerA64::h_CFROUND(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg = 20;
 	constexpr uint32_t fpcr_tmp_reg = 8;
 
-	if (instr.getImm32() & 63)
-	{
-		// ror tmp_reg, src, imm
-		emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
+	// ror tmp_reg, src, imm
+	emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
 
-		// bfi fpcr_tmp_reg, tmp_reg, 40, 2
-		emit32(0xB3580400 | fpcr_tmp_reg | (tmp_reg << 5), code, k);
+	if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+		// tst tmp_reg, 60
+		emit32(0xF27E0E9F, code, k);
+
+		// bne next
+		emit32(0x54000081, code, k);
 	}
-	else	// no rotation
-	{
-		// bfi fpcr_tmp_reg, src, 40, 2
-		emit32(0xB3580400 | fpcr_tmp_reg | (src << 5), code, k);
-	}
+
+	// bfi fpcr_tmp_reg, tmp_reg, 40, 2
+	emit32(0xB3580400 | fpcr_tmp_reg | (tmp_reg << 5), code, k);
 
 	// rbit tmp_reg, fpcr_tmp_reg
 	emit32(0xDAC00000 | tmp_reg | (fpcr_tmp_reg << 5), code, k);
