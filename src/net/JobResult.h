@@ -34,6 +34,8 @@
 #include "base/tools/String.h"
 #include "base/net/stratum/Job.h"
 
+#include "crypto/randomx/randomx.h"
+
 
 namespace xmrig {
 
@@ -43,7 +45,7 @@ class JobResult
 public:
     JobResult() = delete;
 
-    inline JobResult(const Job &job, uint64_t nonce, const uint8_t *result, const uint8_t* header_hash = nullptr, const uint8_t *mix_hash = nullptr, const uint8_t* miner_signature = nullptr) :
+    inline JobResult(const Job &job, uint64_t nonce, const uint8_t *result, const uint8_t* header_hash = nullptr, const uint8_t *mix_hash = nullptr, const uint8_t* extra_data = nullptr) :
         algorithm(job.algorithm()),
         index(job.index()),
         clientId(job.clientId()),
@@ -62,9 +64,15 @@ public:
             memcpy(m_mixHash, mix_hash, sizeof(m_mixHash));
         }
 
-        if (miner_signature) {
-            m_hasMinerSignature = true;
-            memcpy(m_minerSignature, miner_signature, sizeof(m_minerSignature));
+        if (extra_data) {
+            if (algorithm == Algorithm::RX_V2) {
+                m_hasCommitment = true;
+                memcpy(m_extraData, extra_data, RANDOMX_HASH_SIZE);
+            }
+            else if (algorithm == Algorithm::RX_WOW) {
+                m_hasMinerSignature = true;
+                memcpy(m_extraData, extra_data, RANDOMX_HASH_SIZE * 2);
+            }
         }
     }
 
@@ -85,7 +93,8 @@ public:
     inline const uint8_t *headerHash() const { return m_headerHash; }
     inline const uint8_t *mixHash() const    { return m_mixHash; }
 
-    inline const uint8_t *minerSignature() const { return m_hasMinerSignature ? m_minerSignature : nullptr; }
+    inline const uint8_t *minerSignature() const { return m_hasMinerSignature ? m_extraData : nullptr; }
+    inline const uint8_t *commitment() const { return m_hasCommitment ? m_extraData : nullptr; }
 
     const Algorithm algorithm;
     const uint8_t index;
@@ -100,8 +109,10 @@ private:
     uint8_t m_headerHash[32] = { 0 };
     uint8_t m_mixHash[32]    = { 0 };
 
-    uint8_t m_minerSignature[64] = { 0 };
+    uint8_t m_extraData[RANDOMX_HASH_SIZE * 2] = { 0 };
+
     bool m_hasMinerSignature = false;
+    bool m_hasCommitment = false;
 };
 
 
