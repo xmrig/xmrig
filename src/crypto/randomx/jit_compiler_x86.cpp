@@ -1379,10 +1379,10 @@ namespace randomx {
 
 			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
 				if (BranchesWithin32B) {
-					const uint32_t branch_begin = static_cast<uint32_t>(pos + 2) & 31;
+					const uint32_t branch_begin = pos & 31;
 
 					// If the jump crosses or touches 32-byte boundary, align it
-					if (branch_begin >= 30) {
+					if (branch_begin >= 28) {
 						const uint32_t alignment_size = 32 - branch_begin;
 						emit(NOPX[alignment_size - 1], alignment_size, code, pos);
 					}
@@ -1438,10 +1438,10 @@ namespace randomx {
 
 			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
 				if (BranchesWithin32B) {
-					const uint32_t branch_begin = static_cast<uint32_t>(pos + 2) & 31;
+					const uint32_t branch_begin = pos & 31;
 
 					// If the jump crosses or touches 32-byte boundary, align it
-					if (branch_begin >= 30) {
+					if (branch_begin >= 28) {
 						const uint32_t alignment_size = 32 - branch_begin;
 						emit(NOPX[alignment_size - 1], alignment_size, code, pos);
 					}
