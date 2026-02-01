@@ -29,14 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-template<int softAes>
 void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash);
-
-template<int softAes>
 void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer);
-
-template<int softAes>
 void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer);
-
-template<int softAes, int unroll>
 void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);

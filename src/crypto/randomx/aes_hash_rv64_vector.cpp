@@ -69,7 +69,16 @@ static constexpr uint32_t AES_HASH_1R_XKEY11[8] = { 0x61b263d1, 0x51f4e03c, 0xee
 static constexpr uint32_t AES_HASH_STRIDE_X2[8] = { 0, 4, 8, 12, 32, 36, 40, 44 };
 static constexpr uint32_t AES_HASH_STRIDE_X4[8] = { 0, 4, 8, 12, 64, 68, 72, 76 };
 
-template<int softAes>
+#define lutEnc0 lutEnc[0]
+#define lutEnc1 lutEnc[1]
+#define lutEnc2 lutEnc[2]
+#define lutEnc3 lutEnc[3]
+
+#define lutDec0 lutDec[0]
+#define lutDec1 lutDec[1]
+#define lutDec2 lutDec[2]
+#define lutDec3 lutDec[3]
+
 void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash) {
 	const uint8_t* inptr = (const uint8_t*)input;
 	const uint8_t* inputEnd = inptr + inputSize;
@@ -113,10 +122,6 @@ void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash) {
 	__riscv_vsuxei32_v_u32m1((uint32_t*)hash + 4, stride, state13, 8);
 }
 
-template void hashAes1Rx4_RVV<false>(const void *input, size_t inputSize, void *hash);
-template void hashAes1Rx4_RVV<true>(const void *input, size_t inputSize, void *hash);
-
-template<int softAes>
 void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 	const uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
@@ -153,10 +158,6 @@ void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 	__riscv_vsuxei32_v_u32m1((uint32_t*)state + 4, stride, state13, 8);
 }
 
-template void fillAes1Rx4_RVV<false>(void *state, size_t outputSize, void *buffer);
-template void fillAes1Rx4_RVV<true>(void *state, size_t outputSize, void *buffer);
-
-template<int softAes>
 void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 	const uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
@@ -203,10 +204,6 @@ void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 	}
 }
 
-template void fillAes4Rx4_RVV<false>(void *state, size_t outputSize, void *buffer);
-template void fillAes4Rx4_RVV<true>(void *state, size_t outputSize, void *buffer);
-
-template<int softAes, int unroll>
 void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state) {
 	uint8_t* scratchpadPtr = (uint8_t*)scratchpad;
 	const uint8_t* scratchpadEnd = scratchpadPtr + scratchpadSize;
@@ -244,54 +241,13 @@ void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash,
 		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, fill_state02, 8); \
 		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, fill_state13, 8);
 
-		switch (softAes) {
-			case 0:
-				HASH_STATE(0);
-				HASH_STATE(1);
+		HASH_STATE(0);
+		HASH_STATE(1);
 
-				FILL_STATE(0);
-				FILL_STATE(1);
+		FILL_STATE(0);
+		FILL_STATE(1);
 
-				scratchpadPtr += 128;
-				break;
-
-			default:
-				switch (unroll) {
-					case 4:
-						HASH_STATE(0);
-						FILL_STATE(0);
-
-						HASH_STATE(1);
-						FILL_STATE(1);
-
-						HASH_STATE(2);
-						FILL_STATE(2);
-
-						HASH_STATE(3);
-						FILL_STATE(3);
-
-						scratchpadPtr += 64 * 4;
-						break;
-
-					case 2:
-						HASH_STATE(0);
-						FILL_STATE(0);
-
-						HASH_STATE(1);
-						FILL_STATE(1);
-
-						scratchpadPtr += 64 * 2;
-						break;
-
-					default:
-						HASH_STATE(0);
-						FILL_STATE(0);
-
-						scratchpadPtr += 64;
-						break;
-				}
-				break;
-		}
+		scratchpadPtr += 128;
 	}
 
 #undef HASH_STATE
@@ -314,9 +270,3 @@ void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash,
 	__riscv_vsuxei32_v_u32m1((uint32_t*)hash + 0, stride, hash_state02, 8);
 	__riscv_vsuxei32_v_u32m1((uint32_t*)hash + 4, stride, hash_state13, 8);
 }
-
-template void hashAndFillAes1Rx4_RVV<0,2>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
-template void hashAndFillAes1Rx4_RVV<1,1>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
-template void hashAndFillAes1Rx4_RVV<2,1>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
-template void hashAndFillAes1Rx4_RVV<2,2>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
-template void hashAndFillAes1Rx4_RVV<2,4>(void* scratchpad, size_t scratchpadSize, void* hash, void* fill_state);
