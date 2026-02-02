@@ -236,6 +236,10 @@ int64_t xmrig::Client::submit(const JobResult &result)
     if (result.commitment()) {
         params.AddMember("commitment", StringRef(commitment), allocator);
     }
+#   else
+    if (result.commitment) {
+        params.AddMember("commitment", StringRef(result.commitment), allocator);
+    }
 #   endif
 
     if (has<EXT_ALGO>() && result.algorithm.isValid()) {
