@@ -17,6 +17,7 @@
  */
 
 #include "crypto/rx/RxConfig.h"
+#include "crypto/randomx/randomx.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/cpu/Cpu.h"
 #include "base/io/json/Json.h"
@@ -25,6 +26,7 @@
 #include <array>
 #include <algorithm>
 #include <cmath>
+#include <uv.h>
 
 
 #ifdef _MSC_VER
@@ -183,11 +185,20 @@ rapidjson::Value xmrig::RxConfig::toJSON(rapidjson::Document &doc) const
 #ifdef XMRIG_FEATURE_HWLOC
 std::vector<uint32_t> xmrig::RxConfig::nodeset() const
 {
+    auto info = Cpu::info();
+
+    constexpr uint64_t dataset_mem = RandomX_ConfigurationBase::DatasetBaseSize + RandomX_ConfigurationBase::DatasetExtraSize;
+    constexpr uint64_t cache_mem = RandomX_ConfigurationBase::ArgonMemory * 1024;
+    const uint64_t threads_mem = info->threads() << 21;
+
+    const uint64_t freem_mem = uv_get_free_memory();
+
     if (!m_nodeset.empty()) {
-        return m_nodeset;
+        return (freem_mem > m_nodeset.size() * dataset_mem + cache_mem + threads_mem) ? m_nodeset : std::vector<uint32_t>();
     }
 
-    return (m_numa && Cpu::info()->nodes() > 1) ? Cpu::info()->nodeset() : std::vector<uint32_t>();
+    const uint64_t n = info->nodes();
+    return (m_numa && (n > 1) && (freem_mem > n * dataset_mem + cache_mem + threads_mem)) ? Cpu::info()->nodeset() : std::vector<uint32_t>();
 }
 #endif
 
