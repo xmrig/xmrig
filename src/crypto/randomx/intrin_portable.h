@@ -577,8 +577,13 @@ inline void* rx_aligned_alloc(size_t size, size_t align) {
 #   define rx_aligned_free(a) free(a)
 #endif
 
+#ifdef __GNUC__
+#define rx_prefetch_nta(x) __builtin_prefetch((x), 0, 0)
+#define rx_prefetch_t0(x) __builtin_prefetch((x), 0, 3)
+#else
 #define rx_prefetch_nta(x)
 #define rx_prefetch_t0(x)
+#endif
 
 FORCE_INLINE rx_vec_f128 rx_load_vec_f128(const double* pd) {
 	rx_vec_f128 x;
