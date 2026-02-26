@@ -29,7 +29,7 @@ __constant const uint32_t ravencoin_rndc[15] = {
 };
 
 // Implementation of the Keccakf transformation with a width of 800
-void keccak_f800_round(uint32_t st[25], const int r)
+void keccak_f800_round(__private uint32_t *st, const int r)
 {
     const uint32_t keccakf_rotc[24] = {
         1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 2, 14, 27, 41, 56, 8, 25, 43, 62, 18, 39, 61, 20, 44};
@@ -74,7 +74,7 @@ void keccak_f800_round(uint32_t st[25], const int r)
 // Keccak - implemented as a variant of SHAKE
 // The width is 800, with a bitrate of 576, a capacity of 224, and no padding
 // Only need 64 bits of output for mining
-void keccak_f800(uint32_t* st)
+void keccak_f800(__private uint32_t *st)
 {
     // Complete all 22 rounds as a separate impl to
     // evaluate only first 8 words is wasteful of regsters
