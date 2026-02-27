@@ -74,7 +74,7 @@ void keccak_f800_round(uint32_t st[25], const int r)
 // Keccak - implemented as a variant of SHAKE
 // The width is 800, with a bitrate of 576, a capacity of 224, and no padding
 // Only need 64 bits of output for mining
-void keccak_f800(uint32_t* st)
+void keccak_f800(uint32_t st[25])
 {
     // Complete all 22 rounds as a separate impl to
     // evaluate only first 8 words is wasteful of registers
