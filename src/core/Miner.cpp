@@ -574,6 +574,7 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     mutex.lock();
 
     const uint8_t index = donate ? 1 : 0;
+    const bool same_job_index = d_ptr->job.index() == index;
 
     d_ptr->reset = !(d_ptr->job.index() == 1 && index == 0 && d_ptr->userJobId == job.id());
 
@@ -593,7 +594,8 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     const bool ready = d_ptr->initRX();
 
     // Always reset nonce on RandomX dataset change
-    if (!ready) {
+    // Except for switching to/from donation
+    if (!ready && same_job_index) {
         d_ptr->reset = true;
     }
 #   else
