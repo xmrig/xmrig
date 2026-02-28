@@ -1,0 +1,45 @@
+on: push
+
+name: Test builds
+
+jobs:
+  build_win:
+    name: Windows build
+    runs-on: windows-2025
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - name: Setup MSYS2 + UCRT64
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64           # selects the UCRT64 environment
+          update: true
+          install: >
+            base-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            cmake
+            git
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Checkout deps
+        run:  git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build project on Windows
+        run: |
+          cmake . -G "Unix Makefiles" -DXMRIG_DEPS=./xmrig-deps/gcc/x64
+          make -j2
+
+  build_lin:
+    name: Ubuntu build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare Ubuntu tools
+        run: |
+          sudo apt update
+          sudo apt install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+      - name: Checkout code
+        uses: actions/checkout@master
+      - name: Build project on Ubuntu
+        run: |
+          cmake .
+          make -j$(nproc)

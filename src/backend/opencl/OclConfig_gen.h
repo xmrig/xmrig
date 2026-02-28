@@ -51,6 +51,9 @@ size_t inline generate<Algorithm::CN>(Threads<OclThreads> &threads, const std::v
 
     count += generate(Algorithm::kCN, threads, Algorithm::CN_1, devices);
     count += generate(Algorithm::kCN_2, threads, Algorithm::CN_2, devices);
+#   ifdef XMRIG_ALGO_CN_GPU
+    count += generate(Algorithm::kCN_GPU, threads, Algorithm::CN_GPU, devices);
+#   endif
 
     if (!threads.isExist(Algorithm::CN_0)) {
         threads.disable(Algorithm::CN_0);
@@ -113,6 +116,7 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<OclThreads> &threads, const 
     auto rx  = OclThreads(devices, Algorithm::RX_0);
     auto wow = OclThreads(devices, Algorithm::RX_WOW);
     auto arq = OclThreads(devices, Algorithm::RX_ARQ);
+    auto xeq = OclThreads(devices, Algorithm::RX_XEQ);
 
     if (!threads.isExist(Algorithm::RX_WOW) && wow != rx) {
         count += threads.move(Algorithm::kRX_WOW, std::move(wow));
@@ -120,6 +124,10 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<OclThreads> &threads, const 
 
     if (!threads.isExist(Algorithm::RX_ARQ) && arq != rx) {
         count += threads.move(Algorithm::kRX_ARQ, std::move(arq));
+    }
+
+    if (!threads.isExist(Algorithm::RX_XEQ) && xeq != rx) {
+        count += threads.move(Algorithm::kRX_XEQ, std::move(xeq));
     }
 
     count += threads.move(Algorithm::kRX, std::move(rx));

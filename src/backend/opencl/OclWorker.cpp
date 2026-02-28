@@ -30,6 +30,10 @@
 #include "net/JobResults.h"
 
 
+#ifdef XMRIG_ALGO_CN_GPU
+#   include "backend/opencl/runners/OclRyoRunner.h"
+#endif
+
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "backend/opencl/runners/OclRxJitRunner.h"
 #   include "backend/opencl/runners/OclRxVmRunner.h"
@@ -93,6 +97,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         break;
 
     default:
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (m_algorithm == Algorithm::CN_GPU) {
+            m_runner = new OclRyoRunner(id, data);
+        }
+        else
+#       endif
         m_runner = new OclCnRunner(id, data);
         break;
     }

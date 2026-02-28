@@ -39,6 +39,7 @@ PUBLIC randomx_program_loop_load
 PUBLIC randomx_program_loop_load_xop
 PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
+PUBLIC randomx_program_read_dataset_ryzen
 PUBLIC randomx_program_read_dataset_sshash_init
 PUBLIC randomx_program_read_dataset_sshash_fin
 PUBLIC randomx_dataset_init
@@ -134,6 +135,10 @@ randomx_program_start ENDP
 randomx_program_read_dataset PROC
 	include asm/program_read_dataset.inc
 randomx_program_read_dataset ENDP
+
+randomx_program_read_dataset_ryzen PROC
+	include asm/program_read_dataset_ryzen.inc
+randomx_program_read_dataset_ryzen ENDP
 
 randomx_program_read_dataset_sshash_init PROC
 	include asm/program_read_dataset_sshash_init.inc

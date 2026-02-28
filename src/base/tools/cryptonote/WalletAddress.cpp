@@ -228,17 +228,21 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x34f51a, { Coin::SUMO,       TESTNET,    INTEGRATED,     29734,  29735 } },
         { 0x1d351a, { Coin::SUMO,       TESTNET,    SUBADDRESS,     29734,  29735 } },
 
-        { 0x2cca,   { Coin::ARQMA,      MAINNET,    PUBLIC,         19994,  19995 } },
-        { 0x116bc7, { Coin::ARQMA,      MAINNET,    INTEGRATED,     19994,  19995 } },
-        { 0x6847,   { Coin::ARQMA,      MAINNET,    SUBADDRESS,     19994,  19995 } },
+        { 0x2cca,   { Coin::ARQ,        MAINNET,    PUBLIC,         19994,  19995 } },
+        { 0x116bc7, { Coin::ARQ,        MAINNET,    INTEGRATED,     19994,  19995 } },
+        { 0x6847,   { Coin::ARQ,        MAINNET,    SUBADDRESS,     19994,  19995 } },
 
-        { 0x53ca,   { Coin::ARQMA,      TESTNET,    PUBLIC,         29994,  29995 } },
-        { 0x504a,   { Coin::ARQMA,      TESTNET,    INTEGRATED,     29994,  29995 } },
-        { 0x524a,   { Coin::ARQMA,      TESTNET,    SUBADDRESS,     29994,  29995 } },
+        { 0x53ca,   { Coin::ARQ,        TESTNET,    PUBLIC,         29994,  29995 } },
+        { 0x504a,   { Coin::ARQ,        TESTNET,    INTEGRATED,     29994,  29995 } },
+        { 0x524a,   { Coin::ARQ,        TESTNET,    SUBADDRESS,     29994,  29995 } },
 
-        { 0x39ca,   { Coin::ARQMA,      STAGENET,   PUBLIC,         39994,  39995 } },
-        { 0x1742ca, { Coin::ARQMA,      STAGENET,   INTEGRATED,     39994,  39995 } },
-        { 0x1d84ca, { Coin::ARQMA,      STAGENET,   SUBADDRESS,     39994,  39995 } },
+        { 0x39ca,   { Coin::ARQ,        STAGENET,   PUBLIC,         39994,  39995 } },
+        { 0x1742ca, { Coin::ARQ,        STAGENET,   INTEGRATED,     39994,  39995 } },
+        { 0x1d84ca, { Coin::ARQ,        STAGENET,   SUBADDRESS,     39994,  39995 } },
+
+        { 0x121,    { Coin::XEQ,        MAINNET,    PUBLIC,          9231,   9232 } },
+        { 0x629f,   { Coin::XEQ,        MAINNET,    INTEGRATED,      9231,   9232 } },
+        { 0x59a0,   { Coin::XEQ,        MAINNET,    SUBADDRESS,      9231,   9232 } },
 
         { 0x1032,   { Coin::WOWNERO,    MAINNET,    PUBLIC,         34568,  34569 } },
         { 0x1a9a,   { Coin::WOWNERO,    MAINNET,    INTEGRATED,     34568,  34569 } },

@@ -46,7 +46,9 @@ public:
         MODE_POOL,
         MODE_DAEMON,
         MODE_SELF_SELECT,
+#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
         MODE_AUTO_ETH,
+#       endif
 #       ifdef XMRIG_FEATURE_BENCHMARK
         MODE_BENCHMARK,
 #       endif

@@ -37,6 +37,7 @@
 #include "crypto/rx/RxDataset.h"
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
+#include "crypto/flex/flex.h"
 #include "net/JobResults.h"
 
 
@@ -168,7 +169,13 @@ bool xmrig::CpuWorker<N>::selfTest()
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (m_algorithm.family() == Algorithm::GHOSTRIDER) {
-        return (N == 8) && verify(Algorithm::GHOSTRIDER_RTM, test_output_gr);
+        switch (m_algorithm.id()) {
+            case Algorithm::GHOSTRIDER_RTM:
+                return (N == 8) && verify(Algorithm::GHOSTRIDER_RTM, test_output_gr);
+            case Algorithm::FLEX_KCN:
+                return (N == 1) && verify(Algorithm::FLEX_KCN, test_output_flex);
+            default:;
+        }
     }
 #   endif
 
@@ -184,8 +191,18 @@ bool xmrig::CpuWorker<N>::selfTest()
                         verify(Algorithm::CN_RWZ,    test_output_rwz)  &&
                         verify(Algorithm::CN_ZLS,    test_output_zls)  &&
                         verify(Algorithm::CN_CCX,    test_output_ccx)  &&
-                        verify(Algorithm::CN_DOUBLE, test_output_double);
+                        verify(Algorithm::CN_DOUBLE, test_output_double)
+#                       ifdef XMRIG_ALGO_CN_GPU
+                        &&
+                        verify(Algorithm::CN_GPU,    test_output_gpu)
+#                       endif
+                        ;
 
+#       ifdef XMRIG_ALGO_CN_GPU
+        if (! (!rc || N > 1)) {
+            return verify(Algorithm::CN_GPU, test_output_gpu);
+        } else
+#       endif
         return rc;
     }
 
@@ -291,12 +308,13 @@ void xmrig::CpuWorker<N>::start()
 #           ifdef XMRIG_ALGO_RANDOMX
             uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
+
                 if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
                         job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                     }
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size(), job.algorithm());
                 }
 
                 if (!nextRound()) {
@@ -307,7 +325,7 @@ void xmrig::CpuWorker<N>::start()
                     memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
                     job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
                 }
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash, job.algorithm());
             }
             else
 #           endif
@@ -316,11 +334,23 @@ void xmrig::CpuWorker<N>::start()
 
 #               ifdef XMRIG_ALGO_GHOSTRIDER
                 case Algorithm::GHOSTRIDER:
-                    if (N == 8) {
-                        ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
-                    }
-                    else {
-                        valid = false;
+                    switch (job.algorithm()) {
+                        case Algorithm::GHOSTRIDER_RTM:
+                            if (N == 8) {
+                                ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                            } else {
+                                valid = false;
+                            }
+                            break;
+                        case Algorithm::FLEX_KCN:
+                            if (N == 1) {
+                                flex_hash(reinterpret_cast<const char*>(m_job.blob()), reinterpret_cast<char*>(m_hash), m_ctx);
+                            } else {
+                                valid = false;
+                            }
+                            break;
+                        default:
+                            valid = false;
                     }
                     break;
 #               endif
@@ -389,7 +419,8 @@ template<size_t N>
 bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (algorithm == Algorithm::GHOSTRIDER_RTM) {
+    switch (algorithm) {
+      case Algorithm::GHOSTRIDER_RTM: {
         uint8_t blob[N * 80] = {};
         for (size_t i = 0; i < N; ++i) {
             blob[i * 80 + 0] = static_cast<uint8_t>(i);
@@ -416,6 +447,19 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
         }
 
         return true;
+      }
+      case Algorithm::FLEX_KCN: {
+        const uint8_t header[80] = {
+          0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+          0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x1c, 0xcc, 0xa6, 0x6a,
+          0x44, 0xf8, 0xbd, 0x55, 0x45, 0xc3, 0x16, 0x4a, 0x3a, 0x76, 0xda, 0x50, 0x39, 0x53, 0x28, 0xc9, 0x07, 0x56, 0x33, 0x77,
+          0x5b, 0xc4, 0xc8, 0x79, 0x8f, 0xd6, 0x77, 0x2b, 0x70, 0x0d, 0x21, 0x5c, 0xf0, 0xff, 0x0f, 0x1e, 0x00, 0x00, 0x00, 0x00
+        };
+        char hash[32] = {};
+        flex_hash(reinterpret_cast<const char*>(header), hash, m_ctx);
+        return memcmp(referenceValue, hash, sizeof hash) == 0;
+      }
+      default:;
     }
 #   endif
 

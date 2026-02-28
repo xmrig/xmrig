@@ -19,6 +19,7 @@
 #include "base/net/stratum/AutoClient.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
+#include "net/JobResult.h"
 
 
 xmrig::AutoClient::AutoClient(int id, const char *agent, IClientListener *listener) :
@@ -77,7 +78,7 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t xmrig::AutoClient::submit(const JobResult &result)
 {
-    if (m_mode == DEFAULT_MODE) {
+    if (result.algorithm.family() != Algorithm::KAWPOW || result.algorithm.family() != Algorithm::GHOSTRIDER) {
         return Client::submit(result); // NOLINT(bugprone-parent-virtual-call)
     }
 
@@ -87,9 +88,11 @@ int64_t xmrig::AutoClient::submit(const JobResult &result)
 
 void xmrig::AutoClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
-    if (m_mode == DEFAULT_MODE) {
+    if (strcmp(method, "job") == 0) {
+        m_mode = DEFAULT_MODE;
         return Client::parseNotification(method, params, error); // NOLINT(bugprone-parent-virtual-call)
     }
 
+    m_mode = ETH_MODE;
     return EthStratumClient::parseNotification(method, params, error);
 }

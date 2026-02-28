@@ -72,7 +72,7 @@ if (WITH_OPENCL)
         add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
     endif()
 
-    if (WIN32)
+    if (WIN32 OR CMAKE_SYSTEM_NAME MATCHES "MSYS")
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
     else()
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_unix.cpp)
@@ -127,6 +127,23 @@ if (WITH_OPENCL)
              src/backend/opencl/kernels/kawpow/KawPow_CalculateDAGKernel.cpp
              src/backend/opencl/runners/OclKawPowRunner.cpp
              src/backend/opencl/runners/tools/OclKawPow.cpp
+             )
+    endif()
+
+    if (WITH_CN_GPU AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND HEADERS_BACKEND_OPENCL
+             src/backend/opencl/kernels/Cn00RyoKernel.h
+             src/backend/opencl/kernels/Cn1RyoKernel.h
+             src/backend/opencl/kernels/Cn2RyoKernel.h
+             src/backend/opencl/runners/OclRyoRunner.h
+             )
+
+        list(APPEND SOURCES_BACKEND_OPENCL
+             src/backend/opencl/generators/ocl_generic_cn_gpu_generator.cpp
+             src/backend/opencl/kernels/Cn00RyoKernel.cpp
+             src/backend/opencl/kernels/Cn1RyoKernel.cpp
+             src/backend/opencl/kernels/Cn2RyoKernel.cpp
+             src/backend/opencl/runners/OclRyoRunner.cpp
              )
     endif()
 

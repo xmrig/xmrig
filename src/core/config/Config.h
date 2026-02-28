@@ -27,6 +27,9 @@
 #include "backend/cpu/CpuConfig.h"
 #include "base/kernel/config/BaseConfig.h"
 #include "base/tools/Object.h"
+#ifdef XMRIG_FEATURE_MO_BENCHMARK
+#include "core/MoBenchmark.h"
+#endif
 
 
 namespace xmrig {
@@ -100,8 +103,15 @@ public:
     bool read(const IJsonReader &reader, const char *fileName) override;
     void getJSON(rapidjson::Document &doc) const override;
 
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    inline MoBenchmark &benchmark()           { return m_benchmark; }
+#   endif
+
 private:
     ConfigPrivate *d_ptr;
+#   ifdef XMRIG_FEATURE_MO_BENCHMARK
+    MoBenchmark m_benchmark;
+#   endif
 };
 
 
