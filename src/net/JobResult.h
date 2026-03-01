@@ -80,7 +80,13 @@ public:
     }
 
     inline const uint8_t *result() const     { return m_result; }
-    inline uint64_t actualDiff() const       { return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]); }
+    inline uint64_t actualDiff() const
+    {
+        uint64_t tail = 0;
+        memcpy(&tail, m_result + 24, sizeof(tail));
+
+        return Job::toDiff(tail);
+    }
     inline uint8_t *result()                 { return m_result; }
     inline const uint8_t *headerHash() const { return m_headerHash; }
     inline const uint8_t *mixHash() const    { return m_mixHash; }

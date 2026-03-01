@@ -98,6 +98,7 @@ private:
     class Tls;
 
     bool parseJob(const rapidjson::Value &params, int *code);
+    void resetTransports();
     bool send(BIO *bio);
     bool verifyAlgorithm(const Algorithm &algorithm, const char *algo) const;
     bool write(const uv_buf_t &buf);
@@ -123,6 +124,7 @@ private:
     static void onClose(uv_handle_t *handle);
     static void onConnect(uv_connect_t *req, int status);
     static void onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *buf);
+    static void onWrite(uv_write_t *req, int status);
 
     static inline Client *getClient(void *data) { return m_storage.get(data); }
 

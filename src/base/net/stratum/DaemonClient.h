@@ -38,6 +38,7 @@ using uv_connect_t  = struct uv_connect_s;
 using uv_handle_t   = struct uv_handle_s;
 using uv_stream_t   = struct uv_stream_s;
 using uv_tcp_t      = struct uv_tcp_s;
+using uv_write_t    = struct uv_write_s;
 
 #ifdef XMRIG_FEATURE_TLS
 using BIO           = struct bio_st;
@@ -118,6 +119,7 @@ private:
     static Storage<DaemonClient> m_storage;
 
     static void onZMQConnect(uv_connect_t* req, int status);
+    static void onZMQWrite(uv_write_t *req, int status);
     static void onZMQRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
     static void onZMQClose(uv_handle_t* handle);
     static void onZMQShutdown(uv_handle_t* handle);
