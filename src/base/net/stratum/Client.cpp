@@ -50,6 +50,7 @@
 #include "base/tools/Chrono.h"
 #include "base/tools/cryptonote/BlobReader.h"
 #include "base/tools/Cvt.h"
+#include "base/tools/WriteBaton.h"
 #include "net/JobResult.h"
 
 
@@ -75,27 +76,6 @@ static const char *states[] = {
     "reconnecting"
 };
 #endif
-
-
-namespace {
-
-
-struct WriteBaton
-{
-    explicit WriteBaton(const char *data, size_t size) :
-        storage(data, data + size),
-        buf(uv_buf_init(storage.data(), static_cast<unsigned int>(storage.size())))
-    {
-        req.data = this;
-    }
-
-    uv_write_t req{};
-    std::vector<char> storage;
-    uv_buf_t buf;
-};
-
-
-} // namespace
 
 
 xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :

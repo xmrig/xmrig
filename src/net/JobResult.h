@@ -31,6 +31,7 @@
 #include <cstdint>
 
 
+#include "base/tools/Alignment.h"
 #include "base/tools/String.h"
 #include "base/net/stratum/Job.h"
 
@@ -82,10 +83,7 @@ public:
     inline const uint8_t *result() const     { return m_result; }
     inline uint64_t actualDiff() const
     {
-        uint64_t tail = 0;
-        memcpy(&tail, m_result + 24, sizeof(tail));
-
-        return Job::toDiff(tail);
+        return Job::toDiff(readUnaligned(reinterpret_cast<const uint64_t*>(m_result + 24)));
     }
     inline uint8_t *result()                 { return m_result; }
     inline const uint8_t *headerHash() const { return m_headerHash; }

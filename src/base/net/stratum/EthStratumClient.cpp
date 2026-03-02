@@ -33,6 +33,7 @@
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/tools/Alignment.h"
 #include "net/JobResult.h"
 
 #ifdef XMRIG_ALGO_GHOSTRIDER
@@ -44,23 +45,6 @@ extern "C" {
 
 #include "base/tools/Cvt.h"
 #endif
-
-
-
-namespace {
-
-
-static inline uint64_t readU64(const uint8_t *data)
-{
-    uint64_t value = 0;
-    memcpy(&value, data, sizeof(value));
-
-    return value;
-}
-
-
-} // namespace
-
 
 xmrig::EthStratumClient::EthStratumClient(int id, const char *agent, IClientListener *listener) :
     Client(id, agent, listener)
@@ -131,12 +115,12 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (result.algorithm == Algorithm::GHOSTRIDER_RTM) {
-        actual_diff = readU64(result.result() + 24);
+        actual_diff = readUnaligned(reinterpret_cast<const uint64_t*>(result.result() + 24));
     }
     else
 #   endif
     {
-        actual_diff = ethash_swap_u64(readU64(result.result()));
+        actual_diff = ethash_swap_u64(readUnaligned(reinterpret_cast<const uint64_t*>(result.result())));
     }
 
     actual_diff = actual_diff ? (uint64_t(-1) / actual_diff) : 0;

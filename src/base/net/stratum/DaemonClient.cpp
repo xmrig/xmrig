@@ -41,10 +41,12 @@
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/NetBuffer.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/bswap_64.h"
 #include "base/tools/cryptonote/Signatures.h"
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
+#include "base/tools/WriteBaton.h"
 #include "net/JobResult.h"
 
 
@@ -81,30 +83,6 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
-
-
-static inline uint64_t readU64(const char *data)
-{
-    uint64_t value = 0;
-    memcpy(&value, data, sizeof(value));
-
-    return value;
-}
-
-
-struct ZmqWriteBaton
-{
-    explicit ZmqWriteBaton(const char *data, size_t size) :
-        storage(data, data + size),
-        buf(uv_buf_init(storage.data(), static_cast<unsigned int>(storage.size())))
-    {
-        req.data = this;
-    }
-
-    uv_write_t req{};
-    std::vector<char> storage;
-    uv_buf_t buf;
-};
 
 
 } // namespace xmrig
@@ -691,7 +669,7 @@ void xmrig::DaemonClient::onZMQConnect(uv_connect_t* req, int status)
 
 void xmrig::DaemonClient::onZMQWrite(uv_write_t *req, int status)
 {
-    auto *baton = static_cast<ZmqWriteBaton*>(req->data);
+    auto *baton = static_cast<WriteBaton*>(req->data);
 
     if (status < 0) {
         DaemonClient *client = getClient(req->handle ? req->handle->data : nullptr);
@@ -778,7 +756,7 @@ bool xmrig::DaemonClient::ZMQWrite(const char* data, size_t size)
     }
 
     const size_t offset = rc > 0 ? static_cast<size_t>(rc) : 0;
-    auto *baton = new ZmqWriteBaton(buf.base + offset, buf.len - offset);
+    auto *baton = new WriteBaton(buf.base + offset, buf.len - offset);
     const int wrc = uv_write(&baton->req, reinterpret_cast<uv_stream_t*>(m_ZMQSocket), &baton->buf, 1, onZMQWrite);
     if (wrc != 0) {
         delete baton;
@@ -908,7 +886,7 @@ void xmrig::DaemonClient::ZMQParse()
             if (avail < sizeof(uint64_t)) {
                 return;
             }
-            size = bswap_64(readU64(data));
+            size = bswap_64(readUnaligned(reinterpret_cast<const uint64_t*>(data)));
             data += sizeof(uint64_t);
             avail -= sizeof(uint64_t);
         }
