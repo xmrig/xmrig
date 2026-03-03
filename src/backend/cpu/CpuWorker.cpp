@@ -259,104 +259,24 @@ void xmrig::CpuWorker<N>::start()
         alignas(16) uint64_t tempHash[8] = {};
 #       endif
 
-        while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
-            const Job &job = m_job.currentJob();
-
-            if (job.algorithm().l3() != m_algorithm.l3()) {
-                break;
-            }
-
-            uint32_t current_job_nonces[N];
-            for (size_t i = 0; i < N; ++i) {
-                current_job_nonces[i] = readUnaligned(m_job.nonce(i));
-            }
-
-#           ifdef XMRIG_FEATURE_BENCHMARK
-            if (m_benchSize) {
-                if (current_job_nonces[0] >= m_benchSize) {
-                    return BenchState::done();
-                }
-
-                // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
-                if (m_threads == 1) {
-                    *(uint64_t*)(m_job.blob()) ^= BenchState::data();
-                }
-            }
-#           endif
-
-            bool valid = true;
-
-            uint8_t miner_signature_saved[64];
-
+#       ifdef XMRIG_FEATURE_BENCHMARK
+        if (m_benchSize) {
 #           ifdef XMRIG_ALGO_RANDOMX
-            uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
-            if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                if (first) {
-                    first = false;
-                    if (job.hasMinerSignature()) {
-                        job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
-                    }
-                    randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
-                }
-
-                if (!nextRound()) {
-                    break;
-                }
-
-                if (job.hasMinerSignature()) {
-                    memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
-                    job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
-                }
-                randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
-            }
-            else
+            if (!benchLoop(first, tempHash)) {
+#           else
+            if (!benchLoop()) {
 #           endif
-            {
-                switch (job.algorithm().family()) {
-
-#               ifdef XMRIG_ALGO_GHOSTRIDER
-                case Algorithm::GHOSTRIDER:
-                    if (N == 8) {
-                        ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
-                    }
-                    else {
-                        valid = false;
-                    }
-                    break;
-#               endif
-
-                default:
-                    fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
-                    break;
-                }
-
-                if (!nextRound()) {
-                    break;
-                };
+                return;
             }
-
-            if (valid) {
-                for (size_t i = 0; i < N; ++i) {
-                    const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
-
-#                   ifdef XMRIG_FEATURE_BENCHMARK
-                    if (m_benchSize) {
-                        if (current_job_nonces[i] < m_benchSize) {
-                            BenchState::add(value);
-                        }
-                    }
-                    else
-#                   endif
-                    if (value < job.target()) {
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
-                    }
-                }
-                m_count += N;
-            }
-
-            if (m_yield) {
-                std::this_thread::yield();
-            }
+        }
+        else
+#       endif
+        {
+#           ifdef XMRIG_ALGO_RANDOMX
+            mineLoop(first, tempHash);
+#           else
+            mineLoop();
+#           endif
         }
 
         if (!Nonce::isPaused()) {
@@ -367,15 +287,195 @@ void xmrig::CpuWorker<N>::start()
 
 
 template<size_t N>
-bool xmrig::CpuWorker<N>::nextRound()
+void xmrig::CpuWorker<N>::mineLoop(
+#   ifdef XMRIG_ALGO_RANDOMX
+    bool &first, uint64_t (&tempHash)[8]
+#   endif
+)
 {
-#   ifdef XMRIG_FEATURE_BENCHMARK
-    const uint32_t count = m_benchSize ? 1U : kReserveCount;
-#   else
-    constexpr uint32_t count = kReserveCount;
+    while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
+        const Job &job = m_job.currentJob();
+
+        if (job.algorithm().l3() != m_algorithm.l3()) {
+            break;
+        }
+
+        uint32_t current_job_nonces[N];
+        for (size_t i = 0; i < N; ++i) {
+            current_job_nonces[i] = readUnaligned(m_job.nonce(i));
+        }
+
+        bool valid = true;
+
+        uint8_t miner_signature_saved[64];
+
+#       ifdef XMRIG_ALGO_RANDOMX
+        uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
+        if (job.algorithm().family() == Algorithm::RANDOM_X) {
+            if (first) {
+                first = false;
+                if (job.hasMinerSignature()) {
+                    job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+                }
+                randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+            }
+
+            if (!nextRound()) {
+                break;
+            }
+
+            if (job.hasMinerSignature()) {
+                memcpy(miner_signature_saved, miner_signature_ptr, sizeof(miner_signature_saved));
+                job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+            }
+            randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+        }
+        else
+#       endif
+        {
+            switch (job.algorithm().family()) {
+
+#           ifdef XMRIG_ALGO_GHOSTRIDER
+            case Algorithm::GHOSTRIDER:
+                if (N == 8) {
+                    ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                }
+                else {
+                    valid = false;
+                }
+                break;
+#           endif
+
+            default:
+                fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                break;
+            }
+
+            if (!nextRound()) {
+                break;
+            }
+        }
+
+        if (valid) {
+            for (size_t i = 0; i < N; ++i) {
+                const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+                if (value < job.target()) {
+                    JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), job.hasMinerSignature() ? miner_signature_saved : nullptr);
+                }
+            }
+            m_count += N;
+        }
+
+        if (m_yield) {
+            std::this_thread::yield();
+        }
+    }
+}
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+template<size_t N>
+bool xmrig::CpuWorker<N>::benchLoop(
+#   ifdef XMRIG_ALGO_RANDOMX
+    bool &first, uint64_t (&tempHash)[8]
+#   endif
+)
+{
+    while (!Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
+        const Job &job = m_job.currentJob();
+
+        if (job.algorithm().l3() != m_algorithm.l3()) {
+            break;
+        }
+
+        uint32_t current_job_nonces[N];
+        for (size_t i = 0; i < N; ++i) {
+            current_job_nonces[i] = readUnaligned(m_job.nonce(i));
+        }
+
+        if (current_job_nonces[0] >= m_benchSize) {
+            BenchState::done();
+
+            return false;
+        }
+
+        // Make each hash dependent on the previous one in single thread benchmark to prevent cheating with multiple threads
+        if (m_threads == 1) {
+            *(uint64_t*)(m_job.blob()) ^= BenchState::data();
+        }
+
+        bool valid = true;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+        uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
+        if (job.algorithm().family() == Algorithm::RANDOM_X) {
+            if (first) {
+                first = false;
+                if (job.hasMinerSignature()) {
+                    job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+                }
+                randomx_calculate_hash_first(m_vm, tempHash, m_job.blob(), job.size());
+            }
+
+            if (!nextBenchRound()) {
+                break;
+            }
+
+            if (job.hasMinerSignature()) {
+                job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
+            }
+            randomx_calculate_hash_next(m_vm, tempHash, m_job.blob(), job.size(), m_hash);
+        }
+        else
+#   endif
+        {
+            switch (job.algorithm().family()) {
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+            case Algorithm::GHOSTRIDER:
+                if (N == 8) {
+                    ghostrider::hash_octa(m_job.blob(), job.size(), m_hash, m_ctx, m_ghHelper);
+                }
+                else {
+                    valid = false;
+                }
+                break;
 #   endif
 
-    if (!m_job.nextRound(count, 1)) {
+            default:
+                fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                break;
+            }
+
+            if (!nextBenchRound()) {
+                break;
+            }
+        }
+
+        if (valid) {
+            for (size_t i = 0; i < N; ++i) {
+                if (current_job_nonces[i] < m_benchSize) {
+                    const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
+                    BenchState::add(value);
+                }
+            }
+            m_count += N;
+        }
+
+        if (m_yield) {
+            std::this_thread::yield();
+        }
+    }
+
+    return true;
+}
+#endif
+
+
+template<size_t N>
+bool xmrig::CpuWorker<N>::nextRound()
+{
+    if (!m_job.nextRound(kReserveCount, 1)) {
         JobResults::done(m_job.currentJob());
 
         return false;
@@ -383,6 +483,21 @@ bool xmrig::CpuWorker<N>::nextRound()
 
     return true;
 }
+
+
+#ifdef XMRIG_FEATURE_BENCHMARK
+template<size_t N>
+bool xmrig::CpuWorker<N>::nextBenchRound()
+{
+    if (!m_job.nextRound(1U, 1)) {
+        JobResults::done(m_job.currentJob());
+
+        return false;
+    }
+
+    return true;
+}
+#endif
 
 
 template<size_t N>

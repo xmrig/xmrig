@@ -20,6 +20,9 @@
 #define XMRIG_CPUWORKER_H
 
 
+#include <cstdint>
+
+
 #include "backend/common/Worker.h"
 #include "backend/common/WorkerJob.h"
 #include "backend/cpu/CpuLaunchData.h"
@@ -75,9 +78,21 @@ private:
 
 #   ifdef XMRIG_ALGO_RANDOMX
     void allocateRandomX_VM();
+    void mineLoop(bool &first, uint64_t (&tempHash)[8]);
+#       ifdef XMRIG_FEATURE_BENCHMARK
+    bool benchLoop(bool &first, uint64_t (&tempHash)[8]);
+#       endif
+#   else
+    void mineLoop();
+#       ifdef XMRIG_FEATURE_BENCHMARK
+    bool benchLoop();
+#       endif
 #   endif
 
     bool nextRound();
+#   ifdef XMRIG_FEATURE_BENCHMARK
+    bool nextBenchRound();
+#   endif
     bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
     bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void allocateCnCtx();
