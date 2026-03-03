@@ -36,6 +36,12 @@ endif()
 
 if (XMRIG_64_BIT AND CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
     add_definitions(-DRAPIDJSON_SSE2)
+    
+    # Support native arch builds on x86_64
+    if(ARCH STREQUAL "native")
+        set(XMRIG_X86_NATIVE ON)
+        message(STATUS "Building with native x86_64 optimizations (ARCH=native)")
+    endif()
 else()
     set(WITH_SSE4_1 OFF)
     set(WITH_AVX2 OFF)

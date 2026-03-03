@@ -34,8 +34,14 @@ if (CMAKE_CXX_COMPILER_ID MATCHES GNU)
         
         add_definitions(-DHAVE_ROTR)
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        # x86_64 arch flags
+        if (XMRIG_X86_NATIVE)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+        else()
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        endif()
 
         add_definitions(-DHAVE_ROTR)
     endif()
@@ -87,8 +93,14 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         
         add_definitions(-DHAVE_ROTR)
     else()
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        # x86_64 arch flags
+        if (XMRIG_X86_NATIVE)
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -march=native -mtune=native")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -march=native -mtune=native")
+        else()
+            set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -maes")
+            set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -maes")
+        endif()
 
         check_symbol_exists("_rotr" "x86intrin.h" HAVE_ROTR)
         if (HAVE_ROTR)

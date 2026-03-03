@@ -32,6 +32,7 @@ This feature add external dependency to libhwloc (1.10.0+) (except MSVC builds).
 
 ## Special build options
 
+* **`-DARCH=native`** (x86_64 only) enable native CPU optimizations (`-march=native -mtune=native`). This builds a binary optimized for the build machine's CPU, enabling AVX2, BMI2, FMA, and other instructions. **Not portable** to other CPUs. Estimated hashrate gain: ~1-5% on modern CPUs.
 * **`-DXMRIG_DEPS=<path>`** path to precompiled dependencies https://github.com/xmrig/xmrig-deps
 * **`-DARM_TARGET=<number>`** override ARM target, possible values `7` (ARMv7) and `8` (ARMv8).
 * **`-DUV_INCLUDE_DIR=<path>`** custom path to libuv headers.
