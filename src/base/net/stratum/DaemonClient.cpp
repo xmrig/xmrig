@@ -674,7 +674,9 @@ void xmrig::DaemonClient::onZMQWrite(uv_write_t *req, int status)
     if (status < 0) {
         DaemonClient *client = getClient(req->handle ? req->handle->data : nullptr);
         if (client) {
-            LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), client->tag(), status);
+            if (!client->isQuiet()) {
+                LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), client->tag(), status);
+            }
             client->ZMQClose();
         }
     }
