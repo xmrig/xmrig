@@ -577,7 +577,7 @@ inline void* rx_aligned_alloc(size_t size, size_t align) {
 #   define rx_aligned_free(a) free(a)
 #endif
 
-#ifdef __GNUC__
+#if defined(__GNUC__) && (!defined(__clang__) || __has_builtin(__builtin_prefetch))
 #define rx_prefetch_nta(x) __builtin_prefetch((x), 0, 0)
 #define rx_prefetch_t0(x) __builtin_prefetch((x), 0, 3)
 #else
