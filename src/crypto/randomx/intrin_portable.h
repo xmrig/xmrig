@@ -420,7 +420,7 @@ inline void* rx_aligned_alloc(size_t size, size_t align) {
 #   define rx_aligned_free(a) free(a)
 #endif
 
-inline void rx_prefetch_nta(void* ptr) {
+inline void rx_prefetch_nta(const void* ptr) {
 	asm volatile ("prfm pldl1strm, [%0]\n" : : "r" (ptr));
 }
 
