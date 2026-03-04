@@ -670,15 +670,14 @@ void xmrig::DaemonClient::onZMQConnect(uv_connect_t* req, int status)
 void xmrig::DaemonClient::onZMQWrite(uv_write_t *req, int status)
 {
     auto *baton = static_cast<WriteBaton*>(req->data);
+    auto client = getClient(req->handle ? req->handle->data : nullptr);
 
-    if (status < 0) {
-        DaemonClient *client = getClient(req->handle ? req->handle->data : nullptr);
-        if (client) {
-            if (!client->isQuiet()) {
-                LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), client->tag(), status);
-            }
-            client->ZMQClose();
+    if (status < 0 && status != UV_ECANCELED && client) {
+        if (!client->isQuiet()) {
+            LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), client->tag(), status);
         }
+
+        client->ZMQClose();
     }
 
     delete baton;

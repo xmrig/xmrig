@@ -1094,7 +1094,7 @@ void xmrig::Client::onWrite(uv_write_t *req, int status)
     auto *baton = static_cast<WriteBaton*>(req->data);
 
     auto client = getClient(req->handle ? req->handle->data : nullptr);
-    if (status < 0 && client) {
+    if (status < 0 && status != UV_ECANCELED && client) {
         if (!client->isQuiet()) {
             LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
         }
