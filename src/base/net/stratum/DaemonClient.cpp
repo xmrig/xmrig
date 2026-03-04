@@ -41,10 +41,12 @@
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/NetBuffer.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/bswap_64.h"
 #include "base/tools/cryptonote/Signatures.h"
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
+#include "base/tools/WriteBaton.h"
 #include "net/JobResult.h"
 
 
@@ -55,7 +57,9 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <random>
+#include <vector>
 
 
 namespace xmrig {
@@ -79,6 +83,7 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
+
 
 } // namespace xmrig
 
@@ -662,6 +667,23 @@ void xmrig::DaemonClient::onZMQConnect(uv_connect_t* req, int status)
 }
 
 
+void xmrig::DaemonClient::onZMQWrite(uv_write_t *req, int status)
+{
+    auto *baton = static_cast<WriteBaton*>(req->data);
+    auto client = getClient(req->handle ? req->handle->data : nullptr);
+
+    if (status < 0 && status != UV_ECANCELED && client) {
+        if (!client->isQuiet()) {
+            LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), client->tag(), status);
+        }
+
+        client->ZMQClose();
+    }
+
+    delete baton;
+}
+
+
 void xmrig::DaemonClient::onZMQRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf)
 {
     DaemonClient* client = getClient(stream->data);
@@ -728,9 +750,23 @@ bool xmrig::DaemonClient::ZMQWrite(const char* data, size_t size)
         return true;
     }
 
-    LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), tag(), rc);
-    ZMQClose();
-    return false;
+    if (rc < 0 && rc != UV_EAGAIN) {
+        LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), tag(), rc);
+        ZMQClose();
+        return false;
+    }
+
+    const size_t offset = rc > 0 ? static_cast<size_t>(rc) : 0;
+    auto *baton = new WriteBaton(buf.base + offset, buf.len - offset);
+    const int wrc = uv_write(&baton->req, reinterpret_cast<uv_stream_t*>(m_ZMQSocket), &baton->buf, 1, onZMQWrite);
+    if (wrc != 0) {
+        delete baton;
+        LOG_ERR("%s " RED("ZMQ write failed, rc = %d"), tag(), wrc);
+        ZMQClose();
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -851,7 +887,7 @@ void xmrig::DaemonClient::ZMQParse()
             if (avail < sizeof(uint64_t)) {
                 return;
             }
-            size = bswap_64(*((uint64_t*)data));
+            size = bswap_64(readUnaligned(reinterpret_cast<const uint64_t*>(data)));
             data += sizeof(uint64_t);
             avail -= sizeof(uint64_t);
         }

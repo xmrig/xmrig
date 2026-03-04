@@ -28,6 +28,7 @@
 #include "base/io/Async.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IAsyncListener.h"
+#include "base/tools/Alignment.h"
 #include "base/tools/Object.h"
 #include "net/interfaces/IJobResultListener.h"
 #include "net/JobResult.h"
@@ -56,6 +57,7 @@
 
 
 #include <cassert>
+#include <cstring>
 #include <list>
 #include <memory>
 #include <mutex>
@@ -102,7 +104,7 @@ public:
 
 static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &results, uint32_t nonce, uint8_t hash[32], uint32_t &errors)
 {
-    if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+    if (readUnaligned(reinterpret_cast<const uint64_t*>(hash + 24)) < bundle.job.target()) {
         results.emplace_back(bundle.job, nonce, hash);
     }
     else {
@@ -167,7 +169,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
                 hash[i] = ((uint8_t*)output)[sizeof(hash) - 1 - i];
             }
 
-            if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+            if (readUnaligned(reinterpret_cast<const uint64_t*>(hash + 24)) < bundle.job.target()) {
                 results.emplace_back(bundle.job, full_nonce, (uint8_t*)output, bundle.job.blob(), (uint8_t*)mix_hash);
             }
             else {

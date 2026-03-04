@@ -50,6 +50,7 @@
 #include "base/tools/Chrono.h"
 #include "base/tools/cryptonote/BlobReader.h"
 #include "base/tools/Cvt.h"
+#include "base/tools/WriteBaton.h"
 #include "net/JobResult.h"
 
 
@@ -90,7 +91,20 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
 
 xmrig::Client::~Client()
 {
+    resetTransports();
     delete m_socket;
+}
+
+
+void xmrig::Client::resetTransports()
+{
+    delete m_socks5;
+    m_socks5 = nullptr;
+
+#   ifdef XMRIG_FEATURE_TLS
+    delete m_tls;
+    m_tls = nullptr;
+#   endif
 }
 
 
@@ -245,6 +259,8 @@ int64_t xmrig::Client::submit(const JobResult &result)
 
 void xmrig::Client::connect()
 {
+    resetTransports();
+
     if (m_pool.proxy().isValid()) {
         m_socks5 = new Socks5(this);
         resolve(m_pool.proxy().host());
@@ -502,13 +518,32 @@ bool xmrig::Client::write(const uv_buf_t &buf)
         return true;
     }
 
-    if (!isQuiet()) {
-        LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(rc));
+    if (rc < 0 && rc != UV_EAGAIN) {
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(rc));
+        }
+
+        close();
+
+        return false;
     }
 
-    close();
+    const size_t offset = rc > 0 ? static_cast<size_t>(rc) : 0;
+    auto *baton = new WriteBaton(buf.base + offset, buf.len - offset);
+    const int wrc = uv_write(&baton->req, stream(), &baton->buf, 1, Client::onWrite);
+    if (wrc != 0) {
+        delete baton;
 
-    return false;
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(wrc));
+        }
+
+        close();
+
+        return false;
+    }
+
+    return true;
 }
 
 
@@ -647,13 +682,7 @@ void xmrig::Client::onClose()
 
     m_socket = nullptr;
     setState(UnconnectedState);
-
-#   ifdef XMRIG_FEATURE_TLS
-    if (m_tls) {
-        delete m_tls;
-        m_tls = nullptr;
-    }
-#   endif
+    resetTransports();
 
     reconnect();
 }
@@ -1057,4 +1086,21 @@ void xmrig::Client::onRead(uv_stream_t *stream, ssize_t nread, const uv_buf_t *b
     }
 
     NetBuffer::release(buf);
+}
+
+
+void xmrig::Client::onWrite(uv_write_t *req, int status)
+{
+    auto *baton = static_cast<WriteBaton*>(req->data);
+
+    auto client = getClient(req->handle ? req->handle->data : nullptr);
+    if (status < 0 && status != UV_ECANCELED && client) {
+        if (!client->isQuiet()) {
+            LOG_ERR("%s " RED("write error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
+        }
+
+        client->close();
+    }
+
+    delete baton;
 }

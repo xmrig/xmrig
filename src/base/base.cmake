@@ -85,6 +85,7 @@ set(HEADERS_BASE
     src/base/tools/Span.h
     src/base/tools/String.h
     src/base/tools/Timer.h
+    src/base/tools/WriteBaton.h
    )
 
 set(SOURCES_BASE
