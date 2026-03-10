@@ -19,7 +19,7 @@
 #ifndef XMRIG_VERSION_H
 #define XMRIG_VERSION_H
 
-#define APP_ID        "xmrig"
+#define APP_ID        "xmrig-salvium"
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig miner"
 #define APP_VERSION   "6.21.3"

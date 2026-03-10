@@ -25,6 +25,7 @@
 #include "3rdparty/rapidjson/fwd.h"
 #include "base/crypto/Coin.h"
 #include "base/tools/Buffer.h"
+#include "base/tools/cryptonote/BlobReader.h"
 #include "base/tools/String.h"
 #include "base/tools/Span.h"
 
@@ -39,6 +40,8 @@ public:
     static constexpr size_t kKeySize        = 32;
     static constexpr size_t kNonceSize      = 4;
     static constexpr size_t kSignatureSize  = 64;
+    static constexpr size_t kCarrotViewTagSize   = 3;
+    static constexpr size_t kCarrotAnchorSize    = 16;
 
 #   ifdef XMRIG_PROXY_PROJECT
     static constexpr bool kCalcHashes       = true;
@@ -96,6 +99,7 @@ public:
     inline const Buffer &hashes() const                     { return m_hashes; }
     inline const Buffer &minerTxMerkleTreeBranch() const    { return m_minerTxMerkleTreeBranch; }
     inline const uint8_t *rootHash() const                  { return m_rootHash; }
+    inline bool hasProtocolTransaction() const              { return m_hasProtocolTx; }
 
     inline Buffer generateHashingBlob() const
     {
@@ -121,6 +125,8 @@ private:
     inline void setOffset(Offset offset, size_t value)  { m_offsets[offset] = static_cast<uint32_t>(value); }
 
     bool parse(bool hashes);
+    inline uint64_t baseTransactionCount() const            { return (m_coin == Coin::SALVIUM) ? (m_hasProtocolTx ? 2 : 1) : 1; }
+    bool parseSalviumOutput(BlobReader<true> &ar, uint8_t outputType, bool storeExtraData);
 
     Buffer m_blob;
     Coin m_coin;
@@ -150,6 +156,9 @@ private:
     Buffer m_hashes;
     Buffer m_minerTxMerkleTreeBranch;
     uint8_t m_rootHash[kHashSize]{};
+    bool m_hasProtocolTx    = false;
+    uint8_t m_carrotViewTag[kCarrotViewTagSize]{};
+    uint8_t m_carrotEncryptedJanusAnchor[kCarrotAnchorSize]{};
 };
 
 

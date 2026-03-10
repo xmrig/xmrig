@@ -273,6 +273,18 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0xf343eb318,  { Coin::SALVIUM,      STAGENET,   INTEGRATED,     39081,  39082 } },
         { 0x2d47eb318,  { Coin::SALVIUM,      STAGENET,   SUBADDRESS,     39081,  39082 } },
 
+        { 0x180c96,     { Coin::SALVIUM,      MAINNET,    PUBLIC,         19081,  19082 } },
+        { 0x2ccc96,     { Coin::SALVIUM,      MAINNET,    INTEGRATED,     19081,  19082 } },
+        { 0x314c96,     { Coin::SALVIUM,      MAINNET,    SUBADDRESS,     19081,  19082 } },
+
+        { 0x254c96,     { Coin::SALVIUM,      TESTNET,    PUBLIC,         29081,  29082 } },
+        { 0x1ac50c96,   { Coin::SALVIUM,      TESTNET,    INTEGRATED,     29081,  29082 } },
+        { 0x3c54c96,    { Coin::SALVIUM,      TESTNET,    SUBADDRESS,     29081,  29082 } },
+
+        { 0x24cc96,     { Coin::SALVIUM,      STAGENET,   PUBLIC,         39081,  39082 } },
+        { 0x1a848c96,   { Coin::SALVIUM,      STAGENET,   INTEGRATED,     39081,  39082 } },
+        { 0x384cc96,    { Coin::SALVIUM,      STAGENET,   SUBADDRESS,     39081,  39082 } },
+
     };
 
     const auto it = tags.find(tag);
