@@ -418,14 +418,8 @@ return 0;
 }
 
 hwloc provides a pkg-config executable to obtain relevant compiler and linker
-flags. For example, it can be used thusly to compile applications that utilize
-the hwloc library (assuming GNU Make):
-
-CFLAGS += $(shell pkg-config --cflags hwloc)
-LDLIBS += $(shell pkg-config --libs hwloc)
-
-hwloc-hello: hwloc-hello.c
-     $(CC) hwloc-hello.c $(CFLAGS) -o hwloc-hello $(LDLIBS)
+flags. See Compiling software on top of hwloc's C API for details on building
+program on top of hwloc's API using GNU Make or CMake.
 
 On a machine 2 processor packages -- each package of which has two processing
 cores -- the output from running hwloc-hello could be something like the

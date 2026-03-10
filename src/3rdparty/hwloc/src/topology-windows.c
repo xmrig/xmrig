@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2025 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -56,6 +56,9 @@ typedef enum _LOGICAL_PROCESSOR_RELATIONSHIP {
   RelationCache,
   RelationProcessorPackage,
   RelationGroup,
+  RelationProcessorDie,
+  RelationNumaNodeEx, /* only used to *request* extended numa info only, but included in RelationAll, never returned on output */
+  RelationProcessorModule,
   RelationAll = 0xffff
 } LOGICAL_PROCESSOR_RELATIONSHIP;
 #else /* HAVE_LOGICAL_PROCESSOR_RELATIONSHIP */
@@ -64,6 +67,11 @@ typedef enum _LOGICAL_PROCESSOR_RELATIONSHIP {
 #    define RelationGroup 4
 #    define RelationAll 0xffff
 #  endif /* HAVE_RELATIONPROCESSORPACKAGE */
+#  ifndef HAVE_RELATIONPROCESSORDIE
+#    define RelationProcessorDie 5
+#    define RelationNumaNodeEx 6
+#    define RelationProcessorModule 7
+#  endif
 #endif /* HAVE_LOGICAL_PROCESSOR_RELATIONSHIP */
 
 #ifndef HAVE_GROUP_AFFINITY
@@ -220,7 +228,7 @@ static void hwloc_win_get_function_ptrs(void)
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
 
-    kernel32 = LoadLibrary("kernel32.dll");
+    kernel32 = LoadLibrary(TEXT("kernel32.dll"));
     if (kernel32) {
       GetActiveProcessorGroupCountProc =
 	(PFN_GETACTIVEPROCESSORGROUPCOUNT) GetProcAddress(kernel32, "GetActiveProcessorGroupCount");
@@ -249,12 +257,12 @@ static void hwloc_win_get_function_ptrs(void)
     }
 
     if (!QueryWorkingSetExProc) {
-      HMODULE psapi = LoadLibrary("psapi.dll");
+      HMODULE psapi = LoadLibrary(TEXT("psapi.dll"));
       if (psapi)
         QueryWorkingSetExProc = (PFN_QUERYWORKINGSETEX) GetProcAddress(psapi, "QueryWorkingSetEx");
     }
 
-    ntdll = GetModuleHandle("ntdll");
+    ntdll = GetModuleHandle(TEXT("ntdll"));
     RtlGetVersionProc = (PFN_RTLGETVERSION) GetProcAddress(ntdll, "RtlGetVersion");
 
 #if HWLOC_HAVE_GCC_W_CAST_FUNCTION_TYPE
@@ -366,7 +374,7 @@ hwloc_win_get_processor_groups(void)
   hwloc_debug("found %lu windows processor groups\n", nr_processor_groups);
 
   if (nr_processor_groups > 1 && SIZEOF_VOID_P == 4) {
-    if (HWLOC_SHOW_ALL_ERRORS())
+    if (HWLOC_SHOW_CRITICAL_ERRORS())
       fprintf(stderr, "hwloc/windows: multiple processor groups found on 32bits Windows, topology may be invalid/incomplete.\n");
   }
 
@@ -1068,6 +1076,7 @@ hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
 
 	id = HWLOC_UNKNOWN_INDEX;
 	switch (procInfo->Relationship) {
+          case RelationNumaNodeEx: /* only used on input anyway */
 	  case RelationNumaNode:
 	    type = HWLOC_OBJ_NUMANODE;
             /* Starting with Windows 11 and Server 2022, the GroupCount field is valid and >=1
@@ -1087,9 +1096,19 @@ hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
 	    break;
 	  case RelationProcessorPackage:
 	    type = HWLOC_OBJ_PACKAGE;
+	    num = procInfo->Processor.GroupCount;
+	    GroupMask = procInfo->Processor.GroupMask;
+	    break;
+	  case RelationProcessorDie:
+            type = HWLOC_OBJ_DIE;
             num = procInfo->Processor.GroupCount;
             GroupMask = procInfo->Processor.GroupMask;
-	    break;
+            break;
+	  case RelationProcessorModule:
+            type = HWLOC_OBJ_GROUP;
+            num = procInfo->Processor.GroupCount;
+            GroupMask = procInfo->Processor.GroupMask;
+            break;
 	  case RelationCache:
 	    type = (procInfo->Cache.Type == CacheInstruction ? HWLOC_OBJ_L1ICACHE : HWLOC_OBJ_L1CACHE) + procInfo->Cache.Level - 1;
             /* GroupCount added approximately with NumaNode.GroupCount above */
@@ -1211,6 +1230,19 @@ hwloc_look_windows(struct hwloc_backend *backend, struct hwloc_disc_status *dsta
 		continue;
 	    }
 	    break;
+          case HWLOC_OBJ_GROUP:
+            switch (procInfo->Relationship) {
+            case RelationGroup:
+              obj->attr->group.kind = HWLOC_GROUP_KIND_WINDOWS_PROCESSOR_GROUP;
+              break;
+            case RelationProcessorModule:
+              obj->attr->group.kind = HWLOC_GROUP_KIND_INTEL_MODULE;
+              obj->subtype = strdup("Module");
+              break;
+            default:
+              obj->attr->group.kind = HWLOC_GROUP_KIND_WINDOWS_RELATIONSHIP_UNKNOWN;
+            }
+            break;
 	  default:
 	    break;
 	}

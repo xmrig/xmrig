@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,16 +16,13 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSUVBACKEND_H
-#define XMRIG_DNSUVBACKEND_H
-
+#pragma once
 
 #include "base/kernel/interfaces/IDnsBackend.h"
 #include "base/net/dns/DnsRecords.h"
 #include "base/net/tools/Storage.h"
 
-
-#include <queue>
+#include <deque>
 
 
 using uv_getaddrinfo_t = struct uv_getaddrinfo_s;
@@ -43,20 +40,19 @@ public:
     ~DnsUvBackend() override;
 
 protected:
-    inline const DnsRecords &records() const override   { return m_records; }
-
-    std::shared_ptr<DnsRequest> resolve(const String &host, IDnsListener *listener, uint64_t ttl) override;
+    void resolve(const String &host, const std::weak_ptr<IDnsListener> &listener, const DnsConfig &config) override;
 
 private:
     bool resolve(const String &host);
-    void done();
+    void notify();
     void onResolved(int status, addrinfo *res);
 
     static void onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res);
 
     DnsRecords m_records;
+    int m_ai_family         = 0;
     int m_status            = 0;
-    std::queue<std::weak_ptr<DnsRequest> > m_queue;
+    std::deque<std::weak_ptr<IDnsListener>> m_queue;
     std::shared_ptr<uv_getaddrinfo_t> m_req;
     uint64_t m_ts           = 0;
     uintptr_t m_key;
@@ -66,7 +62,4 @@ private:
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_DNSUVBACKEND_H */
+} // namespace xmrig

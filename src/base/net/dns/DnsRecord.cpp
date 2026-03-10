@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,19 +16,16 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <uv.h>
-
 
 #include "base/net/dns/DnsRecord.h"
 
 
-xmrig::DnsRecord::DnsRecord(const addrinfo *addr) :
-    m_type(addr->ai_family == AF_INET6 ? AAAA : (addr->ai_family == AF_INET ? A : Unknown))
+xmrig::DnsRecord::DnsRecord(const addrinfo *addr)
 {
     static_assert(sizeof(m_data) >= sizeof(sockaddr_in6), "Not enough storage for IPv6 address.");
 
-    memcpy(m_data, addr->ai_addr, m_type == AAAA ? sizeof(sockaddr_in6) : sizeof(sockaddr_in));
+    memcpy(m_data, addr->ai_addr, addr->ai_family == AF_INET6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in));
 }
 
 
@@ -44,7 +41,7 @@ xmrig::String xmrig::DnsRecord::ip() const
 {
     char *buf = nullptr;
 
-    if (m_type == AAAA) {
+    if (reinterpret_cast<const sockaddr &>(m_data).sa_family == AF_INET6) {
         buf = new char[45]();
         uv_ip6_name(reinterpret_cast<const sockaddr_in6*>(m_data), buf, 45);
     }

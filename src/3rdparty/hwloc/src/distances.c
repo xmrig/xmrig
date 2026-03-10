@@ -1,5 +1,5 @@
 /*
- * Copyright © 2010-2022 Inria.  All rights reserved.
+ * Copyright © 2010-2025 Inria.  All rights reserved.
  * Copyright © 2011-2012 Université Bordeaux
  * Copyright © 2011 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
@@ -624,8 +624,8 @@ void * hwloc_distances_add_create(hwloc_topology_t topology,
     return NULL;
   }
   if ((kind & ~HWLOC_DISTANCES_KIND_ALL)
-      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_FROM_ALL) != 1
-      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_MEANS_ALL) != 1) {
+      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_FROM_ALL) > 1
+      || hwloc_weight_long(kind & HWLOC_DISTANCES_KIND_MEANS_ALL) > 1) {
     errno = EINVAL;
     return NULL;
   }
@@ -699,7 +699,7 @@ hwloc_distances_add_commit(hwloc_topology_t topology,
   }
 
   /* in case we added some groups, see if we need to reconnect */
-  hwloc_topology_reconnect(topology, 0);
+  hwloc__reconnect(topology, 0);
 
   return 0;
 
@@ -1387,18 +1387,11 @@ static __hwloc_inline int is_nvswitch(hwloc_obj_t obj)
 }
 
 static int
-hwloc__distances_transform_merge_switch_ports(hwloc_topology_t topology,
-                                              struct hwloc_distances_s *distances)
+hwloc__distances_transform_merge_switch_ports(struct hwloc_distances_s *distances)
 {
-  struct hwloc_internal_distances_s *dist = hwloc__internal_distances_from_public(topology, distances);
   hwloc_obj_t *objs = distances->objs;
   hwloc_uint64_t *values = distances->values;
   unsigned first, i, j, nbobjs = distances->nbobjs;
-
-  if (strcmp(dist->name, "NVLinkBandwidth")) {
-    errno = EINVAL;
-    return -1;
-  }
 
   /* find the first port */
   first = (unsigned) -1;
@@ -1435,19 +1428,12 @@ hwloc__distances_transform_merge_switch_ports(hwloc_topology_t topology,
 }
 
 static int
-hwloc__distances_transform_transitive_closure(hwloc_topology_t topology,
-                                              struct hwloc_distances_s *distances)
+hwloc__distances_transform_transitive_closure(struct hwloc_distances_s *distances)
 {
-  struct hwloc_internal_distances_s *dist = hwloc__internal_distances_from_public(topology, distances);
   hwloc_obj_t *objs = distances->objs;
   hwloc_uint64_t *values = distances->values;
   unsigned nbobjs = distances->nbobjs;
   unsigned i, j, k;
-
-  if (strcmp(dist->name, "NVLinkBandwidth")) {
-    errno = EINVAL;
-    return -1;
-  }
 
   for(i=0; i<nbobjs; i++) {
     hwloc_uint64_t bw_i2sw = 0;
@@ -1467,8 +1453,8 @@ hwloc__distances_transform_transitive_closure(hwloc_topology_t topology,
         if (is_nvswitch(objs[k]))
           bw_sw2j += values[k*nbobjs+j];
 
-      /* bandwidth from i to j is now min(i2sw,sw2j) */
-      values[i*nbobjs+j] = bw_i2sw > bw_sw2j ? bw_sw2j : bw_i2sw;
+      /* bandwidth from i to j now gets indirect bandwidth too, min(i2sw,sw2j) */
+      values[i*nbobjs+j] += bw_i2sw > bw_sw2j ? bw_sw2j : bw_i2sw;
     }
   }
 
@@ -1476,7 +1462,7 @@ hwloc__distances_transform_transitive_closure(hwloc_topology_t topology,
 }
 
 int
-hwloc_distances_transform(hwloc_topology_t topology,
+hwloc_distances_transform(hwloc_topology_t topology __hwloc_attribute_unused,
                           struct hwloc_distances_s *distances,
                           enum hwloc_distances_transform_e transform,
                           void *transform_attr,
@@ -1495,13 +1481,13 @@ hwloc_distances_transform(hwloc_topology_t topology,
   case HWLOC_DISTANCES_TRANSFORM_MERGE_SWITCH_PORTS:
   {
     int err;
-    err = hwloc__distances_transform_merge_switch_ports(topology, distances);
+    err = hwloc__distances_transform_merge_switch_ports(distances);
     if (!err)
       err = hwloc__distances_transform_remove_null(distances);
     return err;
   }
   case HWLOC_DISTANCES_TRANSFORM_TRANSITIVE_CLOSURE:
-    return hwloc__distances_transform_transitive_closure(topology, distances);
+    return hwloc__distances_transform_transitive_closure(distances);
   default:
     errno = EINVAL;
     return -1;

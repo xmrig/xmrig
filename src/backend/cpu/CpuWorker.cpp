@@ -87,14 +87,14 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
         if (!cn_heavyZen3Memory) {
             // Round up number of threads to the multiple of 8
             const size_t num_threads = ((m_threads + 7) / 8) * 8;
-            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * num_threads, data.hugePages, false, false, node());
+            cn_heavyZen3Memory = new VirtualMemory(m_algorithm.l3() * num_threads, data.hugePages, false, false, node(), VirtualMemory::kDefaultHugePageSize);
         }
         m_memory = cn_heavyZen3Memory;
     }
     else
 #   endif
     {
-        m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node());
+        m_memory = new VirtualMemory(m_algorithm.l3() * N, data.hugePages, false, true, node(), VirtualMemory::kDefaultHugePageSize);
     }
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -359,7 +359,9 @@ void xmrig::CpuWorker<N>::start()
             }
         }
 
-        consumeJob();
+        if (!Nonce::isPaused()) {
+            consumeJob();
+        }
     }
 }
 

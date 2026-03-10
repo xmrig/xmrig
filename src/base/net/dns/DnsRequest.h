@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,35 +16,30 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSREQUEST_H
-#define XMRIG_DNSREQUEST_H
+#pragma once
 
-
-#include "base/tools/Object.h"
-
-
-#include <cstdint>
+#include "base/kernel/interfaces/IDnsListener.h"
 
 
 namespace xmrig {
 
 
-class IDnsListener;
-
-
-class DnsRequest
+class DnsRequest : public IDnsListener
 {
 public:
     XMRIG_DISABLE_COPY_MOVE_DEFAULT(DnsRequest)
 
-    DnsRequest(IDnsListener *listener) : listener(listener) {}
-    ~DnsRequest() = default;
+    inline DnsRequest(IDnsListener *listener) : m_listener(listener) {}
+    ~DnsRequest() override = default;
 
-    IDnsListener *listener;
+protected:
+    inline void onResolved(const DnsRecords &records, int status, const char *error) override {
+        m_listener->onResolved(records, status, error);
+    }
+
+private:
+    IDnsListener *m_listener;
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_DNSREQUEST_H */
+} // namespace xmrig

@@ -156,9 +156,9 @@ private:
     Buffer m_hashes;
     Buffer m_minerTxMerkleTreeBranch;
     uint8_t m_rootHash[kHashSize]{};
-    bool m_hasProtocolTx    = false;
     uint8_t m_carrotViewTag[kCarrotViewTagSize]{};
-    uint8_t m_carrotEncryptedJanusAnchor[kCarrotAnchorSize]{};
+    uint8_t m_janusAnchor[kCarrotAnchorSize]{};
+    bool m_hasProtocolTx    = false;
 };
 
 

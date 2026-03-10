@@ -211,11 +211,13 @@ rapidjson::Value xmrig::Json::normalize(double value, bool zero)
 {
     using namespace rapidjson;
 
-    if (!std::isnormal(value)) {
+    const double value_rounded = floor(value * 100.0) / 100.0;
+
+    if (!std::isnormal(value) || !std::isnormal(value_rounded)) {
         return zero ? Value(0.0) : Value(kNullType);
     }
 
-    return Value(floor(value * 100.0) / 100.0);
+    return Value(value_rounded);
 }
 
 

@@ -30,10 +30,10 @@
 #include "base/tools/Handle.h"
 
 
-inline static const char *format(double h, char *buf, size_t size)
+inline static const char *format(std::pair<bool, double> h, char *buf, size_t size)
 {
-    if (std::isnormal(h)) {
-        snprintf(buf, size, (h < 100.0) ? "%04.2f" : "%03.1f", h);
+    if (h.first) {
+        snprintf(buf, size, (h.second < 100.0) ? "%04.2f" : "%03.1f", h.second);
         return buf;
     }
 
@@ -80,15 +80,16 @@ double xmrig::Hashrate::average() const
 }
 
 
-const char *xmrig::Hashrate::format(double h, char *buf, size_t size)
+const char *xmrig::Hashrate::format(std::pair<bool, double> h, char *buf, size_t size)
 {
     return ::format(h, buf, size);
 }
 
 
-rapidjson::Value xmrig::Hashrate::normalize(double d)
+rapidjson::Value xmrig::Hashrate::normalize(std::pair<bool, double> d)
 {
-    return Json::normalize(d, false);
+    using namespace rapidjson;
+    return d.first ? Value(floor(d.second * 100.0) / 100.0) : Value(kNullType);
 }
 
 
@@ -122,11 +123,11 @@ rapidjson::Value xmrig::Hashrate::toJSON(size_t threadId, rapidjson::Document &d
 #endif
 
 
-double xmrig::Hashrate::hashrate(size_t index, size_t ms) const
+std::pair<bool, double> xmrig::Hashrate::hashrate(size_t index, size_t ms) const
 {
     assert(index < m_threads);
     if (index >= m_threads) {
-        return nan("");
+        return { false, 0.0 };
     }
 
     uint64_t earliestHashCount = 0;
@@ -157,17 +158,27 @@ double xmrig::Hashrate::hashrate(size_t index, size_t ms) const
     } while (idx != idx_start);
 
     if (!haveFullSet || earliestStamp == 0 || lastestStamp == 0) {
-        return nan("");
+        return { false, 0.0 };
     }
 
-    if (lastestStamp - earliestStamp == 0) {
-        return nan("");
+    if (lastestHashCnt == earliestHashCount) {
+        return { true, 0.0 };
+    }
+
+    if (lastestStamp == earliestStamp) {
+        return { false, 0.0 };
     }
 
     const auto hashes = static_cast<double>(lastestHashCnt - earliestHashCount);
-    const auto time   = static_cast<double>(lastestStamp - earliestStamp) / 1000.0;
+    const auto time   = static_cast<double>(lastestStamp - earliestStamp);
 
-    return hashes / time;
+    const auto hr = hashes * 1000.0 / time;
+
+    if (!std::isnormal(hr)) {
+        return { false, 0.0 };
+    }
+
+    return { true, hr };
 }
 
 

@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,10 +22,8 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <cstdio>
 #include <uv.h>
-
 
 #ifdef XMRIG_FEATURE_TLS
 #   include <openssl/opensslv.h>
@@ -66,13 +64,13 @@ static int showVersion()
 #   endif
 
     printf("\n features:"
-#   if defined(__i386__) || defined(_M_IX86)
-    " 32-bit"
-#   elif defined(__x86_64__) || defined(_M_AMD64)
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
     " 64-bit"
+#   else
+    " 32-bit"
 #   endif
 
-#   if defined(__AES__) || defined(_MSC_VER)
+#   if defined(__AES__) || defined(_MSC_VER) || defined(__ARM_FEATURE_CRYPTO)
     " AES"
 #   endif
     "\n");

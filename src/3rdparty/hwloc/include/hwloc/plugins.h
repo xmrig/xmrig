@@ -1,5 +1,5 @@
 /*
- * Copyright © 2013-2022 Inria.  All rights reserved.
+ * Copyright © 2013-2024 Inria.  All rights reserved.
  * Copyright © 2016 Cisco Systems, Inc.  All rights reserved.
  * See COPYING in top-level directory.
  */
@@ -26,7 +26,7 @@ struct hwloc_backend;
 
 
 
-/** \defgroup hwlocality_disc_components Components and Plugins: Discovery components
+/** \defgroup hwlocality_disc_components Components and Plugins: Discovery components and backends
  *
  * \note These structures and functions may change when ::HWLOC_COMPONENT_ABI is modified.
  *
@@ -89,18 +89,6 @@ struct hwloc_disc_component {
    */
   struct hwloc_disc_component * next;
 };
-
-/** @} */
-
-
-
-
-/** \defgroup hwlocality_disc_backends Components and Plugins: Discovery backends
- *
- * \note These structures and functions may change when ::HWLOC_COMPONENT_ABI is modified.
- *
- * @{
- */
 
 /** \brief Discovery phase */
 typedef enum hwloc_disc_phase_e {
@@ -313,6 +301,64 @@ struct hwloc_component {
   void * data;
 };
 
+/** \brief Make sure that plugins can lookup core symbols.
+ *
+ * This is a sanity check to avoid lazy-lookup failures when libhwloc
+ * is loaded within a plugin, and later tries to load its own plugins.
+ * This may fail (and abort the program) if libhwloc symbols are in a
+ * private namespace.
+ *
+ * \return 0 on success.
+ * \return -1 if the plugin cannot be successfully loaded. The caller
+ * plugin init() callback should return a negative error code as well.
+ *
+ * Plugins should call this function in their init() callback to avoid
+ * later crashes if lazy symbol resolution is used by the upper layer that
+ * loaded hwloc (e.g. OpenCL implementations using dlopen with RTLD_LAZY).
+ *
+ * \note The build system must define HWLOC_INSIDE_PLUGIN if and only if
+ * building the caller as a plugin.
+ *
+ * \note This function should remain inline so plugins can call it even
+ * when they cannot find libhwloc symbols.
+ */
+static __hwloc_inline int
+hwloc_plugin_check_namespace(const char *pluginname __hwloc_attribute_unused, const char *symbol __hwloc_attribute_unused)
+{
+#ifdef HWLOC_INSIDE_PLUGIN
+  void *sym;
+#ifdef HWLOC_HAVE_LTDL
+  lt_dlhandle handle = lt_dlopen(NULL);
+#else
+  void *handle = dlopen(NULL, RTLD_NOW|RTLD_LOCAL);
+#endif
+  if (!handle)
+    /* cannot check, assume things will work */
+    return 0;
+#ifdef HWLOC_HAVE_LTDL
+  sym = lt_dlsym(handle, symbol);
+  lt_dlclose(handle);
+#else
+  sym = dlsym(handle, symbol);
+  dlclose(handle);
+#endif
+  if (!sym) {
+    static int verboseenv_checked = 0;
+    static int verboseenv_value = 0;
+    if (!verboseenv_checked) {
+      const char *verboseenv = getenv("HWLOC_PLUGINS_VERBOSE");
+      verboseenv_value = verboseenv ? atoi(verboseenv) : 0;
+      verboseenv_checked = 1;
+    }
+    if (verboseenv_value)
+      fprintf(stderr, "Plugin `%s' disabling itself because it cannot find the `%s' core symbol.\n",
+	      pluginname, symbol);
+    return -1;
+  }
+#endif /* HWLOC_INSIDE_PLUGIN */
+  return 0;
+}
+
 /** @} */
 
 
@@ -421,64 +467,6 @@ HWLOC_DECLSPEC int hwloc_obj_add_children_sets(hwloc_obj_t obj);
  * \p flags is currently unused, must 0.
  */
 HWLOC_DECLSPEC int hwloc_topology_reconnect(hwloc_topology_t topology, unsigned long flags __hwloc_attribute_unused);
-
-/** \brief Make sure that plugins can lookup core symbols.
- *
- * This is a sanity check to avoid lazy-lookup failures when libhwloc
- * is loaded within a plugin, and later tries to load its own plugins.
- * This may fail (and abort the program) if libhwloc symbols are in a
- * private namespace.
- *
- * \return 0 on success.
- * \return -1 if the plugin cannot be successfully loaded. The caller
- * plugin init() callback should return a negative error code as well.
- *
- * Plugins should call this function in their init() callback to avoid
- * later crashes if lazy symbol resolution is used by the upper layer that
- * loaded hwloc (e.g. OpenCL implementations using dlopen with RTLD_LAZY).
- *
- * \note The build system must define HWLOC_INSIDE_PLUGIN if and only if
- * building the caller as a plugin.
- *
- * \note This function should remain inline so plugins can call it even
- * when they cannot find libhwloc symbols.
- */
-static __hwloc_inline int
-hwloc_plugin_check_namespace(const char *pluginname __hwloc_attribute_unused, const char *symbol __hwloc_attribute_unused)
-{
-#ifdef HWLOC_INSIDE_PLUGIN
-  void *sym;
-#ifdef HWLOC_HAVE_LTDL
-  lt_dlhandle handle = lt_dlopen(NULL);
-#else
-  void *handle = dlopen(NULL, RTLD_NOW|RTLD_LOCAL);
-#endif
-  if (!handle)
-    /* cannot check, assume things will work */
-    return 0;
-#ifdef HWLOC_HAVE_LTDL
-  sym = lt_dlsym(handle, symbol);
-  lt_dlclose(handle);
-#else
-  sym = dlsym(handle, symbol);
-  dlclose(handle);
-#endif
-  if (!sym) {
-    static int verboseenv_checked = 0;
-    static int verboseenv_value = 0;
-    if (!verboseenv_checked) {
-      const char *verboseenv = getenv("HWLOC_PLUGINS_VERBOSE");
-      verboseenv_value = verboseenv ? atoi(verboseenv) : 0;
-      verboseenv_checked = 1;
-    }
-    if (verboseenv_value)
-      fprintf(stderr, "Plugin `%s' disabling itself because it cannot find the `%s' core symbol.\n",
-	      pluginname, symbol);
-    return -1;
-  }
-#endif /* HWLOC_INSIDE_PLUGIN */
-  return 0;
-}
 
 /** @} */
 
@@ -644,6 +632,19 @@ HWLOC_DECLSPEC struct hwloc_obj * hwloc_pci_find_parent_by_busid(struct hwloc_to
  * PCI locality, hwloc_pci_find_parent_by_busid() should be preferred.
  */
 HWLOC_DECLSPEC struct hwloc_obj * hwloc_pci_find_by_busid(struct hwloc_topology *topology, unsigned domain, unsigned bus, unsigned dev, unsigned func);
+
+
+/** @} */
+
+
+
+
+/** \defgroup hwlocality_components_distances Components and Plugins: distances
+ *
+ * \note These structures and functions may change when ::HWLOC_COMPONENT_ABI is modified.
+ *
+ * @{
+ */
 
 /** \brief Handle to a new distances structure during its addition to the topology. */
 typedef void * hwloc_backend_distances_add_handle_t;

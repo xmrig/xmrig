@@ -47,16 +47,16 @@ public:
     Hashrate(size_t threads);
     ~Hashrate();
 
-    inline double calc(size_t ms) const                                     { const double data = hashrate(0U, ms); return std::isnormal(data) ? data : 0.0; }
-    inline double calc(size_t threadId, size_t ms) const                    { return hashrate(threadId + 1, ms); }
+    inline std::pair<bool, double> calc(size_t ms) const                    { return hashrate(0U, ms); }
+    inline std::pair<bool, double> calc(size_t threadId, size_t ms) const   { return hashrate(threadId + 1, ms); }
     inline size_t threads() const                                           { return m_threads > 0U ? m_threads - 1U : 0U; }
     inline void add(size_t threadId, uint64_t count, uint64_t timestamp)    { addData(threadId + 1U, count, timestamp); }
     inline void add(uint64_t count, uint64_t timestamp)                     { addData(0U, count, timestamp); }
 
     double average() const;
 
-    static const char *format(double h, char *buf, size_t size);
-    static rapidjson::Value normalize(double d);
+    static const char *format(std::pair<bool, double> h, char *buf, size_t size);
+    static rapidjson::Value normalize(std::pair<bool, double> d);
 
 #   ifdef XMRIG_FEATURE_API
     rapidjson::Value toJSON(rapidjson::Document &doc) const;
@@ -64,7 +64,7 @@ public:
 #   endif
 
 private:
-    double hashrate(size_t index, size_t ms) const;
+    std::pair<bool, double> hashrate(size_t index, size_t ms) const;
     void addData(size_t index, uint64_t count, uint64_t timestamp);
 
     constexpr static size_t kBucketSize = 2 << 11;

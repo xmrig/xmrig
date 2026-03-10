@@ -43,6 +43,12 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
         randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 5));
         randomx_init_dataset(dataset, cache, startItem + itemCount - 5, 5);
     }
+#ifdef XMRIG_RISCV
+    else if (itemCount % 4) {
+        randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 4));
+        randomx_init_dataset(dataset, cache, startItem + itemCount - 4, 4);
+    }
+#endif
     else {
         randomx_init_dataset(dataset, cache, startItem, itemCount);
     }
@@ -209,7 +215,7 @@ void xmrig::RxDataset::allocate(bool hugePages, bool oneGbPages)
         return;
     }
 
-    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node);
+    m_memory  = new VirtualMemory(maxSize(), hugePages, oneGbPages, false, m_node, VirtualMemory::kDefaultHugePageSize);
 
     if (m_memory->isOneGbPages()) {
         m_scratchpadOffset = maxSize() + RANDOMX_CACHE_MAX_SIZE;

@@ -1433,7 +1433,7 @@ private:
     class NumberStream<InputStream, StackCharacter, true, false> : public NumberStream<InputStream, StackCharacter, false, false> {
         typedef NumberStream<InputStream, StackCharacter, false, false> Base;
     public:
-        NumberStream(GenericReader& reader, InputStream& is) : Base(reader, is), stackStream(reader.stack_) {}
+        NumberStream(GenericReader& reader, InputStream& s) : Base(reader, s), stackStream(reader.stack_) {}
 
         RAPIDJSON_FORCEINLINE Ch TakePush() {
             stackStream.Put(static_cast<StackCharacter>(Base::is.Peek()));
@@ -1459,7 +1459,7 @@ private:
     class NumberStream<InputStream, StackCharacter, true, true> : public NumberStream<InputStream, StackCharacter, true, false> {
         typedef NumberStream<InputStream, StackCharacter, true, false> Base;
     public:
-        NumberStream(GenericReader& reader, InputStream& is) : Base(reader, is) {}
+        NumberStream(GenericReader& reader, InputStream& s) : Base(reader, s) {}
 
         RAPIDJSON_FORCEINLINE Ch Take() { return Base::TakePush(); }
     };
@@ -1584,7 +1584,7 @@ private:
         // Parse frac = decimal-point 1*DIGIT
         int expFrac = 0;
         size_t decimalPosition;
-        if (Consume(s, '.')) {
+        if (!useNanOrInf && Consume(s, '.')) {
             decimalPosition = s.Length();
 
             if (RAPIDJSON_UNLIKELY(!(s.Peek() >= '0' && s.Peek() <= '9')))
@@ -1631,7 +1631,7 @@ private:
 
         // Parse exp = e [ minus / plus ] 1*DIGIT
         int exp = 0;
-        if (Consume(s, 'e') || Consume(s, 'E')) {
+        if (!useNanOrInf && (Consume(s, 'e') || Consume(s, 'E'))) {
             if (!useDouble) {
                 d = static_cast<double>(use64bit ? i64 : i);
                 useDouble = true;
@@ -1694,7 +1694,7 @@ private:
             }
             else {
                 SizeType numCharsToCopy = static_cast<SizeType>(s.Length());
-                GenericStringStream<UTF8<NumberCharacter>> srcStream(s.Pop());
+                GenericStringStream<UTF8<NumberCharacter> > srcStream(s.Pop());
                 StackStream<typename TargetEncoding::Ch> dstStream(stack_);
                 while (numCharsToCopy--) {
                     Transcoder<UTF8<typename TargetEncoding::Ch>, TargetEncoding>::Transcode(srcStream, dstStream);

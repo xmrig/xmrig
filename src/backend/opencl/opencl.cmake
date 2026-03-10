@@ -5,13 +5,7 @@ if (BUILD_STATIC AND XMRIG_OS_UNIX AND WITH_OPENCL)
 endif()
 
 if (WITH_OPENCL)
-    add_definitions(/DXMRIG_FEATURE_OPENCL)
-    add_definitions(/DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
-    if (XMRIG_OS_APPLE)
-        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
-    elseif (WITH_OPENCL_VERSION)
-        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
-    endif()
+    add_definitions(/DXMRIG_FEATURE_OPENCL /DCL_USE_DEPRECATED_OPENCL_1_2_APIS)
 
     set(HEADERS_BACKEND_OPENCL
         src/backend/opencl/cl/OclSource.h
@@ -71,6 +65,13 @@ if (WITH_OPENCL)
         src/backend/opencl/wrappers/OclPlatform.cpp
         )
 
+    if (XMRIG_OS_APPLE)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=120)
+        list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/wrappers/OclDevice_mac.cpp)
+    elseif (WITH_OPENCL_VERSION)
+        add_definitions(/DCL_TARGET_OPENCL_VERSION=${WITH_OPENCL_VERSION})
+    endif()
+
     if (WIN32)
         list(APPEND SOURCES_BACKEND_OPENCL src/backend/opencl/OclCache_win.cpp)
     else()
@@ -80,6 +81,7 @@ if (WITH_OPENCL)
     if (WITH_RANDOMX)
         list(APPEND HEADERS_BACKEND_OPENCL
              src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.h
+             src/backend/opencl/kernels/rx/Blake2bInitialHashBigKernel.h
              src/backend/opencl/kernels/rx/Blake2bInitialHashDoubleKernel.h
              src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.h
              src/backend/opencl/kernels/rx/ExecuteVmKernel.h
@@ -97,6 +99,7 @@ if (WITH_OPENCL)
         list(APPEND SOURCES_BACKEND_OPENCL
              src/backend/opencl/generators/ocl_generic_rx_generator.cpp
              src/backend/opencl/kernels/rx/Blake2bHashRegistersKernel.cpp
+             src/backend/opencl/kernels/rx/Blake2bInitialHashBigKernel.cpp
              src/backend/opencl/kernels/rx/Blake2bInitialHashDoubleKernel.cpp
              src/backend/opencl/kernels/rx/Blake2bInitialHashKernel.cpp
              src/backend/opencl/kernels/rx/ExecuteVmKernel.cpp

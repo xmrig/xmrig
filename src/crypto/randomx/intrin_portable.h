@@ -200,7 +200,18 @@ typedef union{
 	int i32[4];
 } vec_u;
 
-#define rx_aligned_alloc(a, b) malloc(a)
+#ifdef HAVE_POSIX_MEMALIGN
+inline void* rx_aligned_alloc(size_t size, size_t align) {
+    void* p;
+    if (posix_memalign(&p, align, size) == 0)
+        return p;
+
+    return 0;
+};
+#else
+#   define rx_aligned_alloc(a, b) malloc(a)
+#endif
+
 #define rx_aligned_free(a) free(a)
 #define rx_prefetch_nta(x)
 #define rx_prefetch_t0(x)
@@ -392,15 +403,22 @@ FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
 typedef uint8x16_t rx_vec_i128;
 typedef float64x2_t rx_vec_f128;
 
+#ifdef HAVE_POSIX_MEMALIGN
 inline void* rx_aligned_alloc(size_t size, size_t align) {
-	void* p;
-	if (posix_memalign(&p, align, size) == 0)
-		return p;
+    void* p;
+    if (posix_memalign(&p, align, size) == 0)
+        return p;
 
-	return 0;
+    return 0;
 };
-
-#define rx_aligned_free(a) free(a)
+#   define rx_aligned_free(a) free(a)
+#elif defined(HAVE_ALIGNED_MALLOC)
+#   define rx_aligned_alloc(a, b) _aligned_malloc(a, b)
+#   define rx_aligned_free(a) _aligned_free(a)
+#else
+#   define rx_aligned_alloc(a, b) malloc(a)
+#   define rx_aligned_free(a) free(a)
+#endif
 
 inline void rx_prefetch_nta(void* ptr) {
 	asm volatile ("prfm pldl1strm, [%0]\n" : : "r" (ptr));
@@ -542,8 +560,23 @@ typedef union {
 	rx_vec_i128 i;
 } rx_vec_f128;
 
-#define rx_aligned_alloc(a, b) malloc(a)
-#define rx_aligned_free(a) free(a)
+#ifdef HAVE_POSIX_MEMALIGN
+inline void* rx_aligned_alloc(size_t size, size_t align) {
+    void* p;
+    if (posix_memalign(&p, align, size) == 0)
+        return p;
+
+    return 0;
+};
+#   define rx_aligned_free(a) free(a)
+#elif defined(HAVE_ALIGNED_MALLOC)
+#   define rx_aligned_alloc(a, b) _aligned_malloc(a, b)
+#   define rx_aligned_free(a) _aligned_free(a)
+#else
+#   define rx_aligned_alloc(a, b) malloc(a)
+#   define rx_aligned_free(a) free(a)
+#endif
+
 #define rx_prefetch_nta(x)
 #define rx_prefetch_t0(x)
 

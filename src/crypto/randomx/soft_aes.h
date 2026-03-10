@@ -41,6 +41,9 @@ extern uint32_t lutDec1[256];
 extern uint32_t lutDec2[256];
 extern uint32_t lutDec3[256];
 
+extern uint8_t lutEncIndex[4][32];
+extern uint8_t lutDecIndex[4][32];
+
 template<int soft> rx_vec_i128 aesenc(rx_vec_i128 in, rx_vec_i128 key);
 template<int soft> rx_vec_i128 aesdec(rx_vec_i128 in, rx_vec_i128 key);
 
@@ -147,3 +150,32 @@ template<>
 FORCE_INLINE rx_vec_i128 aesdec<0>(rx_vec_i128 in, rx_vec_i128 key) {
 	return rx_aesdec_vec_i128(in, key);
 }
+
+#if defined(XMRIG_RISCV) && defined(XMRIG_RVV_ENABLED)
+#include <riscv_vector.h>
+
+FORCE_INLINE vuint32m1_t softaes_vector_double(
+	vuint32m1_t in,
+	vuint32m1_t key,
+	vuint8m1_t i0, vuint8m1_t i1, vuint8m1_t i2, vuint8m1_t i3,
+	const uint32_t* lut0, const uint32_t* lut1, const uint32_t *lut2, const uint32_t* lut3)
+{
+	const vuint8m1_t in8 = __riscv_vreinterpret_v_u32m1_u8m1(in);
+
+	const vuint32m1_t index0 = __riscv_vreinterpret_v_u8m1_u32m1(__riscv_vrgather_vv_u8m1(in8, i0, 32));
+	const vuint32m1_t index1 = __riscv_vreinterpret_v_u8m1_u32m1(__riscv_vrgather_vv_u8m1(in8, i1, 32));
+	const vuint32m1_t index2 = __riscv_vreinterpret_v_u8m1_u32m1(__riscv_vrgather_vv_u8m1(in8, i2, 32));
+	const vuint32m1_t index3 = __riscv_vreinterpret_v_u8m1_u32m1(__riscv_vrgather_vv_u8m1(in8, i3, 32));
+
+	vuint32m1_t s0 = __riscv_vluxei32_v_u32m1(lut0, __riscv_vsll_vx_u32m1(index0, 2, 8), 8);
+	vuint32m1_t s1 = __riscv_vluxei32_v_u32m1(lut1, __riscv_vsll_vx_u32m1(index1, 2, 8), 8);
+	vuint32m1_t s2 = __riscv_vluxei32_v_u32m1(lut2, __riscv_vsll_vx_u32m1(index2, 2, 8), 8);
+	vuint32m1_t s3 = __riscv_vluxei32_v_u32m1(lut3, __riscv_vsll_vx_u32m1(index3, 2, 8), 8);
+
+	s0 = __riscv_vxor_vv_u32m1(s0, s1, 8);
+	s2 = __riscv_vxor_vv_u32m1(s2, s3, 8);
+	s0 = __riscv_vxor_vv_u32m1(s0, s2, 8);
+
+	return __riscv_vxor_vv_u32m1(s0, key, 8);
+}
+#endif // defined(XMRIG_RISCV) && defined(XMRIG_RVV_ENABLED)

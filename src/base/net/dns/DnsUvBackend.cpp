@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,13 +16,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-
 #include <uv.h>
-
 
 #include "base/net/dns/DnsUvBackend.h"
 #include "base/kernel/interfaces/IDnsListener.h"
-#include "base/net/dns/DnsRequest.h"
+#include "base/net/dns/DnsConfig.h"
 #include "base/tools/Chrono.h"
 
 
@@ -73,21 +71,23 @@ xmrig::DnsUvBackend::~DnsUvBackend()
 }
 
 
-std::shared_ptr<xmrig::DnsRequest> xmrig::DnsUvBackend::resolve(const String &host, IDnsListener *listener, uint64_t ttl)
+void xmrig::DnsUvBackend::resolve(const String &host, const std::weak_ptr<IDnsListener> &listener, const DnsConfig &config)
 {
-    auto req = std::make_shared<DnsRequest>(listener);
+    m_queue.emplace_back(listener);
 
-    if (Chrono::currentMSecsSinceEpoch() - m_ts <= ttl && !m_records.isEmpty()) {
-        req->listener->onResolved(m_records, 0, nullptr);
-    } else {
-        m_queue.emplace(req);
+    if (Chrono::currentMSecsSinceEpoch() - m_ts <= config.ttl()) {
+        return notify();
     }
 
-    if (m_queue.size() == 1 && !resolve(host)) {
-        done();
+    if (m_req) {
+        return;
     }
 
-    return req;
+    m_ai_family = config.ai_family();
+
+    if (!resolve(host)) {
+        notify();
+    }
 }
 
 
@@ -102,44 +102,46 @@ bool xmrig::DnsUvBackend::resolve(const String &host)
 }
 
 
-void xmrig::DnsUvBackend::done()
+void xmrig::DnsUvBackend::notify()
 {
     const char *error = m_status < 0 ? uv_strerror(m_status) : nullptr;
 
-    while (!m_queue.empty()) {
-        auto req = std::move(m_queue.front()).lock();
-        if (req) {
-            req->listener->onResolved(m_records, m_status, error);
+    for (const auto &l : m_queue) {
+        auto listener = l.lock();
+        if (listener) {
+            listener->onResolved(m_records, m_status, error);
         }
-
-        m_queue.pop();
     }
 
+    m_queue.clear();
     m_req.reset();
 }
 
 
 void xmrig::DnsUvBackend::onResolved(int status, addrinfo *res)
 {
-    m_ts = Chrono::currentMSecsSinceEpoch();
+    m_status = status;
+    m_ts     = Chrono::currentMSecsSinceEpoch();
 
-    if ((m_status = status) < 0) {
-        return done();
+    if (m_status < 0) {
+        m_records = {};
+
+        return notify();
     }
 
-    m_records.parse(res);
+    m_records = { res, m_ai_family };
 
     if (m_records.isEmpty()) {
         m_status = UV_EAI_NONAME;
     }
 
-    done();
+    notify();
 }
 
 
 void xmrig::DnsUvBackend::onResolved(uv_getaddrinfo_t *req, int status, addrinfo *res)
 {
-    auto backend = getStorage().get(req->data);
+    auto *backend = getStorage().get(req->data);
     if (backend) {
         backend->onResolved(status, res);
     }

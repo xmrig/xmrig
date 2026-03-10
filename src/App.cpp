@@ -6,8 +6,8 @@
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -22,7 +22,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include <cstdlib>
 #include <uv.h>
@@ -61,12 +60,12 @@ int xmrig::App::exec()
         return 2;
     }
 
-    m_signals = std::make_shared<Signals>(this);
-
     int rc = 0;
     if (background(rc)) {
         return rc;
     }
+
+    m_signals = std::make_shared<Signals>(this);
 
     rc = m_controller->init();
     if (rc != 0) {

@@ -170,7 +170,7 @@ void xmrig::OclWorker::start()
             const uint64_t t = Chrono::steadyMSecs();
 
             try {
-                m_runner->run(readUnaligned(m_job.nonce()), results);
+                m_runner->run(readUnaligned(m_job.nonce()), m_job.nonceOffset(), results);
             }
             catch (std::exception &ex) {
                 printError(id(), ex.what());
@@ -190,7 +190,7 @@ void xmrig::OclWorker::start()
             std::this_thread::yield();
         }
 
-        if (!consumeJob()) {
+        if (isReady() && !consumeJob()) {
             return;
         }
     }

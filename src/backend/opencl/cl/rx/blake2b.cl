@@ -225,6 +225,110 @@ __kernel void blake2b_initial_hash_double(__global void *out, __global const voi
 	t[7] = hash[7];
 }
 
+void blake2b_512_process_big_block(ulong *out, __global const ulong* in, uint in_len, uint out_len, uint nonce, uint nonce_offset)
+{
+	ulong h[8] = { iv0 ^ (0x01010000u | out_len), iv1, iv2, iv3, iv4, iv5, iv6, iv7 };
+
+	for (uint t = 128; t < in_len; t += 128, in += 16) {
+		ulong m[16] = { in[0], in[1], in[2], in[3], in[4], in[5], in[6], in[7], in[8], in[9], in[10], in[11],  in[12], in[13], in[14], in[15] };
+
+		const uint k0 = (nonce_offset + 0) - (t - 128);
+		const uint k1 = (nonce_offset + 1) - (t - 128);
+		const uint k2 = (nonce_offset + 2) - (t - 128);
+		const uint k3 = (nonce_offset + 3) - (t - 128);
+
+		if (k0 < 128) m[k0 / 8] |= (ulong)((nonce >>  0) & 255) << ((k0 % 8) * 8);
+		if (k1 < 128) m[k1 / 8] |= (ulong)((nonce >>  8) & 255) << ((k1 % 8) * 8);
+		if (k2 < 128) m[k2 / 8] |= (ulong)((nonce >> 16) & 255) << ((k2 % 8) * 8);
+		if (k3 < 128) m[k3 / 8] |= (ulong)((nonce >> 24) & 255) << ((k3 % 8) * 8);
+
+		ulong v[16] = {  h[0],  h[1],  h[2],  h[3],  h[4],  h[5],  h[6],  h[7],   iv0,   iv1,    iv2,    iv3, iv4 ^ t,    iv5,    iv6,    iv7 };
+
+		BLAKE2B_ROUNDS();
+
+		h[0] ^= v[0] ^ v[ 8];
+		h[1] ^= v[1] ^ v[ 9];
+		h[2] ^= v[2] ^ v[10];
+		h[3] ^= v[3] ^ v[11];
+		h[4] ^= v[4] ^ v[12];
+		h[5] ^= v[5] ^ v[13];
+		h[6] ^= v[6] ^ v[14];
+		h[7] ^= v[7] ^ v[15];
+	}
+
+	uint k = in_len & 127;
+	if (k == 0) k = 128;
+
+	ulong m[16] = {
+		(k >   0) ? in[ 0] : 0,
+		(k >   8) ? in[ 1] : 0,
+		(k >  16) ? in[ 2] : 0,
+		(k >  24) ? in[ 3] : 0,
+		(k >  32) ? in[ 4] : 0,
+		(k >  40) ? in[ 5] : 0,
+		(k >  48) ? in[ 6] : 0,
+		(k >  56) ? in[ 7] : 0,
+		(k >  64) ? in[ 8] : 0,
+		(k >  72) ? in[ 9] : 0,
+		(k >  80) ? in[10] : 0,
+		(k >  88) ? in[11] : 0,
+		(k >  96) ? in[12] : 0,
+		(k > 104) ? in[13] : 0,
+		(k > 112) ? in[14] : 0,
+		(k > 120) ? in[15] : 0
+	};
+
+	const uint t = in_len - k;
+
+	const uint k0 = nonce_offset + 0 - t;
+	const uint k1 = nonce_offset + 1 - t;
+	const uint k2 = nonce_offset + 2 - t;
+	const uint k3 = nonce_offset + 3 - t;
+
+	if (k0 < k) m[k0 / 8] |= (ulong)((nonce >>  0) & 255) << ((k0 % 8) * 8);
+	if (k1 < k) m[k1 / 8] |= (ulong)((nonce >>  8) & 255) << ((k1 % 8) * 8);
+	if (k2 < k) m[k2 / 8] |= (ulong)((nonce >> 16) & 255) << ((k2 % 8) * 8);
+	if (k3 < k) m[k3 / 8] |= (ulong)((nonce >> 24) & 255) << ((k3 % 8) * 8);
+
+	if (k % 8) {
+		m[k / 8] &= (ulong)(-1) >> (64 - (k % 8) * 8);
+	}
+
+	ulong v[16] = { h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7], iv0, iv1, iv2, iv3, iv4 ^ in_len, iv5, ~iv6, iv7 };
+
+	BLAKE2B_ROUNDS();
+
+	if (out_len >  0) out[0] = h[0] ^ v[0] ^ v[8];
+	if (out_len >  8) out[1] = h[1] ^ v[1] ^ v[9];
+	if (out_len > 16) out[2] = h[2] ^ v[2] ^ v[10];
+	if (out_len > 24) out[3] = h[3] ^ v[3] ^ v[11];
+	if (out_len > 32) out[4] = h[4] ^ v[4] ^ v[12];
+	if (out_len > 40) out[5] = h[5] ^ v[5] ^ v[13];
+	if (out_len > 48) out[6] = h[6] ^ v[6] ^ v[14];
+	if (out_len > 56) out[7] = h[7] ^ v[7] ^ v[15];
+}
+
+__attribute__((reqd_work_group_size(64, 1, 1)))
+__kernel void blake2b_initial_hash_big(__global void *out, __global const void* blockTemplate, uint blockTemplateSize, uint start_nonce, uint nonce_offset)
+{
+	const uint global_index = get_global_id(0);
+
+	__global const ulong* p = (__global const ulong*) blockTemplate;
+
+	ulong hash[8];
+	blake2b_512_process_big_block(hash, p, blockTemplateSize, 64, start_nonce + global_index, nonce_offset);
+
+	__global ulong* t = ((__global ulong*) out) + global_index * 8;
+	t[0] = hash[0];
+	t[1] = hash[1];
+	t[2] = hash[2];
+	t[3] = hash[3];
+	t[4] = hash[4];
+	t[5] = hash[5];
+	t[6] = hash[6];
+	t[7] = hash[7];
+}
+
 #define in_len 256
 
 #define out_len 32

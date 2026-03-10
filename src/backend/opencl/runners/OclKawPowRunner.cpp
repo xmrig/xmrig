@@ -75,7 +75,7 @@ OclKawPowRunner::~OclKawPowRunner()
 }
 
 
-void OclKawPowRunner::run(uint32_t nonce, uint32_t *hashOutput)
+void OclKawPowRunner::run(uint32_t nonce, uint32_t /*nonce_offset*/, uint32_t *hashOutput)
 {
     const size_t local_work_size = m_workGroupSize;
     const size_t global_work_offset = nonce;

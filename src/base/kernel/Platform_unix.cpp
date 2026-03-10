@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -71,11 +71,11 @@ char *xmrig::Platform::createUserAgent()
 
 
 #ifndef XMRIG_FEATURE_HWLOC
-#ifdef __DragonFly__
+#if defined(__DragonFly__) || defined(XMRIG_OS_OPENBSD) || defined(XMRIG_OS_HAIKU)
 
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
-    return true;
+    return false;
 }
 
 #else

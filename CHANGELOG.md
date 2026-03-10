@@ -1,3 +1,52 @@
+# v6.25.0
+- [#3680](https://github.com/xmrig/xmrig/pull/3680) Added `armv8l` to the list of 32-bit ARM targets.
+- [#3708](https://github.com/xmrig/xmrig/pull/3708) Minor Aarch64 JIT changes (better instruction selection, don't emit instructions that add 0, etc).
+- [#3718](https://github.com/xmrig/xmrig/pull/3718) Solo mining: added support for FCMP++ hardfork.
+- [#3722](https://github.com/xmrig/xmrig/pull/3722) Added Zen4 (Hawk Point) CPUs detection.
+- [#3725](https://github.com/xmrig/xmrig/pull/3725) Added **RISC-V** support with JIT compiler.
+- [#3731](https://github.com/xmrig/xmrig/pull/3731) Added initial Haiku OS support.
+- [#3733](https://github.com/xmrig/xmrig/pull/3733) Added detection for MSVC/2026.
+- [#3736](https://github.com/xmrig/xmrig/pull/3736) RISC-V: added vectorized dataset init.
+- [#3740](https://github.com/xmrig/xmrig/pull/3740) RISC-V: added vectorized soft AES.
+- [#3743](https://github.com/xmrig/xmrig/pull/3743) Linux: added support for transparent huge pages.
+- Improved LibreSSL support.
+- Improved compatibility for automatically enabling huge pages on Linux systems without NUMA support.
+
+# v6.24.0
+- [#3671](https://github.com/xmrig/xmrig/pull/3671) Fixed detection of L2 cache size for some complex NUMA topologies.
+- [#3674](https://github.com/xmrig/xmrig/pull/3674) Fixed ARMv7 build.
+- [#3677](https://github.com/xmrig/xmrig/pull/3677) Fixed auto-config for AMD CPUs with less than 2 MB L3 cache per thread.
+- [#3678](https://github.com/xmrig/xmrig/pull/3678) Improved IPv6 support: the new default settings use IPv6 equally with IPv4.
+
+# v6.23.0
+- [#3668](https://github.com/xmrig/xmrig/issues/3668) Added support for Windows ARM64.
+- [#3665](https://github.com/xmrig/xmrig/pull/3665) Tweaked auto-config for AMD CPUs with < 2 MB L3 cache per thread.
+
+# v6.22.3
+- [#3605](https://github.com/xmrig/xmrig/pull/3605) CUDA backend: added missing RandomX dataset update.
+- [#3646](https://github.com/xmrig/xmrig/pull/3646) Optimized auto-config for AMD CPUs with less than 2 MB L3 cache per thread.
+- [#3652](https://github.com/xmrig/xmrig/pull/3652) Fixed possible crash when submitting RandomX benchmark.
+- [#3662](https://github.com/xmrig/xmrig/pull/3662) Fixed OpenCL kernel compilation error on some platforms.
+
+# v6.22.2
+- [#3569](https://github.com/xmrig/xmrig/pull/3569) Fixed corrupted API output in some rare conditions.
+- [#3571](https://github.com/xmrig/xmrig/pull/3571) Fixed number of threads on the new Intel Core Ultra CPUs.
+
+# v6.22.1
+- [#3531](https://github.com/xmrig/xmrig/pull/3531) Always reset nonce on RandomX dataset change.
+- [#3534](https://github.com/xmrig/xmrig/pull/3534) Fixed threads auto-config on Zen5.
+- [#3535](https://github.com/xmrig/xmrig/pull/3535) RandomX: tweaks for Zen5.
+- [#3539](https://github.com/xmrig/xmrig/pull/3539) Added Zen5 to `randomx_boost.sh`.
+- [#3540](https://github.com/xmrig/xmrig/pull/3540) Detect AMD engineering samples in `randomx_boost.sh`.
+
+# v6.22.0
+- [#2411](https://github.com/xmrig/xmrig/pull/2411) Added support for [Yada](https://yadacoin.io/) (`rx/yada` algorithm).
+- [#3492](https://github.com/xmrig/xmrig/pull/3492) Fixed `--background` option on Unix systems.
+- [#3518](https://github.com/xmrig/xmrig/pull/3518) Possible fix for corrupted API output in rare cases.
+- [#3522](https://github.com/xmrig/xmrig/pull/3522) Removed `rx/keva` algorithm.
+- [#3525](https://github.com/xmrig/xmrig/pull/3525) Added Zen5 detection.
+- [#3528](https://github.com/xmrig/xmrig/pull/3528) Added `rx/yada` OpenCL support.
+
 # v6.21.3
 - [#3462](https://github.com/xmrig/xmrig/pull/3462) RandomX: correct memcpy size for JIT initialization.
 

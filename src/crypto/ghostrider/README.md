@@ -16,7 +16,7 @@ xmrig -a gr -o rtm.suprnova.cc:4273 --tls -u WALLET_ADDRESS -p x
 
 You can use **rtm_ghostrider_example.cmd** as a template and put pool URL and your wallet address there. The general XMRig documentation is available [here](https://xmrig.com/docs/miner).
 
-**Using `--threads` or `-t` option is NOT recommended because it turns off advanced built-in config.** If you want to tweak the nubmer of threads used for GhostRider, it's recommended to start using config.json instead of command line. The best suitable command line option for this is `--cpu-max-threads-hint=N` where N can be between 0 and 100.
+**Using `--threads` or `-t` option is NOT recommended because it turns off advanced built-in config.** If you want to tweak the number of threads used for GhostRider, it's recommended to start using config.json instead of command line. The best suitable command line option for this is `--cpu-max-threads-hint=N` where N can be between 0 and 100.
 
 ## Performance
 

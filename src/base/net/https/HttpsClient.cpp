@@ -189,10 +189,12 @@ void xmrig::HttpsClient::flush(bool close)
     }
 
     char *data        = nullptr;
-    const size_t size = BIO_get_mem_data(m_write, &data); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
-    std::string body(data, size);
+    const long size = BIO_get_mem_data(m_write, &data); // NOLINT(cppcoreguidelines-pro-type-cstyle-cast)
+    std::string body(data, (size > 0) ? size : 0);
 
     (void) BIO_reset(m_write);
 
-    HttpContext::write(std::move(body), close);
+    if (!body.empty()) {
+        HttpContext::write(std::move(body), close);
+    }
 }

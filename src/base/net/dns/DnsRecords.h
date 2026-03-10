@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -16,9 +16,7 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef XMRIG_DNSRECORDS_H
-#define XMRIG_DNSRECORDS_H
-
+#pragma once
 
 #include "base/net/dns/DnsRecord.h"
 
@@ -29,20 +27,19 @@ namespace xmrig {
 class DnsRecords
 {
 public:
-    inline bool isEmpty() const       { return m_ipv4.empty() && m_ipv6.empty(); }
+    DnsRecords() = default;
+    DnsRecords(const addrinfo *res, int ai_family);
 
-    const DnsRecord &get(DnsRecord::Type prefered = DnsRecord::Unknown) const;
-    size_t count(DnsRecord::Type type = DnsRecord::Unknown) const;
-    void clear();
-    void parse(addrinfo *res);
+    inline bool isEmpty() const                             { return m_records.empty(); }
+    inline const std::vector<DnsRecord> &records() const    { return m_records; }
+    inline size_t size() const                              { return m_records.size(); }
+
+    const DnsRecord &get() const;
 
 private:
-    std::vector<DnsRecord> m_ipv4;
-    std::vector<DnsRecord> m_ipv6;
+    mutable size_t m_index = 0;
+    std::vector<DnsRecord> m_records;
 };
 
 
-} /* namespace xmrig */
-
-
-#endif /* XMRIG_DNSRECORDS_H */
+} // namespace xmrig

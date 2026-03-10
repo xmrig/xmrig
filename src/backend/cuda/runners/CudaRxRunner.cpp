@@ -5,8 +5,8 @@
  * Copyright 2014-2016 Wolf9466    <https://github.com/OhGodAPet>
  * Copyright 2016      Jay D Dee   <jayddee246@gmail.com>
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
- * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
- * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
+ * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -21,7 +21,6 @@
  *   You should have received a copy of the GNU General Public License
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
-
 
 #include "backend/cuda/runners/CudaRxRunner.h"
 #include "backend/cuda/CudaLaunchData.h"
@@ -55,12 +54,21 @@ bool xmrig::CudaRxRunner::run(uint32_t startNonce, uint32_t *rescount, uint32_t 
 
 bool xmrig::CudaRxRunner::set(const Job &job, uint8_t *blob)
 {
+    if (!m_datasetHost && (m_seed != job.seed())) {
+        m_seed = job.seed();
+
+        if (m_ready) {
+            const auto *dataset = Rx::dataset(job, 0);
+            callWrapper(CudaLib::rxUpdateDataset(m_ctx, dataset->raw(), dataset->size(false)));
+        }
+    }
+
     const bool rc = CudaBaseRunner::set(job, blob);
     if (!rc || m_ready) {
         return rc;
     }
 
-    auto dataset = Rx::dataset(job, 0);
+    const auto *dataset = Rx::dataset(job, 0);
     m_ready = callWrapper(CudaLib::rxPrepare(m_ctx, dataset->raw(), dataset->size(false), m_datasetHost, m_intensity));
 
     return m_ready;

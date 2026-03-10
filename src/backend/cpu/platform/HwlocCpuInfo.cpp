@@ -87,7 +87,7 @@ static inline size_t countByType(hwloc_topology_t topology, hwloc_obj_type_t typ
 }
 
 
-#ifndef XMRIG_ARM
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
 static inline std::vector<hwloc_obj_t> findByType(hwloc_obj_t obj, hwloc_obj_type_t type)
 {
     std::vector<hwloc_obj_t> out;
@@ -207,7 +207,7 @@ bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 
 xmrig::CpuThreads xmrig::HwlocCpuInfo::threads(const Algorithm &algorithm, uint32_t limit) const
 {
-#   ifndef XMRIG_ARM
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     if (L2() == 0 && L3() == 0) {
         return BasicCpuInfo::threads(algorithm, limit);
     }
@@ -277,7 +277,7 @@ xmrig::CpuThreads xmrig::HwlocCpuInfo::allThreads(const Algorithm &algorithm, ui
 
 void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorithm &algorithm, CpuThreads &threads, size_t limit) const
 {
-#   ifndef XMRIG_ARM
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
     constexpr size_t oneMiB = 1024U * 1024U;
 
     size_t PUs = countByType(cache, HWLOC_OBJ_PU);
@@ -311,22 +311,41 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     uint32_t intensity      = algorithm.maxIntensity() == 1 ? 0 : 1;
 
     if (cache->attr->cache.depth == 3) {
-        for (size_t i = 0; i < cache->arity; ++i) {
-            hwloc_obj_t l2 = cache->children[i];
+        auto process_L2 = [&L2, &L2_associativity, L3_exclusive, this, &extra, scratchpad](hwloc_obj_t l2) {
             if (!hwloc_obj_type_is_cache(l2->type) || l2->attr == nullptr) {
-                continue;
+                return;
             }
 
             L2 += l2->attr->cache.size;
             L2_associativity = l2->attr->cache.associativity;
 
-            if (L3_exclusive && l2->attr->cache.size >= scratchpad) {
-                extra += scratchpad;
+            if (L3_exclusive) {
+                if ((vendor() == VENDOR_AMD) && ((arch() == ARCH_ZEN4) || (arch() == ARCH_ZEN5))) {
+                    // Use extra L2 only on newer CPUs because older CPUs (Zen 3 and older) don't benefit from it.
+                    // For some reason, AMD CPUs can use only half of the exclusive L2/L3 cache combo efficiently
+                    extra += std::min<size_t>(l2->attr->cache.size / 2, scratchpad);
+                }
+                else if (l2->attr->cache.size >= scratchpad) {
+                    extra += scratchpad;
+                }
+            }
+        };
+
+        for (size_t i = 0; i < cache->arity; ++i) {
+            hwloc_obj_t ch = cache->children[i];
+            if (ch->type == HWLOC_OBJ_GROUP) {
+                for (size_t j = 0; j < ch->arity; ++j) {
+                    process_L2(ch->children[j]);
+                }
+            }
+            else {
+                process_L2(ch);
             }
         }
     }
 
-    if (scratchpad == 2 * oneMiB) {
+    // This code is supposed to run only on Intel CPUs
+    if ((vendor() == VENDOR_INTEL) && (scratchpad == 2 * oneMiB)) {
         if (L2 && (cores.size() * oneMiB) == L2 && L2_associativity == 16 && L3 >= L2) {
             L3    = L2;
             extra = L2;
@@ -341,7 +360,7 @@ void xmrig::HwlocCpuInfo::processTopLevelCache(hwloc_obj_t cache, const Algorith
     }
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if ((algorithm.family() == Algorithm::RANDOM_X) && L3_exclusive && (PUs > cores.size()) && (PUs < cores.size() * 2)) {
+    if ((vendor() == VENDOR_INTEL) && (algorithm.family() == Algorithm::RANDOM_X) && L3_exclusive && (PUs < cores.size() * 2)) {
         // Use all L3+L2 on latest Intel CPUs with P-cores, E-cores and exclusive L3 cache
         cacheHashes = (L3 + L2) / scratchpad;
     }

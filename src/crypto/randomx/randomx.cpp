@@ -39,6 +39,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/jit_compiler_x86_static.hpp"
 #elif (XMRIG_ARM == 8)
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
+#elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
+#include "crypto/randomx/jit_compiler_rv64_static.hpp"
 #endif
 
 #include "backend/cpu/Cpu.h"
@@ -100,17 +102,18 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
-RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
+RandomX_ConfigurationYada::RandomX_ConfigurationYada()
 {
-	ArgonSalt = "RandomKV\x01";
-	ScratchpadL2_Size = 131072;
-	ScratchpadL3_Size = 1048576;
+	ArgonSalt = "RandomXYadaCoin\x03";
+	SuperscalarLatency = 150;
+	ArgonIterations = 4;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonIterations(3)
 	, ArgonLanes(1)
 	, ArgonSalt("RandomX\x03")
+	, SuperscalarLatency(170)
 	, ScratchpadL1_Size(16384)
 	, ScratchpadL2_Size(262144)
 	, ScratchpadL3_Size(2097152)
@@ -189,7 +192,7 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 #	endif
 }
 
-#if (XMRIG_ARM == 8)
+#if (XMRIG_ARM == 8) || defined(XMRIG_RISCV)
 static uint32_t Log2(size_t value) { return (value > 1) ? (Log2(value / 2) + 1) : 0; }
 #endif
 
@@ -272,6 +275,14 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 	Log2_CacheSize = Log2((ArgonMemory * randomx::ArgonBlockSize) / randomx::CacheLineSize);
 
 #define JIT_HANDLE(x, prev) randomx::JitCompilerA64::engine[k] = &randomx::JitCompilerA64::h_##x
+
+#elif defined(XMRIG_RISCV)
+
+	Log2_ScratchpadL1 = Log2(ScratchpadL1_Size);
+	Log2_ScratchpadL2 = Log2(ScratchpadL2_Size);
+	Log2_ScratchpadL3 = Log2(ScratchpadL3_Size);
+
+#define JIT_HANDLE(x, prev) randomx::JitCompilerRV64::engine[k] = &randomx::JitCompilerRV64::v1_##x
 
 #else
 #define JIT_HANDLE(x, prev)
@@ -357,7 +368,7 @@ RandomX_ConfigurationWownero RandomX_WowneroConfig;
 RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
-RandomX_ConfigurationKeva RandomX_KevaConfig;
+RandomX_ConfigurationYada RandomX_YadaConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 

@@ -1,6 +1,6 @@
 /* XMRig
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -31,13 +31,10 @@ class LinuxMemory
 {
 public:
     static bool reserve(size_t size, uint32_t node, size_t hugePageSize);
-
-    static bool write(const char *path, uint64_t value);
-    static int64_t read(const char *path);
 };
 
 
-} /* namespace xmrig */
+} // namespace xmrig
 
 
-#endif /* XMRIG_LINUXMEMORY_H */
+#endif // XMRIG_LINUXMEMORY_H

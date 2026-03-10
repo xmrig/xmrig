@@ -1,13 +1,11 @@
 #include "../cn/algorithm.cl"
 
-#if (ALGO == ALGO_RX_0)
+#if ((ALGO == ALGO_RX_0) || (ALGO == ALGO_RX_YADA))
 #include "randomx_constants_monero.h"
 #elif (ALGO == ALGO_RX_WOW)
 #include "randomx_constants_wow.h"
 #elif (ALGO == ALGO_RX_ARQMA)
 #include "randomx_constants_arqma.h"
-#elif (ALGO == ALGO_RX_KEVA)
-#include "randomx_constants_keva.h"
 #elif (ALGO == ALGO_RX_GRAFT)
 #include "randomx_constants_graft.h"
 #endif

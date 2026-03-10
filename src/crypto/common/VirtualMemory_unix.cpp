@@ -86,7 +86,7 @@ bool xmrig::VirtualMemory::isHugepagesAvailable()
 {
 #   ifdef XMRIG_OS_LINUX
     return std::ifstream("/proc/sys/vm/nr_hugepages").good() || std::ifstream("/sys/devices/system/node/node0/hugepages/hugepages-2048kB/nr_hugepages").good();
-#   elif defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM)
+#   elif defined(XMRIG_OS_MACOS) && defined(XMRIG_ARM) || defined(XMRIG_OS_HAIKU)
     return false;
 #   else
     return true;
@@ -156,7 +156,8 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
     if (!mem) {
         mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
-
+#   elif defined(XMRIG_OS_HAIKU)
+    void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #   else
 
     void *mem = nullptr;
@@ -181,6 +182,8 @@ void *xmrig::VirtualMemory::allocateLargePagesMemory(size_t size)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANON, VM_FLAGS_SUPERPAGE_SIZE_2MB, 0);
 #   elif defined(XMRIG_OS_FREEBSD)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
+#   elif defined(XMRIG_OS_HAIKU)
+    void *mem = nullptr;
 #   else
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS | MAP_HUGETLB | MAP_POPULATE | hugePagesFlag(hugePageSize()), 0, 0);
 #   endif
@@ -270,6 +273,16 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
     }
 
     return false;
+}
+
+
+bool xmrig::VirtualMemory::adviseLargePages(void *p, size_t size)
+{
+#   ifdef XMRIG_OS_LINUX
+    return (madvise(p, size, MADV_HUGEPAGE) == 0);
+#   else
+    return false;
+#   endif
 }
 
 

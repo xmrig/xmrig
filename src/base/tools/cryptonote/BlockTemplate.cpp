@@ -263,7 +263,13 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     ar(m_amount);
     ar(m_outputType);
 
-    if (m_coin == Coin::SALVIUM) {
+    const bool is_fcmp_pp = (m_coin == Coin::MONERO) && (m_version.first >= 17);
+
+    // output type must be txout_to_key (2) or txout_to_tagged_key (3) for versions < 17, and txout_to_carrot_v1 (0) for version FCMP++
+    if (is_fcmp_pp && (m_outputType == 0)) {
+        // all good
+    }
+    else if (m_coin == Coin::SALVIUM) {
         if ((m_outputType != kTxOutToKey) && (m_outputType != kTxOutToTaggedKey) && (m_outputType != kTxOutToCarrotV1)) {
             return false;
         }
@@ -276,7 +282,11 @@ bool xmrig::BlockTemplate::parse(bool hashes)
 
     ar(m_ephPublicKey, kKeySize);
 
-    if (m_coin == Coin::SALVIUM) {
+    if (is_fcmp_pp) {
+        ar(m_carrotViewTag);
+        ar(m_janusAnchor);
+    }
+    else if (m_coin == Coin::SALVIUM) {
         if (!parseSalviumOutput(ar, m_outputType, true)) {
             return false;
         }
@@ -609,7 +619,7 @@ bool xmrig::BlockTemplate::parseSalviumOutput(BlobReader<true> &ar, uint8_t outp
 
         if (storeExtraData) {
             memcpy(m_carrotViewTag, carrot_view_tag, kCarrotViewTagSize);
-            memcpy(m_carrotEncryptedJanusAnchor, carrot_anchor, kCarrotAnchorSize);
+            memcpy(m_janusAnchor, carrot_anchor, kCarrotAnchorSize);
         }
     }
 

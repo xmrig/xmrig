@@ -1,6 +1,6 @@
 /*
  * Copyright © 2009 CNRS
- * Copyright © 2009-2023 Inria.  All rights reserved.
+ * Copyright © 2009-2025 Inria.  All rights reserved.
  * Copyright © 2009-2012, 2020 Université Bordeaux
  * Copyright © 2009-2011 Cisco Systems, Inc.  All rights reserved.
  * Copyright © 2022 IBM Corporation.  All rights reserved.
@@ -52,56 +52,6 @@
 #ifdef HWLOC_WIN_SYS
 #include <windows.h>
 #endif
-
-
-#ifdef HWLOC_HAVE_LEVELZERO
-/*
- * Define ZES_ENABLE_SYSMAN=1 early so that the LevelZero backend gets Sysman enabled.
- *
- * Only if the levelzero was enabled in this build so that we don't enable sysman
- * for external levelzero users when hwloc doesn't need it. If somebody ever loads
- * an external levelzero plugin in a hwloc library built without levelzero (unlikely),
- * he may have to manually set ZES_ENABLE_SYSMAN=1.
- *
- * Use the constructor if supported and/or the Windows DllMain callback.
- * Do it in the main hwloc library instead of the levelzero component because
- * the latter could be loaded later as a plugin.
- *
- * L0 seems to be using getenv() to check this variable on Windows
- * (at least in the Intel Compute-Runtime of March 2021),
- * but setenv() doesn't seem to exist on Windows, hence use putenv() to set the variable.
- *
- * For the record, Get/SetEnvironmentVariable() is not exactly the same as getenv/putenv():
- * - getenv() doesn't see what was set with SetEnvironmentVariable()
- * - GetEnvironmentVariable() doesn't see putenv() in cygwin (while it does in MSVC and MinGW).
- * Hence, if L0 ever switches from getenv() to GetEnvironmentVariable(),
- * it will break in cygwin, we'll have to use both putenv() and SetEnvironmentVariable().
- * Hopefully L0 will provide a way to enable Sysman without env vars before it happens.
- */
-#if HWLOC_HAVE_ATTRIBUTE_CONSTRUCTOR
-static void hwloc_constructor(void) __attribute__((constructor));
-static void hwloc_constructor(void)
-{
-  if (!getenv("ZES_ENABLE_SYSMAN"))
-#ifdef HWLOC_WIN_SYS
-    putenv("ZES_ENABLE_SYSMAN=1");
-#else
-    setenv("ZES_ENABLE_SYSMAN", "1", 1);
-#endif
-}
-#endif
-#ifdef HWLOC_WIN_SYS
-BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpReserved)
-{
-  if (fdwReason == DLL_PROCESS_ATTACH) {
-    if (!getenv("ZES_ENABLE_SYSMAN"))
-      /* Windows does not have a setenv, so use putenv. */
-      putenv((char *) "ZES_ENABLE_SYSMAN=1");
-  }
-  return TRUE;
-}
-#endif
-#endif /* HWLOC_HAVE_LEVELZERO */
 
 
 unsigned hwloc_get_api_version(void)
@@ -179,7 +129,7 @@ static void report_insert_error(hwloc_obj_t new, hwloc_obj_t old, const char *ms
     report_insert_error_format_obj(oldstr, sizeof(oldstr), old);
 
     fprintf(stderr, "****************************************************************************\n");
-    fprintf(stderr, "* hwloc %s received invalid information from the operating system.\n", HWLOC_VERSION);
+    fprintf(stderr, "* hwloc %s received invalid information.\n", HWLOC_VERSION);
     fprintf(stderr, "*\n");
     fprintf(stderr, "* Failed with error: %s\n", msg);
     fprintf(stderr, "* while inserting %s\n", newstr);
@@ -464,6 +414,20 @@ hwloc_debug_print_objects(int indent __hwloc_attribute_unused, hwloc_obj_t obj)
 #define hwloc_debug_print_object(indent, obj) do { /* nothing */ } while (0)
 #define hwloc_debug_print_objects(indent, obj) do { /* nothing */ } while (0)
 #endif /* !HWLOC_DEBUG */
+
+int hwloc_obj_set_subtype(hwloc_topology_t topology __hwloc_attribute_unused, hwloc_obj_t obj, const char *subtype)
+{
+  char *new = NULL;
+  if (subtype) {
+    new = strdup(subtype);
+    if (!new)
+      return -1;
+  }
+  if (obj->subtype)
+    free(obj->subtype);
+  obj->subtype = new;
+  return 0;
+}
 
 void hwloc__free_infos(struct hwloc_info_s *infos, unsigned count)
 {
@@ -1952,6 +1916,51 @@ static void hwloc_set_group_depth(hwloc_topology_t topology);
 static void hwloc_connect_children(hwloc_obj_t parent);
 static int hwloc_connect_levels(hwloc_topology_t topology);
 static int hwloc_connect_special_levels(hwloc_topology_t topology);
+static int hwloc_filter_levels_keep_structure(hwloc_topology_t topology);
+
+/* reconnect children and levels,
+ * and optionnally merged identical levels while keeping structure.
+ */
+int
+hwloc__reconnect(struct hwloc_topology *topology, unsigned long flags)
+{
+  int merged_levels = 0;
+
+  if (topology->modified) {
+    hwloc_connect_children(topology->levels[0][0]);
+
+    if (hwloc_connect_levels(topology) < 0)
+      return -1;
+  }
+
+  if (flags & _HWLOC_RECONNECT_FLAG_KEEPSTRUCTURE) {
+    merged_levels = hwloc_filter_levels_keep_structure(topology);
+    /* If > 0, we merged some levels,
+     * some child+parent special children list may have been merged,
+     * hence specials level might need reordering,
+     * So reconnect special levels only here at the end.
+     */
+  }
+
+  if (topology->modified || merged_levels) {
+    if (hwloc_connect_special_levels(topology) < 0)
+      return -1;
+  }
+
+  topology->modified = 0;
+  return 0;
+}
+
+int
+hwloc_topology_reconnect(struct hwloc_topology *topology, unsigned long flags)
+{
+  if (flags) {
+    errno = EINVAL;
+    return -1;
+  }
+
+  return hwloc__reconnect(topology, 0);
+}
 
 hwloc_obj_t
 hwloc_topology_insert_group_object(struct hwloc_topology *topology, hwloc_obj_t obj)
@@ -2044,7 +2053,10 @@ hwloc_topology_insert_group_object(struct hwloc_topology *topology, hwloc_obj_t 
 
   /* properly inserted */
   hwloc_obj_add_children_sets(res);
-  if (hwloc_topology_reconnect(topology, 0) < 0)
+  /* reconnect levels.
+   * no need to filter levels keep_structure because groups are either auto-merged
+   * or have the dont_merge attribute */
+  if (hwloc__reconnect(topology, 0) < 0)
     return NULL;
 
   /* Compute group total_memory. */
@@ -2536,25 +2548,12 @@ hwloc_compare_levels_structure(hwloc_topology_t topology, unsigned i)
   return 0;
 }
 
-/* return > 0 if any level was removed.
- * performs its own reconnect internally if needed
- */
+/* return > 0 if any level was removed. */
 static int
 hwloc_filter_levels_keep_structure(hwloc_topology_t topology)
 {
   unsigned i, j;
   int res = 0;
-
-  if (topology->modified) {
-    /* WARNING: hwloc_topology_reconnect() is duplicated partially here
-     * and at the end of this function:
-     * - we need normal levels before merging.
-     * - and we'll need to update special levels after merging.
-     */
-    hwloc_connect_children(topology->levels[0][0]);
-    if (hwloc_connect_levels(topology) < 0)
-      return -1;
-  }
 
   /* start from the bottom since we'll remove intermediate levels */
   for(i=topology->nb_levels-1; i>0; i--) {
@@ -2577,9 +2576,15 @@ hwloc_filter_levels_keep_structure(hwloc_topology_t topology)
       if (type1 == HWLOC_OBJ_GROUP && hwloc_dont_merge_group_level(topology, i))
 	replacechild = 0;
     }
-    if (!replacechild && !replaceparent)
+    if (!replacechild && !replaceparent) {
+      /* always merge Die into Package when levels are identical */
+      if (type1 == HWLOC_OBJ_PACKAGE && type2 == HWLOC_OBJ_DIE)
+        replacechild = 1;
+    }
+    if (!replacechild && !replaceparent) {
       /* no ignoring */
       continue;
+    }
     /* Decide which one to actually replace */
     if (replaceparent && replacechild) {
       /* If both may be replaced, look at obj_type_priority */
@@ -2720,20 +2725,6 @@ hwloc_filter_levels_keep_structure(hwloc_topology_t topology)
       else
 	topology->type_depth[type] = HWLOC_TYPE_DEPTH_MULTIPLE;
     }
-  }
-
-
-  if (res > 0 || topology-> modified) {
-    /* WARNING: hwloc_topology_reconnect() is duplicated partially here
-     * and at the beginning of this function.
-     * If we merged some levels, some child+parent special children lisst
-     * may have been merged, hence specials level might need reordering,
-     * So reconnect special levels only here at the end
-     * (it's not needed at the beginning of this function).
-     */
-    if (hwloc_connect_special_levels(topology) < 0)
-      return -1;
-    topology->modified = 0;
   }
 
   return 0;
@@ -3264,33 +3255,6 @@ hwloc_connect_levels(hwloc_topology_t topology)
   return 0;
 }
 
-int
-hwloc_topology_reconnect(struct hwloc_topology *topology, unsigned long flags)
-{
-  /* WARNING: when updating this function, the replicated code must
-   * also be updated inside hwloc_filter_levels_keep_structure()
-   */
-
-  if (flags) {
-    errno = EINVAL;
-    return -1;
-  }
-  if (!topology->modified)
-    return 0;
-
-  hwloc_connect_children(topology->levels[0][0]);
-
-  if (hwloc_connect_levels(topology) < 0)
-    return -1;
-
-  if (hwloc_connect_special_levels(topology) < 0)
-    return -1;
-
-  topology->modified = 0;
-
-  return 0;
-}
-
 /* for regression testing, make sure the order of io devices
  * doesn't change with the dentry order in the filesystem
  *
@@ -3547,32 +3511,13 @@ hwloc_discover(struct hwloc_topology *topology,
     hwloc_debug_print_objects(0, topology->levels[0][0]);
   }
 
-  /* see if we should ignore the root now that we know how many children it has */
-  if (!hwloc_filter_check_keep_object(topology, topology->levels[0][0])
-      && topology->levels[0][0]->first_child && !topology->levels[0][0]->first_child->next_sibling) {
-    hwloc_obj_t oldroot = topology->levels[0][0];
-    hwloc_obj_t newroot = oldroot->first_child;
-    /* switch to the new root */
-    newroot->parent = NULL;
-    topology->levels[0][0] = newroot;
-    /* move oldroot memory/io/misc children before newroot children */
-    if (oldroot->memory_first_child)
-      prepend_siblings_list(&newroot->memory_first_child, oldroot->memory_first_child, newroot);
-    if (oldroot->io_first_child)
-      prepend_siblings_list(&newroot->io_first_child, oldroot->io_first_child, newroot);
-    if (oldroot->misc_first_child)
-      prepend_siblings_list(&newroot->misc_first_child, oldroot->misc_first_child, newroot);
-    /* destroy oldroot and use the new one */
-    hwloc_free_unlinked_object(oldroot);
-  }
-
   /*
    * All object cpusets and nodesets are properly set now.
    */
 
   /* Now connect handy pointers to make remaining discovery easier. */
   hwloc_debug("%s", "\nOk, finished tweaking, now connect\n");
-  if (hwloc_topology_reconnect(topology, 0) < 0)
+  if (hwloc__reconnect(topology, 0) < 0)
     return -1;
   hwloc_debug_print_objects(0, topology->levels[0][0]);
 
@@ -3628,12 +3573,12 @@ hwloc_discover(struct hwloc_topology *topology,
   }
   hwloc_debug_print_objects(0, topology->levels[0][0]);
 
+  /* reconnect all (new groups might have appears, IO added, etc),
+   * and (now that everything was added) remove identical levels while keeping structure
+   */
   hwloc_debug("%s", "\nRemoving levels with HWLOC_TYPE_FILTER_KEEP_STRUCTURE\n");
-  if (hwloc_filter_levels_keep_structure(topology) < 0)
+  if (hwloc__reconnect(topology, _HWLOC_RECONNECT_FLAG_KEEPSTRUCTURE) < 0)
     return -1;
-  /* takes care of reconnecting children/levels internally,
-   * because it needs normal levels.
-   * and it's often needed below because of Groups inserted for I/Os anyway */
   hwloc_debug_print_objects(0, topology->levels[0][0]);
 
   /* accumulate children memory in total_memory fields (only once parent is set) */
@@ -4480,7 +4425,7 @@ hwloc_topology_restrict(struct hwloc_topology *topology, hwloc_const_bitmap_t se
   hwloc_bitmap_free(droppedcpuset);
   hwloc_bitmap_free(droppednodeset);
 
-  if (hwloc_filter_levels_keep_structure(topology) < 0) /* takes care of reconnecting internally */
+  if (hwloc__reconnect(topology, _HWLOC_RECONNECT_FLAG_KEEPSTRUCTURE) < 0)
     goto out;
 
   /* some objects may have disappeared and sets were modified,
@@ -5101,6 +5046,8 @@ hwloc_topology_check(struct hwloc_topology *topology)
   hwloc_obj_type_t type;
   unsigned i;
   int j, depth;
+
+  assert(!topology->modified);
 
   /* make sure we can use ranges to check types */
 

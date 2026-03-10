@@ -1,4 +1,18 @@
 if (WITH_RANDOMX)
+    include(CheckSymbolExists)
+
+    if (WIN32)
+        check_symbol_exists(_aligned_malloc "stdlib.h" HAVE_ALIGNED_MALLOC)
+        if (HAVE_ALIGNED_MALLOC)
+            add_compile_definitions(HAVE_ALIGNED_MALLOC)
+        endif()
+    else()
+        check_symbol_exists(posix_memalign "stdlib.h" HAVE_POSIX_MEMALIGN)
+        if (HAVE_POSIX_MEMALIGN)
+            add_compile_definitions(HAVE_POSIX_MEMALIGN)
+        endif()
+    endif()
+
     add_definitions(/DXMRIG_ALGO_RANDOMX)
     set(WITH_ARGON2 ON)
 
@@ -48,7 +62,7 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (WITH_ASM AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    elseif (WITH_ASM AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp
@@ -66,6 +80,16 @@ if (WITH_RANDOMX)
         else()
             set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
         endif()
+    elseif (XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_rv64_static.S
+             src/crypto/randomx/jit_compiler_rv64_vector_static.S
+             src/crypto/randomx/jit_compiler_rv64.cpp
+             src/crypto/randomx/jit_compiler_rv64_vector.cpp
+            )
+        # cheat because cmake and ccache hate each other
+        set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_static.S PROPERTY LANGUAGE C)
+        set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_vector_static.S PROPERTY LANGUAGE C)
     else()
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_fallback.cpp
@@ -102,7 +126,7 @@ if (WITH_RANDOMX)
             )
     endif()
 
-    if (WITH_MSR AND NOT XMRIG_ARM AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
+    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_MSR)
         add_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=ON")

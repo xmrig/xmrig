@@ -44,8 +44,8 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_SFX:
         return &RandomX_SafexConfig;
 
-    case Algorithm::RX_KEVA:
-        return &RandomX_KevaConfig;
+    case Algorithm::RX_YADA:
+        return &RandomX_YadaConfig;
 
     default:
         break;
