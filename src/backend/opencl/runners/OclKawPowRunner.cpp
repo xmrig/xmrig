@@ -176,7 +176,6 @@ void OclKawPowRunner::set(const Job &job, uint8_t *blob)
     OclLib::setKernelArg(m_searchKernel, 5, sizeof(cl_mem), &m_stop);
 
     m_blob = blob;
-    enqueueWriteBuffer(m_input, CL_TRUE, 0, BLOB_SIZE, m_blob);
 }
 
 

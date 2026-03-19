@@ -92,6 +92,8 @@ private:
     const Miner *m_miner;
     const size_t m_threads;
     cryptonight_ctx *m_ctx[N];
+    cn_hash_fun m_jobHashFn     = nullptr;
+    uint32_t m_jobFamily        = Algorithm::UNKNOWN;
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 
