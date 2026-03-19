@@ -567,9 +567,11 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
     }
 #   endif
 
-    d_ptr->algorithm = job.algorithm();
+    bool benchmarkGhostRider = false;
 
     mutex.lock();
+
+    d_ptr->algorithm = job.algorithm();
 
     const uint8_t index = donate ? 1 : 0;
 
@@ -599,12 +601,16 @@ void xmrig::Miner::setJob(const Job &job, bool donate)
 #   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
-    if (job.algorithm().family() == Algorithm::GHOSTRIDER) {
-        d_ptr->initGhostRider();
-    }
+    benchmarkGhostRider = (job.algorithm().family() == Algorithm::GHOSTRIDER);
 #   endif
 
     mutex.unlock();
+
+#   ifdef XMRIG_ALGO_GHOSTRIDER
+    if (benchmarkGhostRider) {
+        d_ptr->initGhostRider();
+    }
+#   endif
 
     d_ptr->active = true;
     d_ptr->m_taskbar.setActive(true);

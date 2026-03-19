@@ -136,8 +136,6 @@ void xmrig::OclRxBaseRunner::run(uint32_t nonce, uint32_t nonce_offset, uint32_t
     m_find_shares->enqueue(m_queue, m_intensity);
 
     finalize(hashOutput);
-
-    OclLib::finish(m_queue);
 }
 
 
@@ -147,16 +145,18 @@ void xmrig::OclRxBaseRunner::set(const Job &job, uint8_t *blob)
         m_seed = job.seed();
 
         auto dataset = Rx::dataset(job, 0);
-        enqueueWriteBuffer(m_dataset, CL_TRUE, 0, RxDataset::maxSize(), dataset->raw());
+        enqueueWriteBuffer(m_dataset, CL_FALSE, 0, RxDataset::maxSize(), dataset->raw());
     }
+
+    memcpy(m_inputBlob.data(), blob, job.size());
 
     if (job.size() < Job::kMaxBlobSize) {
-        memset(blob + job.size(), 0, Job::kMaxBlobSize - job.size());
+        memset(m_inputBlob.data() + job.size(), 0, Job::kMaxBlobSize - job.size());
     }
 
-    memset(blob + job.nonceOffset(), 0, job.nonceSize());
+    memset(m_inputBlob.data() + job.nonceOffset(), 0, job.nonceSize());
 
-    enqueueWriteBuffer(m_input, CL_TRUE, 0, Job::kMaxBlobSize, blob);
+    enqueueWriteBuffer(m_input, CL_FALSE, 0, Job::kMaxBlobSize, m_inputBlob.data());
 
     m_jobSize = job.size();
 
@@ -213,6 +213,7 @@ void xmrig::OclRxBaseRunner::init()
 {
     OclBaseRunner::init();
 
+    m_inputBlob.resize(Job::kMaxBlobSize);
     m_scratchpads = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (m_algorithm.l3() + 64) * m_intensity);
     m_hashes      = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, 64 * m_intensity);
     m_entropy     = createSubBuffer(CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS, (128 + 2560) * m_intensity);

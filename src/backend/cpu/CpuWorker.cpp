@@ -290,7 +290,7 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
-            if (job.algorithm().family() == Algorithm::RANDOM_X) {
+            if (m_jobFamily == Algorithm::RANDOM_X) {
                 if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
@@ -312,7 +312,7 @@ void xmrig::CpuWorker<N>::start()
             else
 #           endif
             {
-                switch (job.algorithm().family()) {
+                switch (m_jobFamily) {
 
 #               ifdef XMRIG_ALGO_GHOSTRIDER
                 case Algorithm::GHOSTRIDER:
@@ -326,7 +326,12 @@ void xmrig::CpuWorker<N>::start()
 #               endif
 
                 default:
-                    fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                    if (m_jobHashFn) {
+                        m_jobHashFn(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
+                    }
+                    else {
+                        valid = false;
+                    }
                     break;
                 }
 
@@ -515,14 +520,20 @@ void xmrig::CpuWorker<N>::consumeJob()
 #   endif
 
     m_job.add(job, count, Nonce::CPU);
+    m_jobFamily = m_job.currentJob().algorithm().family();
+    m_jobHashFn = nullptr;
 
 #   ifdef XMRIG_ALGO_RANDOMX
-    if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
+    if (m_jobFamily == Algorithm::RANDOM_X) {
         allocateRandomX_VM();
     }
     else
 #   endif
     {
+        if (m_jobFamily != Algorithm::GHOSTRIDER) {
+            m_jobHashFn = fn(m_job.currentJob().algorithm());
+        }
+
         allocateCnCtx();
     }
 }

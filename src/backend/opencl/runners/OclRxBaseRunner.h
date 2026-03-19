@@ -65,6 +65,7 @@ protected:
     Blake2bInitialHashKernel *m_blake2b_initial_hash              = nullptr;
     Blake2bInitialHashDoubleKernel *m_blake2b_initial_hash_double = nullptr;
     Blake2bInitialHashBigKernel* m_blake2b_initial_hash_big       = nullptr;
+    Buffer m_inputBlob;
     Buffer m_seed;
     cl_mem m_dataset                                              = nullptr;
     cl_mem m_entropy                                              = nullptr;

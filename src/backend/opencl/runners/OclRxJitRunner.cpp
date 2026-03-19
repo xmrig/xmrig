@@ -78,9 +78,6 @@ void xmrig::OclRxJitRunner::build()
 void xmrig::OclRxJitRunner::execute(uint32_t iteration)
 {
     m_randomx_jit->enqueue(m_queue, m_intensity, iteration);
-
-    OclLib::finish(m_queue);
-
     m_randomx_run->enqueue(m_queue, m_intensity, (m_gcn_version == 15) ? 32 : 64);
 }
 
