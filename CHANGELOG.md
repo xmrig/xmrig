@@ -1,3 +1,17 @@
+# v6.26.0
+- [#3769](https://github.com/xmrig/xmrig/pull/3769), [#3772](https://github.com/xmrig/xmrig/pull/3772), [#3774](https://github.com/xmrig/xmrig/pull/3774), [#3775](https://github.com/xmrig/xmrig/pull/3775), [#3776](https://github.com/xmrig/xmrig/pull/3776), [#3782](https://github.com/xmrig/xmrig/pull/3782), [#3783](https://github.com/xmrig/xmrig/pull/3783) **Added support for RandomX v2.**
+- [#3746](https://github.com/xmrig/xmrig/pull/3746) RISC-V: vectorized RandomX main loop.
+- [#3748](https://github.com/xmrig/xmrig/pull/3748) RISC-V: auto-detect and use vector code for all RandomX AES functions.
+- [#3749](https://github.com/xmrig/xmrig/pull/3749) RISC-V: detect and use hardware AES.
+- [#3750](https://github.com/xmrig/xmrig/pull/3750) RISC-V: use vector hardware AES instead of scalar.
+- [#3757](https://github.com/xmrig/xmrig/pull/3757) RISC-V: Fixed scratchpad prefetch, removed an unnecessary instruction.
+- [#3758](https://github.com/xmrig/xmrig/pull/3758) RandomX: added VAES-512 support for Zen5.
+- [#3759](https://github.com/xmrig/xmrig/pull/3759) RandomX: Optimized VAES code.
+- [#3762](https://github.com/xmrig/xmrig/pull/3762) Fixed keepalive timer logic.
+- [#3778](https://github.com/xmrig/xmrig/pull/3778) RandomX: ARM64 fixes.
+- [#3784](https://github.com/xmrig/xmrig/pull/3784) Fixed OpenCL address-space mismatch in `keccak_f800_round`.
+- [#3785](https://github.com/xmrig/xmrig/pull/3785) Don't reset nonce during donation rounds.
+
 # v6.25.0
 - [#3680](https://github.com/xmrig/xmrig/pull/3680) Added `armv8l` to the list of 32-bit ARM targets.
 - [#3708](https://github.com/xmrig/xmrig/pull/3708) Minor Aarch64 JIT changes (better instruction selection, don't emit instructions that add 0, etc).
