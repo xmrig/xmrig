@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstring>
 #include <climits>
 #include <cassert>
+#include "backend/cpu/Cpu.h"
 #include "crypto/randomx/jit_compiler_rv64.hpp"
 #include "crypto/randomx/jit_compiler_rv64_static.hpp"
 #include "crypto/randomx/jit_compiler_rv64_vector.h"
@@ -38,6 +39,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/program.hpp"
 #include "crypto/randomx/reciprocal.h"
 #include "crypto/randomx/virtual_memory.hpp"
+#include "crypto/randomx/soft_aes.h"
 #include "crypto/common/VirtualMemory.h"
 
 
@@ -252,10 +254,12 @@ namespace randomx {
 	static const uint8_t* codePrologue = (uint8_t*)&randomx_riscv64_prologue;
 	static const uint8_t* codeLoopBegin = (uint8_t*)&randomx_riscv64_loop_begin;
 	static const uint8_t* codeDataRead = (uint8_t*)&randomx_riscv64_data_read;
+	static const uint8_t* codeDataRead2 = (uint8_t*)&randomx_riscv64_data_read_v2_tweak;
 	static const uint8_t* codeDataReadLight = (uint8_t*)&randomx_riscv64_data_read_light;
+	static const uint8_t* codeDataReadLight1 = (uint8_t*)&randomx_riscv64_data_read_light_v1;
+	static const uint8_t* codeDataReadLight2 = (uint8_t*)&randomx_riscv64_data_read_light_v2;
 	static const uint8_t* codeFixLoopCall = (uint8_t*)&randomx_riscv64_fix_loop_call;
 	static const uint8_t* codeSpadStore = (uint8_t*)&randomx_riscv64_spad_store;
-	static const uint8_t* codeSpadStoreHardAes = (uint8_t*)&randomx_riscv64_spad_store_hardaes;
 	static const uint8_t* codeSpadStoreSoftAes = (uint8_t*)&randomx_riscv64_spad_store_softaes;
 	static const uint8_t* codeLoopEnd = (uint8_t*)&randomx_riscv64_loop_end;
 	static const uint8_t* codeFixContinueLoop = (uint8_t*)&randomx_riscv64_fix_continue_loop;
@@ -271,9 +275,13 @@ namespace randomx {
 	static const int32_t sizeDataInit = codePrologue - codeDataInit;
 	static const int32_t sizePrologue = codeLoopBegin - codePrologue;
 	static const int32_t sizeLoopBegin = codeDataRead - codeLoopBegin;
-	static const int32_t sizeDataRead = codeDataReadLight - codeDataRead;
-	static const int32_t sizeDataReadLight = codeSpadStore - codeDataReadLight;
-	static const int32_t sizeSpadStore = codeSpadStoreHardAes - codeSpadStore;
+	static const int32_t sizeDataRead = codeDataRead2 - codeDataRead;
+	static const int32_t sizeDataRead2 = codeDataReadLight - codeDataRead2;
+	static const int32_t sizeDataReadLight = codeDataReadLight1 - codeDataReadLight;
+	static const int32_t sizeDataReadLight1 = codeDataReadLight2 - codeDataReadLight1;
+	static const int32_t sizeDataReadLight2 = codeFixLoopCall - codeDataReadLight2;
+	static const int32_t sizeFixLoopCall = codeSpadStore - codeFixLoopCall;
+	static const int32_t sizeSpadStore = codeSpadStoreSoftAes - codeSpadStore;
 	static const int32_t sizeSpadStoreSoftAes = codeLoopEnd - codeSpadStoreSoftAes;
 	static const int32_t sizeLoopEnd = codeEpilogue - codeLoopEnd;
 	static const int32_t sizeEpilogue = codeSoftAes - codeEpilogue;
@@ -283,7 +291,6 @@ namespace randomx {
 	static const int32_t sizeSshPrefetch = codeSshEnd - codeSshPrefetch;
 
 	static const int32_t offsetFixDataCall = codeFixDataCall - codeDataInit;
-	static const int32_t offsetFixLoopCall = codeFixLoopCall - codeDataReadLight;
 	static const int32_t offsetFixContinueLoop = codeFixContinueLoop - codeLoopEnd;
 
 	static const int32_t LoopTopPos = LiteralPoolSize + sizeDataInit + sizePrologue;
@@ -478,8 +485,15 @@ namespace randomx {
 	static void emitProgramPrefix(CompilerState& state, Program& prog, ProgramConfiguration& pcfg) {
 		state.codePos = RandomXCodePos;
 		state.rcpCount = 0;
+
 		state.emitAt(LiteralPoolOffset + sizeLiterals, pcfg.eMask[0]);
 		state.emitAt(LiteralPoolOffset + sizeLiterals + 8, pcfg.eMask[1]);
+
+		if (RandomX_CurrentConfig.Tweak_V2_AES) {
+			state.emitAt(LiteralPoolOffset + sizeLiterals + 16, (uint64_t) &lutEnc[2][0]);
+			state.emitAt(LiteralPoolOffset + sizeLiterals + 24, (uint64_t) &lutDec[2][0]);
+		}
+
 		for (unsigned i = 0; i < RegistersCount; ++i) {
 			state.registerUsage[i] = -1;
 		}
@@ -492,7 +506,13 @@ namespace randomx {
 	}
 
 	static void emitProgramSuffix(CompilerState& state, ProgramConfiguration& pcfg) {
-		state.emit(codeSpadStore, sizeSpadStore);
+		if (RandomX_CurrentConfig.Tweak_V2_AES) {
+			state.emit(codeSpadStoreSoftAes, sizeSpadStoreSoftAes);
+		}
+		else {
+			state.emit(codeSpadStore, sizeSpadStore);
+		}
+
 		int32_t fixPos = state.codePos;
 		state.emit(codeLoopEnd, sizeLoopEnd);
 		//xor x26, x{readReg0}, x{readReg1}
@@ -501,6 +521,10 @@ namespace randomx {
 		//j LoopTop
 		emitJump(state, 0, fixPos, LoopTopPos);
 		state.emit(codeEpilogue, sizeEpilogue);
+
+		if (RandomX_CurrentConfig.Tweak_V2_AES) {
+			state.emit(codeSoftAes, sizeSoftAes);
+		}
 	}
 
 	static void generateSuperscalarCode(CodeBuffer& buf, Instruction isn, bool lastLiteral) {
@@ -621,13 +645,22 @@ namespace randomx {
 		//jal x1, SuperscalarHash
 		emitJump(state, ReturnReg, LiteralPoolSize + offsetFixDataCall, SuperScalarHashOffset);
 
-		vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_sshash_end) - ((uint8_t*)randomx_riscv64_vector_sshash_begin);
-		vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
+		if (xmrig::Cpu::info()->hasRISCV_Vector()) {
+			vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_code_end) - ((uint8_t*)randomx_riscv64_vector_code_begin);
+			vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
+
+			if (vectorCode) {
+				memcpy(vectorCode, reinterpret_cast<uint8_t*>(randomx_riscv64_vector_code_begin), vectorCodeSize);
+				entryProgramVector = vectorCode + (((uint8_t*)randomx_riscv64_vector_program_begin) - ((uint8_t*)randomx_riscv64_vector_code_begin));
+			}
+		}
 	}
 
 	JitCompilerRV64::~JitCompilerRV64() {
 		freePagedMemory(state.code, CodeSize);
-		freePagedMemory(vectorCode, vectorCodeSize);
+		if (vectorCode) {
+			freePagedMemory(vectorCode, vectorCodeSize);
+		}
 	}
 
 	void JitCompilerRV64::enableWriting() const
@@ -649,16 +682,29 @@ namespace randomx {
 	}
 
 	void JitCompilerRV64::generateProgram(Program& prog, ProgramConfiguration& pcfg, uint32_t) {
+		if (vectorCode) {
+			generateProgramVectorRV64(vectorCode, prog, pcfg, inst_map, nullptr, 0);
+			return;
+		}
+
 		emitProgramPrefix(state, prog, pcfg);
 		int32_t fixPos = state.codePos;
 		state.emit(codeDataRead, sizeDataRead);
 		//xor x8, x{readReg2}, x{readReg3}
 		state.emitAt(fixPos, rvi(rv64::XOR, Tmp1Reg, regR(pcfg.readReg2), regR(pcfg.readReg3)));
+		int32_t fixPos2 = state.codePos;
+		state.emit(codeDataRead2, sizeDataRead2);
+		state.emitAt(fixPos2, (uint16_t)(RandomX_CurrentConfig.Tweak_V2_PREFETCH ? 0x1402 : 0x0001));
 		emitProgramSuffix(state, pcfg);
 		clearCache(state);
 	}
 
 	void JitCompilerRV64::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
+		if (vectorCode) {
+			generateProgramVectorRV64(vectorCode, prog, pcfg, inst_map, entryDataInit, datasetOffset);
+			return;
+		}
+
 		emitProgramPrefix(state, prog, pcfg);
 		int32_t fixPos = state.codePos;
 		state.emit(codeDataReadLight, sizeDataReadLight);
@@ -671,7 +717,14 @@ namespace randomx {
 		state.emitAt(fixPos + 4, rv64::LUI | (uimm << 12) | rvrd(Tmp2Reg));
 		//addi x9, x9, {limm}
 		state.emitAt(fixPos + 8, rvi(rv64::ADDI, Tmp2Reg, Tmp2Reg, limm));
-		fixPos += offsetFixLoopCall;
+		if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+			state.emit(codeDataReadLight2, sizeDataReadLight2);
+		}
+		else {
+			state.emit(codeDataReadLight1, sizeDataReadLight1);
+		}
+		fixPos = state.codePos;
+		state.emit(codeFixLoopCall, sizeFixLoopCall);
 		//jal x1, SuperscalarHash
 		emitJump(state, ReturnReg, fixPos, SuperScalarHashOffset);
 		emitProgramSuffix(state, pcfg);
@@ -680,9 +733,9 @@ namespace randomx {
 
 	template<size_t N>
 	void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&programs)[N]) {
-		if (optimizedDatasetInit > 0) {
-			entryDataInitOptimized = generateDatasetInitVectorRV64(vectorCode, vectorCodeSize, programs, RandomX_ConfigurationBase::CacheAccesses);
-			return;
+		if (vectorCode) {
+			entryDataInitVector = generateDatasetInitVectorRV64(vectorCode, programs, RandomX_ConfigurationBase::CacheAccesses);
+			// No return here because we also need the scalar dataset init function for the light mode
 		}
 
 		state.codePos = SuperScalarHashOffset;
@@ -721,10 +774,6 @@ namespace randomx {
 	}
 
 	template void JitCompilerRV64::generateSuperscalarHash(SuperscalarProgram(&)[RANDOMX_CACHE_MAX_ACCESSES]);
-
-	DatasetInitFunc* JitCompilerRV64::getDatasetInitFunc() {
-		return (DatasetInitFunc*)((optimizedDatasetInit > 0) ? entryDataInitOptimized : entryDataInit);
-	}
 
 	void JitCompilerRV64::v1_IADD_RS(HANDLER_ARGS) {
 		state.registerUsage[isn.dst] = i;
@@ -1159,10 +1208,22 @@ namespace randomx {
 			//c.or x8, x9
 			state.emit(rvc(rv64::C_OR, Tmp1Reg + OffsetXC, Tmp2Reg + OffsetXC));
 #endif
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				//andi x9, x8, 240
+				state.emit(rvi(rv64::ANDI, Tmp2Reg, Tmp1Reg, 240));
+				//c.bnez x9, +12
+				state.emit(uint16_t(0xE491));
+			}
 			//c.andi x8, 12
 			state.emit(rvc(rv64::C_ANDI, Tmp1Reg + OffsetXC, 12));
 		}
 		else {
+			if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
+				//andi x9, x{src}, 240
+				state.emit(rvi(rv64::ANDI, Tmp2Reg, regR(isn.src), 240));
+				//c.bnez x9, +14
+				state.emit(uint16_t(0xE499));
+			}
 			//and x8, x{src}, 12
 			state.emit(rvi(rv64::ANDI, Tmp1Reg, regR(isn.src), 12));
 		}
@@ -1183,5 +1244,6 @@ namespace randomx {
 	void JitCompilerRV64::v1_NOP(HANDLER_ARGS) {
 	}
 
-InstructionGeneratorRV64 JitCompilerRV64::engine[256] = {};
+alignas(64) InstructionGeneratorRV64 JitCompilerRV64::engine[256] = {};
+alignas(64) uint8_t JitCompilerRV64::inst_map[256] = {};
 }

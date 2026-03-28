@@ -81,7 +81,7 @@ xmrig::Client::Client(int id, const char *agent, IClientListener *listener) :
     BaseClient(id, listener),
     m_agent(agent),
     m_sendBuf(1024),
-    m_tempBuf(256)
+    m_tempBuf(320)
 {
     m_reader.setListener(this);
     m_key = m_storage.add(this);
@@ -199,12 +199,17 @@ int64_t xmrig::Client::submit(const JobResult &result)
     char *nonce = m_tempBuf.data();
     char *data  = m_tempBuf.data() + 16;
     char *signature = m_tempBuf.data() + 88;
+    char *commitment = m_tempBuf.data() + 224;
 
     Cvt::toHex(nonce, sizeof(uint32_t) * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), sizeof(uint32_t));
     Cvt::toHex(data, 65, result.result(), 32);
 
     if (result.minerSignature()) {
         Cvt::toHex(signature, 129, result.minerSignature(), 64);
+    }
+
+    if (result.commitment()) {
+        Cvt::toHex(commitment, 65, result.commitment(), 32);
     }
 #   endif
 
@@ -224,6 +229,16 @@ int64_t xmrig::Client::submit(const JobResult &result)
 #   else
     if (result.sig) {
         params.AddMember("sig", StringRef(result.sig), allocator);
+    }
+#   endif
+
+#   ifndef XMRIG_PROXY_PROJECT
+    if (result.commitment()) {
+        params.AddMember("commitment", StringRef(commitment), allocator);
+    }
+#   else
+    if (result.commitment) {
+        params.AddMember("commitment", StringRef(result.commitment), allocator);
     }
 #   endif
 
@@ -554,6 +569,7 @@ int64_t xmrig::Client::send(size_t size)
     }
 
     m_expire = Chrono::steadyMSecs() + kResponseTimeout;
+    startTimeout();
     return m_sequence++;
 }
 
@@ -661,8 +677,6 @@ void xmrig::Client::onClose()
 
 void xmrig::Client::parse(char *line, size_t len)
 {
-    startTimeout();
-
     LOG_DEBUG("[%s] received (%d bytes): \"%.*s\"", url(), len, static_cast<int>(len), line);
 
     if (len < 22 || line[0] != '{') {
@@ -857,8 +871,6 @@ void xmrig::Client::parseResponse(int64_t id, const rapidjson::Value &result, co
 void xmrig::Client::ping()
 {
     send(snprintf(m_sendBuf.data(), m_sendBuf.size(), "{\"id\":%" PRId64 ",\"jsonrpc\":\"2.0\",\"method\":\"keepalived\",\"params\":{\"id\":\"%s\"}}\n", m_sequence, m_rpcId.data()));
-
-    m_keepAlive = 0;
 }
 
 

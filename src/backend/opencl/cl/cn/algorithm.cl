@@ -19,6 +19,7 @@
 #define ALGO_CN_PICO_TLO    0x63120274
 #define ALGO_CN_UPX2        0x63110200
 #define ALGO_RX_0           0x72151200
+#define ALGO_RX_V2          0x72151202
 #define ALGO_RX_WOW         0x72141177
 #define ALGO_RX_ARQMA       0x72121061
 #define ALGO_RX_SFX         0x72151273

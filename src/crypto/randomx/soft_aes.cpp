@@ -29,15 +29,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "crypto/randomx/soft_aes.h"
 
-alignas(64) uint32_t lutEnc0[256];
-alignas(64) uint32_t lutEnc1[256];
-alignas(64) uint32_t lutEnc2[256];
-alignas(64) uint32_t lutEnc3[256];
-
-alignas(64) uint32_t lutDec0[256];
-alignas(64) uint32_t lutDec1[256];
-alignas(64) uint32_t lutDec2[256];
-alignas(64) uint32_t lutDec3[256];
+alignas(64) uint32_t lutEnc[4][256];
+alignas(64) uint32_t lutDec[4][256];
 
 alignas(64) uint8_t lutEncIndex[4][32];
 alignas(64) uint8_t lutDecIndex[4][32];
@@ -102,10 +95,10 @@ static struct SAESInitializer
 			p[2] = s;
 			p[3] = mul_gf2(s, 3);
 
-			lutEnc0[i] = w; w = (w << 8) | (w >> 24);
-			lutEnc1[i] = w; w = (w << 8) | (w >> 24);
-			lutEnc2[i] = w; w = (w << 8) | (w >> 24);
-			lutEnc3[i] = w;
+			lutEnc[0][i] = w; w = (w << 8) | (w >> 24);
+			lutEnc[1][i] = w; w = (w << 8) | (w >> 24);
+			lutEnc[2][i] = w; w = (w << 8) | (w >> 24);
+			lutEnc[3][i] = w;
 
 			s = sbox_reverse[i];
 			p[0] = mul_gf2(s, 0xe);
@@ -113,10 +106,10 @@ static struct SAESInitializer
 			p[2] = mul_gf2(s, 0xd);
 			p[3] = mul_gf2(s, 0xb);
 
-			lutDec0[i] = w; w = (w << 8) | (w >> 24);
-			lutDec1[i] = w; w = (w << 8) | (w >> 24);
-			lutDec2[i] = w; w = (w << 8) | (w >> 24);
-			lutDec3[i] = w;
+			lutDec[0][i] = w; w = (w << 8) | (w >> 24);
+			lutDec[1][i] = w; w = (w << 8) | (w >> 24);
+			lutDec[2][i] = w; w = (w << 8) | (w >> 24);
+			lutDec[3][i] = w;
 		}
 
 		memset(lutEncIndex, -1, sizeof(lutEncIndex));

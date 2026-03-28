@@ -36,7 +36,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace randomx {
 
 class SuperscalarProgram;
+struct ProgramConfiguration;
+class Program;
 
-void* generateDatasetInitVectorRV64(uint8_t* buf, size_t buf_size, SuperscalarProgram* programs, size_t num_programs);
+void* generateDatasetInitVectorRV64(uint8_t* buf, SuperscalarProgram* programs, size_t num_programs);
+void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguration& pcfg, const uint8_t (&inst_map)[256], void* entryDataInitScalar, uint32_t datasetOffset);
 
 } // namespace randomx

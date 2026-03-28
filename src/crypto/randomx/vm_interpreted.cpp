@@ -77,10 +77,13 @@ namespace randomx {
 
 			executeBytecode(bytecode, scratchpad, config);
 
-			mem.mx ^= nreg.r[config.readReg2] ^ nreg.r[config.readReg3];
-			mem.mx &= CacheLineAlignMask;
-			datasetPrefetch(datasetOffset + mem.mx);
-			datasetRead(datasetOffset + mem.ma, nreg.r);
+			const uint64_t readPtr = datasetOffset + (mem.ma & CacheLineAlignMask);
+
+			auto& mp = RandomX_CurrentConfig.Tweak_V2_PREFETCH ? mem.ma : mem.mx;
+			mp ^= nreg.r[config.readReg2] ^ nreg.r[config.readReg3];
+
+			datasetPrefetch(datasetOffset + (mp & CacheLineAlignMask));
+			datasetRead(readPtr, nreg.r);
 			std::swap(mem.mx, mem.ma);
 
 			for (unsigned i = 0; i < RegistersCount; ++i)

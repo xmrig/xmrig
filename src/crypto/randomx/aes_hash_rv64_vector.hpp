@@ -1,5 +1,6 @@
 /*
-Copyright (c) 2023 tevador <tevador@gmail.com>
+Copyright (c) 2025 SChernykh   <https://github.com/SChernykh>
+Copyright (c) 2025 XMRig       <support@xmrig.com>
 
 All rights reserved.
 
@@ -28,28 +29,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #pragma once
 
-extern "C" {
-	void randomx_riscv64_literals();
-	void randomx_riscv64_literals_end();
-	void randomx_riscv64_data_init();
-	void randomx_riscv64_fix_data_call();
-	void randomx_riscv64_prologue();
-	void randomx_riscv64_loop_begin();
-	void randomx_riscv64_data_read();
-	void randomx_riscv64_data_read_v2_tweak();
-	void randomx_riscv64_data_read_light();
-	void randomx_riscv64_data_read_light_v1();
-	void randomx_riscv64_data_read_light_v2();
-	void randomx_riscv64_fix_loop_call();
-	void randomx_riscv64_spad_store();
-	void randomx_riscv64_spad_store_softaes();
-	void randomx_riscv64_loop_end();
-	void randomx_riscv64_fix_continue_loop();
-	void randomx_riscv64_epilogue();
-	void randomx_riscv64_softaes();
-	void randomx_riscv64_program_end();
-	void randomx_riscv64_ssh_init();
-	void randomx_riscv64_ssh_load();
-	void randomx_riscv64_ssh_prefetch();
-	void randomx_riscv64_ssh_end();
-}
+void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash);
+void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer);
+void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer);
+void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
