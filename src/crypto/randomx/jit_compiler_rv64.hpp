@@ -90,9 +90,11 @@ namespace randomx {
 		void generateDatasetInitCode() {}
 
 		ProgramFunc* getProgramFunc() {
-			return (ProgramFunc*)entryProgram;
+			return (ProgramFunc*)(vectorCode ? entryProgramVector : entryProgram);
 		}
-		DatasetInitFunc* getDatasetInitFunc();
+		DatasetInitFunc* getDatasetInitFunc() {
+			return (DatasetInitFunc*)(vectorCode ? entryDataInitVector : entryDataInit);
+		}
 		uint8_t* getCode() {
 			return state.code;
 		}
@@ -102,15 +104,17 @@ namespace randomx {
 		void enableExecution() const;
 
 		static InstructionGeneratorRV64 engine[256];
+		static uint8_t inst_map[256];
 	private:
 		CompilerState state;
 
-		uint8_t* vectorCode;
-		size_t vectorCodeSize;
+		uint8_t* vectorCode = nullptr;
+		size_t vectorCodeSize = 0;
 
-		void* entryDataInit;
-		void* entryDataInitOptimized;
-		void* entryProgram;
+		void* entryDataInit = nullptr;
+		void* entryDataInitVector = nullptr;
+		void* entryProgram = nullptr;
+		void* entryProgramVector = nullptr;
 
 	public:
 		static void v1_IADD_RS(HANDLER_ARGS);

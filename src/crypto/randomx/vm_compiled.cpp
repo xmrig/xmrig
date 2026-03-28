@@ -58,9 +58,20 @@ namespace randomx {
 	void CompiledVm<softAes>::execute() {
 		PROFILE_SCOPE(RandomX_JIT_execute);
 
-#		ifdef XMRIG_ARM
+#		if defined(XMRIG_ARM) || defined(XMRIG_RISCV)
 		memcpy(reg.f, config.eMask, sizeof(config.eMask));
 #		endif
+
+		const uint8_t* p = mem.memory;
+
+		// dataset prefetch for the first iteration of the main loop
+		rx_prefetch_nta(p + (mem.ma & (RandomX_ConfigurationBase::DatasetBaseSize - 64)));
+
+		// dataset prefetch for the second iteration of the main loop (RandomX v2)
+		if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+			rx_prefetch_nta(p + (mem.mx & (RandomX_ConfigurationBase::DatasetBaseSize - 64)));
+		}
+
 		compiler.getProgramFunc()(reg, mem, scratchpad, RandomX_CurrentConfig.ProgramIterations);
 	}
 

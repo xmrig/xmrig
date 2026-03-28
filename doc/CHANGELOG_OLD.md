@@ -57,7 +57,7 @@
 # v4.0.0-beta
 - [#1172](https://github.com/xmrig/xmrig/issues/1172) **Added OpenCL mining backend.**
   - [#268](https://github.com/xmrig/xmrig-amd/pull/268) [#270](https://github.com/xmrig/xmrig-amd/pull/270) [#271](https://github.com/xmrig/xmrig-amd/pull/271) [#273](https://github.com/xmrig/xmrig-amd/pull/273) [#274](https://github.com/xmrig/xmrig-amd/pull/274) [#1171](https://github.com/xmrig/xmrig/pull/1171) Added RandomX support for OpenCL, thanks [@SChernykh](https://github.com/SChernykh).
-- Algorithm `cn/wow` removed, as no longer alive. 
+- Algorithm `cn/wow` removed, as no longer alive.
 
 # v3.2.0
 - Added per pool option `coin` with single possible value `monero` for pools without algorithm negotiation, for upcoming Monero fork.
@@ -103,7 +103,7 @@
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
 - Added commands `pause` and `resume` via JSON RPC 2.0 API (`POST /json_rpc`).
 - Added command line option `--export-topology` for export hwloc topology to a XML file.
-- Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
+- Broken backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
 - Options `av`, `safe` and `max-cpu-usage` removed.
 - Algorithm `cn/msr` renamed to `cn/fast`.
 - Algorithm `cn/xtl` removed.
@@ -122,7 +122,7 @@
 - [#1092](https://github.com/xmrig/xmrig/issues/1092) Fixed crash if wrong CPU affinity used.
 - [#1103](https://github.com/xmrig/xmrig/issues/1103) Improved auto configuration for RandomX for CPUs where L2 cache is limiting factor.
 - [#1105](https://github.com/xmrig/xmrig/issues/1105) Improved auto configuration for `cn-pico` algorithm.
-- [#1106](https://github.com/xmrig/xmrig/issues/1106) Fixed `hugepages` field in summary API. 
+- [#1106](https://github.com/xmrig/xmrig/issues/1106) Fixed `hugepages` field in summary API.
 - Added alternative short format for CPU threads.
 - Changed format for CPU threads with intensity above 1.
 - Name for reference RandomX configuration changed to `rx/test` to avoid potential conflicts in future.
@@ -150,7 +150,7 @@
 - [#1050](https://github.com/xmrig/xmrig/pull/1050) Added RandomXL algorithm for [Loki](https://loki.network/), algorithm name used by miner is `randomx/loki` or `rx/loki`.
 - Added [flexible](https://github.com/xmrig/xmrig/blob/evo/doc/CPU.md) multi algorithm configuration.
 - Added unlimited switching between incompatible algorithms, all mining options can be changed in runtime.
-- Breaked backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
+- Broken backward compatibility with previous configs and command line, `variant` option replaced to `algo`, global option `algo` removed, all CPU related settings moved to `cpu` object.
 - Options `av`, `safe` and `max-cpu-usage` removed.
 - Algorithm `cn/msr` renamed to `cn/fast`.
 - Algorithm `cn/xtl` removed.
@@ -183,7 +183,7 @@
 - [#314](https://github.com/xmrig/xmrig-proxy/issues/314) Added donate over proxy feature.
   - Added new option `donate-over-proxy`.
   - Added real graceful exit.
-  
+
 # v2.14.4
 - [#992](https://github.com/xmrig/xmrig/pull/992)  Fixed compilation with Clang 3.5.
 - [#1012](https://github.com/xmrig/xmrig/pull/1012) Fixed compilation with Clang 9.0.
@@ -250,7 +250,7 @@
 # v2.8.1
 - [#768](https://github.com/xmrig/xmrig/issues/768) Fixed build with Visual Studio 2015.
 - [#769](https://github.com/xmrig/xmrig/issues/769) Fixed regression, some ANSI escape sequences was in log with disabled colors.
-- [#777](https://github.com/xmrig/xmrig/issues/777) Better report about pool connection issues. 
+- [#777](https://github.com/xmrig/xmrig/issues/777) Better report about pool connection issues.
 - Simplified checks for ASM auto detection, only AES support necessary.
 - Added missing options to `--help` output.
 
@@ -259,7 +259,7 @@
   - Added global and per thread option `"asm"` and command line equivalent.
 - **[#758](https://github.com/xmrig/xmrig/issues/758) Added SSL/TLS support for secure connections to pools.**
   - Added per pool options `"tls"` and `"tls-fingerprint"` and command line equivalents.
-- [#767](https://github.com/xmrig/xmrig/issues/767) Added config autosave feature, same with GPU miners.  
+- [#767](https://github.com/xmrig/xmrig/issues/767) Added config autosave feature, same with GPU miners.
 - [#245](https://github.com/xmrig/xmrig-proxy/issues/245) Fixed API ID collision when run multiple miners on same machine.
 - [#757](https://github.com/xmrig/xmrig/issues/757) Fixed send buffer overflow.
 
@@ -346,7 +346,7 @@
 
 # v2.4.4
  - Added libmicrohttpd version to --version output.
- - Fixed bug in singal handler, in some cases miner wasn't shutdown properly.
+ - Fixed bug in signal handler, in some cases miner wasn't shutdown properly.
  - Fixed recent MSVC 2017 version detection.
  - [#279](https://github.com/xmrig/xmrig/pull/279) Fixed build on some macOS versions.
 
@@ -359,7 +359,7 @@
 # v2.4.2
  - [#60](https://github.com/xmrig/xmrig/issues/60) Added FreeBSD support, thanks [vcambur](https://github.com/vcambur).
  - [#153](https://github.com/xmrig/xmrig/issues/153) Fixed issues with dwarfpool.com.
- 
+
 # v2.4.1
   - [#147](https://github.com/xmrig/xmrig/issues/147) Fixed comparability with monero-stratum.
 
@@ -371,7 +371,7 @@
  - [#101](https://github.com/xmrig/xmrig/issues/101) Fixed MSVC 2017 (15.3) compile time version detection.
  - [#108](https://github.com/xmrig/xmrig/issues/108) Silently ignore invalid values for `donate-level` option.
  - [#111](https://github.com/xmrig/xmrig/issues/111) Fixed build without AEON support.
- 
+
 # v2.3.1
 - [#68](https://github.com/xmrig/xmrig/issues/68) Fixed compatibility with Docker containers, was nothing print on console.
 
@@ -398,7 +398,7 @@
 # v2.1.0
 - [#40](https://github.com/xmrig/xmrig/issues/40)
 Improved miner shutdown, fixed crash on exit for Linux and OS X.
-- Fixed, login request was contain malformed JSON if username or password has some special characters for example `\`. 
+- Fixed, login request was contain malformed JSON if username or password has some special characters for example `\`.
 - [#220](https://github.com/fireice-uk/xmr-stak-cpu/pull/220) Better support for Round Robin DNS, IP address now always chosen randomly instead of stuck on first one.
 - Changed donation address, new [xmrig-proxy](https://github.com/xmrig/xmrig-proxy) is coming soon.
 
@@ -418,16 +418,16 @@ Improved miner shutdown, fixed crash on exit for Linux and OS X.
  - Fixed Windows XP support.
  - Fixed regression, option `--no-color` was not fully disable colored output.
  - Show resolved pool IP address in miner output.
- 
+
 # v1.0.1
 - Fix broken software AES implementation, app has crashed if CPU not support AES-NI, only version 1.0.0 affected.
 
 # v1.0.0
 - Miner complete rewritten in C++ with libuv.
-- This version should be fully compatible (except config file) with previos versions, many new nice features will come in next versions.
-- This is still beta. If you found regression, stability or perfomance issues or have an idea for new feature please fell free to open new [issue](https://github.com/xmrig/xmrig/issues/new).
+- This version should be fully compatible (except config file) with previous versions, many new nice features will come in next versions.
+- This is still beta. If you found regression, stability or performance issues or have an idea for new feature please fell free to open new [issue](https://github.com/xmrig/xmrig/issues/new).
 - Added new option `--print-time=N`, print hashrate report every N seconds.
-- New hashrate reports, by default every 60 secons.
+- New hashrate reports, by default every 60 seconds.
 - Added Microsoft Visual C++ 2015 and 2017 support.
 - Removed dependency on libcurl.
 - To compile this version from source please switch to [dev](https://github.com/xmrig/xmrig/tree/dev) branch.
@@ -440,7 +440,7 @@ Improved miner shutdown, fixed crash on exit for Linux and OS X.
 - Fixed gcc 7.1 support.
 
 # v0.8.1
-- Added nicehash support, detects automaticaly by pool URL, for example `cryptonight.eu.nicehash.com:3355` or manually via option `--nicehash`.
+- Added nicehash support, detects automatically by pool URL, for example `cryptonight.eu.nicehash.com:3355` or manually via option `--nicehash`.
 
 # v0.8.0
 - Added double hash mode, also known as lower power mode. `--av=2` and `--av=4`.

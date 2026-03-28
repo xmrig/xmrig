@@ -121,7 +121,7 @@ public:
     inline bool hasViewTag() const                      { return m_hasViewTag; }
 
     void setSpendSecretKey(const uint8_t* key);
-    void setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, size_t minerTxExtraNonceOffset, size_t minerTxExtraNonceSize, const Buffer& minerTxMerkleTreeBranch, bool hasViewTag);
+    void setMinerTx(const uint8_t* begin, const uint8_t* end, size_t minerTxEphPubKeyOffset, size_t minerTxPubKeyOffset, size_t minerTxExtraNonceOffset, size_t minerTxExtraNonceSize, const Buffer& minerTxMerkleTreeBranch, uint32_t minerTxMerkleTreePath, bool hasViewTag);
     void setViewTagInMinerTx(uint8_t view_tag);
     void setExtraNonceInMinerTx(uint32_t extra_nonce);
     void generateSignatureData(String& signatureData, uint8_t& view_tag) const;
@@ -179,6 +179,7 @@ private:
     size_t m_minerTxExtraNonceOffset = 0;
     size_t m_minerTxExtraNonceSize = 0;
     Buffer m_minerTxMerkleTreeBranch;
+    uint32_t m_minerTxMerkleTreePath = 0;
     bool m_hasViewTag = false;
 #   else
     // Miner signatures

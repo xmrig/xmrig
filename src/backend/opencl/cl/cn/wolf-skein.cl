@@ -10,7 +10,7 @@
 #else
 #   define STATIC
 /* taken from https://www.khronos.org/registry/OpenCL/extensions/amd/cl_amd_media_ops.txt
- * Build-in Function
+ * Built-in Function
  *     uintn  amd_bitalign (uintn src0, uintn src1, uintn src2)
  *   Description
  *     dst.s0 =  (uint) (((((long)src0.s0) << 32) | (long)src1.s0) >> (src2.s0 & 31))

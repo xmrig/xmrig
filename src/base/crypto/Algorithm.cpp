@@ -77,6 +77,7 @@ const char *Algorithm::kCN_UPX2         = "cn/upx2";
 #ifdef XMRIG_ALGO_RANDOMX
 const char *Algorithm::kRX              = "rx";
 const char *Algorithm::kRX_0            = "rx/0";
+const char *Algorithm::kRX_V2           = "rx/2";
 const char *Algorithm::kRX_WOW          = "rx/wow";
 const char *Algorithm::kRX_ARQ          = "rx/arq";
 const char *Algorithm::kRX_GRAFT        = "rx/graft";
@@ -143,6 +144,7 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
 
 #   ifdef XMRIG_ALGO_RANDOMX
     ALGO_NAME(RX_0),
+    ALGO_NAME(RX_V2),
     ALGO_NAME(RX_WOW),
     ALGO_NAME(RX_ARQ),
     ALGO_NAME(RX_GRAFT),
@@ -253,6 +255,8 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
                                     ALGO_ALIAS(RX_0,            "rx/test"),
                                     ALGO_ALIAS(RX_0,            "randomx"),
                                     ALGO_ALIAS(RX_0,            "rx"),
+    ALGO_ALIAS_AUTO(RX_V2),         ALGO_ALIAS(RX_V2,           "randomx/v2"),
+                                    ALGO_ALIAS(RX_V2,           "rx/v2"),
     ALGO_ALIAS_AUTO(RX_WOW),        ALGO_ALIAS(RX_WOW,          "randomx/wow"),
                                     ALGO_ALIAS(RX_WOW,          "randomwow"),
     ALGO_ALIAS_AUTO(RX_ARQ),        ALGO_ALIAS(RX_ARQ,          "randomx/arq"),
@@ -350,7 +354,7 @@ std::vector<xmrig::Algorithm> xmrig::Algorithm::all(const std::function<bool(con
         CN_HEAVY_0, CN_HEAVY_TUBE, CN_HEAVY_XHV,
         CN_PICO_0, CN_PICO_TLO,
         CN_UPX2,
-        RX_0, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_YADA,
+        RX_0, RX_V2, RX_WOW, RX_ARQ, RX_GRAFT, RX_SFX, RX_YADA,
         AR2_CHUKWA, AR2_CHUKWA_V2, AR2_WRKZ,
         KAWPOW_RVN,
         GHOSTRIDER_RTM

@@ -52,6 +52,7 @@ protected:
     inline bool hasOneGbPages() const override                  { return has(FLAG_PDPE1GB); }
     inline bool hasXOP() const override                         { return has(FLAG_XOP); }
     inline bool isVM() const override                           { return has(FLAG_VM); }
+    inline bool hasRISCV_Vector() const override                { return has(FLAG_RISCV_VECTOR); }
     inline bool jccErratum() const override                     { return m_jccErratum; }
     inline const char *brand() const override                   { return m_brand; }
     inline const std::vector<int32_t> &units() const override   { return m_units; }

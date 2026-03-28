@@ -174,7 +174,7 @@ FORCE_INLINE void rx_set_rounding_mode(uint32_t mode) {
 	_mm_setcsr(rx_mxcsr_default | (mode << 13));
 }
 
-#elif defined(__PPC64__) && defined(__ALTIVEC__) && defined(__VSX__) //sadly only POWER7 and newer will be able to use SIMD acceleration. Earlier processors cant use doubles or 64 bit integers with SIMD
+#elif defined(__PPC64__) && defined(__ALTIVEC__) && defined(__VSX__) //sadly only POWER7 and newer will be able to use SIMD acceleration. Earlier processors can't use doubles or 64 bit integers with SIMD
 #include <cstdint>
 #include <stdexcept>
 #include <cstdlib>
@@ -420,7 +420,7 @@ inline void* rx_aligned_alloc(size_t size, size_t align) {
 #   define rx_aligned_free(a) free(a)
 #endif
 
-inline void rx_prefetch_nta(void* ptr) {
+inline void rx_prefetch_nta(const void* ptr) {
 	asm volatile ("prfm pldl1strm, [%0]\n" : : "r" (ptr));
 }
 
@@ -577,8 +577,13 @@ inline void* rx_aligned_alloc(size_t size, size_t align) {
 #   define rx_aligned_free(a) free(a)
 #endif
 
+#if defined(__GNUC__) && (!defined(__clang__) || __has_builtin(__builtin_prefetch))
+#define rx_prefetch_nta(x) __builtin_prefetch((x), 0, 0)
+#define rx_prefetch_t0(x) __builtin_prefetch((x), 0, 3)
+#else
 #define rx_prefetch_nta(x)
 #define rx_prefetch_t0(x)
+#endif
 
 FORCE_INLINE rx_vec_f128 rx_load_vec_f128(const double* pd) {
 	rx_vec_f128 x;
