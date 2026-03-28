@@ -155,7 +155,12 @@ xmrig::Msr::Msr() : d_ptr(new MsrPrivate())
 
     d_ptr->driver = CreateFileW(L"\\\\.\\" SERVICE_NAME, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
     if (d_ptr->driver != INVALID_HANDLE_VALUE) {
-        LOG_WARN("%s " YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" already exists, but with a different service name"), tag());
+        if (d_ptr->service) {
+            LOG_INFO("%s " YELLOW("using running service ") YELLOW_BOLD("WinRing0_1_2_0"), tag());
+        }
+        else {
+            LOG_WARN("%s " YELLOW("service ") YELLOW_BOLD("WinRing0_1_2_0") YELLOW(" already exists, but with a different service name"), tag());
+        }
         d_ptr->reuse = true;
         return;
     }
