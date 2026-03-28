@@ -20,6 +20,9 @@
 #define XMRIG_WORKER_H
 
 
+#include <atomic>
+
+
 #include "backend/common/interfaces/IWorker.h"
 
 
@@ -37,8 +40,6 @@ protected:
     inline int64_t affinity() const                         { return m_affinity; }
     inline size_t id() const override                       { return m_id; }
     inline uint32_t node() const                            { return m_node; }
-
-    uint64_t m_count                = 0;
 
 private:
     const int64_t m_affinity;
