@@ -106,12 +106,12 @@ RandomX_ConfigurationArqma::RandomX_ConfigurationArqma()
 
 RandomX_ConfigurationEquilibria::RandomX_ConfigurationEquilibria()
 {
-  ArgonIterations = 1;
-  ArgonSalt = "RandomXEQ\x01";
-  ProgramIterations = 1024;
-  ProgramCount = 4;
-  ScratchpadL2_Size = 131072;
-  ScratchpadL3_Size = 262144;
+	ArgonIterations = 1;
+	ArgonSalt = "RandomXEQ\x01";
+	ProgramIterations = 1024;
+	ProgramCount = 4;
+	ScratchpadL2_Size = 131072;
+	ScratchpadL3_Size = 262144;
 }
 
 RandomX_ConfigurationGraft::RandomX_ConfigurationGraft()
@@ -128,36 +128,11 @@ RandomX_ConfigurationSafex::RandomX_ConfigurationSafex()
 	ArgonSalt = "RandomSFX\x01";
 }
 
-RandomX_ConfigurationKeva::RandomX_ConfigurationKeva()
-{
-	ArgonSalt = "RandomKV\x01";
-	ScratchpadL2_Size = 131072;
-	ScratchpadL3_Size = 1048576;
-}
-
 RandomX_ConfigurationYada::RandomX_ConfigurationYada()
 {
 	ArgonSalt = "RandomXYadaCoin\x03";
 	SuperscalarLatency = 150;
 	ArgonIterations = 4;
-}
-
-RandomX_ConfigurationScala::RandomX_ConfigurationScala()
-{
-	ArgonMemory       = 131072;
-	ArgonIterations   = 2;
-	ArgonSalt         = "DefyXScala\x13";
-	CacheAccesses     = 2;
-	DatasetBaseSize   = 33554432;
-	ScratchpadL1_Size = 65536;
-	ScratchpadL2_Size = 131072;
-	ScratchpadL3_Size = 262144;
-	ProgramSize       = 64;
-	ProgramIterations = 1024;
-	ProgramCount      = 4;
-
-	RANDOMX_FREQ_IADD_RS = 25;
-	RANDOMX_FREQ_CBRANCH = 16;
 }
 
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
@@ -235,18 +210,6 @@ RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 		const uint8_t* b = addr(randomx_sshash_end);
 		memcpy(codeSshPrefetchTweaked, a, b - a);
 	}
-	{
-		const uint8_t* a = addr(randomx_program_read_dataset);
-		const uint8_t* b = addr(randomx_program_read_dataset_v2);
-		memcpy(codeReadDatasetTweaked, a, b - a);
-		codeReadDatasetTweakedSize = b - a;
-	}
-	{
-		const uint8_t* a = addr(randomx_program_read_dataset_v2);
-		const uint8_t* b = addr(randomx_program_read_dataset_sshash_init);
-		memcpy(codeReadDatasetV2Tweaked, a, b - a);
-		codeReadDatasetV2TweakedSize = b - a;
-	}
 	if (xmrig::Cpu::info()->hasBMI2()) {
 		const uint8_t* a = addr(randomx_prefetch_scratchpad_bmi2);
 		const uint8_t* b = addr(randomx_prefetch_scratchpad_end);
@@ -289,13 +252,11 @@ void RandomX_ConfigurationBase::Apply()
 
 #if defined(XMRIG_FEATURE_ASM) && (defined(_M_X64) || defined(__x86_64__))
 	*(uint32_t*)(codeSshPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
-	*(uint32_t*)(codeSshPrefetchTweaked + 3) = ArgonMemory * 16 - 1;
-	const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
-	*(uint32_t*)(codeReadDatasetV2Tweaked + 9) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetV2Tweaked + 24) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetTweaked + 7) = DatasetBaseMask;
-	*(uint32_t*)(codeReadDatasetTweaked + 23) = DatasetBaseMask;
-//	*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
+	// Not needed right now because all variants use default dataset base size
+	//const uint32_t DatasetBaseMask = DatasetBaseSize - RANDOMX_DATASET_ITEM_SIZE;
+	//*(uint32_t*)(codeReadDatasetTweaked + 9) = DatasetBaseMask;
+	//*(uint32_t*)(codeReadDatasetTweaked + 24) = DatasetBaseMask;
+	//*(uint32_t*)(codeReadDatasetLightSshInitTweaked + 59) = DatasetBaseMask;
 
 	const bool hasBMI2 = xmrig::Cpu::info()->hasBMI2();
 
@@ -446,8 +407,6 @@ RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
-RandomX_ConfigurationKeva RandomX_KevaConfig;
-RandomX_ConfigurationScala RandomX_ScalaConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
