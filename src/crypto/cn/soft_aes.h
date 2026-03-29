@@ -93,10 +93,20 @@ alignas(16) const uint8_t  saes_sbox[256] = saes_data(saes_h0);
 
 static inline __m128i soft_aesenc(const uint32_t* in, __m128i key)
 {
+    #ifdef XMRIG_ARM
+    // arm specific
+    uint32x4_t vector_as_u32 = vreinterpretq_u32_s64(*(int64x2_t*)in);
+    uint32_t x0 = vgetq_lane_u32(vector_as_u32, 0);
+    uint32_t x1 = vgetq_lane_u32(vector_as_u32, 1);
+    uint32_t x2 = vgetq_lane_u32(vector_as_u32, 2);
+    uint32_t x3 = vgetq_lane_u32(vector_as_u32, 3);
+    #else
+    // these casting generate wrong results on arm
     const uint32_t x0 = in[0];
     const uint32_t x1 = in[1];
     const uint32_t x2 = in[2];
     const uint32_t x3 = in[3];
+    #endif
 
     __m128i out = _mm_set_epi32(
         (saes_table[0][x3 & 0xff] ^ saes_table[1][(x0 >> 8) & 0xff] ^ saes_table[2][(x1 >> 16) & 0xff] ^ saes_table[3][x2 >> 24]),
