@@ -68,22 +68,22 @@ struct RandomX_ConfigurationBase
 	// Common parameters for all RandomX variants
 	enum Params : uint64_t
 	{
-		ArgonMemory = 262144,
-		CacheAccesses = 8,
-		SuperscalarMaxLatency = 170,
-		DatasetBaseSize = 2147483648,
 		DatasetExtraSize = 33554368,
+		SuperscalarMaxLatency = 170,
 		JumpBits = 8,
 		JumpOffset = 8,
-		CacheLineAlignMask_Calculated = (DatasetBaseSize - 1) & ~(RANDOMX_DATASET_ITEM_SIZE - 1),
 		DatasetExtraItems_Calculated = DatasetExtraSize / RANDOMX_DATASET_ITEM_SIZE,
 		ConditionMask_Calculated = ((1 << JumpBits) - 1) << JumpOffset,
 	};
 
+        uint32_t ArgonMemory;
+        uint32_t CacheAccesses;
+        uint32_t DatasetBaseSize;
+
 	uint32_t ArgonIterations;
 	uint32_t ArgonLanes;
 	const char* ArgonSalt;
-	uint32_t SuperscalarLatency;
+        uint32_t SuperscalarLatency;
 
 	uint32_t ScratchpadL1_Size;
 	uint32_t ScratchpadL2_Size;
@@ -131,9 +131,15 @@ struct RandomX_ConfigurationBase
 	uint32_t Tweak_V2_PREFETCH : 1;
 	uint32_t Tweak_V2_COMMITMENT : 1;
 
+	uint8_t codeReadDatasetTweaked[64];
+	uint32_t codeReadDatasetTweakedSize;
+	uint8_t codeReadDatasetV2Tweaked[72];
+	uint32_t codeReadDatasetV2TweakedSize;
 	uint8_t codeSshPrefetchTweaked[20];
 	uint8_t codePrefetchScratchpadTweaked[28];
 	uint32_t codePrefetchScratchpadTweakedSize;
+
+        uint32_t CacheLineAlignMask_Calculated;
 
 	uint32_t AddressMask_Calculated[4];
 	uint32_t ScratchpadL3Mask_Calculated;
@@ -155,6 +161,8 @@ struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationEquilibria : public RandomX_ConfigurationBase { RandomX_ConfigurationEquilibria(); };
 struct RandomX_ConfigurationGraft : public RandomX_ConfigurationBase { RandomX_ConfigurationGraft(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
+struct RandomX_ConfigurationKeva : public RandomX_ConfigurationBase { RandomX_ConfigurationKeva(); };
+struct RandomX_ConfigurationScala : public RandomX_ConfigurationBase { RandomX_ConfigurationScala(); };
 struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_ConfigurationYada(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
@@ -164,6 +172,8 @@ extern RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 extern RandomX_ConfigurationEquilibria RandomX_EquilibriaConfig;
 extern RandomX_ConfigurationGraft RandomX_GraftConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
+extern RandomX_ConfigurationKeva RandomX_KevaConfig;
+extern RandomX_ConfigurationScala RandomX_ScalaConfig;
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
 
 extern RandomX_ConfigurationBase RandomX_CurrentConfig;
