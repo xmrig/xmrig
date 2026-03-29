@@ -34,5 +34,6 @@ The preferred way to configure the miner is the [JSON config file](https://xmrig
 
 ## Contacts
 * support@xmrig.com
-* [reddit](https://www.reddit.com/user/XMRig/)
-* [twitter](https://twitter.com/xmrig_dev)
+* [Reddit](https://www.reddit.com/user/XMRig/)
+* [X/Twitter](https://x.com/xmrig_dev)
+* [Telegram](https://t.me/xmrig)
