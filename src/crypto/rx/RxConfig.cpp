@@ -187,8 +187,8 @@ std::vector<uint32_t> xmrig::RxConfig::nodeset() const
 {
     auto info = Cpu::info();
 
-    constexpr uint64_t dataset_mem = RandomX_ConfigurationBase::DatasetBaseSize + RandomX_ConfigurationBase::DatasetExtraSize;
-    constexpr uint64_t cache_mem = RandomX_ConfigurationBase::ArgonMemory * 1024;
+    constexpr uint64_t dataset_mem = RandomX_CurrentConfig.DatasetBaseSize + RandomX_ConfigurationBase::DatasetExtraSize;
+    constexpr uint64_t cache_mem = RandomX_CurrentConfig.ArgonMemory * 1024;
     const uint64_t threads_mem = info->threads() << 21;
 
     const uint64_t freem_mem = uv_get_free_memory();
