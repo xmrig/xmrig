@@ -93,10 +93,33 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_rv64_vector_static.S
              src/crypto/randomx/jit_compiler_rv64.cpp
              src/crypto/randomx/jit_compiler_rv64_vector.cpp
+             src/crypto/randomx/aes_hash_rv64_vector.cpp
+             src/crypto/randomx/aes_hash_rv64_zvkned.cpp
             )
         # cheat because cmake and ccache hate each other
         set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_static.S PROPERTY LANGUAGE C)
         set_property(SOURCE src/crypto/randomx/jit_compiler_rv64_vector_static.S PROPERTY LANGUAGE C)
+
+        set(RV64_VECTOR_FILE_ARCH "rv64gcv")
+
+        if (ARCH STREQUAL "native")
+            if (RVARCH_ZICBOP)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zicbop")
+            endif()
+            if (RVARCH_ZBA)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zba")
+            endif()
+            if (RVARCH_ZBB)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zbb")
+            endif()
+            if (RVARCH_ZVKB)
+                set(RV64_VECTOR_FILE_ARCH "${RV64_VECTOR_FILE_ARCH}_zvkb")
+            endif()
+        endif()
+
+        set_source_files_properties(src/crypto/randomx/jit_compiler_rv64_vector_static.S PROPERTIES COMPILE_FLAGS "-march=${RV64_VECTOR_FILE_ARCH}_zvkned")
+        set_source_files_properties(src/crypto/randomx/aes_hash_rv64_vector.cpp PROPERTIES COMPILE_FLAGS "-O3 -march=${RV64_VECTOR_FILE_ARCH}")
+        set_source_files_properties(src/crypto/randomx/aes_hash_rv64_zvkned.cpp PROPERTIES COMPILE_FLAGS "-O3 -march=${RV64_VECTOR_FILE_ARCH}_zvkned")
     else()
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_fallback.cpp
@@ -173,6 +196,15 @@ if (WITH_RANDOMX)
 
         list(APPEND HEADERS_CRYPTO src/crypto/rx/Profiler.h)
         list(APPEND SOURCES_CRYPTO src/crypto/rx/Profiler.cpp)
+    endif()
+
+    if (WITH_VAES)
+        set(SOURCES_CRYPTO "${SOURCES_CRYPTO}" src/crypto/randomx/aes_hash_vaes512.cpp)
+        if (CMAKE_C_COMPILER_ID MATCHES MSVC)
+            set_source_files_properties(src/crypto/randomx/aes_hash_vaes512.cpp PROPERTIES COMPILE_FLAGS "/arch:AVX512")
+        elseif (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+            set_source_files_properties(src/crypto/randomx/aes_hash_vaes512.cpp PROPERTIES COMPILE_FLAGS "-mavx512f -mvaes")
+        endif()
     endif()
 else()
     remove_definitions(/DXMRIG_ALGO_RANDOMX)

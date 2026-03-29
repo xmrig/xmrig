@@ -48,6 +48,24 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck = {
         {  9000000U, 0x323935102AB6B45CULL },
         { 10000000U, 0xB5231262E2792B26ULL }
     }},
+    { Algorithm::RX_V2, {
+#       ifndef NDEBUG
+        {    10000U, 0x57d2051d099613a4ULL },
+        {    20000U, 0x0bae0155cc797f01ULL },
+#       endif
+        {   250000U, 0x18cf741a71484072ULL },
+        {   500000U, 0xcd8c3e6ec31b2faeULL },
+        {  1000000U, 0x88d6b8fb70cd479dULL },
+        {  2000000U, 0x0e16828d236a1a63ULL },
+        {  3000000U, 0x2739bdd0f25b83a6ULL },
+        {  4000000U, 0x32f42d9006d2d34bULL },
+        {  5000000U, 0x16d9c6286cb82251ULL },
+        {  6000000U, 0x1f916ae19d6bcf07ULL },
+        {  7000000U, 0x1f474f99a873948fULL },
+        {  8000000U, 0x8d67e0ddf05476bbULL },
+        {  9000000U, 0x3ebf37dcd5c4a215ULL },
+        { 10000000U, 0x7efbddff3f30fb74ULL }
+    }},
     { Algorithm::RX_WOW, {
 #       ifndef NDEBUG
         {    10000U, 0x6B0918757100B338ULL },
@@ -87,6 +105,24 @@ static const std::map<int, std::map<uint32_t, uint64_t> > hashCheck1T = {
         {  8000000U, 0x2EEF833EA462F4B1ULL },
         {  9000000U, 0xC6D39EF59213A07CULL },
         { 10000000U, 0x95E6BAE68DD779CDULL }
+    }},
+    { Algorithm::RX_V2, {
+#       ifndef NDEBUG
+        {    10000, 0x90eb7c07cd9e0d90ULL },
+        {    20000, 0x6523a3658d7d9930ULL },
+#       endif
+        {   250000, 0xf83b6d9d355ee5b1ULL },
+        {   500000, 0xbea3c1bf1465e9abULL },
+        {  1000000, 0x9e16f7cb56b366e1ULL },
+        {  2000000, 0x3b5e671f47e15e55ULL },
+        {  3000000, 0xec5819c180df03e2ULL },
+        {  4000000, 0x19d31b498f86aad4ULL },
+        {  5000000, 0x2487626c75cd12ccULL },
+        {  6000000, 0xa323a25a5286c39aULL },
+        {  7000000, 0xa123b100f3104dfcULL },
+        {  8000000, 0x602db9d83bfa0ddcULL },
+        {  9000000, 0x98da909e579765ddULL },
+        { 10000000, 0x3a45b7247cec9895ULL }
     }},
     { Algorithm::RX_WOW, {
 #       ifndef NDEBUG

@@ -20,6 +20,7 @@
 #define ALGO_CN_UPX2        0x63110200
 #define ALGO_CN_GPU         0x63150300
 #define ALGO_RX_0           0x72151200
+#define ALGO_RX_V2          0x72151202
 #define ALGO_RX_WOW         0x72141177
 #define ALGO_RX_ARQ         0x72121061
 #define ALGO_RX_XEQ         0x72121000

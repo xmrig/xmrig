@@ -75,6 +75,7 @@ public:
         GHOSTRIDER_RTM  = 0x6c150000,   // "ghostrider"       GhostRider
         FLEX_KCN        = 0x6c150001,   // "flex"             Flex
         RX_0            = 0x72151200,   // "rx/0"             RandomX (reference configuration).
+        RX_V2           = 0x72151202,   // "rx/2"             RandomX (Monero v2).
         RX_WOW          = 0x72141177,   // "rx/wow"           RandomWOW (Wownero).
         RX_ARQ          = 0x72121061,   // "rx/arq"           RandomARQ (Arqma).
         RX_XEQ          = 0x72121000,
@@ -149,6 +150,7 @@ public:
 #   ifdef XMRIG_ALGO_RANDOMX
     static const char *kRX;
     static const char *kRX_0;
+    static const char* kRX_V2;
     static const char *kRX_WOW;
     static const char *kRX_ARQ;
     static const char *kRX_XEQ;

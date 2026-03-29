@@ -48,69 +48,98 @@ void xmrig::BlockTemplate::calculateMinerTxHash(const uint8_t *prefix_begin, con
 }
 
 
-void xmrig::BlockTemplate::calculateRootHash(const uint8_t *prefix_begin, const uint8_t *prefix_end, const Buffer &miner_tx_merkle_tree_branch, uint8_t *root_hash)
+void xmrig::BlockTemplate::calculateRootHash(const uint8_t *prefix_begin, const uint8_t *prefix_end, const Buffer &miner_tx_merkle_tree_branch, uint32_t miner_tx_merkle_tree_path, uint8_t *root_hash)
 {
     calculateMinerTxHash(prefix_begin, prefix_end, root_hash);
 
-    for (size_t i = 0; i < miner_tx_merkle_tree_branch.size(); i += kHashSize) {
+    const size_t depth = miner_tx_merkle_tree_branch.size() / kHashSize;
+
+    for (size_t d = 0; d < depth; ++d) {
         uint8_t h[kHashSize * 2];
 
-        memcpy(h, root_hash, kHashSize);
-        memcpy(h + kHashSize, miner_tx_merkle_tree_branch.data() + i, kHashSize);
+        const uint32_t t = (miner_tx_merkle_tree_path >> (depth - d - 1)) & 1;
+
+        memcpy(h + kHashSize * t, root_hash, kHashSize);
+        memcpy(h + kHashSize * (t ^ 1), miner_tx_merkle_tree_branch.data() + d * kHashSize, kHashSize);
 
         keccak(h, kHashSize * 2, root_hash, kHashSize);
     }
 }
 
 
-void xmrig::BlockTemplate::calculateMerkleTreeHash()
+void xmrig::BlockTemplate::calculateMerkleTreeHash(uint32_t index)
 {
     m_minerTxMerkleTreeBranch.clear();
+	m_minerTxMerkleTreePath = 0;
 
-    const uint64_t count = m_numHashes + 1;
+    const size_t count = m_hashes.size() / kHashSize;
     const uint8_t *h = m_hashes.data();
 
-    if (count == 1) {
+	if (count == 1) {
         memcpy(m_rootHash, h, kHashSize);
-    }
-    else if (count == 2) {
-        m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), h + kHashSize, h + kHashSize * 2);
+	}
+	else if (count == 2) {
         keccak(h, kHashSize * 2, m_rootHash, kHashSize);
-    }
-    else {
-        size_t i    = 0;
-        size_t j    = 0;
-        size_t cnt  = 0;
 
-        for (i = 0, cnt = 1; cnt <= count; ++i, cnt <<= 1) {}
+		m_minerTxMerkleTreeBranch.reserve(1);
+        m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), h + kHashSize * (index ^ 1), h + kHashSize * ((index ^ 1) + 1));
+		m_minerTxMerkleTreePath = static_cast<uint32_t>(index);
+	}
+	else {
+		uint8_t h2[kHashSize];
+        memcpy(h2, h + kHashSize * index, kHashSize);
 
-        cnt >>= 1;
+		size_t cnt = 1, proof_max_size = 0;
+		do {
+			cnt <<= 1;
+			++proof_max_size;
+		} while (cnt <= count);
+		cnt >>= 1;
 
-        m_minerTxMerkleTreeBranch.reserve(kHashSize * (i - 1));
+		m_minerTxMerkleTreeBranch.reserve(proof_max_size);
 
         Buffer ints(cnt * kHashSize);
-        memcpy(ints.data(), h, (cnt * 2 - count) * kHashSize);
 
-        for (i = cnt * 2 - count, j = cnt * 2 - count; j < cnt; i += 2, ++j) {
-            if (i == 0) {
-                m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), h + kHashSize, h + kHashSize * 2);
-            }
-            keccak(h + i * kHashSize, kHashSize * 2, ints.data() + j * kHashSize, kHashSize);
-        }
+		const size_t k = cnt * 2 - count;
+		memcpy(ints.data(), h, k * kHashSize);
 
-        while (cnt > 2) {
-            cnt >>= 1;
-            for (i = 0, j = 0; j < cnt; i += 2, ++j) {
-                if (i == 0) {
-                    m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), ints.data() + kHashSize, ints.data() + kHashSize * 2);
-                }
-                keccak(ints.data() + i * kHashSize, kHashSize * 2, ints.data() + j * kHashSize, kHashSize);
-            }
-        }
+		for (size_t i = k, j = k; j < cnt; i += 2, ++j) {
+			keccak(h + i * kHashSize, kHashSize * 2, ints.data() + j * kHashSize, kHashSize);
 
-        m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), ints.data() + kHashSize, ints.data() + kHashSize * 2);
-        keccak(ints.data(), kHashSize * 2, m_rootHash, kHashSize);
-    }
+			if (memcmp(h + i * kHashSize, h2, kHashSize) == 0) {
+                m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), h + kHashSize * (i + 1), h + kHashSize * (i + 2));
+                memcpy(h2, ints.data() + j * kHashSize, kHashSize);
+			}
+			else if (memcmp(h + (i + 1) * kHashSize, h2, kHashSize) == 0) {
+                m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), h + kHashSize * i, h + kHashSize * (i + 1));
+                memcpy(h2, ints.data() + j * kHashSize, kHashSize);
+				m_minerTxMerkleTreePath = 1;
+			}
+		}
+
+		while (cnt >= 2) {
+			cnt >>= 1;
+			for (size_t i = 0, j = 0; j < cnt; i += 2, ++j) {
+                uint8_t tmp[kHashSize];
+				keccak(ints.data() + i * kHashSize, kHashSize * 2, tmp, kHashSize);
+
+                if (memcmp(ints.data() + i * kHashSize, h2, kHashSize) == 0) {
+                    m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), ints.data() + kHashSize * (i + 1), ints.data() + kHashSize * (i + 2));
+					memcpy(h2, tmp, kHashSize);
+					m_minerTxMerkleTreePath <<= 1;
+				}
+                else if (memcmp(ints.data() + (i + 1) * kHashSize, h2, kHashSize) == 0) {
+                    m_minerTxMerkleTreeBranch.insert(m_minerTxMerkleTreeBranch.end(), ints.data() + kHashSize * i, ints.data() + kHashSize * (i + 1));
+					memcpy(h2, tmp, kHashSize);
+					m_minerTxMerkleTreePath = (m_minerTxMerkleTreePath << 1) | 1;
+				}
+
+				memcpy(ints.data() + j * kHashSize, tmp, kHashSize);
+			}
+		}
+
+		memcpy(m_rootHash, ints.data(), kHashSize);
+	}
 }
 
 
@@ -375,16 +404,42 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     ar(m_numHashes);
 
     if (hashes) {
-        m_hashes.resize((m_numHashes + 1) * kHashSize);
-        calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), m_hashes.data());
+        // FCMP++ layout:
+        //
+        // index 0  fcmp_pp_n_tree_layers + 31 zero bytes
+        // index 1  fcmp_pp_tree_root
+        // index 2  coinbase transaction hash
+        // index 3+ other transaction hashes
+        //
+        // pre-FCMP++ layout:
+        //
+        // index 0  coinbase transaction hash
+        // index 1+ other transaction hashes
+        //
+        const uint32_t coinbase_tx_index = is_fcmp_pp ? 2 : 0;
+
+        m_hashes.clear();
+        m_hashes.resize((coinbase_tx_index + m_numHashes + 1) * kHashSize);
+
+        uint8_t* data = m_hashes.data() + coinbase_tx_index * kHashSize;
+
+        calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), data);
 
         for (uint64_t i = 1; i <= m_numHashes; ++i) {
             Span h;
             ar(h, kHashSize);
-            memcpy(m_hashes.data() + i * kHashSize, h.data(), kHashSize);
+            memcpy(data + i * kHashSize, h.data(), kHashSize);
         }
 
-        calculateMerkleTreeHash();
+        if (is_fcmp_pp) {
+            ar(m_FCMPTreeLayers);
+            ar(m_FCMPTreeRoot);
+
+            m_hashes[0] = m_FCMPTreeLayers;
+            memcpy(m_hashes.data() + kHashSize, m_FCMPTreeRoot, kHashSize);
+        }
+
+        calculateMerkleTreeHash(coinbase_tx_index);
     }
 
     return true;

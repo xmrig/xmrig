@@ -32,9 +32,9 @@ struct riscv_cpu_desc
     String isa;
     String uarch;
     bool has_vector = false;
-    bool has_crypto = false;
+    bool has_aes = false;
     
-    inline bool isReady() const { return !model.isNull(); }
+    inline bool isReady() const { return !isa.isNull(); }
 };
 
 static bool lookup_riscv(char *line, const char *pattern, String &value)
@@ -81,22 +81,32 @@ static bool read_riscv_cpuinfo(riscv_cpu_desc *desc)
         lookup_riscv(buf, "model name", desc->model);
         
         if (lookup_riscv(buf, "isa", desc->isa)) {
-            // Check for vector extensions
-            if (strstr(buf, "zve") || strstr(buf, "v_")) {
-                desc->has_vector = true;
-            }
-            // Check for crypto extensions (AES, SHA, etc.)
-            // zkn* = NIST crypto suite, zks* = SM crypto suite
-            // Note: zba/zbb/zbc/zbs are bit-manipulation, NOT crypto
-            if (strstr(buf, "zknd") || strstr(buf, "zkne") || strstr(buf, "zknh") ||
-                strstr(buf, "zksed") || strstr(buf, "zksh")) {
-                desc->has_crypto = true;
+            desc->isa.toLower();
+
+            for (const String& s : desc->isa.split('_')) {
+                const char* p = s.data();
+                const size_t n = s.size();
+
+                if ((s.size() > 4) && (memcmp(p, "rv64", 4) == 0)) {
+                    for (size_t i = 4; i < n; ++i) {
+                        if (p[i] == 'v') {
+                            desc->has_vector = true;
+                            break;
+                        }
+                    }
+                }
+                else if (s == "zve64d") {
+                    desc->has_vector = true;
+                }
+                else if ((s == "zvkn") || (s == "zvknc") || (s == "zvkned") || (s == "zvkng")){
+                    desc->has_aes = true;
+                }
             }
         }
         
         lookup_riscv(buf, "uarch", desc->uarch);
 
-        if (desc->isReady() && !desc->isa.isNull()) {
+        if (desc->isReady()) {
             break;
         }
     }
@@ -128,11 +138,11 @@ bool has_riscv_vector()
     return false;
 }
 
-bool has_riscv_crypto()
+bool has_riscv_aes()
 {
     riscv_cpu_desc desc;
     if (read_riscv_cpuinfo(&desc)) {
-        return desc.has_crypto;
+        return desc.has_aes;
     }
     return false;
 }

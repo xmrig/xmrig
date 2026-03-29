@@ -1,12 +1,10 @@
-/* RISC-V - test if the vector extension and prefetch instruction are present */
+/* RISC-V - test if the vector extension is present */
 
 .text
-.option arch, rv64gcv_zicbop
+.option arch, rv64gcv
 .global main
 
 main:
-	lla x5, main
-	prefetch.r (x5)
 	li x5, 4
 	vsetvli x6, x5, e64, m1, ta, ma
 	vxor.vv v0, v0, v0
