@@ -126,7 +126,8 @@ R"===(
     "verbose": 0,
     "watch": true,
     "pause-on-battery": false,
-    "pause-on-active": false
+    "pause-on-active": false,
+    "start-paused": false
 }
 )===";
 #endif

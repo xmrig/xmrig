@@ -20,6 +20,8 @@
 #include "backend/cpu/Cpu.h"
 #include "core/config/Config.h"
 #include "core/Miner.h"
+#include "base/io/log/Log.h"
+#include "base/io/log/Tags.h"
 #include "crypto/common/VirtualMemory.h"
 #include "net/Network.h"
 
@@ -67,6 +69,11 @@ void xmrig::Controller::start()
     Base::start();
 
     m_miner = std::make_shared<Miner>(this);
+
+    if (config()->isStartPaused()) {
+        LOG_INFO("%s start-paused enabled, miner will wait for resume", Tags::miner());
+        m_miner->setEnabled(false);
+    }
 
     network()->connect();
 }
