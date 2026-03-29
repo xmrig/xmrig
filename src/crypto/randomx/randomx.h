@@ -131,6 +131,10 @@ struct RandomX_ConfigurationBase
 	uint32_t Tweak_V2_PREFETCH : 1;
 	uint32_t Tweak_V2_COMMITMENT : 1;
 
+	uint8_t codeReadDatasetTweaked[64];
+	uint32_t codeReadDatasetTweakedSize;
+	uint8_t codeReadDataseV2Tweaked[72];
+	uint32_t codeReadDatasetV2TweakedSize;
 	uint8_t codeSshPrefetchTweaked[20];
 	uint8_t codePrefetchScratchpadTweaked[28];
 	uint32_t codePrefetchScratchpadTweakedSize;
