@@ -133,7 +133,7 @@ struct RandomX_ConfigurationBase
 
 	uint8_t codeReadDatasetTweaked[64];
 	uint32_t codeReadDatasetTweakedSize;
-	uint8_t codeReadDataseV2Tweaked[72];
+	uint8_t codeReadDatasetV2Tweaked[72];
 	uint32_t codeReadDatasetV2TweakedSize;
 	uint8_t codeSshPrefetchTweaked[20];
 	uint8_t codePrefetchScratchpadTweaked[28];
