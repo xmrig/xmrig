@@ -143,9 +143,12 @@ namespace randomx {
 		rl[5] = rl[0] ^ superscalarAdd5;
 		rl[6] = rl[0] ^ superscalarAdd6;
 		rl[7] = rl[0] ^ superscalarAdd7;
+
+		// Prefetch first mix block
+		mixBlock = getMixBlock(registerValue, cache->memory);
+		rx_prefetch_nta(mixBlock);
+
 		for (unsigned i = 0; i < RandomX_CurrentConfig.CacheAccesses; ++i) {
-			mixBlock = getMixBlock(registerValue, cache->memory);
-			rx_prefetch_nta(mixBlock);
 			SuperscalarProgram& prog = cache->programs[i];
 
 			executeSuperscalar(rl, prog);
@@ -154,6 +157,12 @@ namespace randomx {
 				rl[q] ^= load64_native(mixBlock + 8 * q);
 
 			registerValue = rl[prog.getAddressRegister()];
+
+			// Prefetch next mix block before continuing (if not last iteration)
+			if (i + 1 < RandomX_CurrentConfig.CacheAccesses) {
+				mixBlock = getMixBlock(registerValue, cache->memory);
+				rx_prefetch_nta(mixBlock);
+			}
 		}
 
 		memcpy(out, &rl, CacheLineSize);
