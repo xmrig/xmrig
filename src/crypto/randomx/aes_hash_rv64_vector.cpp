@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "crypto/randomx/soft_aes.h"
 #include "crypto/randomx/randomx.h"
+#include "crypto/randomx/intrin_portable.h"
 
 static FORCE_INLINE vuint32m1_t softaes_vector_double(
 	vuint32m1_t in,
@@ -229,6 +230,10 @@ void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash,
 	const vuint8m1_t& lutdec_index2 = lutenc_index2;
 	const vuint8m1_t lutdec_index3 = __riscv_vle8_v_u8m1(lutDecIndex[3], 32);
 
+	constexpr int PREFETCH_DISTANCE = 7168;
+	const char* prefetchPtr = ((const char*)scratchpad) + PREFETCH_DISTANCE;
+	scratchpadEnd -= PREFETCH_DISTANCE;
+
 	//process 64 bytes at a time in 4 lanes
 	while (scratchpadPtr < scratchpadEnd) {
 #define HASH_STATE(k) \
@@ -241,6 +246,22 @@ void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash,
 		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, fill_state02, 8); \
 		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, fill_state13, 8);
 
+		HASH_STATE(0);
+		HASH_STATE(1);
+
+		FILL_STATE(0);
+		FILL_STATE(1);
+
+		rx_prefetch_t0(prefetchPtr);
+		rx_prefetch_t0(prefetchPtr + 64);
+
+		scratchpadPtr += 128;
+		prefetchPtr += 128;
+	}
+
+	// Process remaining data without prefetching
+	scratchpadEnd += PREFETCH_DISTANCE;
+	while (scratchpadPtr < scratchpadEnd) {
 		HASH_STATE(0);
 		HASH_STATE(1);
 
