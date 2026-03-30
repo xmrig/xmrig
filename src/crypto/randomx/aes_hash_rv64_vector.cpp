@@ -83,7 +83,7 @@ void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash) {
 	const uint8_t* inptr = (const uint8_t*)input;
 	const uint8_t* inputEnd = inptr + inputSize;
 
-	//intial state
+	//initial state
 	vuint32m1_t state02 = __riscv_vle32_v_u32m1(AES_HASH_1R_STATE02, 8);
 	vuint32m1_t state13 = __riscv_vle32_v_u32m1(AES_HASH_1R_STATE13, 8);
 
