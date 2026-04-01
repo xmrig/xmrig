@@ -6,3 +6,18 @@ scripts/deps
 /src/backend/opencl/cl/cn/cryptonight_gen.cl
 .vscode
 /.qtcreator
+
+
+
+
+
+# Local Claude code prompts
+CLAUDE.md
+*_claude_code_prompt.md
+*_claude_code.md
+**/.claude/settings.local.json
+
+# Editor/AI tool directories
+.claude/
+.cursor/
+.agents/
