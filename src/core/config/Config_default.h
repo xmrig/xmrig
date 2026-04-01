@@ -92,7 +92,7 @@ R"===(
         {
             "algo": null,
             "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
+            "url": "us2.salvium.herominers.com:1228",
             "user": "YOUR_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,

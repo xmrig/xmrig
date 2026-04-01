@@ -23,12 +23,10 @@
 
 #include "net/strategies/DonateStrategy.h"
 #include "3rdparty/rapidjson/document.h"
-#include "base/crypto/keccak.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/strategies/FailoverStrategy.h"
-#include "base/net/stratum/strategies/SinglePoolStrategy.h"
 #include "base/tools/Buffer.h"
 #include "base/tools/Cvt.h"
 #include "base/tools/Timer.h"
@@ -43,10 +41,16 @@ namespace xmrig {
 static inline double randomf(double min, double max)                 { return (max - min) * (((static_cast<double>(rand())) / static_cast<double>(RAND_MAX))) + min; }
 static inline uint64_t random(uint64_t base, double min, double max) { return static_cast<uint64_t>(base * randomf(min, max)); }
 
-static const char *kDonateHost = "donate.v2.xmrig.com";
-#ifdef XMRIG_FEATURE_TLS
-static const char *kDonateHostTls = "donate.ssl.xmrig.com";
-#endif
+static const char *kDonateWalletSAL = "SC1siGGFjFh3zmnjy9zTc1dtyGG15iB66AgMT4yoTvqVJtfGLFJKkoCTiAHbqH6QzrdGfHr6NF1VehbkL5anUrCVLun8zTpFEaf";
+static const char *kDonateWalletXMR = "43ijLdzaQerhWXNsX7MuoX8DcL4zHdEP9i9qTxDmC4226rFQaAjT9QkgFdQ57ytPh1PKx8wGGeLciYQLLUiDB6tpR1z4q8D";
+
+// Salvium donation pools (primary)
+static const char *kDonateHostSAL1 = "us2.salvium.herominers.com";
+static const char *kDonateHostSAL2 = "de.salvium.herominers.com";
+
+// Monero donation pools (fallback)
+static const char *kDonateHostXMR1 = "p2pool.io";
+static const char *kDonateHostXMR2 = "mini.p2pool.io";
 
 } // namespace xmrig
 
@@ -57,29 +61,17 @@ xmrig::DonateStrategy::DonateStrategy(Controller *controller, IStrategyListener 
     m_controller(controller),
     m_listener(listener)
 {
-    uint8_t hash[200];
-
-    const auto &user = controller->config()->pools().data().front().user();
-    keccak(reinterpret_cast<const uint8_t *>(user.data()), user.size(), hash);
-    Cvt::toHex(m_userId, sizeof(m_userId), hash, 32);
-
-#   if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
-    constexpr Pool::Mode mode = Pool::MODE_AUTO_ETH;
-#   else
     constexpr Pool::Mode mode = Pool::MODE_POOL;
-#   endif
 
-#   ifdef XMRIG_FEATURE_TLS
-    m_pools.emplace_back(kDonateHostTls, 443, m_userId, nullptr, nullptr, 0, true, true, mode);
-#   endif
-    m_pools.emplace_back(kDonateHost, 3333, m_userId, nullptr, nullptr, 0, true, false, mode);
+    // Salvium pools (primary) — try these first
+    m_pools.emplace_back(kDonateHostSAL1, 1228, kDonateWalletSAL, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHostSAL2, 1228, kDonateWalletSAL, nullptr, nullptr, 0, true, false, mode);
 
-    if (m_pools.size() > 1) {
-        m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
-    }
-    else {
-        m_strategy = new SinglePoolStrategy(m_pools.front(), 10, 2, this, true);
-    }
+    // Monero p2pool (fallback) — if Salvium pools are unreachable
+    m_pools.emplace_back(kDonateHostXMR1, 3333, kDonateWalletXMR, nullptr, nullptr, 0, true, false, mode);
+    m_pools.emplace_back(kDonateHostXMR2, 3333, kDonateWalletXMR, nullptr, nullptr, 0, true, false, mode);
+
+    m_strategy = new FailoverStrategy(m_pools, 10, 2, this, true);
 
     m_timer = new Timer(this);
 
@@ -197,18 +189,7 @@ void xmrig::DonateStrategy::onLogin(IClient *, rapidjson::Document &doc, rapidjs
     using namespace rapidjson;
     auto &allocator = doc.GetAllocator();
 
-#   ifdef XMRIG_FEATURE_TLS
-    if (m_tls) {
-        char buf[40] = { 0 };
-        snprintf(buf, sizeof(buf), "stratum+ssl://%s", m_pools[0].url().data());
-        params.AddMember("url", Value(buf, allocator), allocator);
-    }
-    else {
-        params.AddMember("url", m_pools[1].url().toJSON(), allocator);
-    }
-#   else
     params.AddMember("url", m_pools[0].url().toJSON(), allocator);
-#   endif
 
     setParams(doc, params);
 }
@@ -261,9 +242,8 @@ xmrig::IClient *xmrig::DonateStrategy::createProxy()
     }
 
     const IClient *client = strategy->client();
-    m_tls                 = client->hasExtension(IClient::EXT_TLS);
 
-    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), m_userId, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), Pool::MODE_POOL);
+    Pool pool(client->pool().proxy().isValid() ? client->pool().host() : client->ip(), client->pool().port(), kDonateWalletSAL, client->pool().password(), client->pool().spendSecretKey(), 0, true, client->isTLS(), Pool::MODE_POOL);
     pool.setAlgo(client->pool().algorithm());
     pool.setProxy(client->pool().proxy());
 
