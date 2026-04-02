@@ -4,6 +4,52 @@ Note about this project.  This is specifically for people that are trying to min
 
 If Salvium is not a coin you are interested in, I suggest you head to the official [XMRIG repo](https://github.com/xmrig/xmrighttps:/).  It works great for everything else. It also works for SAL with a few caveates.
 
+## Salvium Coin Configuration
+
+Set `"coin": "SAL"` in your pool configuration to enable Salvium support:
+
+```json
+{
+    "pools": [
+        {
+            "coin": "SAL",
+            "url": "your-pool:port",
+            "user": "your-wallet-address",
+            "pass": "x"
+        }
+    ]
+}
+```
+
+### What `"coin": "SAL"` does
+
+The coin setting controls how the miner identifies and interacts with the Salvium network. Its behavior differs depending on the mining mode.
+
+#### Pool / Stratum Mode
+
+In pool mode, the coin setting serves one purpose: **algorithm selection**. When the pool sends a job without an explicit `algo` field, the miner uses the coin identity to determine that Salvium uses `rx/0` (RandomX). This is the only effect in pool mode — the pool handles block template parsing and validation on its side.
+
+#### Daemon / Solo Mode
+
+In daemon mode (`"daemon": true`), the coin identity activates the full Salvium protocol support:
+
+- **Block template parsing** — Salvium blocks contain a `protocol_tx` between the miner transaction and the regular transaction hashes. The parser uses the coin identity to detect and correctly parse this extra transaction, which does not exist in Monero or other CryptoNote coins.
+- **Output type handling** — Salvium supports output types `txout_to_key` (2), `txout_to_tagged_key` (3), and `txout_to_carrot_v1` (4), and allows multiple outputs per miner transaction. The parser enables these when the coin is SAL.
+- **Transaction type and burn fields** — Salvium miner transactions include a `tx_type` field and an `amount_burnt` field after the extra data. These are parsed only for Salvium.
+- **Merkle root computation** — The block hash tree includes both the miner transaction and the protocol transaction as base entries. The coin identity controls whether the root hash is computed over 1 base transaction (standard) or 2 (Salvium with protocol_tx).
+- **Hardfork-aware protocol versioning** — The parser validates the protocol transaction version against the block's major version, supporting legacy (HF 2+), Carrot (HF 10+), and Tokens (HF 11+) eras.
+- **Wallet address decoding** — Salvium legacy (`SaLv*`) and Carrot (`SC1*`) address prefixes are recognized for mainnet, testnet, and stagenet, along with their corresponding RPC (19081/29081/39081) and ZMQ (19082/29082/39082) ports.
+
+#### Coin Metadata
+
+| Property | Value |
+|---|---|
+| Code | `SAL` |
+| Name | `Salvium` |
+| Algorithm | `rx/0` (RandomX) |
+| Block target | 120 seconds |
+| Coin units | 10^8 (8 decimal places) |
+
 For More information on Salvium:
 - Salvium: [https://github.com/salvium/salvium](https://github.com/salvium/salvium "https://github.com/salvium/salvium")
 - P2Pool Salvium fork used for the miner build: [https://github.com/mxhess/p2pool-salvium](https://github.com/mxhess/p2pool-salvium "https://github.com/mxhess/p2pool-salvium")
