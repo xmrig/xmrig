@@ -41,6 +41,7 @@ public:
         ZEPHYR,
         TOWNFORGE,
         YADA,
+        SALVIUM,
         MAX
     };
 

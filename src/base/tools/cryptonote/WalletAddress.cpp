@@ -261,6 +261,32 @@ const xmrig::WalletAddress::TagInfo &xmrig::WalletAddress::tagInfo(uint64_t tag)
         { 0x424220,     { Coin::TOWNFORGE,     STAGENET,   PUBLIC,         38881,  38882 } },
         { 0x424221,     { Coin::TOWNFORGE,     STAGENET,   SUBADDRESS,     38881,  38882 } },
 
+        // Salvium legacy addresses
+        { 0x3ef318,     { Coin::SALVIUM,      MAINNET,    PUBLIC,         19081,  19082 } },
+        { 0x55ef318,    { Coin::SALVIUM,      MAINNET,    INTEGRATED,     19081,  19082 } },
+        { 0xf5ef318,    { Coin::SALVIUM,      MAINNET,    SUBADDRESS,     19081,  19082 } },
+
+        { 0x15beb318,   { Coin::SALVIUM,      TESTNET,    PUBLIC,         29081,  29082 } },
+        { 0xd055eb318,  { Coin::SALVIUM,      TESTNET,    INTEGRATED,     29081,  29082 } },
+        { 0xa59eb318,   { Coin::SALVIUM,      TESTNET,    SUBADDRESS,     29081,  29082 } },
+
+        { 0x149eb318,   { Coin::SALVIUM,      STAGENET,   PUBLIC,         39081,  39082 } },
+        { 0xf343eb318,  { Coin::SALVIUM,      STAGENET,   INTEGRATED,     39081,  39082 } },
+        { 0x2d47eb318,  { Coin::SALVIUM,      STAGENET,   SUBADDRESS,     39081,  39082 } },
+
+        // Salvium Carrot addresses
+        { 0x180c96,     { Coin::SALVIUM,      MAINNET,    PUBLIC,         19081,  19082 } },
+        { 0x2ccc96,     { Coin::SALVIUM,      MAINNET,    INTEGRATED,     19081,  19082 } },
+        { 0x314c96,     { Coin::SALVIUM,      MAINNET,    SUBADDRESS,     19081,  19082 } },
+
+        { 0x254c96,     { Coin::SALVIUM,      TESTNET,    PUBLIC,         29081,  29082 } },
+        { 0x1ac50c96,   { Coin::SALVIUM,      TESTNET,    INTEGRATED,     29081,  29082 } },
+        { 0x3c54c96,    { Coin::SALVIUM,      TESTNET,    SUBADDRESS,     29081,  29082 } },
+
+        { 0x24cc96,     { Coin::SALVIUM,      STAGENET,   PUBLIC,         39081,  39082 } },
+        { 0x1a848c96,   { Coin::SALVIUM,      STAGENET,   INTEGRATED,     39081,  39082 } },
+        { 0x384cc96,    { Coin::SALVIUM,      STAGENET,   SUBADDRESS,     39081,  39082 } },
+
     };
 
     const auto it = tags.find(tag);

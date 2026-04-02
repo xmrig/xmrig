@@ -55,6 +55,7 @@ static const CoinInfo coinInfo[] = {
     { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(   WHITE_BOLD_S " zephyr  ") },
     { Algorithm::RX_0,            "Townforge","Townforge",    30,     100000000,      MAGENTA_BG_BOLD(WHITE_BOLD_S " townforge ") },
     { Algorithm::RX_YADA,         "YDA",      "YadaCoin",     120,    100000000,      BLUE_BG_BOLD(   WHITE_BOLD_S " yada    ") },
+    { Algorithm::RX_0,            "SAL",      "Salvium",      120,    100000000,      BLUE_BG_BOLD(   WHITE_BOLD_S " salvium ") },
 };
 
 

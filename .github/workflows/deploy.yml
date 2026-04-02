@@ -1,0 +1,328 @@
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+name: Build and Release
+
+jobs:
+
+  # ─── Ubuntu 20.04 (focal) x64 ─────────────────────────────────────
+  build_focal:
+    name: focal-x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build inside Ubuntu 20.04 container
+        run: |
+          docker run --rm -v ${{ github.workspace }}:/workspace -w /workspace ubuntu:20.04 /bin/bash -c "
+            set -e
+            apt-get update
+            apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+            cmake .
+            make -j\$(nproc)
+            cp src/config.json .
+            tar cfz focal-x64.tar.gz xmrig config.json
+          "
+      - uses: actions/upload-artifact@v4
+        with:
+          name: focal-x64
+          path: focal-x64.tar.gz
+
+  # ─── Ubuntu 22.04 (jammy) x64 ─────────────────────────────────────
+  build_jammy:
+    name: jammy-x64
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+      - name: Build
+        run: |
+          cmake .
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz jammy-x64.tar.gz xmrig config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jammy-x64
+          path: jammy-x64.tar.gz
+
+  # ─── Ubuntu 24.04 (noble) x64 ─────────────────────────────────────
+  build_noble:
+    name: noble-x64
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+      - name: Build
+        run: |
+          cmake .
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz noble-x64.tar.gz xmrig config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: noble-x64
+          path: noble-x64.tar.gz
+
+  # ─── Linux static x64 (max compatibility) ─────────────────────────
+  build_linux_static:
+    name: linux-static-x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build static binary in Docker (Ubuntu 12.04)
+        run: |
+          mkdir -p /tmp/docker
+          cat >/tmp/docker/script.sh <<'SCRIPT'
+          set -ex
+          sed -i -r 's/(archive|security).ubuntu.com/old-releases.ubuntu.com/g' /etc/apt/sources.list
+          apt-get update
+          apt-get install -y python-software-properties
+          add-apt-repository -y ppa:ubuntu-toolchain-r/test
+          apt-get update
+          apt-get install -y git build-essential automake libtool autoconf wget libgmp-dev libmpfr-dev texinfo bison flex gcc-9 g++-9 curl
+          update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 60 --slave /usr/bin/g++ g++ /usr/bin/g++-9
+          curl -sSL https://cmake.org/files/v3.27/cmake-3.27.9-linux-x86_64.tar.gz | tar -xzC /opt
+          git clone --depth 1 git://sourceware.org/git/binutils-gdb.git /tmp/binutils-gdb
+          (cd /tmp/binutils-gdb && git checkout binutils-2_38 && CC=gcc ./configure && make -j$(nproc) && make install)
+          cd /workspace
+          (cd scripts && ./build_deps.sh && cd ..)
+          /opt/cmake-3.27.9-linux-x86_64/bin/cmake . -DXMRIG_DEPS=scripts/deps
+          make -j$(nproc)
+          cp src/config.json .
+          tar cfz linux-static-x64.tar.gz xmrig config.json
+          SCRIPT
+          chmod +x /tmp/docker/script.sh
+          docker run --rm -i -v /tmp/docker:/tmp/docker -v "${{ github.workspace }}":/workspace ubuntu:12.04 /bin/bash /tmp/docker/script.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-static-x64
+          path: linux-static-x64.tar.gz
+
+  # ─── FreeBSD static x64 ───────────────────────────────────────────
+  build_freebsd:
+    name: freebsd-static-x64
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build on FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: "14.0"
+          usesh: true
+          prepare: |
+            pkg install -y cmake git bash wget autoconf automake libtool pkgconf
+          run: |
+            cd scripts && bash build_deps.sh && cd ..
+            cmake . -DXMRIG_DEPS=scripts/deps
+            make -j$(sysctl -n hw.ncpu)
+            cp src/config.json .
+            tar cfz freebsd-static-x64.tar.gz xmrig config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: freebsd-static-x64
+          path: freebsd-static-x64.tar.gz
+
+  # ─── macOS ARM64 ──────────────────────────────────────────────────
+  build_macos_arm64:
+    name: macos-arm64
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install cmake libuv openssl hwloc
+      - name: Build hwloc (static)
+        run: |
+          curl -O https://download.open-mpi.org/release/hwloc/v2.12/hwloc-2.12.1.tar.gz
+          tar xzf hwloc-2.12.1.tar.gz
+          cd hwloc-2.12.1
+          ./configure --disable-shared --enable-static --disable-io --disable-libxml2
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+      - name: Build
+        run: |
+          cmake . -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) \
+                  -DHWLOC_INCLUDE_DIR=hwloc-2.12.1/include \
+                  -DHWLOC_LIBRARY=hwloc-2.12.1/hwloc/.libs/libhwloc.a
+          make -j$(sysctl -n hw.logicalcpu)
+          cp src/config.json .
+          tar cfz macos-arm64.tar.gz xmrig config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: macos-arm64.tar.gz
+
+  # ─── macOS x64 ────────────────────────────────────────────────────
+  build_macos_x64:
+    name: macos-x64
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install cmake libuv openssl hwloc
+      - name: Build hwloc (static)
+        run: |
+          curl -O https://download.open-mpi.org/release/hwloc/v2.12/hwloc-2.12.1.tar.gz
+          tar xzf hwloc-2.12.1.tar.gz
+          cd hwloc-2.12.1
+          ./configure --disable-shared --enable-static --disable-io --disable-libxml2
+          make -j$(sysctl -n hw.logicalcpu)
+          cd ..
+      - name: Build
+        run: |
+          cmake . -DOPENSSL_ROOT_DIR=$(brew --prefix openssl) \
+                  -DHWLOC_INCLUDE_DIR=hwloc-2.12.1/include \
+                  -DHWLOC_LIBRARY=hwloc-2.12.1/hwloc/.libs/libhwloc.a
+          make -j$(sysctl -n hw.logicalcpu)
+          cp src/config.json .
+          tar cfz macos-x64.tar.gz xmrig config.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-x64
+          path: macos-x64.tar.gz
+
+  # ─── Windows x64 (MSVC) ───────────────────────────────────────────
+  build_windows_x64:
+    name: windows-x64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout deps
+        run: git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64 -DXMRIG_DEPS=${{ github.workspace }}/xmrig-deps/msvc2022/x64
+          cmake --build . --config Release
+          cd ..
+      - name: Package
+        run: |
+          Copy-Item build\Release\xmrig.exe -Destination .
+          Copy-Item src\config.json -Destination .
+          Copy-Item bin\WinRing0\WinRing0x64.sys -Destination .
+          Compress-Archive -Path xmrig.exe, config.json, WinRing0x64.sys -DestinationPath windows-x64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: windows-x64.zip
+
+  # ─── Windows x64 (GCC / MinGW) ────────────────────────────────────
+  build_windows_gcc:
+    name: windows-gcc-x64
+    runs-on: windows-2022
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: UCRT64
+          update: true
+          install: >
+            base-devel
+            mingw-w64-ucrt-x86_64-toolchain
+            mingw-w64-ucrt-x86_64-7zip
+            cmake
+            git
+      - uses: actions/checkout@v4
+      - name: Checkout deps
+        run: git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build
+        run: |
+          cmake . -G "Unix Makefiles" -DXMRIG_DEPS=./xmrig-deps/gcc/x64
+          make -j2
+          cp src/config.json .
+          cp bin/WinRing0/WinRing0x64.sys .
+          7z a -tzip -mx windows-gcc-x64.zip xmrig.exe config.json WinRing0x64.sys
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-gcc-x64
+          path: windows-gcc-x64.zip
+
+  # ─── Windows ARM64 (MSVC) ─────────────────────────────────────────
+  build_windows_arm64:
+    name: windows-arm64
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Checkout deps
+        run: git clone https://github.com/xmrig/xmrig-deps.git
+      - name: Build
+        run: |
+          mkdir build
+          cd build
+          cmake .. -G "Visual Studio 17 2022" -A ARM64 -DXMRIG_DEPS=${{ github.workspace }}/xmrig-deps/msvc2022/arm64
+          cmake --build . --config Release
+          cd ..
+      - name: Package
+        run: |
+          Copy-Item build\Release\xmrig.exe -Destination .
+          Copy-Item src\config.json -Destination .
+          Compress-Archive -Path xmrig.exe, config.json -DestinationPath windows-arm64.zip
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-arm64
+          path: windows-arm64.zip
+
+  # ─── Release ───────────────────────────────────────────────────────
+  release:
+    name: Create Release
+    needs:
+      - build_focal
+      - build_jammy
+      - build_noble
+      - build_linux_static
+      - build_freebsd
+      - build_macos_arm64
+      - build_macos_x64
+      - build_windows_x64
+      - build_windows_gcc
+      - build_windows_arm64
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Rename artifacts to release names
+        run: |
+          VERSION=${GITHUB_REF_NAME}
+          mkdir -p release
+          cp artifacts/focal-x64/focal-x64.tar.gz                   release/xmrig-${VERSION}-focal-x64.tar.gz
+          cp artifacts/jammy-x64/jammy-x64.tar.gz                   release/xmrig-${VERSION}-jammy-x64.tar.gz
+          cp artifacts/noble-x64/noble-x64.tar.gz                   release/xmrig-${VERSION}-noble-x64.tar.gz
+          cp artifacts/linux-static-x64/linux-static-x64.tar.gz     release/xmrig-${VERSION}-linux-static-x64.tar.gz
+          cp artifacts/freebsd-static-x64/freebsd-static-x64.tar.gz release/xmrig-${VERSION}-freebsd-static-x64.tar.gz
+          cp artifacts/macos-arm64/macos-arm64.tar.gz                release/xmrig-${VERSION}-macos-arm64.tar.gz
+          cp artifacts/macos-x64/macos-x64.tar.gz                   release/xmrig-${VERSION}-macos-x64.tar.gz
+          cp artifacts/windows-x64/windows-x64.zip                  release/xmrig-${VERSION}-windows-x64.zip
+          cp artifacts/windows-gcc-x64/windows-gcc-x64.zip          release/xmrig-${VERSION}-windows-gcc-x64.zip
+          cp artifacts/windows-arm64/windows-arm64.zip               release/xmrig-${VERSION}-windows-arm64.zip
+
+      - name: Generate checksums
+        run: |
+          cd release
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            release/*
+          generate_release_notes: true
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
