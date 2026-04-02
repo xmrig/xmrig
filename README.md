@@ -51,10 +51,13 @@ In daemon mode (`"daemon": true`), the coin identity activates the full Salvium 
 | Coin units | 10^8 (8 decimal places) |
 
 For More information on Salvium:
-- Salvium: [https://github.com/salvium/salvium](https://github.com/salvium/salvium "https://github.com/salvium/salvium")
-- P2Pool Salvium fork used for the miner build: [https://github.com/mxhess/p2pool-salvium](https://github.com/mxhess/p2pool-salvium "https://github.com/mxhess/p2pool-salvium")
 - Salvium project: [https://salvium.io/](https://salvium.io/ "https://salvium.io/")
+- Salvium: [https://github.com/salvium/salvium](https://github.com/salvium/salvium "https://github.com/salvium/salvium")
+- P2Pool Salvium fork info: [https://whiskymine.io/p2pool-setup.html](https://whiskymine.io/p2pool-setup.html "https://whiskymine.io/p2pool-setup.html")
+- P2Pool Salvium fork repo: [https://gitlab.com/whiskyrelaxing-group/p2pool-salvium-releases](https://gitlab.com/whiskyrelaxing-group/p2pool-salvium-releases "https://gitlab.com/whiskyrelaxing-group/p2pool-salvium-releases")
 
+
+## Original Readme
 
 [![Github All Releases](https://img.shields.io/github/downloads/xmrig/xmrig/total.svg)](https://github.com/xmrig/xmrig/releases)
 [![GitHub release](https://img.shields.io/github/release/xmrig/xmrig/all.svg)](https://github.com/xmrig/xmrig/releases)
