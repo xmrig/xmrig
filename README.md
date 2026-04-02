@@ -1,8 +1,8 @@
 # XMRig w/ Salvium Support
 
-Note about this project.  This is specifically for people that are trying to mine Salvium.  I am not rigourously testing this against other coins.  I am only worried about XMR and SAL.
+Note about this project.  This is specifically for people that are trying to mine Salvium.  I am not rigourously testing this against other coins.  They *should* work.  I am only worried about XMR and SAL.
 
-If Salvium is not a coin you are interested in, I suggest you head to the official [XMRIG repo](https://github.com/xmrig/xmrighttps:/).  It works great for everything else. It also works for SAL with a few caveates.
+If Salvium is not a coin you are interested in or this bothers you, I suggest you head to the official [XMRIG repo](https://github.com/xmrig/xmrighttps:/).  It works great for everything else.
 
 ## Salvium Coin Configuration
 
