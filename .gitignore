@@ -16,6 +16,8 @@ CLAUDE.md
 *_claude_code_prompt.md
 *_claude_code.md
 **/.claude/settings.local.json
+claude_code.md
+claude_code_prompt.md
 
 # Editor/AI tool directories
 .claude/
