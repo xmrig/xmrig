@@ -120,6 +120,12 @@ RandomX_ConfigurationYada::RandomX_ConfigurationYada()
 	ArgonIterations = 4;
 }
 
+RandomX_ConfigurationScash::RandomX_ConfigurationScash()
+{
+	ArgonSalt = "RandomX-Scash\x01";
+	Tweak_V2_COMMITMENT = 1;
+}
+
 RandomX_ConfigurationBase::RandomX_ConfigurationBase()
 	: ArgonIterations(3)
 	, ArgonLanes(1)
@@ -388,6 +394,7 @@ RandomX_ConfigurationArqma RandomX_ArqmaConfig;
 RandomX_ConfigurationGraft RandomX_GraftConfig;
 RandomX_ConfigurationSafex RandomX_SafexConfig;
 RandomX_ConfigurationYada RandomX_YadaConfig;
+RandomX_ConfigurationScash RandomX_ScashConfig;
 
 alignas(64) RandomX_ConfigurationBase RandomX_CurrentConfig;
 
