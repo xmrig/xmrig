@@ -134,8 +134,22 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
             *bundle.job.nonce() = nonce;
 
             randomx_calculate_hash(vm, bundle.job.blob(), bundle.job.size(), hash);
+            if (algorithm == Algorithm::RX_V2) {
+                alignas(16) uint8_t rawHash[32]{ 0 };
+                memcpy(rawHash, hash, sizeof(rawHash));
+                randomx_calculate_commitment(bundle.job.blob(), bundle.job.size(), rawHash, hash);
 
-            checkHash(bundle, results, nonce, hash, errors);
+                if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+                    results.emplace_back(bundle.job, nonce, hash, nullptr, nullptr, rawHash);
+                }
+                else {
+                    LOG_ERR("%s " RED_S "GPU #%u COMPUTE ERROR", backend_tag(bundle.job.backend()), bundle.device_index);
+                    ++errors;
+                }
+            }
+            else {
+                checkHash(bundle, results, nonce, hash, errors);
+            }
         }
 
         RxVm::destroy(vm);
