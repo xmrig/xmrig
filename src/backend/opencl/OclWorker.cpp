@@ -93,7 +93,9 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         break;
 
     default:
+#       ifdef XMRIG_ALGO_CN
         m_runner = new OclCnRunner(id, data);
+#       endif
         break;
     }
 
