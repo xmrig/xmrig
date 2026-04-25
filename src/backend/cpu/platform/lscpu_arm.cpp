@@ -18,11 +18,11 @@
  */
 
 #include "base/tools/String.h"
-#include "3rdparty/fmt/core.h"
 
 
 #include <cstdio>
 #include <cctype>
+#include <fmt/core.h>
 
 
 namespace xmrig {

@@ -19,9 +19,10 @@
  */
 
 #include "hw/dmi/DmiReader.h"
-#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "hw/dmi/DmiTools.h"
+
+#include <fmt/core.h>
 
 
 namespace xmrig {
