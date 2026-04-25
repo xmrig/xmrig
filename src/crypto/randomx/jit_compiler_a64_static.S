@@ -109,7 +109,7 @@
 # v26 -> "a2"
 # v27 -> "a3"
 # v28 -> temporary
-# v29 -> E 'and' mask = 0x00ffffffffffffff'00ffffffffffffff
+# v29 -> E 'and' mask = 0x00ffffffffc00000'00ffffffffc00000
 # v30 -> E 'or' mask  = 0x3*00000000******'3*00000000******
 # v31 -> scale mask   = 0x80f0000000000000'80f0000000000000
 
@@ -151,7 +151,9 @@ DECL(randomx_program_aarch64):
 	ldp	q26, q27, [x0, 224]
 
 	# Load E 'and' mask
-	movi	v29.2d, #0x00FFFFFFFFFFFFFF
+	mov	x16, 0x00FFFFFFFFC00000
+	ins	v29.d[0], x16
+	ins	v29.d[1], x16
 
 	# Load E 'or' mask (stored in reg.f[0])
 	ldr	q30, [x0, 64]
@@ -239,14 +241,10 @@ DECL(randomx_program_aarch64_main_loop):
 	sxtl2	v23.2d, v23.4s
 	scvtf	v23.2d, v23.2d
 
-	and	v20.16b, v20.16b, v29.16b
-	and	v21.16b, v21.16b, v29.16b
-	and	v22.16b, v22.16b, v29.16b
-	and	v23.16b, v23.16b, v29.16b
-	orr	v20.16b, v20.16b, v30.16b
-	orr	v21.16b, v21.16b, v30.16b
-	orr	v22.16b, v22.16b, v30.16b
-	orr	v23.16b, v23.16b, v30.16b
+	bif	v20.16b, v30.16b, v29.16b
+	bif	v21.16b, v30.16b, v29.16b
+	bif	v22.16b, v30.16b, v29.16b
+	bif	v23.16b, v30.16b, v29.16b
 
 	# Execute VM instructions
 DECL(randomx_program_aarch64_vm_instructions):

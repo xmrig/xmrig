@@ -1059,11 +1059,8 @@ void JitCompilerA64::h_FDIV_M(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg_fp = 28;
 	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k);
 
-	// and tmp_reg_fp, tmp_reg_fp, and_mask_reg
-	emit32(0x4E201C00 | tmp_reg_fp | (tmp_reg_fp << 5) | (29 << 16), code, k);
-
-	// orr tmp_reg_fp, tmp_reg_fp, or_mask_reg
-	emit32(0x4EA01C00 | tmp_reg_fp | (tmp_reg_fp << 5) | (30 << 16), code, k);
+	// bif tmp_reg_fp, or_mask_reg, and_mask_reg
+	emit32(0x6EE01C00 | tmp_reg_fp | (30 << 5) | (29 << 16), code, k);
 
 	emit32(ARMV8A::FDIV | dst | (dst << 5) | (tmp_reg_fp << 16), code, k);
 
