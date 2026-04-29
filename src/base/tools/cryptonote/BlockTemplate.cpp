@@ -406,9 +406,9 @@ bool xmrig::BlockTemplate::parse(bool hashes)
     if (hashes) {
         // FCMP++ layout:
         //
-        // index 0  fcmp_pp_n_tree_layers + 31 zero bytes
-        // index 1  fcmp_pp_tree_root
-        // index 2  coinbase transaction hash
+        // index 0  coinbase transaction hash
+        // index 1  fcmp_pp_n_tree_layers + 31 zero bytes
+        // index 2  fcmp_pp_tree_root
         // index 3+ other transaction hashes
         //
         // pre-FCMP++ layout:
@@ -416,30 +416,28 @@ bool xmrig::BlockTemplate::parse(bool hashes)
         // index 0  coinbase transaction hash
         // index 1+ other transaction hashes
         //
-        const uint32_t coinbase_tx_index = is_fcmp_pp ? 2 : 0;
+        // Update: FCMP moved coinbase tx to index 0 to stay consistent with pre-fork layout
 
         m_hashes.clear();
-        m_hashes.resize((coinbase_tx_index + m_numHashes + 1) * kHashSize);
+        m_hashes.resize((m_numHashes + (is_fcmp_pp ? 3 : 1)) * kHashSize);
 
-        uint8_t* data = m_hashes.data() + coinbase_tx_index * kHashSize;
-
-        calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), data);
+        calculateMinerTxHash(blob(MINER_TX_PREFIX_OFFSET), blob(MINER_TX_PREFIX_END_OFFSET), m_hashes.data());
 
         for (uint64_t i = 1; i <= m_numHashes; ++i) {
             Span h;
             ar(h, kHashSize);
-            memcpy(data + i * kHashSize, h.data(), kHashSize);
+            memcpy(m_hashes.data() + (i + (is_fcmp_pp ? 2 : 0)) * kHashSize, h.data(), kHashSize);
         }
 
         if (is_fcmp_pp) {
             ar(m_FCMPTreeLayers);
             ar(m_FCMPTreeRoot);
 
-            m_hashes[0] = m_FCMPTreeLayers;
-            memcpy(m_hashes.data() + kHashSize, m_FCMPTreeRoot, kHashSize);
+            m_hashes[kHashSize] = m_FCMPTreeLayers;
+            memcpy(m_hashes.data() + kHashSize * 2, m_FCMPTreeRoot, kHashSize);
         }
 
-        calculateMerkleTreeHash(coinbase_tx_index);
+        calculateMerkleTreeHash(0);
     }
 
     return true;
