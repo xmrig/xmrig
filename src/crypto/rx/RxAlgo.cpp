@@ -50,6 +50,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_YADA:
         return &RandomX_YadaConfig;
 
+    case Algorithm::RX_C64:
+        return &RandomX_WowneroConfig;
+
     default:
         break;
     }
@@ -60,7 +63,7 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 
 uint32_t xmrig::RxAlgo::version(Algorithm::Id algorithm)
 {
-    return algorithm == Algorithm::RX_WOW ? 103 : 104;
+    return (algorithm == Algorithm::RX_WOW || algorithm == Algorithm::RX_C64) ? 103 : 104;
 }
 
 
