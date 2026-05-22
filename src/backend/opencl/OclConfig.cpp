@@ -215,6 +215,9 @@ void xmrig::OclConfig::generate()
     count += xmrig::generate<Algorithm::CN_FEMTO>(m_threads, devices);
     count += xmrig::generate<Algorithm::RANDOM_X>(m_threads, devices);
     count += xmrig::generate<Algorithm::KAWPOW>(m_threads, devices);
+#   ifdef XMRIG_ALGO_ANIMICA
+    count += xmrig::generate<Algorithm::ANIMICA>(m_threads, devices);
+#   endif
 
     m_shouldSave = count > 0;
 }

@@ -130,6 +130,17 @@ if (WITH_OPENCL)
              )
     endif()
 
+    if (WITH_ANIMICA)
+        list(APPEND HEADERS_BACKEND_OPENCL
+             src/backend/opencl/cl/animica/animica_cl.h
+             src/backend/opencl/runners/OclAnimicaRunner.h
+             )
+
+        list(APPEND SOURCES_BACKEND_OPENCL
+             src/backend/opencl/runners/OclAnimicaRunner.cpp
+             )
+    endif()
+
     if (WITH_STRICT_CACHE)
         add_definitions(/DXMRIG_STRICT_OPENCL_CACHE)
     else()

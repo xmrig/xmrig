@@ -38,6 +38,10 @@
 #   include "backend/cuda/runners/CudaKawPowRunner.h"
 #endif
 
+#ifdef XMRIG_ALGO_ANIMICA
+#   include "backend/cuda/runners/CudaAnimicaRunner.h"
+#endif
+
 
 #include <cassert>
 #include <thread>
@@ -76,6 +80,12 @@ xmrig::CudaWorker::CudaWorker(size_t id, const CudaLaunchData &data) :
         m_runner = new CudaKawPowRunner(id, data);
 #       endif
         break;
+
+#   ifdef XMRIG_ALGO_ANIMICA
+    case Algorithm::ANIMICA:
+        m_runner = new CudaAnimicaRunner(id, data);
+        break;
+#   endif
 
     default:
         m_runner = new CudaCnRunner(id, data);

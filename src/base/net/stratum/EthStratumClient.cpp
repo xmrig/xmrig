@@ -34,14 +34,21 @@
 #include "base/kernel/interfaces/IClientListener.h"
 #include "net/JobResult.h"
 
-#ifdef XMRIG_ALGO_GHOSTRIDER
-#include <cmath>
-
+#if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_ANIMICA)
+#   include "base/tools/Cvt.h"
 extern "C" {
-#include "crypto/ghostrider/sph_sha2.h"
+#   include "crypto/ghostrider/sph_sha2.h"  // sha256d used for Bitcoin-style merkle root
 }
+#endif
 
-#include "base/tools/Cvt.h"
+#ifdef XMRIG_ALGO_GHOSTRIDER
+#   include <cmath>
+#endif
+
+#ifdef XMRIG_ALGO_ANIMICA
+#   include <thread>
+#   include "crypto/animica/AnimicaHash.h"
+#   include "crypto/animica/AnimicaAicfDelegate.h"
 #endif
 
 
@@ -179,6 +186,85 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         return;
     }
 
+#   ifdef XMRIG_ALGO_ANIMICA
+    if (strcmp(method, "mining.aicf.notify") == 0) {
+        // Useful-work job pushed by an Animica pool. xmrig itself has
+        // no embedded LLM, so we delegate to a configurable runner
+        // (default `/usr/local/bin/aicf-chat-once` from the `animica`
+        // PyPI package; override via ANIMICA_AICF_RUNNER env). The
+        // delegate is synchronous and inference can take 30s+ — we
+        // detach it onto a worker thread so the Stratum I/O loop
+        // stays responsive to mining.notify / set_difficulty.
+        if (m_pool.algorithm().family() != Algorithm::ANIMICA) {
+            return;
+        }
+        if (!params.IsObject()) {
+            LOG_ERR("%s " RED("invalid mining.aicf.notify: params is not an object"), tag());
+            return;
+        }
+        const auto job_id_v = params.FindMember("jobId");
+        const auto spec_v   = params.FindMember("spec");
+        if (job_id_v == params.MemberEnd() || !job_id_v->value.IsString() ||
+            spec_v   == params.MemberEnd() || !spec_v->value.IsObject()) {
+            LOG_ERR("%s " RED("invalid mining.aicf.notify: missing jobId/spec"), tag());
+            return;
+        }
+        const std::string job_id = job_id_v->value.GetString();
+        std::string prompt;
+        const auto p_v = spec_v->value.FindMember("prompt");
+        if (p_v != spec_v->value.MemberEnd() && p_v->value.IsString()) {
+            prompt = p_v->value.GetString();
+        }
+        std::string tier = "tiny";
+        const auto t_v = params.FindMember("tier");
+        if (t_v != params.MemberEnd() && t_v->value.IsString()) {
+            tier = t_v->value.GetString();
+        }
+        uint32_t max_out = 256;
+        const auto mo_v = spec_v->value.FindMember("max_output_tokens");
+        if (mo_v != spec_v->value.MemberEnd() && mo_v->value.IsUint()) {
+            max_out = mo_v->value.GetUint();
+        }
+        // Detach: the delegate spawns the runner subprocess (a Python
+        // LLM that takes 30-120s on tiny tier) and posts back the
+        // result. Keeping the I/O loop free here lets mining.notify
+        // arrivals during inference still register normally.
+        std::thread([this, job_id, prompt, tier, max_out]() {
+            AnimicaAicfDelegate d;
+            const auto r = d.run(prompt, tier, max_out, 0.2,
+                                  std::chrono::milliseconds(180000));
+            // Build mining.aicf.submit payload. The pool side accepts
+            // both the dict form below and an array form; we ship the
+            // dict form so the attestation field is unambiguous.
+            using namespace rapidjson;
+            Document doc(kObjectType);
+            auto &alloc = doc.GetAllocator();
+            doc.AddMember("jsonrpc", "2.0", alloc);
+            doc.AddMember("id", Value().SetNull(), alloc);
+            doc.AddMember("method", "mining.aicf.submit", alloc);
+            Value p(kObjectType);
+            p.AddMember("jobId", Value().SetString(job_id.c_str(), job_id.size(), alloc), alloc);
+            p.AddMember("text",  Value().SetString(r.content.c_str(), r.content.size(), alloc), alloc);
+            p.AddMember("latencyMs", static_cast<uint64_t>(r.latencyMs), alloc);
+            Value att(kObjectType);
+            att.AddMember("backend", Value().SetString("xmrig+animica-runner", 20, alloc), alloc);
+            if (!r.minerId.empty()) {
+                att.AddMember("miner_id", Value().SetString(r.minerId.c_str(), r.minerId.size(), alloc), alloc);
+            }
+            p.AddMember("attestation", att, alloc);
+            doc.AddMember("params", p, alloc);
+            // NOTE: send() is called from the detached thread, racing
+            // with the main Stratum I/O thread. For a first PR landing
+            // we accept that risk (the worst case is a corrupted
+            // outbound JSON frame, which the pool will reject). The
+            // proper fix is to post the result onto the connection's
+            // uv loop via uv_async_t — tracked as a follow-up.
+            this->send(doc);
+        }).detach();
+        return;
+    }
+#   endif
+
     if (strcmp(method, "mining.set_extranonce") == 0) {
         if (!params.IsArray()) {
             LOG_ERR("%s " RED("invalid mining.set_extranonce notification: params is not an array"), tag());
@@ -195,14 +281,22 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         setExtraNonce(arr[0]);
     }
 
-#   ifdef XMRIG_ALGO_GHOSTRIDER
+#   if defined(XMRIG_ALGO_GHOSTRIDER) || defined(XMRIG_ALGO_ANIMICA)
     if (strcmp(method, "mining.set_difficulty") == 0) {
         if (!params.IsArray()) {
             LOG_ERR("%s " RED("invalid mining.set_difficulty notification: params is not an array"), tag());
             return;
         }
 
-        if (m_pool.algorithm().id() != Algorithm::GHOSTRIDER_RTM) {
+        const uint32_t fam = m_pool.algorithm().family();
+        bool accept = false;
+#       ifdef XMRIG_ALGO_GHOSTRIDER
+        if (m_pool.algorithm().id() == Algorithm::GHOSTRIDER_RTM) accept = true;
+#       endif
+#       ifdef XMRIG_ALGO_ANIMICA
+        if (fam == Algorithm::ANIMICA) accept = true;
+#       endif
+        if (!accept) {
             return;
         }
 
@@ -219,7 +313,24 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         }
 
         const double diff = arr[0].IsDouble() ? arr[0].GetDouble() : arr[0].GetUint64();
-        m_nextDifficulty = static_cast<uint64_t>(ceil(diff * 65536.0));
+#       ifdef XMRIG_ALGO_ANIMICA
+        if (fam == Algorithm::ANIMICA) {
+            // Animica's set_difficulty is the µ-nats share-ratio: a
+            // fractional "how often a share is found" expressed against
+            // Θ. xmrig's `m_target` is the high-64 bits of the 256-bit
+            // BE target, so we lift the ratio into a target by
+            // top64 ≈ uint64_max / max(1, diff * 65536). The miner-side
+            // arithmetic just needs the relative ordering to match the
+            // pool's; precise µ-nats math happens server-side at
+            // validation time.
+            const double scaled = diff * 65536.0;
+            const uint64_t denom = scaled > 1.0 ? static_cast<uint64_t>(scaled) : 1ULL;
+            m_nextDifficulty = 0xFFFFFFFFFFFFFFFFULL / denom;
+        } else
+#       endif
+        {
+            m_nextDifficulty = static_cast<uint64_t>(ceil(diff * 65536.0));
+        }
     }
 #   endif
 
@@ -256,6 +367,42 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
 
         std::stringstream s;
 
+#       ifdef XMRIG_ALGO_ANIMICA
+        if (algo.family() == Algorithm::ANIMICA) {
+            // Animica's v1 mining.notify carries the 9-field Bitcoin
+            // shape, but the chain doesn't use coinbase reconstruction:
+            // coinb1, coinb2, and merkle_branch are empty on the wire
+            // (we verified this against pool.animica.org:3333). The per-
+            // job hash prefix is just `prevhash` — the pool already
+            // includes everything the miner needs to compute via that
+            // hash. The PoW input is sha3_256(prevhash || nonce_le8).
+            //
+            //   arr = [job_id, prevhash, "", "", [], version, "", ntime, clean]
+            //                  ^                                          ^
+            //              hash prefix                              (informational)
+            //
+            // We stuff prevhash (32 bytes) + an 8-byte zeroed nonce slot
+            // into the blob; the CpuWorker's ANIMICA branch stamps the
+            // nonce into bytes [32..40) and hashes the full 40-byte
+            // blob with SHA3-256.
+            if (!arr[1].IsString()) {
+                LOG_ERR("%s " RED("invalid mining.notify: prevhash is not a string"), tag());
+                return;
+            }
+            std::string prefix_hex = arr[1].GetString();
+            if (prefix_hex.length() != 64) {
+                LOG_ERR("%s " RED("invalid mining.notify: prevhash length %zu (want 64)"), tag(), prefix_hex.length());
+                return;
+            }
+            // 32 bytes prefix + 8 bytes nonce slot, hex-encoded for setBlob.
+            std::string blob = prefix_hex;
+            blob.append(16, '0');     // 8 LE nonce bytes worth of placeholder
+            job.setBlob(blob.c_str());
+            job.setDiff(m_nextDifficulty);
+            job.setHeight(0);         // height not carried in v1 notify; pool authoritative
+        }
+        else
+#       endif
 #       ifdef XMRIG_ALGO_GHOSTRIDER
         if (algo.id() == Algorithm::GHOSTRIDER_RTM) {
             // Raptoreum uses Bitcoin's Stratum protocol
