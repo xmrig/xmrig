@@ -8,6 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018      SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +31,7 @@
 #include <math.h>
 
 // VARIANT ALTERATIONS
-#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_PPC)
 #   define VARIANT1_INIT(part) \
     uint64_t tweak1_2_##part = 0; \
     if (BASE == Algorithm::CN_1) { \
@@ -60,7 +61,7 @@
     }
 
 
-#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_PPC)
 #   define VARIANT2_INIT(part) \
     __m128i division_result_xmm_##part = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[12])); \
     __m128i sqrt_result_xmm_##part     = _mm_cvtsi64_si128(static_cast<int64_t>(h##part[13]));

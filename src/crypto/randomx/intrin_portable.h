@@ -1,5 +1,6 @@
 /*
 Copyright (c) 2018-2019, tevador <tevador@gmail.com>
+Copyright (c) 2026, PalindromicBreadLoaf <palindromicbreadloaf@tuta.com>
 
 All rights reserved.
 
@@ -349,19 +350,19 @@ FORCE_INLINE int rx_vec_i128_w(rx_vec_i128 a) {
 	return _a.i32[3];
 }
 
-FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int _I3, int _I2, int _I1, int _I0) {
-	return (rx_vec_i128)((__m128li){_I0,_I1,_I2,_I3});
+FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int i3, int i2, int i1, int i0) {
+	return (rx_vec_i128)((__m128li){i0, i1, i2, i3});
 };
 
-FORCE_INLINE rx_vec_i128 rx_xor_vec_i128(rx_vec_i128 _A, rx_vec_i128 _B) {
-	return (rx_vec_i128)vec_xor(_A,_B);
+FORCE_INLINE rx_vec_i128 rx_xor_vec_i128(rx_vec_i128 a, rx_vec_i128 b) {
+	return (rx_vec_i128)vec_xor(a, b);
 }
 
-FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const *_P) {
+FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const *p) {
 #if defined(NATIVE_LITTLE_ENDIAN)
-	return *_P;
+	return *p;
 #else
-	uint32_t* ptr = (uint32_t*)_P;
+	uint32_t* ptr = (uint32_t*)p;
 	vec_u c;
 	c.u32[0] = load32(ptr + 0);
 	c.u32[1] = load32(ptr + 1);
@@ -371,13 +372,13 @@ FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const *_P) {
 #endif
 }
 
-FORCE_INLINE void rx_store_vec_i128(rx_vec_i128 *_P, rx_vec_i128 _B) {
+FORCE_INLINE void rx_store_vec_i128(rx_vec_i128 *p, rx_vec_i128 value) {
 #if defined(NATIVE_LITTLE_ENDIAN)
-	*_P = _B;
+	*p = value;
 #else
-	uint32_t* ptr = (uint32_t*)_P;
+	uint32_t* ptr = (uint32_t*)p;
 	vec_u B;
-	B.i = _B;
+	B.i = value;
 	store32(ptr + 0, B.u32[0]);
 	store32(ptr + 1, B.u32[1]);
 	store32(ptr + 2, B.u32[2]);
@@ -508,12 +509,12 @@ FORCE_INLINE int rx_vec_i128_w(rx_vec_i128 a) {
 	return vgetq_lane_s32(vreinterpretq_s32_u8(a), 3);
 }
 
-FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int _I3, int _I2, int _I1, int _I0) {
+FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int i3, int i2, int i1, int i0) {
 	int32_t data[4];
-	data[0] = _I0;
-	data[1] = _I1;
-	data[2] = _I2;
-	data[3] = _I3;
+	data[0] = i0;
+	data[1] = i1;
+	data[2] = i2;
+	data[3] = i3;
 	return vreinterpretq_u8_s32(vld1q_s32(data));
 };
 
@@ -710,29 +711,29 @@ FORCE_INLINE int rx_vec_i128_w(rx_vec_i128 a) {
 	return a.u32[3];
 }
 
-FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int _I3, int _I2, int _I1, int _I0) {
+FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int i3, int i2, int i1, int i0) {
 	rx_vec_i128 v;
-	v.u32[0] = _I0;
-	v.u32[1] = _I1;
-	v.u32[2] = _I2;
-	v.u32[3] = _I3;
+	v.u32[0] = i0;
+	v.u32[1] = i1;
+	v.u32[2] = i2;
+	v.u32[3] = i3;
 	return v;
 };
 
-FORCE_INLINE rx_vec_i128 rx_xor_vec_i128(rx_vec_i128 _A, rx_vec_i128 _B) {
+FORCE_INLINE rx_vec_i128 rx_xor_vec_i128(rx_vec_i128 a, rx_vec_i128 b) {
 	rx_vec_i128 c;
-	c.u32[0] = _A.u32[0] ^ _B.u32[0];
-	c.u32[1] = _A.u32[1] ^ _B.u32[1];
-	c.u32[2] = _A.u32[2] ^ _B.u32[2];
-	c.u32[3] = _A.u32[3] ^ _B.u32[3];
+	c.u32[0] = a.u32[0] ^ b.u32[0];
+	c.u32[1] = a.u32[1] ^ b.u32[1];
+	c.u32[2] = a.u32[2] ^ b.u32[2];
+	c.u32[3] = a.u32[3] ^ b.u32[3];
 	return c;
 }
 
-FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const*_P) {
+FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const* p) {
 #if defined(NATIVE_LITTLE_ENDIAN)
-	return *_P;
+	return *p;
 #else
-	uint32_t* ptr = (uint32_t*)_P;
+	uint32_t* ptr = (uint32_t*)p;
 	rx_vec_i128 c;
 	c.u32[0] = load32(ptr + 0);
 	c.u32[1] = load32(ptr + 1);
@@ -742,15 +743,15 @@ FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const*_P) {
 #endif
 }
 
-FORCE_INLINE void rx_store_vec_i128(rx_vec_i128 *_P, rx_vec_i128 _B) {
+FORCE_INLINE void rx_store_vec_i128(rx_vec_i128 *p, rx_vec_i128 value) {
 #if defined(NATIVE_LITTLE_ENDIAN)
-	*_P = _B;
+	*p = value;
 #else
-	uint32_t* ptr = (uint32_t*)_P;
-	store32(ptr + 0, _B.u32[0]);
-	store32(ptr + 1, _B.u32[1]);
-	store32(ptr + 2, _B.u32[2]);
-	store32(ptr + 3, _B.u32[3]);
+	uint32_t* ptr = (uint32_t*)p;
+	store32(ptr + 0, value.u32[0]);
+	store32(ptr + 1, value.u32[1]);
+	store32(ptr + 2, value.u32[2]);
+	store32(ptr + 3, value.u32[3]);
 #endif
 }
 

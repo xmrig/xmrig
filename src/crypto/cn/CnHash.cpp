@@ -2,6 +2,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2021 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -23,7 +24,7 @@
 #include "crypto/common/VirtualMemory.h"
 
 
-#if defined(XMRIG_ARM) || defined(XMRIG_RISCV)
+#if defined(XMRIG_ARM) || defined(XMRIG_RISCV) || defined(XMRIG_PPC)
 #   include "crypto/cn/CryptoNight_arm.h"
 #else
 #   include "crypto/cn/CryptoNight_x86.h"
