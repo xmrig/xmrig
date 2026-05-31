@@ -8,6 +8,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2018 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -30,7 +31,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#if defined _MSC_VER || defined XMRIG_ARM || defined XMRIG_RISCV
+#if defined _MSC_VER || defined XMRIG_ARM || defined XMRIG_RISCV || defined XMRIG_PPC
 #   define ABI_ATTRIBUTE
 #else
 #   define ABI_ATTRIBUTE __attribute__((ms_abi))

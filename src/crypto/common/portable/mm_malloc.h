@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2019 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2019 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -26,7 +27,7 @@
 #define XMRIG_MM_MALLOC_PORTABLE_H
 
 
-#if (defined(XMRIG_ARM) || defined(XMRIG_RISCV)) && !defined(__clang__)
+#if (defined(XMRIG_ARM) || defined(XMRIG_RISCV) || defined(XMRIG_PPC)) && !defined(__clang__)
 #include <stdlib.h>
 
 
