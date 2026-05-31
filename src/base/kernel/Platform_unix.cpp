@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by

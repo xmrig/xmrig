@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2026 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2026 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
