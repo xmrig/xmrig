@@ -66,7 +66,7 @@ protected:
     inline Vendor vendor() const override                       { return m_vendor; }
     inline uint32_t model() const override
     {
-#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_PPC)
         return m_model;
 #   else
         return 0;
