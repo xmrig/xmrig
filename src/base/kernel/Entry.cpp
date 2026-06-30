@@ -7,6 +7,7 @@
  * Copyright 2017-2018 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright 2018-2024 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2024 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2026      PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -64,7 +65,7 @@ static int showVersion()
 #   endif
 
     printf("\n features:"
-#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__)
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__) || defined(__powerpc64__) || defined(__ppc64__)
     " 64-bit"
 #   else
     " 32-bit"

@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -111,7 +112,11 @@ private:
     bool m_rdmsr          = true;
     int m_threads         = -1;
     int m_initDatasetAVX2 = -1;
+#   if defined(XMRIG_PPC) && defined(XMRIG_PPC_BITS) && (XMRIG_PPC_BITS == 32)
+    Mode m_mode           = LightMode;
+#   else
     Mode m_mode           = AutoMode;
+#   endif
 
     ScratchpadPrefetchMode m_scratchpadPrefetchMode = ScratchpadPrefetchT0;
 

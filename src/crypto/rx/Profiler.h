@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -49,6 +50,22 @@ static FORCE_INLINE uint64_t ReadTSC()
 {
 #ifdef _MSC_VER
     return __rdtsc();
+#elif defined(XMRIG_PPC)
+#   if defined(XMRIG_PPC_BITS) && (XMRIG_PPC_BITS == 64)
+    uint64_t tb;
+    __asm__ __volatile__("mftb %0" : "=r"(tb));
+    return tb;
+#   else
+    uint32_t hi, lo, tmp;
+    __asm__ __volatile__(
+        "1: mftbu %0\n\t"
+        "   mftb  %1\n\t"
+        "   mftbu %2\n\t"
+        "   cmpw  %0, %2\n\t"
+        "   bne   1b\n\t"
+        : "=r"(hi), "=r"(lo), "=r"(tmp));
+    return (((uint64_t)hi) << 32) | lo;
+#   endif
 #else
     uint32_t hi, lo;
     __asm__ __volatile__("rdtsc" : "=a"(lo), "=d"(hi));

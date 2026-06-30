@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -292,19 +293,26 @@ void xmrig::RxConfig::readMSR(const rapidjson::Value &value)
 
 xmrig::RxConfig::Mode xmrig::RxConfig::readMode(const rapidjson::Value &value)
 {
-    if (value.IsUint()) {
-        return static_cast<Mode>(std::min(value.GetUint(), ModeMax - 1));
-    }
+    Mode mode = AutoMode;
 
-    if (value.IsString()) {
-        auto mode = value.GetString();
+    if (value.IsUint()) {
+        mode = static_cast<Mode>(std::min(value.GetUint(), ModeMax - 1));
+    }
+    else if (value.IsString()) {
+        auto str = value.GetString();
 
         for (size_t i = 0; i < modeNames.size(); i++) {
-            if (strcasecmp(mode, modeNames[i]) == 0) {
-                return static_cast<Mode>(i);
+            if (strcasecmp(str, modeNames[i]) == 0) {
+                mode = static_cast<Mode>(i);
+                break;
             }
         }
     }
 
-    return AutoMode;
+#   if defined(XMRIG_PPC) && defined(XMRIG_PPC_BITS) && (XMRIG_PPC_BITS == 32)
+    // PPC32 cannot address the full 2 GiB RandomX dataset
+    mode = LightMode;
+#   endif
+
+    return mode;
 }

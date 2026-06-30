@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2023 XMRig       <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -92,7 +93,7 @@ public:
     ICpuInfo()          = default;
     virtual ~ICpuInfo() = default;
 
-#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__) || defined(__riscv) && (__riscv_xlen == 64)
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64)) || defined(__powerpc64__) || defined(__ppc64__)
     inline constexpr static bool is64bit() { return true; }
 #   else
     inline constexpr static bool is64bit() { return false; }
