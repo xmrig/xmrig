@@ -86,6 +86,30 @@ bool xmrig::Platform::hasKeepalive()
 #ifndef XMRIG_FEATURE_HWLOC
 bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
 {
+    if (cpu_id >= 64) {
+        // Use SetThreadGroupAffinity for CPUs in groups > 0
+        typedef BOOL (WINAPI *PFN_SETTHREADGROUPAFFINITY)(HANDLE, const GROUP_AFFINITY*, PGROUP_AFFINITY);
+        static PFN_SETTHREADGROUPAFFINITY pSetThreadGroupAffinity = nullptr;
+
+        if (!pSetThreadGroupAffinity) {
+            HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+            pSetThreadGroupAffinity = reinterpret_cast<PFN_SETTHREADGROUPAFFINITY>(GetProcAddress(kernel32, "SetThreadGroupAffinity"));
+        }
+
+        if (pSetThreadGroupAffinity) {
+            WORD group = static_cast<WORD>(cpu_id / 64);
+            ULONG_PTR mask = 1ULL << (cpu_id % 64);
+            GROUP_AFFINITY aff{};
+            aff.Group     = group;
+            aff.Mask      = mask;
+            aff.Reserved  = 0;
+            const bool result = pSetThreadGroupAffinity(GetCurrentThread(), &aff, nullptr) != 0;
+            Sleep(1);
+            return result;
+        }
+    }
+
+    // Fallback for CPU < 64 (or if SetThreadGroupAffinity unavailable)
     const bool result = (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0);
     Sleep(1);
     return result;
