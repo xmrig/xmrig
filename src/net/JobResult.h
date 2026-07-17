@@ -88,7 +88,17 @@ public:
     }
 
     inline const uint8_t *result() const     { return m_result; }
-    inline uint64_t actualDiff() const       { return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]); }
+    inline uint64_t actualDiff() const
+    {
+        // Tari uses achieved difficulty comparison (achieved >= target).
+        // A 64-bit truncation of hash bytes [0:7] has no meaningful relationship
+        // to the full 256-bit achieved difficulty, so return the reported diff
+        // (worker already validated achievedDifficulty(hash) >= job.diff() before calling submit()).
+        if (algorithm == Algorithm::RX_TARI) {
+            return diff;
+        }
+        return Job::toDiff(reinterpret_cast<const uint64_t*>(m_result)[3]);
+    }
     inline uint8_t *result()                 { return m_result; }
     inline const uint8_t *headerHash() const { return m_headerHash; }
     inline const uint8_t *mixHash() const    { return m_mixHash; }

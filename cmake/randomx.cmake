@@ -26,6 +26,7 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxQueue.h
         src/crypto/rx/RxSeed.h
         src/crypto/rx/RxVm.h
+        src/crypto/rx/RxTari.h
     )
 
     list(APPEND SOURCES_CRYPTO
@@ -54,6 +55,7 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxDataset.cpp
         src/crypto/rx/RxQueue.cpp
         src/crypto/rx/RxVm.cpp
+        src/crypto/rx/RxTari.cpp
     )
 
     if (WITH_ASM AND CMAKE_C_COMPILER_ID MATCHES MSVC)

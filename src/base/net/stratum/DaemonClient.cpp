@@ -136,11 +136,36 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
         return -1;
     }
 
+    // For daemon/solo mining the node enforces a single network target.
+    // The worker already validated value < job.target() before calling submit(),
+    // so this submission is valid regardless of what "difficulty" says.
+    // If actual_diff < diff it usually means the daemon's difficulty field
+    // rounded up from the real target, making our hash appear weaker than reported.
+    if (result.actualDiff() < result.diff) {
+        LOG_V3("%s " YELLOW("actual_diff=%" PRIu64 " < diff=%" PRId64 ", likely daemon difficulty rounding") " job_id=%.*s nonce=0x%llx algo=%s",
+                tag(),
+                static_cast<uint64_t>(result.actualDiff()),
+                static_cast<int64_t>(result.diff),
+                static_cast<int>(result.jobId.size()), result.jobId.data(),
+                static_cast<unsigned long long>(result.nonce),
+                result.algorithm.isValid() ? result.algorithm.name() : "unknown");
+    }
+
+#   ifdef XMRIG_PROXY_PROJECT
+
     char *data = m_blocktemplateStr.data();
 
     const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
 
-#   ifdef XMRIG_PROXY_PROJECT
+    // Tari-specific: nonce is at raw byte 35 (hex offset 70), 8 bytes, little-endian u64
+    if (m_coin == Coin::TARI) {
+        uint8_t nonce_bytes[8];
+        memcpy(nonce_bytes, &result.nonce, sizeof(result.nonce));
+
+        char hex_buf[17];
+        Cvt::toHex(hex_buf, 17, nonce_bytes, 8);
+        memcpy(data + 70, hex_buf, 16);
+    }
 
     memcpy(data + m_job.nonceOffset() * 2, result.nonce, 8);
 
@@ -161,10 +186,56 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 
 #   else
 
-    Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
+    // For Tari, construct a submit blob from the cached block template with nonce updated at byte offset 35.
+    String submitBlob;
+    if (m_coin == Coin::TARI) {
+        // Use the cached copy set once per job in parseJob() — avoids per-hash allocation.
+        std::string tmp(m_tariBlocktemplateStr.data(), m_tariBlocktemplateStr.size());
 
-    if (m_blocktemplate.hasMinerSignature()) {
-        Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
+        LOG_DEBUG("%s " GREEN("TARI SUBMIT") " blob_len=%zu nonce=0x%llx job_id=%.*s",
+                 tag(),
+                 tmp.size(),
+                 static_cast<unsigned long long>(result.nonce),
+                 static_cast<int>(result.jobId.size()), result.jobId.data());
+
+        // Print the nonce region of the original blob for debugging
+        LOG_DEBUG("%s " YELLOW("TARI BLOB NONCE REGION") " offset=70 hex=%.*s",
+                 tag(),
+                 16, tmp.data() + 70);
+
+        uint8_t nonce_bytes[8];
+        memcpy(nonce_bytes, &result.nonce, sizeof(result.nonce));
+
+        // Write in little-endian order: LSB first to match daemon wire format
+        const size_t hex_offset = 70;
+        char hex_buf[17];
+        Cvt::toHex(hex_buf, 17, nonce_bytes, 8);
+        memcpy(&tmp[hex_offset], hex_buf, 16);
+
+        // Include miner signature if present (same as non-Tari path)
+        if (m_blocktemplate.hasMinerSignature()) {
+            const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
+            Cvt::toHex(const_cast<char*>(tmp.data()) + static_cast<size_t>(sig_offset) * 2, 128, reinterpret_cast<const uint8_t*>(result.minerSignature()), 64);
+        }
+
+        // Print the nonce region after update
+        LOG_DEBUG("%s " GREEN("TARI BLOB AFTER") " offset=70 hex=%.*s",
+                 tag(),
+                 16, tmp.data() + 70);
+
+        submitBlob = String(tmp.data(), tmp.size());
+    } else {
+        char *data = m_blocktemplateStr.data();
+
+        const size_t sig_offset = m_job.nonceOffset() + m_job.nonceSize();
+
+        Cvt::toHex(data + m_job.nonceOffset() * 2, 8, reinterpret_cast<const uint8_t*>(&result.nonce), 4);
+
+        if (m_blocktemplate.hasMinerSignature()) {
+            Cvt::toHex(data + sig_offset * 2, 128, result.minerSignature(), 64);
+        }
+
+        submitBlob = m_blocktemplateStr;
     }
 
 #   endif
@@ -173,7 +244,7 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
     Document doc(kObjectType);
 
     Value params(kArrayType);
-    params.PushBack(m_blocktemplateStr.toJSON(), doc.GetAllocator());
+    params.PushBack(submitBlob.toJSON(), doc.GetAllocator());
 
     JsonRequest::create(doc, m_sequence, "submitblock", params);
 
@@ -182,6 +253,23 @@ int64_t xmrig::DaemonClient::submit(const JobResult &result)
 #   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
 #   endif
+
+    if (result.algorithm == Algorithm::RX_TARI) {
+        LOG_INFO("%s " GREEN("submitted") " [%s] job_id=%.*s nonce=%016llx diff=%" PRId64,
+                 tag(),
+                 result.algorithm.isValid() ? result.algorithm.name() : "unknown",
+                 static_cast<int>(result.jobId.size()), result.jobId.data(),
+                 static_cast<unsigned long long>(result.nonce),
+                 static_cast<int64_t>(result.diff));
+    } else {
+        LOG_INFO("%s " GREEN("submitted") " [%s] job_id=%.*s nonce=%016llx diff=%" PRId64 " actual_diff=%" PRIu64,
+                 tag(),
+                 result.algorithm.isValid() ? result.algorithm.name() : "unknown",
+                 static_cast<int>(result.jobId.size()), result.jobId.data(),
+                 static_cast<unsigned long long>(result.nonce),
+                 static_cast<int64_t>(result.diff),
+                 result.actualDiff());
+    }
 
     std::map<std::string, std::string> headers;
     headers.insert({"X-Hash-Difficulty", std::to_string(result.actualDiff())});
@@ -210,7 +298,7 @@ void xmrig::DaemonClient::connect()
         m_pool.setAlgo(m_coin.algorithm());
     }
 
-    if ((m_apiVersion == API_MONERO) && !m_walletAddress.isValid()) {
+    if ((m_apiVersion == API_MONERO) && !m_walletAddress.isValid() && m_coin != Coin::TARI) {
         return connectError("Invalid wallet address.");
     }
 
@@ -240,6 +328,11 @@ void xmrig::DaemonClient::setPool(const Pool &pool)
 
     if (!m_coin.isValid() && pool.algorithm() == Algorithm::RX_WOW) {
         m_coin = Coin::WOWNERO;
+    }
+
+    if (!m_coin.isValid() && pool.algorithm() == Algorithm::RX_TARI) {
+        m_coin = Coin::TARI;
+        LOG_V3("%s " CYAN("TARI COIN DETECTED") " coin=%d algo=rx/tari", tag(), static_cast<int>(m_coin));
     }
 }
 
@@ -320,7 +413,13 @@ void xmrig::DaemonClient::onTimer(const Timer *)
 
     if (Chrono::steadyMSecs() >= m_jobSteadyMs + m_pool.jobTimeout()) {
         m_prevHash = nullptr;
-        m_blocktemplateRequestHash = nullptr;
+
+        // Tari-specific: do not clear m_blocktemplateRequestHash on timeout.
+        // Clearing it caused the deduplication guard in onHttpData to always pass,
+        // triggering spurious getBlockTemplate() calls every ~15s.
+        if (m_coin != Coin::TARI) {
+            m_blocktemplateRequestHash = nullptr;
+        }
     }
 
     if (m_state == ConnectingState) {
@@ -452,16 +551,18 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
             return jobError("Failed to generate key derivation for miner signature.");
         }
 
-        if (!m_walletAddress.decode(m_pool.user())) {
+        if (m_coin != Coin::TARI && !m_walletAddress.decode(m_pool.user())) {
             return jobError("Invalid wallet address.");
         }
 
-        if (memcmp(m_walletAddress.spendKey(), public_spendkey, sizeof(public_spendkey)) != 0) {
-            return jobError("Wallet address and spend key don't match.");
-        }
+        if (m_coin != Coin::TARI) {
+            if (memcmp(m_walletAddress.spendKey(), public_spendkey, sizeof(public_spendkey)) != 0) {
+                return jobError("Wallet address and spend key don't match.");
+            }
 
-        if (memcmp(m_walletAddress.viewKey(), public_viewkey, sizeof(public_viewkey)) != 0) {
-            return jobError("Wallet address and view key don't match.");
+            if (memcmp(m_walletAddress.viewKey(), public_viewkey, sizeof(public_viewkey)) != 0) {
+                return jobError("Wallet address and view key don't match.");
+            }
         }
 
         uint8_t eph_secret_key[32];
@@ -482,13 +583,27 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 
     job.setSeedHash(Json::getString(params, "seed_hash"));
     job.setHeight(Json::getUint64(params, kHeight));
+
     job.setDiff(Json::getUint64(params, "difficulty"));
 
     m_currentJobId = Cvt::toHex(Cvt::randomBytes(4));
     job.setId(m_currentJobId);
 
+    // Tari-specific: parse nonce_range from getblocktemplate for Coin::TARI.
+    if (m_coin == Coin::TARI && params.HasMember("min_nonce")) {
+        uint64_t start = Json::getUint64(params, "min_nonce");
+        uint64_t end   = params.HasMember("max_nonce") ? Json::getUint64(params, "max_nonce") : UINT64_MAX;
+        job.setNonceRange(start, end);
+    }
+
     m_job              = std::move(job);
     m_blocktemplateStr = std::move(blocktemplate);
+
+    // Cache Tari block template once per job to avoid per-hash allocation in submit().
+    if (m_coin == Coin::TARI) {
+        m_tariBlocktemplateStr = m_blocktemplateStr;
+    }
+
     m_prevHash         = Json::getString(params, "prev_hash");
     m_jobSteadyMs      = Chrono::steadyMSecs();
 

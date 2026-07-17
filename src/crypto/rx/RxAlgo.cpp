@@ -20,6 +20,8 @@
 #include "crypto/randomx/randomx.h"
 #include "crypto/rx/RxAlgo.h"
 
+extern RandomX_ConfigurationTari RandomX_TariConfig;
+
 
 xmrig::Algorithm::Id xmrig::RxAlgo::apply(Algorithm::Id algorithm)
 {
@@ -49,6 +51,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
 
     case Algorithm::RX_YADA:
         return &RandomX_YadaConfig;
+
+    case Algorithm::RX_TARI:
+        return &RandomX_TariConfig;
 
     default:
         break;

@@ -55,6 +55,10 @@ public:
         TX_PUBKEY_OFFSET,
         TX_EXTRA_NONCE_OFFSET,
         TX_EXTRA_MERGE_MINING_TAG_OFFSET,
+        // Tari-specific offsets
+        TARI_MINING_HASH_OFFSET,
+        TARI_NONCE_OFFSET,
+        TARI_POW_DATA_OFFSET,
         OFFSET_COUNT
     };
 
@@ -95,6 +99,11 @@ public:
     inline const Buffer &minerTxMerkleTreeBranch() const    { return m_minerTxMerkleTreeBranch; }
     inline uint32_t minerTxMerkleTreePath() const           { return m_minerTxMerkleTreePath; }
     inline const uint8_t *rootHash() const                  { return m_rootHash; }
+
+    inline bool isTari() const                            { return m_coin == Coin::TARI; }
+    inline const uint8_t *tariMiningHash() const          { return blob(TARI_MINING_HASH_OFFSET); }
+    inline uint64_t tariNonce() const                     { uint64_t nonce = 0; memcpy(&nonce, blob(TARI_NONCE_OFFSET), 8); return nonce; }
+    inline const uint8_t *tariPowData() const             { return blob(TARI_POW_DATA_OFFSET); }
 
     inline Buffer generateHashingBlob() const
     {
@@ -154,6 +163,11 @@ private:
     uint8_t m_janusAnchor[16]{};
     uint8_t m_FCMPTreeLayers = 0;
     uint8_t m_FCMPTreeRoot[kHashSize]{};
+
+    // Tari-specific fields
+    uint8_t m_tariMiningHash[kHashSize]{};
+    uint64_t m_tariNonce = 0;
+    uint8_t m_tariPowData[33]{};
 };
 
 

@@ -196,12 +196,22 @@ int64_t xmrig::Client::submit(const JobResult &result)
     const char *nonce = result.nonce;
     const char *data  = result.result;
 #   else
-    char *nonce = m_tempBuf.data();
-    char *data  = m_tempBuf.data() + 16;
+    // Buffer layout: nonce(16) + data(65) + signature(129) + commitment(65) = 275 bytes (fits in 320-byte m_tempBuf)
+    char *nonce     = m_tempBuf.data();
+    char *data      = m_tempBuf.data() + 16;
     char *signature = m_tempBuf.data() + 88;
     char *commitment = m_tempBuf.data() + 224;
 
-    Cvt::toHex(nonce, sizeof(uint32_t) * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), sizeof(uint32_t));
+    // RX_TARI uses an 8-byte nonce with dynamic offsets; other algorithms use the upstream fixed layout.
+    if (result.algorithm == Algorithm::RX_TARI) {
+        const size_t nonceBytes = sizeof(uint64_t);
+        Cvt::toHex(nonce, nonceBytes * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), nonceBytes);
+        data      = m_tempBuf.data() + 32;
+        signature = m_tempBuf.data() + 97;
+        commitment = m_tempBuf.data() + 226;
+    } else {
+        Cvt::toHex(nonce, sizeof(uint32_t) * 2 + 1, reinterpret_cast<const uint8_t *>(&result.nonce), sizeof(uint32_t));
+    }
     Cvt::toHex(data, 65, result.result(), 32);
 
     if (result.minerSignature()) {
@@ -253,6 +263,22 @@ int64_t xmrig::Client::submit(const JobResult &result)
 #   else
     m_results[m_sequence] = SubmitResult(m_sequence, result.diff, result.actualDiff(), 0, result.backend);
 #   endif
+
+    uint32_t nonceDigits = 8;
+#   ifndef XMRIG_PROXY_PROJECT
+    if (result.algorithm == Algorithm::RX_TARI) {
+        nonceDigits = 16;
+    }
+#   endif
+
+    LOG_INFO("%s " GREEN("submitted") " [%s] job_id=%.*s nonce=%.*s diff=%" PRId64 " actual_diff=%" PRId64 " hash=%.*s",
+             tag(),
+             result.algorithm.isValid() ? result.algorithm.name() : "unknown",
+             static_cast<int>(result.jobId.size()), result.jobId.data(),
+             static_cast<int>(nonceDigits), nonce,
+             static_cast<int64_t>(result.diff),
+             static_cast<int64_t>(result.actualDiff()),
+             static_cast<int>(64), data);
 
     return send(doc);
 }

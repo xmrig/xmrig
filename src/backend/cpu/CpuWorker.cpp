@@ -21,6 +21,7 @@
 #include <mutex>
 
 
+#include "base/io/log/Log.h"
 #include "backend/cpu/Cpu.h"
 #include "backend/cpu/CpuWorker.h"
 #include "base/tools/Alignment.h"
@@ -35,6 +36,7 @@
 #include "crypto/rx/Rx.h"
 #include "crypto/rx/RxCache.h"
 #include "crypto/rx/RxDataset.h"
+#include "crypto/rx/RxTari.h"
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
 #include "net/JobResults.h"
@@ -43,7 +45,6 @@
 #ifdef XMRIG_ALGO_RANDOMX
 #   include "crypto/randomx/randomx.h"
 #endif
-
 
 #ifdef XMRIG_FEATURE_BENCHMARK
 #   include "backend/common/benchmark/BenchState.h"
@@ -293,8 +294,40 @@ void xmrig::CpuWorker<N>::start()
 
 #           ifdef XMRIG_ALGO_RANDOMX
             uint8_t* miner_signature_ptr = m_job.blob() + m_job.nonceOffset() + m_job.nonceSize();
+            bool is_tari = (job.algorithm() == Algorithm::RX_TARI);
             if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                if (first) {
+                if (is_tari) {
+                    // Tari RandomXT: 76-byte blob, little-endian 8-byte nonce
+                    // Use direct tari_randomx_calculate_hash() — the pipelined path doesn't work
+                    // with Tari's non-standard blob format.
+                    uint64_t* nonce_ptr = reinterpret_cast<uint64_t*>(m_job.blob() + m_job.nonceOffset());
+                    uint64_t current_nonce = *nonce_ptr;
+
+                    // Tari-specific: enforce daemon-assigned end boundary.
+                    if (job.hasNonceRange() && current_nonce >= job.nonceEnd()) {
+                        break;
+                    }
+
+                    tari_randomx_calculate_hash(m_vm, m_job.blob(), job.size(), m_hash);
+
+                    if (Job::achievesDifficulty(m_hash, job.diff())) {
+                        JobResults::submit(job, current_nonce, m_hash, nullptr);
+                    }
+
+                    m_count++;
+
+                    // Increment nonce for next iteration.
+                    // Tari manages its own nonce range from the daemon — no need for
+                    // the global counter partitioning that nextRound() provides.
+                    *nonce_ptr += 1;
+
+                    if (Nonce::isOutdated(Nonce::CPU, m_job.sequence())) {
+                        break;
+                    }
+
+                    goto skip_rx;
+                }
+                else if (first) {
                     first = false;
                     if (job.hasMinerSignature()) {
                         job.generateMinerSignature(m_job.blob(), job.size(), miner_signature_ptr);
@@ -348,7 +381,7 @@ void xmrig::CpuWorker<N>::start()
 
                 if (!nextRound()) {
                     break;
-                };
+                }
             }
 
             if (valid) {
@@ -382,6 +415,7 @@ void xmrig::CpuWorker<N>::start()
                 m_count += N;
             }
 
+skip_rx:
             if (m_yield) {
                 std::this_thread::yield();
             }
@@ -545,6 +579,23 @@ void xmrig::CpuWorker<N>::consumeJob()
     m_job.add(job, count, Nonce::CPU);
 
 #   ifdef XMRIG_ALGO_RANDOMX
+    // Tari-specific: if daemon-assigned nonce range exists, set starting nonces to match.
+    // Each worker instance gets a unique offset based on id() * N so that across all workers
+    // there is no overlap. Within a worker, each SIMD lane (i) is further spaced by kReserveCount.
+    const Job &curJob = m_job.currentJob();
+    if (curJob.algorithm() == Algorithm::RX_TARI && curJob.hasNonceRange()) {
+        uint64_t start = curJob.nonceStart();
+        // Offset this worker's entire block by its ID so multiple workers don't hash the same nonces.
+        uint64_t worker_base = start + static_cast<uint64_t>(id()) * static_cast<uint64_t>(N) * kReserveCount;
+        for (size_t i = 0; i < N; ++i) {
+            uint64_t thread_nonce = worker_base + static_cast<uint64_t>(i) * kReserveCount;
+            writeUnaligned(m_job.nonce(i), static_cast<uint32_t>(thread_nonce));
+            if (curJob.nonceSize() == sizeof(uint64_t)) {
+                writeUnaligned(m_job.nonce(i) + 1, static_cast<uint32_t>(thread_nonce >> 32));
+            }
+        }
+    }
+
     if (m_job.currentJob().algorithm().family() == Algorithm::RANDOM_X) {
         allocateRandomX_VM();
     }

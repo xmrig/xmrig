@@ -289,9 +289,15 @@ void xmrig::SelfSelectClient::submitOriginDaemon(const JobResult& result)
     fetch(tag(), std::move(req), m_httpListener);
 
     m_originSubmitted++;
-    LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") "
-        " diff " WHITE("%" PRIu64) " vs. " WHITE("%" PRIu64),
-        Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff(), result.diff);
+    if (result.algorithm == Algorithm::RX_TARI) {
+        LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") "
+            " diff " WHITE("%" PRIu64),
+            Tags::origin(), m_originSubmitted, m_originNotSubmitted, result.diff);
+    } else {
+        LOG_INFO("%s " GREEN_BOLD("submitted to origin daemon") " (%" PRId64 "/%" PRId64 ") "
+            " diff " WHITE("%" PRIu64) " vs. " WHITE("%" PRIu64),
+            Tags::origin(), m_originSubmitted, m_originNotSubmitted, m_blockDiff, result.actualDiff(), result.diff);
+    }
 }
 
 void xmrig::SelfSelectClient::onHttpData(const HttpData &data)

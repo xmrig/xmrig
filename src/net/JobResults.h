@@ -45,8 +45,8 @@ public:
     static void done(const Job &job);
     static void setListener(IJobResultListener *listener, bool hwAES);
     static void stop();
-    static void submit(const Job &job, uint32_t nonce, const uint8_t *result);
-    static void submit(const Job& job, uint32_t nonce, const uint8_t* result, const uint8_t* extra_data);
+    static void submit(const Job &job, uint64_t nonce, const uint8_t *result);
+    static void submit(const Job& job, uint64_t nonce, const uint8_t* result, const uint8_t* extra_data);
     static void submit(const JobResult &result);
 
 #   if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)

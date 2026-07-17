@@ -154,6 +154,7 @@ struct RandomX_ConfigurationArqma : public RandomX_ConfigurationBase { RandomX_C
 struct RandomX_ConfigurationGraft : public RandomX_ConfigurationBase { RandomX_ConfigurationGraft(); };
 struct RandomX_ConfigurationSafex : public RandomX_ConfigurationBase { RandomX_ConfigurationSafex(); };
 struct RandomX_ConfigurationYada : public RandomX_ConfigurationBase { RandomX_ConfigurationYada(); };
+struct RandomX_ConfigurationTari : public RandomX_ConfigurationBase { RandomX_ConfigurationTari(); };
 
 extern RandomX_ConfigurationMonero RandomX_MoneroConfig;
 extern RandomX_ConfigurationMoneroV2 RandomX_MoneroConfigV2;

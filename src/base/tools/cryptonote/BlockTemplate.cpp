@@ -193,6 +193,13 @@ bool xmrig::BlockTemplate::parse(const String &blocktemplate, const Coin &coin, 
 void xmrig::BlockTemplate::generateHashingBlob(Buffer &out) const
 {
     out.clear();
+
+    // Tari-specific hashing blob: use the 76-byte blob directly, nonce at offset 35
+    if (m_coin == Coin::TARI) {
+        out.assign(m_blob.begin(), m_blob.end());
+        return;
+    }
+
     out.reserve(offset(MINER_TX_PREFIX_OFFSET) + kHashSize + 3);
 
     out.assign(m_blob.begin(), m_blob.begin() + offset(MINER_TX_PREFIX_OFFSET));
@@ -209,6 +216,36 @@ void xmrig::BlockTemplate::generateHashingBlob(Buffer &out) const
 
 bool xmrig::BlockTemplate::parse(bool hashes)
 {
+    // Tari-specific blob parsing (76-byte mining blob)
+    if (m_coin == Coin::TARI) {
+        if (m_blob.size() != 76) {
+            return false;
+        }
+
+        // Offset 0: major version (1 byte)
+        m_version.first = m_blob[0];
+        // Offset 1: minor version (1 byte)
+        m_version.second = m_blob[1];
+        // Offset 2: timestamp (1 byte)
+        m_timestamp = m_blob[2];
+        // Offset 3: mining hash (32 bytes)
+        memcpy(m_tariMiningHash, m_blob.data() + 3, kHashSize);
+        setOffset(TARI_MINING_HASH_OFFSET, 3);
+        // Offset 35: nonce (8 bytes, little-endian)
+        memcpy(&m_tariNonce, m_blob.data() + 35, 8);
+        setOffset(TARI_NONCE_OFFSET, 35);
+        // Offset 43: pow data (33 bytes)
+        memcpy(m_tariPowData, m_blob.data() + 43, 33);
+        setOffset(TARI_POW_DATA_OFFSET, 43);
+
+        // Set root hash from mining hash for Tari
+        memcpy(m_rootHash, m_tariMiningHash, kHashSize);
+        m_numHashes = 0;
+        m_hashes.clear();
+
+        return true;
+    }
+
     BlobReader<true> ar(m_blob.data(), m_blob.size());
 
     // Block header

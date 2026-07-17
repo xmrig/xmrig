@@ -76,7 +76,7 @@ public:
     inline const String &poolWallet() const             { return m_poolWallet; }
     inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + nonceOffset()); }
     inline const uint8_t *blob() const                  { return m_blob; }
-    inline size_t nonceSize() const                     { return (algorithm().family() == Algorithm::KAWPOW) ?  8 :  4; }
+    inline size_t nonceSize() const                     { return (algorithm().family() == Algorithm::KAWPOW) ?  8 : (algorithm() == Algorithm::RX_TARI ? 8 : 4); }
     inline size_t size() const                          { return m_size; }
     inline uint32_t *nonce()                            { return reinterpret_cast<uint32_t*>(m_blob + nonceOffset()); }
     inline uint32_t backend() const                     { return m_backend; }
@@ -84,6 +84,79 @@ public:
     inline uint64_t height() const                      { return m_height; }
     inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4)) : 0xFFFFFFFFULL); }
     inline uint64_t target() const                      { return m_target; }
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    // Tari-specific: daemon-assigned nonce range from getblocktemplate's min_nonce/max_nonce.
+    // max_nonce is always U64::MAX in practice, so we only store start/end for enforcement.
+    inline void setNonceRange(uint64_t start, uint64_t end) { m_has_nonce_range = true; m_nonce_start = start; m_nonce_end = end; }
+    inline bool hasNonceRange() const                     { return m_has_nonce_range; }
+    inline uint64_t nonceStart() const                    { return m_nonce_start; }
+    inline uint64_t nonceEnd() const                      { return m_nonce_end; }
+#   endif
+
+    // Check if a hash achieves at least the given difficulty using Tari's exact formula:
+    //   achieved = U256::MAX / U256::from_little_endian(hash), clamped to u64::MAX, low_u64().
+    //   block valid iff achieved >= target_difficulty.
+    // This is equivalent to: hash_le * targetDiff <= U256::MAX (when scalar > 0).
+    // We use multi-precision multiplication to avoid division entirely.
+    static inline bool achievesDifficulty(const uint8_t *hash, uint64_t targetDiff) {
+        if (targetDiff == 0) return true; // diff=0 is not valid but accept everything
+
+        // Hash bytes are stored little-endian: hash[0..7] = LSB word, hash[24..31] = MSB word.
+        // Extract words in LE order to match the target256 storage format.
+        uint64_t s_bot = 0, s_mid = 0, s_top = 0;
+        for (int i = 7; i >= 0; --i)     s_bot = (s_bot << 8) | hash[i];   // LSB word [0..7]
+        for (int i = 15; i >= 8; --i)    s_mid = (s_mid << 8) | hash[i];   // middle word [8..15]
+        for (int i = 31; i >= 24; --i)   s_top = (s_top << 8) | hash[i];   // MSB word [24..31]
+
+        // scalar == (s_top << 128) | (s_mid << 64) | s_bot
+        if (s_top == 0 && s_mid == 0 && s_bot == 0) return false; // infinite difficulty — guard against div-by-zero
+
+        // Check: scalar * targetDiff <= U256::MAX (= u64max*2^192 + u64max*2^64 + u64max)
+        // We compute the product in 64-bit words and compare word by word.
+        uint64_t u64max = ~(uint64_t)0;
+
+#if defined(_MSC_VER)
+        // MSVC: use _umul128 intrinsic for 64x64->128-bit multiply.
+        uint64_t p0, p0h, p1, p1h, p2, p2h;
+
+        p0 = _umul128(s_bot, targetDiff, &p0h);
+        p1 = _umul128(s_mid, targetDiff, &p1h);
+        p1 += p0h;
+        p1h += (p1 < p0h);  // carry from addition
+
+        p2 = _umul128(s_top, targetDiff, &p2h);
+        p2 += p1h;
+        p2h += (p2 < p1h);  // carry from addition
+
+        if (p2h != 0) return false;  // overflow beyond 256 bits
+#else
+        // GCC/Clang: use __int128 for 64x64->128-bit multiply.
+        unsigned __int128 d = static_cast<unsigned __int128>(targetDiff);
+
+        unsigned __int128 p0_raw = static_cast<unsigned __int128>(s_bot) * d;
+        uint64_t p0 = static_cast<uint64_t>(p0_raw);
+        uint64_t carry = static_cast<uint64_t>(p0_raw >> 64);
+
+        unsigned __int128 p1_raw = static_cast<unsigned __int128>(s_mid) * d + carry;
+        uint64_t p1 = static_cast<uint64_t>(p1_raw);
+        carry = static_cast<uint64_t>(p1_raw >> 64);
+
+        unsigned __int128 p2_raw = static_cast<unsigned __int128>(s_top) * d + carry;
+        uint64_t p2 = static_cast<uint64_t>(p2_raw);
+
+        if (static_cast<uint64_t>(p2_raw >> 64) != 0) return false;
+#endif
+
+        // Compare product <= U256::MAX word by word: top -> mid -> bot.
+        if (p2 > u64max) return false;
+        if (p2 == u64max && p1 > u64max) return false;
+        if (p2 == u64max && p1 == u64max && p0 > u64max) return false;
+
+        // Product <= U256::MAX → hash achieves the difficulty.
+        return true;
+    }
+
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
     inline uint8_t index() const                        { return m_index; }
@@ -159,6 +232,14 @@ private:
     uint64_t m_diff     = 0;
     uint64_t m_height   = 0;
     uint64_t m_target   = 0;
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    // Tari-specific: daemon-assigned nonce range from getblocktemplate's min_nonce/max_nonce.
+    bool m_has_nonce_range = false;
+    uint64_t m_nonce_start = 0;
+    uint64_t m_nonce_end   = 0;
+#   endif
+
     uint8_t m_blob[kMaxBlobSize]{ 0 };
     uint8_t m_index     = 0;
 

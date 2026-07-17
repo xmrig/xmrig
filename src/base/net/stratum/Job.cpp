@@ -169,18 +169,31 @@ size_t xmrig::Job::nonceOffset() const
         return 147;
     }
 
+    if (algorithm() == Algorithm::RX_TARI) {
+        return 35;
+    }
+
     return 39;
 }
 
 
 void xmrig::Job::setDiff(uint64_t diff)
 {
+    if (diff == 0) {
+        diff = 1;  // Prevent division by zero; diff=0 is not a valid pool parameter.
+    }
+
     m_diff   = diff;
     m_target = toDiff(diff);
 
 #   ifdef XMRIG_PROXY_PROJECT
     Cvt::toHex(m_rawTarget, sizeof(m_rawTarget), reinterpret_cast<uint8_t *>(&m_target), sizeof(m_target));
 #   endif
+
+    if (algorithm() == Algorithm::RX_TARI) {
+        // No-op: achieved difficulty is now computed directly from the hash in Job::achievedDifficulty().
+        // This replaces the old computeTarget256FromDiff() approach.
+    }
 }
 
 
@@ -246,6 +259,12 @@ void xmrig::Job::copy(const Job &other)
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 
+#   ifdef XMRIG_ALGO_RANDOMX
+    m_has_nonce_range = other.m_has_nonce_range;
+    m_nonce_start     = other.m_nonce_start;
+    m_nonce_end       = other.m_nonce_end;
+#   endif
+
 #   ifdef XMRIG_PROXY_PROJECT
     m_rawSeedHash = other.m_rawSeedHash;
     m_rawSigKey   = other.m_rawSigKey;
@@ -297,6 +316,12 @@ void xmrig::Job::move(Job &&other)
     m_poolWallet = std::move(other.m_poolWallet);
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
+
+#   ifdef XMRIG_ALGO_RANDOMX
+    m_has_nonce_range = other.m_has_nonce_range;
+    m_nonce_start     = other.m_nonce_start;
+    m_nonce_end       = other.m_nonce_end;
+#   endif
 
     other.m_size        = 0;
     other.m_diff        = 0;
