@@ -129,8 +129,7 @@ public:
     virtual uint32_t model() const                                                  = 0;
 
 #   ifdef XMRIG_FEATURE_HWLOC
-    virtual bool membind(hwloc_const_bitmap_t cpuset)                               = 0;
-    virtual bool membind_nodeset(hwloc_const_nodeset_t nodeset)                     = 0;
+    virtual bool membind(hwloc_const_bitmap_t nodeset)                              = 0;
     virtual const std::vector<uint32_t> &nodeset() const                            = 0;
     virtual hwloc_topology_t topology() const                                       = 0;
 #   endif

@@ -49,24 +49,8 @@ static bool bindToNUMANode(uint32_t nodeId)
         return false;
     }
 
-    // Try direct nodeset binding first (avoids cpuset round-trip on Windows processor groups)
-    if (Cpu::info()->membind_nodeset(node->nodeset)) {
+    if (Cpu::info()->membind(node->nodeset)) {
         Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
-
-        return true;
-    }
-
-    // Fallback: try cpuset-based binding
-    if (Cpu::info()->membind(node->cpuset)) {
-        Platform::setThreadAffinity(static_cast<uint64_t>(hwloc_bitmap_first(node->cpuset)));
-
-        return true;
-    }
-
-    // Last resort: at least set thread affinity to a CPU in this NUMA node
-    int first_cpu = hwloc_bitmap_first(node->cpuset);
-    if (first_cpu >= 0) {
-        Platform::setThreadAffinity(static_cast<uint64_t>(first_cpu));
 
         return true;
     }

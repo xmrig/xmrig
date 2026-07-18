@@ -34,23 +34,11 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 
     auto pu = hwloc_get_pu_obj_by_os_index(Cpu::info()->topology(), static_cast<unsigned>(affinity));
 
-    if (pu == nullptr) {
-        LOG_WARN("CPU #%02" PRId64 " warning: \"PU not found\"", affinity);
+    if (pu == nullptr || !Cpu::info()->membind(pu->nodeset)) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
 
         return 0;
     }
 
-    // Try direct nodeset binding first (avoids cpuset round-trip on Windows processor groups)
-    if (Cpu::info()->membind_nodeset(pu->nodeset)) {
-        return hwloc_bitmap_first(pu->nodeset);
-    }
-
-    // Fallback to cpuset-based binding
-    if (Cpu::info()->membind(pu->cpuset)) {
-        return hwloc_bitmap_first(pu->nodeset);
-    }
-
-    LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
-
-    return 0;
+    return hwloc_bitmap_first(pu->nodeset);
 }

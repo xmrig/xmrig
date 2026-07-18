@@ -34,6 +34,7 @@
 
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 
 
 #if HWLOC_API_VERSION < 0x20000
@@ -191,27 +192,87 @@ xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 }
 
 
-bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t cpuset)
+static bool do_membind(hwloc_topology_t topology, hwloc_const_bitmap_t cpuset, hwloc_const_nodeset_t nodeset)
 {
-    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
+    if (!hwloc_topology_get_support(topology)->membind->set_thisthread_membind) {
         return false;
     }
 
-#   if HWLOC_API_VERSION >= 0x20000
-    return hwloc_set_membind(m_topology, cpuset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
-#   else
-    return hwloc_set_membind_nodeset(m_topology, cpuset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
-#   endif
+    if (nodeset && hwloc_set_membind_nodeset(topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0) {
+        return true;
+    }
+
+    if (cpuset && hwloc_bitmap_weight(cpuset) > 0) {
+#       if HWLOC_API_VERSION >= 0x20000
+        if (hwloc_set_membind(topology, cpuset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0) {
+            return true;
+        }
+#       else
+        if (hwloc_set_membind_nodeset(topology, cpuset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0) {
+            return true;
+        }
+#       endif
+    }
+
+    /*
+     * Fallback: on Windows with >64 CPUs hwloc's membind can fail because it internally calls
+     * SetThreadAffinityMask() which accepts only a 64-bit mask (one processor group).
+     */
+    if (!cpuset && nodeset) {
+        hwloc_bitmap_t fallback_cpuset = hwloc_bitmap_alloc();
+        if (fallback_cpuset) {
+            hwloc_bitmap_zero(fallback_cpuset);
+
+            for (hwloc_obj_t node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, nullptr); node; node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) {
+                if (hwloc_bitmap_isset(nodeset, node->os_index)) {
+                    hwloc_bitmap_or(fallback_cpuset, fallback_cpuset, node->cpuset);
+                }
+            }
+
+            if (hwloc_bitmap_weight(fallback_cpuset) > 0) {
+                if (hwloc_set_cpubind(topology, fallback_cpuset, HWLOC_CPUBIND_THREAD) >= 0) {
+                    hwloc_bitmap_free(fallback_cpuset);
+                    return true;
+                }
+
+                /* cpubind failed — fall through to thread affinity */
+                hwloc_bitmap_free(fallback_cpuset);
+            }
+        }
+    }
+
+    if (cpuset && hwloc_bitmap_weight(cpuset) > 0) {
+        if (hwloc_set_cpubind(topology, cpuset, HWLOC_CPUBIND_THREAD) >= 0) {
+            return true;
+        }
+    }
+
+    // Set thread affinity to a CPU in the target NUMA node.
+    if (nodeset) {
+        for (hwloc_obj_t node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, nullptr); node; node = hwloc_get_next_obj_by_type(topology, HWLOC_OBJ_NUMANODE, node)) {
+            if (hwloc_bitmap_isset(nodeset, node->os_index)) {
+                int first_cpu = hwloc_bitmap_first(node->cpuset);
+                if (first_cpu >= 0) {
+                    return xmrig::Platform::setThreadAffinity(static_cast<uint64_t>(first_cpu));
+                }
+            }
+        }
+    }
+
+    if (cpuset && hwloc_bitmap_weight(cpuset) > 0) {
+        int first_cpu = hwloc_bitmap_first(cpuset);
+        if (first_cpu >= 0) {
+            return xmrig::Platform::setThreadAffinity(static_cast<uint64_t>(first_cpu));
+        }
+    }
+
+    return false;
 }
 
 
-bool xmrig::HwlocCpuInfo::membind_nodeset(hwloc_const_nodeset_t nodeset)
+bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 {
-    if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
-        return false;
-    }
-
-    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+    return do_membind(m_topology, nullptr, reinterpret_cast<hwloc_const_nodeset_t>(nodeset));
 }
 
 
