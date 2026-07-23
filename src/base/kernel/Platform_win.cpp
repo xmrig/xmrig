@@ -102,7 +102,6 @@ bool xmrig::Platform::setThreadAffinity(uint64_t cpu_id)
             GROUP_AFFINITY aff{};
             aff.Group     = group;
             aff.Mask      = mask;
-            aff.Reserved  = 0;
             const bool result = pSetThreadGroupAffinity(GetCurrentThread(), &aff, nullptr) != 0;
             Sleep(1);
             return result;
