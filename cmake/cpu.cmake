@@ -241,7 +241,7 @@ if (ARM_TARGET AND ARM_TARGET GREATER 6)
                     XMRIG_HAS_CORTEX_A520 AND
                     XMRIG_HAS_CORTEX_A720)
                     set(ARM8_CXX_FLAGS
-                        "-march=armv9.2-a+crypto+sha3 -mtune=cortex-a720"
+                        "-march=armv9.2-a+crypto -mtune=cortex-a720"
                     )
                 else()
                     set(ARM8_CXX_FLAGS "-mcpu=native")
