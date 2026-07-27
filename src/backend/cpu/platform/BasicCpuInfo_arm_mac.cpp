@@ -42,7 +42,8 @@ void xmrig::BasicCpuInfo::init_arm()
 
     m_brand[sizeof(m_brand) - 1] = '\0';
 
-    if (std::strncmp(m_brand, "Apple M4", 8) == 0) {
+    if (std::strncmp(m_brand, "Apple M4", 8) == 0 ||
+        std::strncmp(m_brand, "Apple M5", 8) == 0) {
         constexpr const char suffix[] = " (ARMv9)";
         const size_t used = std::strlen(m_brand);
 
