@@ -363,20 +363,22 @@ void xmrig::CpuWorker<N>::start()
                     }
                     else
 #                   endif
+                    {
+                        const bool accepted = job.algorithm() == Algorithm::RX_TKM ? job.isTkmHashAccepted(m_hash + (i * 32)) : value < job.target();
+                        if (accepted) {
+                            uint8_t* extra_data = nullptr;
 
-                    if (value < job.target()) {
-                        uint8_t* extra_data = nullptr;
+                            if (job.algorithm().family() == Algorithm::RANDOM_X) {
+                                if (RandomX_CurrentConfig.Tweak_V2_COMMITMENT) {
+                                    extra_data = m_commitment;
+                                }
+                                else if (job.hasMinerSignature()) {
+                                    extra_data = miner_signature_saved;
+                                }
+                            }
 
-                        if (job.algorithm().family() == Algorithm::RANDOM_X) {
-                            if (RandomX_CurrentConfig.Tweak_V2_COMMITMENT) {
-                                extra_data = m_commitment;
-                            }
-                            else if (job.hasMinerSignature()) {
-                                extra_data = miner_signature_saved;
-                            }
+                            JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), extra_data);
                         }
-
-                        JobResults::submit(job, current_job_nonces[i], m_hash + (i * 32), extra_data);
                     }
                 }
                 m_count += N;
