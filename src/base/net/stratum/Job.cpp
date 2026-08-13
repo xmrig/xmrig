@@ -24,8 +24,14 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <limits>
 #include <cstring>
+#include <string>
 
 #include "base/net/stratum/Job.h"
 #include "base/tools/Alignment.h"
@@ -35,6 +41,35 @@
 #include "base/tools/cryptonote/Signatures.h"
 #include "base/crypto/keccak.h"
 
+
+namespace {
+
+uint64_t tkmDiffFromTarget(const std::string &hex)
+{
+    const size_t first = hex.find_first_not_of('0');
+    if (first == std::string::npos) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    const size_t digits = std::min<size_t>(16, hex.size() - first);
+    const std::string window = hex.substr(first, digits);
+    const uint64_t mantissa = strtoull(window.c_str(), nullptr, 16);
+    if (mantissa == 0) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    const long double scaled = std::pow(static_cast<long double>(16), static_cast<int>(first + digits)) / static_cast<long double>(mantissa);
+    if (!std::isfinite(scaled) || scaled >= static_cast<long double>(std::numeric_limits<uint64_t>::max())) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+    if (scaled < 1.0L) {
+        return 1;
+    }
+
+    return static_cast<uint64_t>(scaled);
+}
+
+} // namespace
 
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
@@ -110,6 +145,27 @@ bool xmrig::Job::setSeedHash(const char *hash)
 
 bool xmrig::Job::setTarget(const char *target)
 {
+    const size_t size = target ? strlen(target) : 0;
+
+    if (algorithm() == Algorithm::RX_TKM) {
+        std::string hex(target ? target : "", size);
+        if (hex.rfind("0x", 0) == 0 || hex.rfind("0X", 0) == 0) {
+            hex.erase(0, 2);
+        }
+        if (hex.size() == 16) {
+            hex.insert(0, 48, '0');
+        }
+        if (hex.size() != 64 || !Cvt::fromHex(m_tkmTarget, sizeof(m_tkmTarget), hex.c_str(), hex.size())) {
+            return false;
+        }
+        m_hasTkmTarget = true;
+        m_target = 0xFFFFFFFFFFFFFFFFULL;
+        m_diff = tkmDiffFromTarget(hex);
+        return true;
+    }
+
+    m_hasTkmTarget = false;
+
     static auto parse = [](const char *target, size_t size, const Algorithm &algorithm) -> uint64_t {
         if (algorithm == Algorithm::RX_YADA) {
             return strtoull(target, nullptr, 16);
@@ -131,8 +187,6 @@ bool xmrig::Job::setTarget(const char *target)
         return 0;
     };
 
-    const size_t size = target ? strlen(target) : 0;
-
     if (size < 4 || (m_target = parse(target, size, algorithm())) == 0) {
         return false;
     }
@@ -152,6 +206,27 @@ bool xmrig::Job::setTarget(const char *target)
 }
 
 
+bool xmrig::Job::isTkmHashAccepted(const uint8_t *hash) const
+{
+    if (!m_hasTkmTarget) {
+        return false;
+    }
+
+    // RandomX outputs are 256-bit little-endian integers. The TKM target is
+    // transmitted as a conventional big-endian hexadecimal integer.
+    for (size_t i = 0; i < sizeof(m_tkmTarget); ++i) {
+        const uint8_t resultByte = hash[sizeof(m_tkmTarget) - 1 - i];
+        if (resultByte < m_tkmTarget[i]) {
+            return true;
+        }
+        if (resultByte > m_tkmTarget[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 size_t xmrig::Job::nonceOffset() const
 {
     switch (algorithm().family()) {
@@ -167,6 +242,10 @@ size_t xmrig::Job::nonceOffset() const
 
     if (algorithm() == Algorithm::RX_YADA) {
         return 147;
+    }
+
+    if (algorithm() == Algorithm::RX_TKM) {
+        return 36;
     }
 
     return 39;
@@ -244,6 +323,8 @@ void xmrig::Job::copy(const Job &other)
     m_extraNonce = other.m_extraNonce;
     m_poolWallet = other.m_poolWallet;
 
+    m_hasTkmTarget = other.m_hasTkmTarget;
+    memcpy(m_tkmTarget, other.m_tkmTarget, sizeof(m_tkmTarget));
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 
 #   ifdef XMRIG_PROXY_PROJECT
@@ -296,6 +377,8 @@ void xmrig::Job::move(Job &&other)
     m_extraNonce = std::move(other.m_extraNonce);
     m_poolWallet = std::move(other.m_poolWallet);
 
+    m_hasTkmTarget = other.m_hasTkmTarget;
+    memcpy(m_tkmTarget, other.m_tkmTarget, sizeof(m_tkmTarget));
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 
     other.m_size        = 0;

@@ -61,6 +61,7 @@ public:
     bool setBlob(const char *blob);
     bool setSeedHash(const char *hash);
     bool setTarget(const char *target);
+    bool isTkmHashAccepted(const uint8_t *hash) const;
     size_t nonceOffset() const;
     void setDiff(uint64_t diff);
     void setSigKey(const char *sig_key);
@@ -84,6 +85,8 @@ public:
     inline uint64_t height() const                      { return m_height; }
     inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4)) : 0xFFFFFFFFULL); }
     inline uint64_t target() const                      { return m_target; }
+    inline const uint8_t *tkmTarget() const             { return m_tkmTarget; }
+    inline bool hasTkmTarget() const                    { return m_hasTkmTarget; }
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
     inline uint8_t index() const                        { return m_index; }
@@ -159,6 +162,7 @@ private:
     uint64_t m_diff     = 0;
     uint64_t m_height   = 0;
     uint64_t m_target   = 0;
+    uint8_t m_tkmTarget[32]{ 0 };
     uint8_t m_blob[kMaxBlobSize]{ 0 };
     uint8_t m_index     = 0;
 
@@ -187,6 +191,7 @@ private:
     uint8_t m_ephSecretKey[32]{};
 #   endif
 
+    bool m_hasTkmTarget = false;
     bool m_hasMinerSignature = false;
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
