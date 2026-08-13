@@ -24,7 +24,12 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <algorithm>
 #include <cassert>
+#include <cmath>
+#include <cstdint>
+#include <cstdlib>
+#include <limits>
 #include <cstring>
 #include <string>
 
@@ -36,6 +41,35 @@
 #include "base/tools/cryptonote/Signatures.h"
 #include "base/crypto/keccak.h"
 
+
+namespace {
+
+uint64_t tkmDiffFromTarget(const std::string &hex)
+{
+    const size_t first = hex.find_first_not_of('0');
+    if (first == std::string::npos) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    const size_t digits = std::min<size_t>(16, hex.size() - first);
+    const std::string window = hex.substr(first, digits);
+    const uint64_t mantissa = strtoull(window.c_str(), nullptr, 16);
+    if (mantissa == 0) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+
+    const long double scaled = std::pow(static_cast<long double>(16), static_cast<int>(first + digits)) / static_cast<long double>(mantissa);
+    if (!std::isfinite(scaled) || scaled >= static_cast<long double>(std::numeric_limits<uint64_t>::max())) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+    if (scaled < 1.0L) {
+        return 1;
+    }
+
+    return static_cast<uint64_t>(scaled);
+}
+
+} // namespace
 
 xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientId) :
     m_algorithm(algorithm),
@@ -126,7 +160,7 @@ bool xmrig::Job::setTarget(const char *target)
         }
         m_hasTkmTarget = true;
         m_target = 0xFFFFFFFFFFFFFFFFULL;
-        m_diff = toDiff(m_target);
+        m_diff = tkmDiffFromTarget(hex);
         return true;
     }
 
@@ -174,7 +208,22 @@ bool xmrig::Job::setTarget(const char *target)
 
 bool xmrig::Job::isTkmHashAccepted(const uint8_t *hash) const
 {
-    return m_hasTkmTarget && memcmp(hash, m_tkmTarget, sizeof(m_tkmTarget)) <= 0;
+    if (!m_hasTkmTarget) {
+        return false;
+    }
+
+    // RandomX outputs are 256-bit little-endian integers. The TKM target is
+    // transmitted as a conventional big-endian hexadecimal integer.
+    for (size_t i = 0; i < sizeof(m_tkmTarget); ++i) {
+        const uint8_t resultByte = hash[sizeof(m_tkmTarget) - 1 - i];
+        if (resultByte < m_tkmTarget[i]) {
+            return true;
+        }
+        if (resultByte > m_tkmTarget[i]) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
