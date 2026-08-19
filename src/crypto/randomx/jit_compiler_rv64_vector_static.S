@@ -100,8 +100,6 @@ sshash_constant_4: .dword 5281919268842080866
 sshash_constant_5: .dword 10536153434571861004
 sshash_constant_6: .dword 3398623926847679864
 sshash_constant_7: .dword 9549104520008361294
-sshash_offsets:    .dword 0,1,2,3
-store_offsets:     .dword 0,64,128,192
 
 DECL(randomx_riscv64_vector_sshash_imul_rcp_literals): .fill 512,8,0
 
@@ -111,6 +109,8 @@ Reference: https://github.com/tevador/RandomX/blob/master/doc/specs.md#73-datase
 Register layout
 ---------------
 x5	= temporary
+x6	= prefetch loop counter
+x7	= prefetch address scratch buffer
 
 x10	= randomx cache
 x11	= output buffer
@@ -119,6 +119,9 @@ x13	= endBlock
 
 x14	= cache mask
 x15	= imul_rcp literal pointer
+
+x28	= dataset items processed per iteration (vl)
+x29	= prefetch scratch walking pointer
 
 v0-v7	= r0-r7
 v8	= itemNumber
@@ -132,8 +135,15 @@ v19	= dataset item store offsets
 */
 
 DECL(randomx_riscv64_vector_sshash_dataset_init):
-	// Process 4 64-bit values at a time
-	vsetivli zero, 4, e64, m1, ta, ma
+	// One dataset item per vector element, so the number of items processed per
+	// iteration is VLMAX at e64/LMUL=1: 4 items on a 256-bit vector unit, 16 on
+	// a 1024-bit one.
+	vsetvli x28, x0, e64, m1, ta, ma
+
+	// Scratch space for the cache prefetch addresses, 8 bytes per element.
+	// 512 bytes covers VLEN up to 4096.
+	addi sp, sp, -512
+	mv x7, sp
 
 	// Load cache->memory pointer
 	ld x10, (x10)
@@ -141,13 +151,12 @@ DECL(randomx_riscv64_vector_sshash_dataset_init):
 	// Init cache mask
 	li x14, RANDOMX_CACHE_MASK
 
-	// Init dataset item store offsets
-	lla x5, store_offsets
-	vle64.v v19, (x5)
+	// Init dataset item store offsets to (0, 64, 128, ...)
+	vid.v v19
+	vsll.vi v19, v19, 6
 
-	// Init itemNumber vector to (startBlock, startBlock + 1, startBlock + 2, startBlock + 3)
-	lla x5, sshash_offsets
-	vle64.v v8, (x5)
+	// Init itemNumber vector to (startBlock, startBlock + 1, startBlock + 2, ...)
+	vid.v v8
 	vadd.vx v8, v8, x12
 
 	// Load constants (stride = x0 = 0, so a 64-bit value will be broadcast into each element of a vector)
@@ -181,6 +190,13 @@ DECL(randomx_riscv64_vector_sshash_dataset_init):
 	add x13, x13, x11
 
 init_item:
+	// vl = min(items left, VLMAX), and x28 = that count. Recomputing it per
+	// group keeps the last iteration from running past the end when the item
+	// count is not a multiple of VLMAX.
+	sub x6, x13, x11
+	srli x6, x6, 6
+	vsetvli x28, x6, e64, m1, ta, ma
+
 	// Step 1. Init r0-r7
 
 	// r0 = (itemNumber + 1) * 6364136223846793005
@@ -239,11 +255,13 @@ DECL(randomx_riscv64_vector_sshash_generated_instructions_end):
 	add x5, x11, 56
 	vsuxei64.v v7, (x5), v19
 
-	// Iterate to the next 4 items
-	vadd.vi v8, v8, 4
-	add x11, x11, 256
+	// Iterate to the next group of items
+	vadd.vx v8, v8, x28
+	slli x5, x28, 6
+	add x11, x11, x5
 	bltu x11, x13, init_item
 
+	addi sp, sp, 512
 	ret
 
 // Step 4. Load a 64-byte item from the Cache. The item index is given by cacheIndex modulo the total number of 64-byte items in Cache.
@@ -253,40 +271,22 @@ DECL(randomx_riscv64_vector_sshash_cache_prefetch):
 	vsll.vi v9, v9, 6
 	vadd.vx v9, v9, x10
 
-	// Prefetch element 0
-	vmv.x.s x5, v9
+	// Prefetch every element. The addresses are spilled to the scratch buffer
+	// and reloaded because extracting them in registers costs one full-width
+	// vslidedown per element, which does not scale with VLEN.
+	vse64.v v9, (x7)
+	mv x29, x7
+	mv x6, x28
+1:
+	ld x5, (x29)
 #ifdef __riscv_zicbop
 	prefetch.r (x5)
 #else
 	ld x5, (x5)
 #endif
-
-	// Prefetch element 1
-	vslidedown.vi v18, v9, 1
-	vmv.x.s x5, v18
-#ifdef __riscv_zicbop
-	prefetch.r (x5)
-#else
-	ld x5, (x5)
-#endif
-
-	// Prefetch element 2
-	vslidedown.vi v18, v9, 2
-	vmv.x.s x5, v18
-#ifdef __riscv_zicbop
-	prefetch.r (x5)
-#else
-	ld x5, (x5)
-#endif
-
-	// Prefetch element 3
-	vslidedown.vi v18, v9, 3
-	vmv.x.s x5, v18
-#ifdef __riscv_zicbop
-	prefetch.r (x5)
-#else
-	ld x5, (x5)
-#endif
+	addi x29, x29, 8
+	addi x6, x6, -1
+	bnez x6, 1b
 
 	// v9 = byte offset into cache->memory
 	vsub.vx v9, v9, x10

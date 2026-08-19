@@ -25,6 +25,7 @@
 
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
+#include "backend/cpu/platform/riscv_vlen.h"
 #include "base/tools/String.h"
 #include "3rdparty/rapidjson/document.h"
 
@@ -106,11 +107,16 @@ rapidjson::Value xmrig::BasicCpuInfo::toJSON(rapidjson::Document &doc) const
     out.AddMember("msr",        "none", allocator);
     out.AddMember("assembly",   "none", allocator);
     out.AddMember("arch",       "riscv64", allocator);
+    out.AddMember("vlen",       static_cast<uint64_t>(riscv_vlen()), allocator);
 
     Value flags(kArrayType);
 
     if (hasAES()) {
         flags.PushBack("aes", allocator);
+    }
+
+    if (riscv_vlen() >= RISCV_MIN_VLEN) {
+        flags.PushBack("rvv", allocator);
     }
 
     out.AddMember("flags", flags, allocator);

@@ -41,6 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "backend/cpu/Cpu.h"
 
 #ifdef XMRIG_RISCV
+#include "backend/cpu/platform/riscv_vlen.h"
 #include "crypto/randomx/aes_hash_rv64_vector.hpp"
 #include "crypto/randomx/aes_hash_rv64_zvkned.hpp"
 #endif
@@ -69,13 +70,16 @@ template<int softAes>
 void hashAes1Rx4(const void *input, size_t inputSize, void *hash)
 {
 #ifdef XMRIG_RISCV
-	if (xmrig::Cpu::info()->hasAES()) {
-		hashAes1Rx4_zvkned(input, inputSize, hash);
-		return;
-	}
-
-	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
-		hashAes1Rx4_RVV(input, inputSize, hash);
+	// Both kernels use a fixed AVL of 8 32-bit elements at LMUL=1, so they need
+	// VLMAX >= 8, i.e. VLEN >= 256. Smaller vector units silently clamp vl and
+	// would corrupt the hash rather than fault.
+	if (xmrig::riscv_vlen() >= xmrig::RISCV_MIN_VLEN) {
+		if (xmrig::Cpu::info()->hasAES()) {
+			hashAes1Rx4_zvkned(input, inputSize, hash);
+		}
+		else {
+			hashAes1Rx4_RVV(input, inputSize, hash);
+		}
 		return;
 	}
 #endif
@@ -150,13 +154,13 @@ template<int softAes>
 void fillAes1Rx4(void *state, size_t outputSize, void *buffer)
 {
 #ifdef XMRIG_RISCV
-	if (xmrig::Cpu::info()->hasAES()) {
-		fillAes1Rx4_zvkned(state, outputSize, buffer);
-		return;
-	}
-
-	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
-		fillAes1Rx4_RVV(state, outputSize, buffer);
+	if (xmrig::riscv_vlen() >= xmrig::RISCV_MIN_VLEN) {
+		if (xmrig::Cpu::info()->hasAES()) {
+			fillAes1Rx4_zvkned(state, outputSize, buffer);
+		}
+		else {
+			fillAes1Rx4_RVV(state, outputSize, buffer);
+		}
 		return;
 	}
 #endif
@@ -207,13 +211,13 @@ template<int softAes>
 void fillAes4Rx4(void *state, size_t outputSize, void *buffer)
 {
 #ifdef XMRIG_RISCV
-	if (xmrig::Cpu::info()->hasAES()) {
-		fillAes4Rx4_zvkned(state, outputSize, buffer);
-		return;
-	}
-
-	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
-		fillAes4Rx4_RVV(state, outputSize, buffer);
+	if (xmrig::riscv_vlen() >= xmrig::RISCV_MIN_VLEN) {
+		if (xmrig::Cpu::info()->hasAES()) {
+			fillAes4Rx4_zvkned(state, outputSize, buffer);
+		}
+		else {
+			fillAes4Rx4_RVV(state, outputSize, buffer);
+		}
 		return;
 	}
 #endif
@@ -291,13 +295,13 @@ void hashAndFillAes1Rx4(void *scratchpad, size_t scratchpadSize, void *hash, voi
 	PROFILE_SCOPE(RandomX_AES);
 
 #ifdef XMRIG_RISCV
-	if (xmrig::Cpu::info()->hasAES()) {
-		hashAndFillAes1Rx4_zvkned(scratchpad, scratchpadSize, hash, fill_state);
-		return;
-	}
-
-	if (xmrig::Cpu::info()->hasRISCV_Vector()) {
-		hashAndFillAes1Rx4_RVV(scratchpad, scratchpadSize, hash, fill_state);
+	if (xmrig::riscv_vlen() >= xmrig::RISCV_MIN_VLEN) {
+		if (xmrig::Cpu::info()->hasAES()) {
+			hashAndFillAes1Rx4_zvkned(scratchpad, scratchpadSize, hash, fill_state);
+		}
+		else {
+			hashAndFillAes1Rx4_RVV(scratchpad, scratchpadSize, hash, fill_state);
+		}
 		return;
 	}
 #endif

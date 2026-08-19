@@ -36,6 +36,28 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 static FORCE_INLINE vuint32m1_t aesenc_zvkned(vuint32m1_t a, vuint32m1_t b) { return __riscv_vaesem_vv_u32m1(a, b, 8); }
 static FORCE_INLINE vuint32m1_t aesdec_zvkned(vuint32m1_t a, vuint32m1_t b, vuint32m1_t zero) { return __riscv_vxor_vv_u32m1(__riscv_vaesdm_vv_u32m1(a, zero, 8), b, 8); }
 
+/*
+	The four 16-byte AES lanes sit consecutively in memory, but the kernels need
+	them grouped as {0,2} and {1,3} because those pairs share an AES direction.
+	An indexed access does the regrouping in a single instruction, which is what
+	the strided AES_HASH_STRIDE_X2 index vector is for - but indexed accesses are
+	an order of magnitude slower than unit-stride ones on both SpacemiT cores
+	(gather ~16x a vle32 on X100, ~14x on A100; scatter ~8x and ~36x), so it pays
+	to pick the two halves up separately and glue them together with a slide.
+*/
+static FORCE_INLINE vuint32m1_t load_lane_pair(const uint8_t* p, size_t lo, size_t hi)
+{
+	return __riscv_vslideup_vx_u32m1(
+		__riscv_vle32_v_u32m1((const uint32_t*)(p + lo), 4),
+		__riscv_vle32_v_u32m1((const uint32_t*)(p + hi), 4), 4, 8);
+}
+
+static FORCE_INLINE void store_lane_pair(uint8_t* p, size_t lo, size_t hi, vuint32m1_t v)
+{
+	__riscv_vse32_v_u32m1((uint32_t*)(p + lo), v, 4);
+	__riscv_vse32_v_u32m1((uint32_t*)(p + hi), __riscv_vslidedown_vx_u32m1(v, 4, 4), 4);
+}
+
 static constexpr uint32_t AES_HASH_1R_STATE02[8] = { 0x92b52c0d, 0x9fa856de, 0xcc82db47, 0xd7983aad, 0x6a770017, 0xae62c7d0, 0x5079506b, 0xe8a07ce4 };
 static constexpr uint32_t AES_HASH_1R_STATE13[8] = { 0x338d996e, 0x15c7b798, 0xf59e125a, 0xace78057, 0x630a240c, 0x07ad828d, 0x79a10005, 0x7e994948 };
 
@@ -62,8 +84,8 @@ void hashAes1Rx4_zvkned(const void *input, size_t inputSize, void *hash)
 
 	//process 64 bytes at a time in 4 lanes
 	while (inptr < inputEnd) {
-		state02 = aesenc_zvkned(state02, __riscv_vluxei32_v_u32m1((uint32_t*)inptr + 0, stride, 8));
-		state13 = aesdec_zvkned(state13, __riscv_vluxei32_v_u32m1((uint32_t*)inptr + 4, stride, 8), zero);
+		state02 = aesenc_zvkned(state02, load_lane_pair(inptr,  0, 32));
+		state13 = aesdec_zvkned(state13, load_lane_pair(inptr, 16, 48), zero);
 
 		inptr += 64;
 	}
@@ -85,7 +107,7 @@ void hashAes1Rx4_zvkned(const void *input, size_t inputSize, void *hash)
 
 void fillAes1Rx4_zvkned(void *state, size_t outputSize, void *buffer)
 {
-	const uint8_t* outptr = (uint8_t*)buffer;
+	uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
 
 	const vuint32m1_t key02 = __riscv_vle32_v_u32m1(AES_GEN_1R_KEY02, 8);
@@ -101,8 +123,8 @@ void fillAes1Rx4_zvkned(void *state, size_t outputSize, void *buffer)
 		state02 = aesdec_zvkned(state02, key02, zero);
 		state13 = aesenc_zvkned(state13, key13);
 
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 0, stride, state02, 8);
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 4, stride, state13, 8);
+		store_lane_pair(outptr,  0, 32, state02);
+		store_lane_pair(outptr, 16, 48, state13);
 
 		outptr += 64;
 	}
@@ -113,7 +135,7 @@ void fillAes1Rx4_zvkned(void *state, size_t outputSize, void *buffer)
 
 void fillAes4Rx4_zvkned(void *state, size_t outputSize, void *buffer)
 {
-	const uint8_t* outptr = (uint8_t*)buffer;
+	uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
 
 	const vuint32m1_t stride4 = __riscv_vle32_v_u32m1(AES_HASH_STRIDE_X4, 8);
@@ -142,8 +164,8 @@ void fillAes4Rx4_zvkned(void *state, size_t outputSize, void *buffer)
 		state02 = aesdec_zvkned(state02, key37, zero);
 		state13 = aesenc_zvkned(state13, key37);
 
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 0, stride, state02, 8);
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 4, stride, state13, 8);
+		store_lane_pair(outptr,  0, 32, state02);
+		store_lane_pair(outptr, 16, 48, state13);
 
 		outptr += 64;
 	}
@@ -168,14 +190,16 @@ void hashAndFillAes1Rx4_zvkned(void *scratchpad, size_t scratchpadSize, void *ha
 
 	//process 64 bytes at a time in 4 lanes
 	while (scratchpadPtr < scratchpadEnd) {
-		hash_state02 = aesenc_zvkned(hash_state02, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + 0, stride, 8));
-		hash_state13 = aesdec_zvkned(hash_state13, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + 4, stride, 8), zero);
+		hash_state02 = aesenc_zvkned(hash_state02, load_lane_pair(scratchpadPtr,  0, 32));
+		hash_state13 = aesdec_zvkned(hash_state13, load_lane_pair(scratchpadPtr, 16, 48), zero);
 
 		fill_state02 = aesdec_zvkned(fill_state02, key02, zero);
 		fill_state13 = aesenc_zvkned(fill_state13, key13);
 
-		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + 0, stride, fill_state02, 8);
-		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + 4, stride, fill_state13, 8);
+		// the fill states may only be written after the hash states above have
+		// read the old contents of this block
+		store_lane_pair(scratchpadPtr,  0, 32, fill_state02);
+		store_lane_pair(scratchpadPtr, 16, 48, fill_state13);
 
 		scratchpadPtr += 64;
 	}

@@ -17,9 +17,11 @@
  *   along with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include "backend/cpu/platform/riscv_vlen.h"
 #include "base/tools/String.h"
 #include "3rdparty/fmt/core.h"
 
+#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <string>
@@ -145,6 +147,39 @@ bool has_riscv_aes()
         return desc.has_aes;
     }
     return false;
+}
+
+
+// Reads the vlenb CSR. Only valid once the V extension is known to be present,
+// otherwise it traps. The .option block keeps this assembling even when the
+// translation unit is built without "v" in -march.
+static inline uint32_t read_vlenb()
+{
+    unsigned long vlenb;
+
+    __asm__ volatile(
+        ".option push\n\t"
+        ".option arch, +v\n\t"
+        "vsetvli t0, x0, e8, m1, ta, ma\n\t"
+        "csrr %0, vlenb\n\t"
+        ".option pop"
+        : "=r"(vlenb)
+        :
+        : "t0");
+
+    return static_cast<uint32_t>(vlenb);
+}
+
+
+uint32_t riscv_vlen()
+{
+    static thread_local uint32_t vlen = UINT32_MAX;
+
+    if (vlen == UINT32_MAX) {
+        vlen = has_riscv_vector() ? read_vlenb() * 8 : 0;
+    }
+
+    return vlen;
 }
 
 } // namespace xmrig

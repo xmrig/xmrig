@@ -31,6 +31,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <climits>
 #include <cassert>
 #include "backend/cpu/Cpu.h"
+#include "backend/cpu/platform/riscv_vlen.h"
 #include "crypto/randomx/jit_compiler_rv64.hpp"
 #include "crypto/randomx/jit_compiler_rv64_static.hpp"
 #include "crypto/randomx/jit_compiler_rv64_vector.h"
@@ -645,7 +646,10 @@ namespace randomx {
 		//jal x1, SuperscalarHash
 		emitJump(state, ReturnReg, LiteralPoolSize + offsetFixDataCall, SuperScalarHashOffset);
 
-		if (xmrig::Cpu::info()->hasRISCV_Vector()) {
+		// The vector kernels assume VLMAX >= 4 at e64/LMUL=1. On a smaller vector
+		// unit vl gets clamped and the generated code would compute garbage, so
+		// fall back to the scalar entry points instead.
+		if (xmrig::riscv_vlen() >= xmrig::RISCV_MIN_VLEN) {
 			vectorCodeSize = ((uint8_t*)randomx_riscv64_vector_code_end) - ((uint8_t*)randomx_riscv64_vector_code_begin);
 			vectorCode = static_cast<uint8_t*>(allocExecutableMemory(vectorCodeSize, hugePagesJIT && hugePagesEnable));
 

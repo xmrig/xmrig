@@ -47,6 +47,7 @@ else()
 endif()
 
 if (XMRIG_RISCV)
+    list(APPEND HEADERS_BACKEND_CPU src/backend/cpu/platform/riscv_vlen.h)
     list(APPEND SOURCES_BACKEND_CPU
         src/backend/cpu/platform/lscpu_riscv.cpp
         src/backend/cpu/platform/BasicCpuInfo_riscv.cpp

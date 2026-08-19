@@ -42,6 +42,11 @@
 #endif
 
 
+#ifdef XMRIG_RISCV
+#   include "backend/cpu/platform/riscv_vlen.h"
+#endif
+
+
 namespace xmrig {
 
 
@@ -89,13 +94,28 @@ static void print_cpu(const Config *)
 {
     const auto info = Cpu::info();
 
+#   ifdef XMRIG_RISCV
+    // VLEN is per-hart on RISC-V, so report what the main thread actually sees.
+    char rvv[64] = {};
+    const uint32_t vlen = riscv_vlen();
+    if (vlen >= RISCV_MIN_VLEN) {
+        snprintf(rvv, sizeof(rvv), GREEN_BOLD_S "RVV%u ", vlen);
+    }
+    else if (vlen) {
+        snprintf(rvv, sizeof(rvv), RED_BOLD_S "-RVV%u(too narrow) ", vlen);
+    }
+    else {
+        snprintf(rvv, sizeof(rvv), RED_BOLD_S "-RVV ");
+    }
+#   endif
+
     Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s%s (%zu)") " %s %s%sAES%s",
                "CPU",
                info->brand(),
                info->packages(),
                ICpuInfo::is64bit()    ? GREEN_BOLD("64-bit") : RED_BOLD("32-bit"),
 #ifdef XMRIG_RISCV
-               info->hasRISCV_Vector() ? GREEN_BOLD_S "RVV " : RED_BOLD_S "-RVV ",
+               rvv,
 #else
                "",
 #endif

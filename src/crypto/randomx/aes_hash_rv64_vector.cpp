@@ -69,6 +69,26 @@ static constexpr uint32_t AES_HASH_1R_XKEY11[8] = { 0x61b263d1, 0x51f4e03c, 0xee
 static constexpr uint32_t AES_HASH_STRIDE_X2[8] = { 0, 4, 8, 12, 32, 36, 40, 44 };
 static constexpr uint32_t AES_HASH_STRIDE_X4[8] = { 0, 4, 8, 12, 64, 68, 72, 76 };
 
+/*
+	The four 16-byte AES lanes sit consecutively in memory, but the kernels need
+	them grouped as {0,2} and {1,3}. An indexed access does that in one
+	instruction, but indexed accesses are an order of magnitude slower than
+	unit-stride ones on both SpacemiT cores, so pick the halves up separately and
+	glue them together with a slide instead.
+*/
+static FORCE_INLINE vuint32m1_t load_lane_pair(const uint8_t* p, size_t lo, size_t hi)
+{
+	return __riscv_vslideup_vx_u32m1(
+		__riscv_vle32_v_u32m1((const uint32_t*)(p + lo), 4),
+		__riscv_vle32_v_u32m1((const uint32_t*)(p + hi), 4), 4, 8);
+}
+
+static FORCE_INLINE void store_lane_pair(uint8_t* p, size_t lo, size_t hi, vuint32m1_t v)
+{
+	__riscv_vse32_v_u32m1((uint32_t*)(p + lo), v, 4);
+	__riscv_vse32_v_u32m1((uint32_t*)(p + hi), __riscv_vslidedown_vx_u32m1(v, 4, 4), 4);
+}
+
 #define lutEnc0 lutEnc[0]
 #define lutEnc1 lutEnc[1]
 #define lutEnc2 lutEnc[2]
@@ -101,8 +121,8 @@ void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash) {
 
 	//process 64 bytes at a time in 4 lanes
 	while (inptr < inputEnd) {
-		state02 = softaes_vector_double(state02, __riscv_vluxei32_v_u32m1((uint32_t*)inptr + 0, stride, 8), lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
-		state13 = softaes_vector_double(state13, __riscv_vluxei32_v_u32m1((uint32_t*)inptr + 4, stride, 8), lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
+		state02 = softaes_vector_double(state02, load_lane_pair(inptr,  0, 32), lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
+		state13 = softaes_vector_double(state13, load_lane_pair(inptr, 16, 48), lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
 
 		inptr += 64;
 	}
@@ -123,7 +143,7 @@ void hashAes1Rx4_RVV(const void *input, size_t inputSize, void *hash) {
 }
 
 void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer) {
-	const uint8_t* outptr = (uint8_t*)buffer;
+	uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
 
 	const vuint32m1_t key02 = __riscv_vle32_v_u32m1(AES_GEN_1R_KEY02, 8);
@@ -148,8 +168,8 @@ void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 		state02 = softaes_vector_double(state02, key02, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
 		state13 = softaes_vector_double(state13, key13, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
 
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 0, stride, state02, 8);
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 4, stride, state13, 8);
+		store_lane_pair(outptr,  0, 32, state02);
+		store_lane_pair(outptr, 16, 48, state13);
 
 		outptr += 64;
 	}
@@ -159,7 +179,7 @@ void fillAes1Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 }
 
 void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer) {
-	const uint8_t* outptr = (uint8_t*)buffer;
+	uint8_t* outptr = (uint8_t*)buffer;
 	const uint8_t* outputEnd = outptr + outputSize;
 
 	const vuint32m1_t stride4 = __riscv_vle32_v_u32m1(AES_HASH_STRIDE_X4, 8);
@@ -197,8 +217,8 @@ void fillAes4Rx4_RVV(void *state, size_t outputSize, void *buffer) {
 		state02 = softaes_vector_double(state02, key37, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
 		state13 = softaes_vector_double(state13, key37, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3);
 
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 0, stride, state02, 8);
-		__riscv_vsuxei32_v_u32m1((uint32_t*)outptr + 4, stride, state13, 8);
+		store_lane_pair(outptr,  0, 32, state02);
+		store_lane_pair(outptr, 16, 48, state13);
 
 		outptr += 64;
 	}
@@ -232,14 +252,14 @@ void hashAndFillAes1Rx4_RVV(void *scratchpad, size_t scratchpadSize, void *hash,
 	//process 64 bytes at a time in 4 lanes
 	while (scratchpadPtr < scratchpadEnd) {
 #define HASH_STATE(k) \
-		hash_state02 = softaes_vector_double(hash_state02, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, 8), lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3); \
-		hash_state13 = softaes_vector_double(hash_state13, __riscv_vluxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, 8), lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
+		hash_state02 = softaes_vector_double(hash_state02, load_lane_pair(scratchpadPtr + k * 64,  0, 32), lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3); \
+		hash_state13 = softaes_vector_double(hash_state13, load_lane_pair(scratchpadPtr + k * 64, 16, 48), lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3);
 
 #define FILL_STATE(k) \
 		fill_state02 = softaes_vector_double(fill_state02, key02, lutdec_index0, lutdec_index1, lutdec_index2, lutdec_index3, lutDec0, lutDec1, lutDec2, lutDec3); \
 		fill_state13 = softaes_vector_double(fill_state13, key13, lutenc_index0, lutenc_index1, lutenc_index2, lutenc_index3, lutEnc0, lutEnc1, lutEnc2, lutEnc3); \
-		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 0, stride, fill_state02, 8); \
-		__riscv_vsuxei32_v_u32m1((uint32_t*)scratchpadPtr + k * 16 + 4, stride, fill_state13, 8);
+		store_lane_pair(scratchpadPtr + k * 64,  0, 32, fill_state02); \
+		store_lane_pair(scratchpadPtr + k * 64, 16, 48, fill_state13);
 
 		HASH_STATE(0);
 		HASH_STATE(1);
