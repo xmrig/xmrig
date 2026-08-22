@@ -178,15 +178,128 @@ if (ARM_TARGET AND ARM_TARGET GREATER 6)
 
     message(STATUS "Use ARM_TARGET=${ARM_TARGET} (${CMAKE_SYSTEM_PROCESSOR})")
 
-    if (ARM_TARGET EQUAL 8 AND (CMAKE_CXX_COMPILER_ID MATCHES GNU OR CMAKE_CXX_COMPILER_ID MATCHES Clang))
-        CHECK_CXX_COMPILER_FLAG(-march=armv8-a+crypto XMRIG_ARM_CRYPTO)
+    if (ARM_TARGET EQUAL 8 AND
+        (CMAKE_CXX_COMPILER_ID MATCHES GNU OR CMAKE_CXX_COMPILER_ID MATCHES Clang))
+
+        set(XMRIG_ARM_V9 OFF)
+        set(XMRIG_ARM_V9_NAME "")
+
+        if (NOT CMAKE_CROSSCOMPILING)
+            if (APPLE)
+                execute_process(
+                    COMMAND /usr/sbin/sysctl -n machdep.cpu.brand_string
+                    OUTPUT_VARIABLE XMRIG_ARM_BRAND
+                    OUTPUT_STRIP_TRAILING_WHITESPACE
+                    ERROR_QUIET
+                )
+
+                if (XMRIG_ARM_BRAND MATCHES "^Apple M4")
+                    set(XMRIG_ARM_V9 ON)
+                    set(XMRIG_ARM_V9_NAME "Apple M4")
+                endif()
+            elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+                file(GLOB XMRIG_ARM_MIDR_FILES
+                    "/sys/devices/system/cpu/cpu[0-9]*/regs/identification/midr_el1"
+                )
+
+                set(XMRIG_HAS_CORTEX_A520 OFF)
+                set(XMRIG_HAS_CORTEX_A720 OFF)
+
+                foreach(XMRIG_MIDR_FILE IN LISTS XMRIG_ARM_MIDR_FILES)
+                    if (EXISTS "${XMRIG_MIDR_FILE}")
+                        file(READ "${XMRIG_MIDR_FILE}" XMRIG_MIDR)
+                        string(STRIP "${XMRIG_MIDR}" XMRIG_MIDR)
+                        string(TOLOWER "${XMRIG_MIDR}" XMRIG_MIDR)
+
+                        if (XMRIG_MIDR MATCHES "410fd80[0-9a-f]$")
+                            set(XMRIG_HAS_CORTEX_A520 ON)
+                        elseif (XMRIG_MIDR MATCHES "410fd81[0-9a-f]$")
+                            set(XMRIG_HAS_CORTEX_A720 ON)
+                        endif()
+                    endif()
+                endforeach()
+
+                if (XMRIG_HAS_CORTEX_A520 OR XMRIG_HAS_CORTEX_A720)
+                    set(XMRIG_ARM_V9 ON)
+
+                    if (XMRIG_HAS_CORTEX_A520 AND XMRIG_HAS_CORTEX_A720)
+                        set(XMRIG_ARM_V9_NAME "Cortex-A520/A720")
+                    elseif (XMRIG_HAS_CORTEX_A520)
+                        set(XMRIG_ARM_V9_NAME "Cortex-A520")
+                    else()
+                        set(XMRIG_ARM_V9_NAME "Cortex-A720")
+                    endif()
+                endif()
+            endif()
+        endif()
+
+        if (XMRIG_ARM_V9)
+            CHECK_CXX_COMPILER_FLAG("-mcpu=native" XMRIG_ARM_NATIVE_SUPPORTED)
+
+            if (XMRIG_ARM_NATIVE_SUPPORTED)
+                if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND
+                    XMRIG_HAS_CORTEX_A520 AND
+                    XMRIG_HAS_CORTEX_A720)
+                    set(ARM8_CXX_FLAGS
+                        "-march=armv9.2-a+crypto -mtune=cortex-a720"
+                    )
+                else()
+                    set(ARM8_CXX_FLAGS "-mcpu=native")
+                endif()
+
+                add_definitions(-DXMRIG_ARM_V9)
+
+                message(STATUS
+                    "Detected ARMv9 CPU: ${XMRIG_ARM_V9_NAME}, using ${ARM8_CXX_FLAGS}"
+                )
+            else()
+                message(WARNING
+                    "Detected ARMv9 CPU, but compiler does not support -mcpu=native"
+                )
+            endif()
+        endif()
+
+        if (NOT ARM8_CXX_FLAGS)
+            CHECK_CXX_COMPILER_FLAG(
+                "-march=armv8-a+crypto"
+                XMRIG_ARM_CRYPTO_FLAG
+            )
+
+            if (XMRIG_ARM_CRYPTO_FLAG)
+                set(ARM8_CXX_FLAGS "-march=armv8-a+crypto")
+            else()
+                set(ARM8_CXX_FLAGS "-march=armv8-a")
+            endif()
+        endif()
+
+        set(CMAKE_REQUIRED_FLAGS_SAVE "${CMAKE_REQUIRED_FLAGS}")
+        set(CMAKE_REQUIRED_FLAGS
+            "${CMAKE_REQUIRED_FLAGS} ${ARM8_CXX_FLAGS}"
+        )
+
+        include(CheckCXXSourceCompiles)
+
+        check_cxx_source_compiles("
+            #include <arm_neon.h>
+
+            int main()
+            {
+                uint8x16_t a = vdupq_n_u8(0);
+                uint8x16_t b = vdupq_n_u8(0);
+                a = vaeseq_u8(a, b);
+
+                return vgetq_lane_u8(a, 0);
+            }
+        " XMRIG_ARM_CRYPTO)
+
+        set(CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS_SAVE}")
+        unset(CMAKE_REQUIRED_FLAGS_SAVE)
 
         if (XMRIG_ARM_CRYPTO)
             add_definitions(-DXMRIG_ARM_CRYPTO)
-            set(ARM8_CXX_FLAGS "-march=armv8-a+crypto")
-        else()
-            set(ARM8_CXX_FLAGS "-march=armv8-a")
         endif()
+
+        message(STATUS "ARM compiler flags: ${ARM8_CXX_FLAGS}")
     endif()
 endif()
 
