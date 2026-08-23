@@ -71,12 +71,16 @@ xmrig::CpuWorker<N>::CpuWorker(size_t id, const CpuLaunchData &data) :
     m_assembly(data.assembly),
     m_hwAES(data.hwAES),
     m_yield(data.yield),
+#   ifdef XMRIG_ALGO_CN
     m_av(data.av()),
+#   endif
     m_miner(data.miner),
-    m_threads(data.threads),
-    m_ctx()
+    m_threads(data.threads)
+#   ifdef XMRIG_ALGO_CN
+    ,m_ctx()
+#   endif
 {
-#   ifdef XMRIG_ALGO_CN_HEAVY
+#   if defined(XMRIG_ALGO_CN) && defined(XMRIG_ALGO_CN_HEAVY)
     // cn-heavy optimization for Zen3 CPUs
     const auto arch = Cpu::info()->arch();
     const uint32_t model = Cpu::info()->model();
@@ -110,7 +114,9 @@ xmrig::CpuWorker<N>::~CpuWorker()
     RxVm::destroy(m_vm);
 #   endif
 
+#   ifdef XMRIG_ALGO_CN
     CnCtx::release(m_ctx, N);
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_HEAVY
     if (m_memory != cn_heavyZen3Memory)
@@ -164,7 +170,9 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN
     allocateCnCtx();
+#   endif
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     if (m_algorithm.family() == Algorithm::GHOSTRIDER) {
@@ -172,6 +180,7 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN
     if (m_algorithm.family() == Algorithm::CN) {
         const bool rc = verify(Algorithm::CN_0,      test_output_v0)   &&
                         verify(Algorithm::CN_1,      test_output_v1)   &&
@@ -188,6 +197,7 @@ bool xmrig::CpuWorker<N>::selfTest()
 
         return rc;
     }
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     if (m_algorithm.family() == Algorithm::CN_LITE) {
@@ -341,9 +351,11 @@ void xmrig::CpuWorker<N>::start()
                     break;
 #               endif
 
+#               ifdef XMRIG_ALGO_CN
                 default:
                     fn(job.algorithm())(m_job.blob(), job.size(), m_hash, m_ctx, job.height());
                     break;
+#               endif
                 }
 
                 if (!nextRound()) {
@@ -447,16 +459,20 @@ bool xmrig::CpuWorker<N>::verify(const Algorithm &algorithm, const uint8_t *refe
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_CN
     cn_hash_fun func = fn(algorithm);
     if (!func) {
         return false;
     }
 
     func(test_input, 76, m_hash, m_ctx, 0);
+#   endif
+
     return memcmp(m_hash, referenceValue, sizeof m_hash) == 0;
 }
 
 
+#ifdef XMRIG_ALGO_CN
 template<size_t N>
 bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue)
 {
@@ -482,8 +498,10 @@ bool xmrig::CpuWorker<N>::verify2(const Algorithm &algorithm, const uint8_t *ref
 
     return true;
 }
+#endif
 
 
+#ifdef XMRIG_ALGO_CN
 namespace xmrig {
 
 template<>
@@ -506,8 +524,10 @@ bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceV
 }
 
 } // namespace xmrig
+#endif
 
 
+#ifdef XMRIG_ALGO_CN
 template<size_t N>
 void xmrig::CpuWorker<N>::allocateCnCtx()
 {
@@ -524,6 +544,7 @@ void xmrig::CpuWorker<N>::allocateCnCtx()
         CnCtx::create(m_ctx, m_memory->scratchpad() + shift, m_algorithm.l3(), N);
     }
 }
+#endif
 
 
 template<size_t N>
@@ -551,7 +572,9 @@ void xmrig::CpuWorker<N>::consumeJob()
     else
 #   endif
     {
+#   ifdef XMRIG_ALGO_CN
         allocateCnCtx();
+#   endif
     }
 }
 

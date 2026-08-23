@@ -42,6 +42,7 @@ template<Algorithm::Family FAMILY>
 static inline size_t generate(Threads<CpuThreads> &, uint32_t) { return 0; }
 
 
+#ifdef XMRIG_ALGO_CN
 template<>
 size_t inline generate<Algorithm::CN>(Threads<CpuThreads> &threads, uint32_t limit)
 {
@@ -56,6 +57,7 @@ size_t inline generate<Algorithm::CN>(Threads<CpuThreads> &threads, uint32_t lim
 
     return count;
 }
+#endif
 
 
 #ifdef XMRIG_ALGO_CN_LITE
