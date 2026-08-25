@@ -52,6 +52,8 @@ public:
     enum RequestType {
         REQ_UNKNOWN,
         REQ_SUMMARY,
+        REQ_BACKENDS,
+        REQ_CONFIG,
         REQ_JSON_RPC
     };
 
