@@ -20,7 +20,6 @@
 
 
 #include "backend/opencl/wrappers/AdlLib.h"
-#include "3rdparty/fmt/core.h"
 #include "backend/opencl/wrappers/OclDevice.h"
 
 
@@ -31,6 +30,7 @@
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <fmt/core.h>
 
 
 namespace xmrig {

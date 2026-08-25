@@ -17,7 +17,6 @@
  */
 
 #include "base/net/stratum/benchmark/BenchClient.h"
-#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "backend/common/benchmark/BenchState.h"
 #include "backend/common/interfaces/IBackend.h"
@@ -38,6 +37,8 @@
 #ifdef XMRIG_FEATURE_DMI
 #   include "hw/dmi/DmiReader.h"
 #endif
+
+#include <fmt/core.h>
 
 
 xmrig::BenchClient::BenchClient(const std::shared_ptr<BenchConfig> &benchmark, IClientListener* listener) :

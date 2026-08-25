@@ -17,12 +17,12 @@
  */
 
 #include "base/net/stratum/benchmark/BenchConfig.h"
-#include "3rdparty/fmt/core.h"
 #include "3rdparty/rapidjson/document.h"
 #include "base/io/json/Json.h"
 
 
 #include <string>
+#include <fmt/core.h>
 
 
 #ifdef _MSC_VER
