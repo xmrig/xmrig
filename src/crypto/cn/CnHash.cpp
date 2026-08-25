@@ -55,6 +55,7 @@ bool cn_vaes_enabled = false;
 
 
 #ifdef XMRIG_FEATURE_ASM
+#ifdef XMRIG_FEATURE_ASM_AMD
 #   define ADD_FN_ASM(algo) do {                                                                                    \
         m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
         m_map[algo]->data[AV_SINGLE][Assembly::RYZEN]     = cryptonight_single_hash_asm<algo, Assembly::RYZEN>;     \
@@ -63,34 +64,50 @@ bool cn_vaes_enabled = false;
         m_map[algo]->data[AV_DOUBLE][Assembly::RYZEN]     = cryptonight_double_hash_asm<algo, Assembly::RYZEN>;     \
         m_map[algo]->data[AV_DOUBLE][Assembly::BULLDOZER] = cryptonight_double_hash_asm<algo, Assembly::BULLDOZER>; \
     } while (0)
+#else
+#   define ADD_FN_ASM(algo) do {                                                                                    \
+        m_map[algo]->data[AV_SINGLE][Assembly::INTEL]     = cryptonight_single_hash_asm<algo, Assembly::INTEL>;     \
+        m_map[algo]->data[AV_DOUBLE][Assembly::INTEL]     = cryptonight_double_hash_asm<algo, Assembly::INTEL>;     \
+    } while (0)
+#endif
 
 
 namespace xmrig {
 
 
 cn_mainloop_fun        cn_half_mainloop_ivybridge_asm             = nullptr;
+#ifdef XMRIG_FEATURE_ASM_AMD
 cn_mainloop_fun        cn_half_mainloop_ryzen_asm                 = nullptr;
 cn_mainloop_fun        cn_half_mainloop_bulldozer_asm             = nullptr;
+#endif
 cn_mainloop_fun        cn_half_double_mainloop_sandybridge_asm    = nullptr;
 
 cn_mainloop_fun        cn_trtl_mainloop_ivybridge_asm             = nullptr;
+#ifdef XMRIG_FEATURE_ASM_AMD
 cn_mainloop_fun        cn_trtl_mainloop_ryzen_asm                 = nullptr;
 cn_mainloop_fun        cn_trtl_mainloop_bulldozer_asm             = nullptr;
+#endif
 cn_mainloop_fun        cn_trtl_double_mainloop_sandybridge_asm    = nullptr;
 
 cn_mainloop_fun        cn_tlo_mainloop_ivybridge_asm              = nullptr;
+#ifdef XMRIG_FEATURE_ASM_AMD
 cn_mainloop_fun        cn_tlo_mainloop_ryzen_asm                  = nullptr;
 cn_mainloop_fun        cn_tlo_mainloop_bulldozer_asm              = nullptr;
+#endif
 cn_mainloop_fun        cn_tlo_double_mainloop_sandybridge_asm     = nullptr;
 
 cn_mainloop_fun        cn_zls_mainloop_ivybridge_asm              = nullptr;
+#ifdef XMRIG_FEATURE_ASM_AMD
 cn_mainloop_fun        cn_zls_mainloop_ryzen_asm                  = nullptr;
 cn_mainloop_fun        cn_zls_mainloop_bulldozer_asm              = nullptr;
+#endif
 cn_mainloop_fun        cn_zls_double_mainloop_sandybridge_asm     = nullptr;
 
 cn_mainloop_fun        cn_double_mainloop_ivybridge_asm           = nullptr;
+#ifdef XMRIG_FEATURE_ASM_AMD
 cn_mainloop_fun        cn_double_mainloop_ryzen_asm               = nullptr;
 cn_mainloop_fun        cn_double_mainloop_bulldozer_asm           = nullptr;
+#endif
 cn_mainloop_fun        cn_double_double_mainloop_sandybridge_asm  = nullptr;
 
 cn_mainloop_fun        cn_upx2_mainloop_asm                       = nullptr;
@@ -160,31 +177,41 @@ static void patchAsmVariants()
     auto base = static_cast<uint8_t *>(VirtualMemory::allocateExecutableMemory(allocation_size, false));
 
     cn_half_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x0000);
+#   ifdef XMRIG_FEATURE_ASM_AMD
     cn_half_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x1000);
     cn_half_mainloop_bulldozer_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x2000);
+#   endif
     cn_half_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_fun>         (base + 0x3000);
 
 #   ifdef XMRIG_ALGO_CN_PICO
     cn_trtl_mainloop_ivybridge_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x4000);
+#   ifdef XMRIG_FEATURE_ASM_AMD
     cn_trtl_mainloop_ryzen_asm                  = reinterpret_cast<cn_mainloop_fun>         (base + 0x5000);
     cn_trtl_mainloop_bulldozer_asm              = reinterpret_cast<cn_mainloop_fun>         (base + 0x6000);
+#   endif
     cn_trtl_double_mainloop_sandybridge_asm     = reinterpret_cast<cn_mainloop_fun>         (base + 0x7000);
 #   endif
 
     cn_zls_mainloop_ivybridge_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x8000);
+#   ifdef XMRIG_FEATURE_ASM_AMD
     cn_zls_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x9000);
     cn_zls_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0xA000);
+#   endif
     cn_zls_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0xB000);
 
     cn_double_mainloop_ivybridge_asm            = reinterpret_cast<cn_mainloop_fun>         (base + 0xC000);
+#   ifdef XMRIG_FEATURE_ASM_AMD
     cn_double_mainloop_ryzen_asm                = reinterpret_cast<cn_mainloop_fun>         (base + 0xD000);
     cn_double_mainloop_bulldozer_asm            = reinterpret_cast<cn_mainloop_fun>         (base + 0xE000);
+#   endif
     cn_double_double_mainloop_sandybridge_asm   = reinterpret_cast<cn_mainloop_fun>         (base + 0xF000);
 
 #   ifdef XMRIG_ALGO_CN_PICO
     cn_tlo_mainloop_ivybridge_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x10000);
+#   ifdef XMRIG_FEATURE_ASM_AMD
     cn_tlo_mainloop_ryzen_asm                   = reinterpret_cast<cn_mainloop_fun>         (base + 0x11000);
     cn_tlo_mainloop_bulldozer_asm               = reinterpret_cast<cn_mainloop_fun>         (base + 0x12000);
+#   endif
     cn_tlo_double_mainloop_sandybridge_asm      = reinterpret_cast<cn_mainloop_fun>         (base + 0x13000);
 #   endif
 
@@ -220,8 +247,10 @@ static void patchAsmVariants()
         constexpr uint32_t ITER = CnAlgo<Algorithm::CN_HALF>().iterations();
 
         patchCode(cn_half_mainloop_ivybridge_asm,            cnv2_mainloop_ivybridge_asm,           ITER);
+#       ifdef XMRIG_FEATURE_ASM_AMD
         patchCode(cn_half_mainloop_ryzen_asm,                cnv2_mainloop_ryzen_asm,               ITER);
         patchCode(cn_half_mainloop_bulldozer_asm,            cnv2_mainloop_bulldozer_asm,           ITER);
+#       endif
         patchCode(cn_half_double_mainloop_sandybridge_asm,   cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
@@ -231,8 +260,10 @@ static void patchAsmVariants()
         constexpr uint32_t MASK = CnAlgo<Algorithm::CN_PICO_0>().mask();
 
         patchCode(cn_trtl_mainloop_ivybridge_asm,            cnv2_mainloop_ivybridge_asm,           ITER,   MASK);
+#       ifdef XMRIG_FEATURE_ASM_AMD
         patchCode(cn_trtl_mainloop_ryzen_asm,                cnv2_mainloop_ryzen_asm,               ITER,   MASK);
         patchCode(cn_trtl_mainloop_bulldozer_asm,            cnv2_mainloop_bulldozer_asm,           ITER,   MASK);
+#       endif
         patchCode(cn_trtl_double_mainloop_sandybridge_asm,   cnv2_double_mainloop_sandybridge_asm,  ITER,   MASK);
     }
 
@@ -241,8 +272,10 @@ static void patchAsmVariants()
         constexpr uint32_t MASK = CnAlgo<Algorithm::CN_PICO_TLO>().mask();
 
         patchCode(cn_tlo_mainloop_ivybridge_asm,             cnv2_mainloop_ivybridge_asm,           ITER,   MASK);
+#       ifdef XMRIG_FEATURE_ASM_AMD
         patchCode(cn_tlo_mainloop_ryzen_asm,                 cnv2_mainloop_ryzen_asm,               ITER,   MASK);
         patchCode(cn_tlo_mainloop_bulldozer_asm,             cnv2_mainloop_bulldozer_asm,           ITER,   MASK);
+#       endif
         patchCode(cn_tlo_double_mainloop_sandybridge_asm,    cnv2_double_mainloop_sandybridge_asm,  ITER,   MASK);
     }
 #   endif
@@ -251,8 +284,10 @@ static void patchAsmVariants()
         constexpr uint32_t ITER = CnAlgo<Algorithm::CN_ZLS>().iterations();
 
         patchCode(cn_zls_mainloop_ivybridge_asm,             cnv2_mainloop_ivybridge_asm,           ITER);
+#       ifdef XMRIG_FEATURE_ASM_AMD
         patchCode(cn_zls_mainloop_ryzen_asm,                 cnv2_mainloop_ryzen_asm,               ITER);
         patchCode(cn_zls_mainloop_bulldozer_asm,             cnv2_mainloop_bulldozer_asm,           ITER);
+#       endif
         patchCode(cn_zls_double_mainloop_sandybridge_asm,    cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
@@ -260,8 +295,10 @@ static void patchAsmVariants()
         constexpr uint32_t ITER = CnAlgo<Algorithm::CN_DOUBLE>().iterations();
 
         patchCode(cn_double_mainloop_ivybridge_asm,          cnv2_mainloop_ivybridge_asm,           ITER);
+#       ifdef XMRIG_FEATURE_ASM_AMD
         patchCode(cn_double_mainloop_ryzen_asm,              cnv2_mainloop_ryzen_asm,               ITER);
         patchCode(cn_double_mainloop_bulldozer_asm,          cnv2_mainloop_bulldozer_asm,           ITER);
+#       endif
         patchCode(cn_double_double_mainloop_sandybridge_asm, cnv2_double_mainloop_sandybridge_asm,  ITER);
     }
 
