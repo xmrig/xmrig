@@ -38,7 +38,7 @@ public:
     ~HwlocCpuInfo() override;
 
 protected:
-    bool membind(hwloc_const_bitmap_t nodeset) override;
+    int8_t membind(hwloc_const_bitmap_t nodeset) override;
     CpuThreads threads(const Algorithm &algorithm, uint32_t limit) const override;
 
     inline const char *backend() const override                     { return m_backend; }
