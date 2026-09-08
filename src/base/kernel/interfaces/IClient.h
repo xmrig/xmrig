@@ -49,6 +49,8 @@ public:
         EXT_CONNECT,
         EXT_TLS,
         EXT_KEEPALIVE,
+        EXT_MO_NATIVE,
+        EXT_SUBMIT_RESULT,
         EXT_MAX
     };
 

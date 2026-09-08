@@ -41,6 +41,11 @@ namespace xmrig {
 class Job
 {
 public:
+    enum SubmitMode : uint8_t {
+        SUBMIT_DEFAULT,
+        SUBMIT_ETH
+    };
+
     // Max blob size is 84 (75 fixed + 9 variable), aligned to 96. https://github.com/xmrig/xmrig/issues/1 Thanks fireice-uk.
     // SECOR increase requirements for blob size: https://github.com/xmrig/xmrig/issues/913
     // Haven (XHV) offshore increases requirements by adding pricing_record struct (192 bytes) to block_header.
@@ -74,6 +79,7 @@ public:
     inline const String &extraNonce() const             { return m_extraNonce; }
     inline const String &id() const                     { return m_id; }
     inline const String &poolWallet() const             { return m_poolWallet; }
+    inline SubmitMode submitMode() const                { return m_submitMode; }
     inline const uint32_t *nonce() const                { return reinterpret_cast<const uint32_t*>(m_blob + nonceOffset()); }
     inline const uint8_t *blob() const                  { return m_blob; }
     inline size_t nonceSize() const                     { return (algorithm().family() == Algorithm::KAWPOW) ?  8 :  4; }
@@ -82,7 +88,13 @@ public:
     inline uint32_t backend() const                     { return m_backend; }
     inline uint64_t diff() const                        { return m_diff; }
     inline uint64_t height() const                      { return m_height; }
-    inline uint64_t nonceMask() const                   { return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4)) : 0xFFFFFFFFULL); }
+    inline uint64_t nonceMask() const {
+        if (submitMode() == SUBMIT_ETH && nonceSize() == sizeof(uint64_t)) {
+            return static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4);
+        }
+
+        return isNicehash() ? 0xFFFFFFULL : (nonceSize() == sizeof(uint64_t) ? (static_cast<uint64_t>(-1LL) >> (extraNonce().size() * 4)) : 0xFFFFFFFFULL);
+    }
     inline uint64_t target() const                      { return m_target; }
     inline uint8_t *blob()                              { return m_blob; }
     inline uint8_t fixedByte() const                    { return *(m_blob + 42); }
@@ -96,6 +108,7 @@ public:
     inline void setHeight(uint64_t height)              { m_height = height; }
     inline void setIndex(uint8_t index)                 { m_index = index; }
     inline void setPoolWallet(const String &poolWallet) { m_poolWallet = poolWallet; }
+    inline void setSubmitMode(SubmitMode mode)          { m_submitMode = mode; }
 
 #   ifdef XMRIG_PROXY_PROJECT
     inline char *rawBlob()                              { return m_rawBlob; }
@@ -161,6 +174,7 @@ private:
     uint64_t m_target   = 0;
     uint8_t m_blob[kMaxBlobSize]{ 0 };
     uint8_t m_index     = 0;
+    SubmitMode m_submitMode = SUBMIT_DEFAULT;
 
 #   ifdef XMRIG_PROXY_PROJECT
     char m_rawBlob[kMaxBlobSize * 2 + 8]{};

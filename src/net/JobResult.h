@@ -50,6 +50,7 @@ public:
         index(job.index()),
         clientId(job.clientId()),
         jobId(job.id()),
+        submitMode(job.submitMode()),
         backend(job.backend()),
         nonce(nonce),
         diff(job.diff())
@@ -81,6 +82,7 @@ public:
         index(job.index()),
         clientId(job.clientId()),
         jobId(job.id()),
+        submitMode(job.submitMode()),
         backend(job.backend()),
         nonce(0),
         diff(0)
@@ -100,6 +102,7 @@ public:
     const uint8_t index;
     const String clientId;
     const String jobId;
+    const Job::SubmitMode submitMode;
     const uint32_t backend;
     const uint64_t nonce;
     const uint64_t diff;

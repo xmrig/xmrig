@@ -81,6 +81,7 @@ protected:
     inline void onLine(char *line, size_t size) override                    { parse(line, size); }
 
     inline const char *agent() const                                        { return m_agent; }
+    inline bool hasNotificationAlgo() const                                 { return m_hasNotificationAlgo; }
     inline const char *url() const                                          { return m_pool.url(); }
     inline const String &rpcId() const                                      { return m_rpcId; }
     inline void setRpcId(const char *id)                                    { m_rpcId = id; }
@@ -89,6 +90,7 @@ protected:
     virtual bool parseLogin(const rapidjson::Value &result, int *code);
     virtual void login();
     virtual void parseNotification(const char* method, const rapidjson::Value& params, const rapidjson::Value& error);
+    void parseExtensions(const rapidjson::Value &result);
 
     bool close();
     virtual void onClose();
@@ -106,7 +108,6 @@ private:
     void connect(const sockaddr *addr);
     void handshake();
     void parse(char *line, size_t len);
-    void parseExtensions(const rapidjson::Value &result);
     void parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     void ping();
     void read(ssize_t nread, const uv_buf_t *buf);
@@ -140,6 +141,7 @@ private:
     uint64_t m_keepAlive        = 0;
     uintptr_t m_key             = 0;
     uv_tcp_t *m_socket          = nullptr;
+    bool m_hasNotificationAlgo  = false;
 
     static Storage<Client> m_storage;
 };

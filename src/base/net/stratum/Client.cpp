@@ -708,6 +708,20 @@ void xmrig::Client::parse(char *line, size_t len)
     const auto &error = Json::getValue(doc, "error");
     const char *method = Json::getString(doc, "method");
 
+    // MoneroOcean native notifications identify the active family at the
+    // envelope level.  Keep the pool's algorithm current before the native
+    // parser selects its job layout; generic object jobs still carry their
+    // own algorithm in params and are parsed by parseJob.
+    m_hasNotificationAlgo = false;
+    if (method) {
+        const char *algo = Json::getString(doc, "algo");
+        if (algo) {
+            m_hasNotificationAlgo = true;
+            const Algorithm notificationAlgo(algo);
+            setAlgo(notificationAlgo);
+        }
+    }
+
     if (method && strcmp(method, "client.reconnect") == 0) {
         const auto &params = Json::getValue(doc, "params");
         if (!params.IsArray()) {
@@ -797,6 +811,12 @@ void xmrig::Client::parseExtensions(const rapidjson::Value &result)
         else if (strcmp(name, "keepalive") == 0) {
             setExtension(EXT_KEEPALIVE, true);
             startTimeout();
+        }
+        else if (strcmp(name, "mo-native") == 0) {
+            setExtension(EXT_MO_NATIVE, true);
+        }
+        else if (strcmp(name, "submit-result") == 0) {
+            setExtension(EXT_SUBMIT_RESULT, true);
         }
 #       ifdef XMRIG_FEATURE_TLS
         else if (strcmp(name, "tls") == 0) {

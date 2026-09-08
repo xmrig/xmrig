@@ -42,6 +42,8 @@ bool xmrig::AutoClient::handleResponse(int64_t id, const rapidjson::Value &resul
 
 bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 {
+    m_mode = DEFAULT_MODE;
+
     if (result.HasMember("job")) {
         return Client::parseLogin(result, code);
     }
@@ -51,6 +53,10 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
         *code = 1;
         return false;
     }
+
+    // Native MO login replies carry the negotiated extension set alongside
+    // the initial algorithm and nonce metadata.
+    parseExtensions(result);
 
     const Algorithm algo(Json::getString(result, "algo"));
     if (algo.family() != Algorithm::KAWPOW && algo.family() != Algorithm::GHOSTRIDER) {
@@ -80,29 +86,28 @@ bool xmrig::AutoClient::parseLogin(const rapidjson::Value &result, int *code)
 
 int64_t xmrig::AutoClient::submit(const JobResult &result)
 {
-    // MoneroOcean: only fork ETH mode uses Ethereum submit framing; default jobs stay on plain stratum.
-    if (m_mode == DEFAULT_MODE) {
+    // The job owns its framing.  A later pool notification may already have
+    // switched the client mode while an earlier share is still queued.
+    if (result.submitMode != Job::SUBMIT_ETH) {
         return Client::submit(result); // NOLINT(bugprone-parent-virtual-call)
     }
-
-    if (result.algorithm.family() != Algorithm::KAWPOW && result.algorithm.family() != Algorithm::GHOSTRIDER) {
-        return Client::submit(result); // NOLINT(bugprone-parent-virtual-call)
-    }
-
-    // End MoneroOcean
     return EthStratumClient::submit(result);
 }
 
 
 void xmrig::AutoClient::parseNotification(const char *method, const rapidjson::Value &params, const rapidjson::Value &error)
 {
-    // MoneroOcean: pools can switch between plain stratum jobs and Ethereum-style jobs.
+    // MoneroOcean: pools can switch between plain stratum jobs and
+    // Ethereum-style jobs.  Control notifications update framing state only;
+    // the native job notification is the family boundary.
     if (strcmp(method, "job") == 0) {
         m_mode = DEFAULT_MODE;
         return Client::parseNotification(method, params, error); // NOLINT(bugprone-parent-virtual-call)
     }
 
-    m_mode = ETH_MODE;
+    if (strcmp(method, "mining.notify") == 0) {
+        m_mode = ETH_MODE;
+    }
     // End MoneroOcean
     return EthStratumClient::parseNotification(method, params, error);
 }

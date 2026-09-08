@@ -226,6 +226,17 @@ void xmrig::Network::onLogin(IStrategy *, IClient *client, rapidjson::Document &
     if (algo_min_time > 0) {
         params.AddMember("algo-min-time", algo_min_time, allocator);
     }
+
+#       ifdef XMRIG_ALGO_KAWPOW
+    if (std::any_of(algorithms.begin(), algorithms.end(), [](const Algorithm &a) {
+        return a.family() == Algorithm::KAWPOW;
+    })) {
+        Value extensions(kArrayType);
+        extensions.PushBack(StringRef("mo-native"), allocator);
+        extensions.PushBack(StringRef("submit-result"), allocator);
+        params.AddMember("extensions", extensions, allocator);
+    }
+#       endif
     // End MoneroOcean
 #   endif
 }

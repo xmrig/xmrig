@@ -46,7 +46,7 @@ xmrig::Job::Job(bool nicehash, const Algorithm &algorithm, const String &clientI
 
 bool xmrig::Job::isEqual(const Job &other) const
 {
-    return m_id == other.m_id && m_clientId == other.m_clientId && isEqualBlob(other) && m_target == other.m_target;
+    return m_id == other.m_id && m_clientId == other.m_clientId && isEqualBlob(other) && m_target == other.m_target && m_submitMode == other.m_submitMode;
 }
 
 
@@ -243,6 +243,7 @@ void xmrig::Job::copy(const Job &other)
     m_seed       = other.m_seed;
     m_extraNonce = other.m_extraNonce;
     m_poolWallet = other.m_poolWallet;
+    m_submitMode = other.m_submitMode;
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 
@@ -295,6 +296,7 @@ void xmrig::Job::move(Job &&other)
     m_seed       = std::move(other.m_seed);
     m_extraNonce = std::move(other.m_extraNonce);
     m_poolWallet = std::move(other.m_poolWallet);
+    m_submitMode = other.m_submitMode;
 
     memcpy(m_blob, other.m_blob, sizeof(m_blob));
 

@@ -33,6 +33,7 @@
 #include "base/io/json/JsonRequest.h"
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IClientListener.h"
+#include "base/tools/Cvt.h"
 #include "net/JobResult.h"
 
 #ifdef XMRIG_ALGO_GHOSTRIDER
@@ -45,7 +46,6 @@ extern "C" {
 #include "crypto/ghostrider/sph_sha2.h"
 }
 
-#include "base/tools/Cvt.h"
 #endif
 
 
@@ -82,7 +82,7 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
     // MoneroOcean: Flex/KCN shares GhostRider Ethereum-style submit framing.
-    if (m_pool.algorithm().family() == Algorithm::GHOSTRIDER) {
+    if (result.algorithm.family() == Algorithm::GHOSTRIDER) {
         params.PushBack(Value("00000000000000000000000000000000", static_cast<uint32_t>(m_extraNonce2Size * 2)), allocator);
         params.PushBack(Value(m_ntime.data(), allocator), allocator);
 
@@ -116,6 +116,14 @@ int64_t xmrig::EthStratumClient::submit(const JobResult& result)
     }
 
     JsonRequest::create(doc, m_sequence, "mining.submit", params);
+
+    // MoneroOcean can validate a final PoW hash for native jobs when the
+    // optional result extension was negotiated.  Keep native params exactly
+    // as established by the upstream ETH variant and add only the optional
+    // envelope field.
+    if (hasExtension(EXT_SUBMIT_RESULT) && result.submitMode == Job::SUBMIT_ETH) {
+        doc.AddMember("result", Cvt::toHex(result.result(), 32, doc), allocator);
+    }
 
     uint64_t actual_diff;
 
@@ -242,8 +250,14 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         auto arr = params.GetArray();
 
         auto algo = m_pool.algorithm();
-        if (!algo.isValid()) {
+        if (!algo.isValid() && !hasNotificationAlgo()) {
             algo = m_pool.coin().algorithm();
+        }
+
+        if (!algo.isValid() || (algo.family() != Algorithm::KAWPOW && algo.family() != Algorithm::GHOSTRIDER)) {
+            LOG_ERR("%s " RED("invalid native mining.notify algorithm"), tag());
+            close();
+            return;
         }
 
         // MoneroOcean: Flex/KCN keeps GhostRider-family notify framing.
@@ -264,6 +278,7 @@ void xmrig::EthStratumClient::parseNotification(const char *method, const rapidj
         job.setId(arr[0].GetString());
 
         job.setAlgorithm(algo);
+        job.setSubmitMode(Job::SUBMIT_ETH);
         job.setExtraNonce(m_extraNonce.second);
 
         std::stringstream s;
