@@ -60,6 +60,7 @@ public:
     bool isEqualBlob(const Job &other) const;
     bool setBlob(const char *blob);
     bool setSeedHash(const char *hash);
+    bool setSeedRaw(const uint8_t *data, size_t size);
     bool setTarget(const char *target);
     size_t nonceOffset() const;
     void setDiff(uint64_t diff);
