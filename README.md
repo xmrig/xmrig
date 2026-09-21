@@ -35,6 +35,47 @@ on `127.0.0.1:9050` before starting XMRig. The pool entry must contain
 `"socks5": "socks5://127.0.0.1:9050"`; XMRig cannot resolve `.onion` names
 through ordinary DNS.
 
+Use this configuration as `config.json` beside the miner executable:
+
+```json
+{
+    "autosave": true,
+    "background": false,
+    "cpu": {
+        "enabled": true,
+        "huge-pages": true,
+        "yield": true,
+        "max-threads-hint": 100
+    },
+    "opencl": { "enabled": false },
+    "cuda": { "enabled": false },
+    "donate-level": 1,
+    "pools": [
+        {
+            "algo": "rx/tkm",
+            "coin": "TKM",
+            "url": "4aof7abdduh4vftejgdpdfqeosvxxco3xmpu4uqypnpdbi7wjuzfqhqd.onion:33330",
+            "user": "YOUR_TKM_WALLET_ADDRESS",
+            "pass": "x",
+            "rig-id": "worker-1",
+            "keepalive": true,
+            "tls": false,
+            "socks5": "socks5://127.0.0.1:9050"
+        }
+    ],
+    "print-time": 60,
+    "retries": 5,
+    "retry-pause": 5,
+    "watch": true
+}
+```
+
+`user` is the TKM payout address, not a password or a private key. Never put a
+seed, passphrase, viewing key, or Shield3 payment code in this field. The pool
+uses the submitted RandomX shares to credit that payout address. The `socks5`
+setting is required: without it the miner will try ordinary DNS and fail with
+`unknown node or service` for the onion hostname.
+
 Run the miner from the directory containing the executable and config:
 
 ```sh
