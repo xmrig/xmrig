@@ -60,7 +60,7 @@ public:
     static bool isOneGbPagesAvailable();
     static bool protectRW(void *p, size_t size);
     static bool protectRWX(void *p, size_t size);
-    static bool protectRX(void *p, size_t size);
+    static bool protectRX(void *p, size_t size, bool flushICache = true);
     static uint32_t bindToNUMANode(int64_t affinity);
     static void *allocateExecutableMemory(size_t size, bool hugePages);
     static void *allocateLargePagesMemory(size_t size);

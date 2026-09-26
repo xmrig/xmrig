@@ -126,7 +126,7 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+bool xmrig::VirtualMemory::protectRX(void *p, size_t size, bool flushICache)
 {
     bool result = true;
 
@@ -137,7 +137,9 @@ bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 #   endif
 
 #   if defined(XMRIG_ARM)
-    flushInstructionCache(p, size);
+    if (flushICache) {
+        flushInstructionCache(p, size);
+    }
 #   endif
 
     return result;
