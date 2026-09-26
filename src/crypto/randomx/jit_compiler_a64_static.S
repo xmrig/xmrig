@@ -353,10 +353,14 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 	#
 	# Same applies to all Apple silicon CPUs
 
-	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
-	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
-	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
-	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
+	aese	v16.16b, v28.16b
+	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
+	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
+	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
+	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v20.16b
 	eor	v17.16b, v17.16b, v20.16b
@@ -365,10 +369,14 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e1), f1 = aesdec(f1, e1), f2 = aesenc(f2, e1), f3 = aesdec(f3, e1)
 
-	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
-	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
-	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
-	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
+	aese	v16.16b, v28.16b
+	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
+	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
+	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
+	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v21.16b
 	eor	v17.16b, v17.16b, v21.16b
@@ -377,10 +385,14 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e2), f1 = aesdec(f1, e2), f2 = aesenc(f2, e2), f3 = aesdec(f3, e2)
 
-	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
-	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
-	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
-	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
+	aese	v16.16b, v28.16b
+	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
+	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
+	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
+	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v22.16b
 	eor	v17.16b, v17.16b, v22.16b
@@ -389,10 +401,14 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e3), f1 = aesdec(f1, e3), f2 = aesenc(f2, e3), f3 = aesdec(f3, e3)
 
-	aese	v16.16b, v28.16b; aesmc	 v16.16b, v16.16b
-	aesd	v17.16b, v28.16b; aesimc v17.16b, v17.16b
-	aese	v18.16b, v28.16b; aesmc  v18.16b, v18.16b
-	aesd	v19.16b, v28.16b; aesimc v19.16b, v19.16b
+	aese	v16.16b, v28.16b
+	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
+	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
+	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
+	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v23.16b
 	eor	v17.16b, v17.16b, v23.16b
