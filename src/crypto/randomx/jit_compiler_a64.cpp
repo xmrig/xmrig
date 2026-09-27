@@ -160,6 +160,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	const uint32_t offset = (((uint8_t*)randomx_program_aarch64_vm_instructions_end) - ((uint8_t*)randomx_program_aarch64)) - codePos;
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
 
+	generatedProgramEnd = codePos;
+
 	mask = ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10);
 	// and w20, w20, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_cacheline_align_mask1) - ((uint8_t*)randomx_program_aarch64));
@@ -211,8 +213,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 		memcpy(code + dst, code + src, 16);
 	}
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
@@ -268,6 +270,8 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	const uint32_t offset = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light) - ((uint8_t*)randomx_program_aarch64)) - codePos;
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
 
+	generatedProgramEnd = codePos;
+
 	// and w2, w2, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_light_cacheline_align_mask) - ((uint8_t*)randomx_program_aarch64));
 	emit32(0x121A0000 | 2 | (2 << 5) | ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10), code, codePos);
@@ -312,14 +316,16 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_LO | 2 | (2 << 5) | (imm_lo << 10), code, codePos);
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
 template<size_t N>
 void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
+	alwaysFlushWholeAllocation = true;
+
 	if (!allocatedSize) {
 		allocate(CodeSize + CalcDatasetItemSize());
 	}
@@ -439,8 +445,8 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 	memcpy(code + codePos, p1, p2 - p1);
 	codePos += p2 - p1;
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
@@ -467,7 +473,27 @@ void JitCompilerA64::enableWriting() const
 
 void JitCompilerA64::enableExecution() const
 {
-	xmrig::VirtualMemory::protectRX(code, allocatedSize);
+	if (xmrig::VirtualMemory::protectRX(code, allocatedSize, false)) {
+		flushInstructionCache();
+	}
+}
+
+
+void JitCompilerA64::flushInstructionCache() const
+{
+	const size_t reservedLiteralsBegin = ImulRcpLiteralsEnd - 12 * sizeof(uint64_t);
+	const size_t suffixBegin = literalPos < reservedLiteralsBegin ? literalPos : reservedLiteralsBegin;
+	if (initialCacheFlushDone && !alwaysFlushWholeAllocation &&
+		allocatedSize == CodeSize && generatedProgramEnd >= PrologueSize &&
+		generatedProgramEnd < suffixBegin && suffixBegin >= PrologueSize &&
+		suffixBegin <= allocatedSize && literalPos <= ImulRcpLiteralsEnd) {
+		xmrig::VirtualMemory::flushInstructionCache(code, generatedProgramEnd);
+		xmrig::VirtualMemory::flushInstructionCache(code + suffixBegin, allocatedSize - suffixBegin);
+	}
+	else {
+		xmrig::VirtualMemory::flushInstructionCache(code, allocatedSize);
+		initialCacheFlushDone = true;
+	}
 }
 
 
@@ -476,11 +502,10 @@ void JitCompilerA64::allocate(size_t size)
 	allocatedSize = size;
 	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
 
-	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+	initialCacheFlushDone = false;
+	generatedProgramEnd = 0;
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), CodeSize);
-#	endif
+	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
 }
 
 
