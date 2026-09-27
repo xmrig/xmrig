@@ -193,9 +193,9 @@ if (ARM_TARGET AND ARM_TARGET GREATER 6)
                     ERROR_QUIET
                 )
 
-                if (XMRIG_ARM_BRAND MATCHES "^Apple M4")
+                if (XMRIG_ARM_BRAND MATCHES "^Apple M([4-9]|[1-9][0-9]+)$")
                     set(XMRIG_ARM_V9 ON)
-                    set(XMRIG_ARM_V9_NAME "Apple M4")
+                    set(XMRIG_ARM_V9_NAME "${XMRIG_ARM_BRAND}")
                 endif()
             elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
                 file(GLOB XMRIG_ARM_MIDR_FILES
