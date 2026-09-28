@@ -117,9 +117,11 @@ xmrig::String xmrig::Threads<T>::profileName(const Algorithm &algorithm, bool st
         return String();
     }
 
+#ifdef XMRIG_ALGO_CN
     if (algorithm.family() == Algorithm::CN && algorithm.base() == Algorithm::CN_2 && has(Algorithm::kCN_2)) {
         return Algorithm::kCN_2;
     }
+#endif
 
     if (name.contains("/")) {
         String base = name.split('/').at(0);
