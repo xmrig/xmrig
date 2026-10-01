@@ -246,6 +246,10 @@ int64_t xmrig::Client::submit(const JobResult &result)
         params.AddMember("algo", StringRef(result.algorithm.name()), allocator);
     }
 
+    if (result.algorithm == Algorithm::RX_TKM) {
+        LOG_INFO("TKM share submit id=%llu job=%s nonce=%s result=%s", static_cast<unsigned long long>(m_sequence), result.jobId.data(), nonce, data);
+    }
+
     JsonRequest::create(doc, m_sequence, "submit", params);
 
 #   ifdef XMRIG_PROXY_PROJECT

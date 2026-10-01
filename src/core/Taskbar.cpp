@@ -21,8 +21,8 @@
 #ifdef _WIN32
 
 
-#include <Shobjidl.h>
-#include <Objbase.h>
+#include <shobjidl.h>
+#include <objbase.h>
 
 
 namespace xmrig {

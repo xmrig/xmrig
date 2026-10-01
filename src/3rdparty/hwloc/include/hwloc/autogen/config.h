@@ -34,7 +34,7 @@
 #define hwloc_thread_t HANDLE
 
 #include <windows.h>
-#include <BaseTsd.h>
+#include <basetsd.h>
 typedef DWORDLONG hwloc_uint64_t;
 
 #if defined( _USRDLL ) /* dynamic linkage */

@@ -1,0 +1,109 @@
+name: Release
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  cross:
+    runs-on: ubuntu-24.04
+    container: debian:trixie
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {platform: linux, arch: x86, compiler: g++-i686-linux-gnu}
+          - {platform: linux, arch: x64, compiler: g++}
+          - {platform: linux, arch: armv7, compiler: g++-arm-linux-gnueabihf}
+          - {platform: linux, arch: armv8, compiler: g++-aarch64-linux-gnu}
+          - {platform: linux, arch: riscv64, compiler: g++-riscv64-linux-gnu}
+          - {platform: windows, arch: x86, compiler: g++-mingw-w64-i686-posix}
+          - {platform: windows, arch: x64, compiler: g++-mingw-w64-x86-64-posix}
+    steps:
+      - name: Install build tools
+        env:
+          COMPILER: ${{ matrix.compiler }}
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends ca-certificates curl git cmake make perl file zip g++ "$COMPILER"
+      - uses: actions/checkout@v4
+      - name: Cross compile
+        env:
+          PLATFORM: ${{ matrix.platform }}
+          ARCH: ${{ matrix.arch }}
+        run: bash scripts/release-build.sh "$PLATFORM" "$ARCH"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xmrig-${{ matrix.platform }}-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - {runner: macos-15-intel, arch: x64}
+          - {runner: macos-15, arch: armv8}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build with Apple SDK
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: bash scripts/release-build.sh macos "$ARCH"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xmrig-macos-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+  android:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x86, x64, armv7, armv8]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install Android NDK r27c
+        run: |
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'ndk;27.2.12479018'
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.2.12479018" >> "$GITHUB_ENV"
+      - name: Cross compile Android executable
+        env:
+          ARCH: ${{ matrix.arch }}
+        run: bash scripts/release-build.sh android "$ARCH"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: xmrig-android-${{ matrix.arch }}
+          path: dist/*
+          if-no-files-found: error
+  publish:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: [cross, macos, android]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Generate checksums and publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          cd dist
+          sha256sum *.tar.gz *.zip > SHA256SUMS
+          if ! gh release view "$TAG" >/dev/null 2>&1; then
+            gh release create "$TAG" --verify-tag --title "XMRig $TAG" --generate-notes
+          fi
+          gh release upload "$TAG" ./* --clobber
