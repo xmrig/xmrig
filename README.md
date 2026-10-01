@@ -70,11 +70,19 @@ Use this configuration as `config.json` beside the miner executable:
 }
 ```
 
-`user` is the TKM payout address, not a password or a private key. Never put a
-seed, passphrase, viewing key, or Shield3 payment code in this field. The pool
-uses the submitted RandomX shares to credit that payout address. The `socks5`
-setting is required: without it the miner will try ordinary DNS and fail with
-`unknown node or service` for the onion hostname.
+`user` is normally the TKM payout address, not a password or a private key. A
+full `tkmshield3.<...>` payment code is also accepted when Shield4 payouts are
+enabled; it is public recipient data (never a seed or passphrase) and is about
+28 KiB, so use a current TKM XMRig build with the expanded Stratum send limit.
+For a legacy build, use the 0x payout address and attach the payment code in the
+pool's authenticated recipient-code endpoint. The `socks5` setting is required:
+without it the miner will try ordinary DNS and fail with `unknown node or
+service` for the onion hostname.
+
+If an older binary prints `max send buffer size exceeded` when logging in with a
+`tkmshield3` code, replace it with the current TKM release or use the compact
+0x-address login. The pool job itself is small; this message is the miner's
+local 16 KiB login limit, not a failed RandomX share.
 
 Run the miner from the directory containing the executable and config:
 
