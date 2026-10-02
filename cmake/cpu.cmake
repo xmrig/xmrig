@@ -42,6 +42,59 @@ else()
     set(WITH_VAES OFF)
 endif()
 
+# Detect LoongArch architecture early (before it's used below)
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loongarch|loong64)$")
+    set(XMRIG_LOONGARCH ON)
+    add_definitions(-DXMRIG_LOONGARCH)
+
+    set(WITH_SSE4_1 OFF)
+    set(WITH_AVX2 OFF)
+    set(WITH_VAES OFF)
+
+    # The 128 bit LSX and the 256 bit LASX vector units are probed on their
+    # own, a fair share of the LoongArch CPUs out there ship LSX only.
+    set(XMRIG_FEATURE_LSX OFF)
+    set(XMRIG_FEATURE_LASX OFF)
+    set(LOONGARCH_CXX_FLAGS "")
+
+    if (NOT CMAKE_CROSSCOMPILING AND (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang))
+        try_run(LOONGARCH_LSX_RUN_FAIL
+            LOONGARCH_LSX_COMPILE_OK
+            ${CMAKE_CURRENT_BINARY_DIR}/
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/loongarch_lsx.c
+            COMPILE_DEFINITIONS "-mlsx")
+
+        if (LOONGARCH_LSX_COMPILE_OK AND NOT LOONGARCH_LSX_RUN_FAIL)
+            set(XMRIG_FEATURE_LSX ON)
+            set(LOONGARCH_CXX_FLAGS "-mlsx")
+        endif()
+
+        try_run(LOONGARCH_LASX_RUN_FAIL
+            LOONGARCH_LASX_COMPILE_OK
+            ${CMAKE_CURRENT_BINARY_DIR}/
+            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/loongarch_lasx.c
+            COMPILE_DEFINITIONS "-mlasx")
+
+        if (LOONGARCH_LASX_COMPILE_OK AND NOT LOONGARCH_LASX_RUN_FAIL)
+            # LASX is a superset of LSX
+            set(XMRIG_FEATURE_LSX ON)
+            set(XMRIG_FEATURE_LASX ON)
+            set(LOONGARCH_CXX_FLAGS "-mlsx -mlasx")
+        endif()
+    endif()
+
+    if (XMRIG_FEATURE_LSX)
+        add_definitions(-DXMRIG_FEATURE_LSX)
+    endif()
+
+    if (XMRIG_FEATURE_LASX)
+        add_definitions(-DXMRIG_FEATURE_LASX)
+    endif()
+
+    message(STATUS "Detected LoongArch architecture (${CMAKE_SYSTEM_PROCESSOR})")
+    message(STATUS "LoongArch LSX: ${XMRIG_FEATURE_LSX} LASX: ${XMRIG_FEATURE_LASX} (${LOONGARCH_CXX_FLAGS})")
+endif()
+
 # Disable x86-specific features for RISC-V
 if (XMRIG_RISCV)
     set(WITH_SSE4_1 OFF)

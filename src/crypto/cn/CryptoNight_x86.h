@@ -27,7 +27,9 @@
 #define XMRIG_CRYPTONIGHT_X86_H
 
 
-#ifdef __GNUC__
+#if defined(XMRIG_LOONGARCH)
+#   include "crypto/common/simd/sse2lsx.h"
+#elif defined(__GNUC__)
 #   include <x86intrin.h>
 #else
 #   include <intrin.h>
@@ -808,7 +810,12 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
             int64_t d5;
 
-#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
+/*
+ * The direct OR is the plain C form of the instruction, and it is what the
+ * LoongArch build needs: the inline assembly below spells out the x86
+ * encoding of it.
+ */
+#           if defined(XMRIG_LOONGARCH) || defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
             d5 = d | 5;
 #           else
             // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit

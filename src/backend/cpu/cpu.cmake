@@ -51,6 +51,11 @@ if (XMRIG_RISCV)
         src/backend/cpu/platform/lscpu_riscv.cpp
         src/backend/cpu/platform/BasicCpuInfo_riscv.cpp
     )
+elseif (XMRIG_LOONGARCH)
+    list(APPEND SOURCES_BACKEND_CPU
+        src/backend/cpu/platform/lscpu_loongarch.cpp
+        src/backend/cpu/platform/BasicCpuInfo_loongarch.cpp
+    )
 elseif (XMRIG_ARM)
     list(APPEND SOURCES_BACKEND_CPU src/backend/cpu/platform/BasicCpuInfo_arm.cpp)
 
