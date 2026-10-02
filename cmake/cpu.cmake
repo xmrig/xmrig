@@ -52,7 +52,12 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loongarch|loong64)$")
     set(WITH_VAES OFF)
 
     # The 128 bit LSX and the 256 bit LASX vector units are probed on their
-    # own, a fair share of the LoongArch CPUs out there ship LSX only.
+    # own, a fair share of the LoongArch CPUs out there ship LSX only.  On such
+    # a CPU the LASX probe fails by itself; -DWITH_LASX=OFF keeps the 256 bit
+    # layers out of the build too, so that even a build made on a machine with
+    # LASX can be shown to run on one without it.
+    option(WITH_LASX "Use LASX ( 256 bit SIMD ) when the CPU carries it" ON)
+
     set(XMRIG_FEATURE_LSX OFF)
     set(XMRIG_FEATURE_LASX OFF)
     set(LOONGARCH_CXX_FLAGS "")
@@ -69,17 +74,19 @@ if (CMAKE_SYSTEM_PROCESSOR MATCHES "^(loongarch64|loongarch|loong64)$")
             set(LOONGARCH_CXX_FLAGS "-mlsx")
         endif()
 
-        try_run(LOONGARCH_LASX_RUN_FAIL
-            LOONGARCH_LASX_COMPILE_OK
-            ${CMAKE_CURRENT_BINARY_DIR}/
-            ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/loongarch_lasx.c
-            COMPILE_DEFINITIONS "-mlasx")
+        if (WITH_LASX)
+            try_run(LOONGARCH_LASX_RUN_FAIL
+                LOONGARCH_LASX_COMPILE_OK
+                ${CMAKE_CURRENT_BINARY_DIR}/
+                ${CMAKE_CURRENT_SOURCE_DIR}/src/crypto/randomx/tests/loongarch_lasx.c
+                COMPILE_DEFINITIONS "-mlasx")
 
-        if (LOONGARCH_LASX_COMPILE_OK AND NOT LOONGARCH_LASX_RUN_FAIL)
-            # LASX is a superset of LSX
-            set(XMRIG_FEATURE_LSX ON)
-            set(XMRIG_FEATURE_LASX ON)
-            set(LOONGARCH_CXX_FLAGS "-mlsx -mlasx")
+            if (LOONGARCH_LASX_COMPILE_OK AND NOT LOONGARCH_LASX_RUN_FAIL)
+                # LASX is a superset of LSX
+                set(XMRIG_FEATURE_LSX ON)
+                set(XMRIG_FEATURE_LASX ON)
+                set(LOONGARCH_CXX_FLAGS "-mlsx -mlasx")
+            endif()
         endif()
     endif()
 
