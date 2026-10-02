@@ -94,6 +94,7 @@ extern "C" {
 	/* Simple API */
     void rx_blake2b_compress_integer(blake2b_state * S, const uint8_t * block);
     void rx_blake2b_compress_sse41(blake2b_state * S, const uint8_t * block);
+    void rx_blake2b_compress_lsx(blake2b_state * S, const uint8_t * block);
     int rx_blake2b_default(void* out, size_t outlen, const void* in, size_t inlen);
 
     extern void (*rx_blake2b_compress)(blake2b_state * S, const uint8_t * block);
