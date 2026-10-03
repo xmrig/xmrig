@@ -970,11 +970,23 @@ void JitCompilerLa64::h_IMUL_RCP(Instruction& instr, uint32_t& codePos)
 
 	const uint32_t dst = LA64::IntRegMap[instr.dst];
 
-	// The interpreter multiplies by randomx_reciprocal(divisor)
-	emitMov64Immediate(dst, randomx_reciprocal(divisor), code, k);
+	/*
+	 * The reciprocal travels through a
+	 * temporary register. Putting it
+	 * into dst first would eat
+	 * the value it has to
+	 * be multiplied
+	 * by: the interpreted
+	 * machine computes
+	 * dst = dst * reciprocal,
+	 * and the two forms
+	 * have the same
+	 * code cost.
+	 */
+	emitMov64Immediate(LA64::RegTemp, randomx_reciprocal(divisor), code, k);
 
-	// mul.d dst, dst, dst
-	emit32(LA64::MUL_D | dst | (dst << 5) | (dst << 10), code, k);
+	// mul.d dst, dst, $r21
+	emit32(LA64::MUL_D | dst | (dst << 5) | (LA64::RegTemp << 10), code, k);
 
 	reg_changed_offset[instr.dst] = k;
 	codePos = k;
