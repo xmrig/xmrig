@@ -349,10 +349,23 @@ void JitCompilerLa64::generateProgram(Program& program, ProgramConfiguration& co
 		(this->*engine[instr.opcode])(instr, codePos);
 	}
 
-	// Update spMix2: xor $r22, $r<readReg2>, $r<readReg3>
+	// Update spMix2. The A64 original emits the
+	// 32-bit "eor w20, w<r2>, w<r3>" here, and a
+	// write to a W register zeroes the upper half,
+	// so only mx is touched by the later
+	// "eor x9, x9, x20". LA64 has no 32-bit
+	// xor, so the upper half is cleared with the
+	// bstrpick.d below. Without it the high half
+	// of the mix would leak into ma and the
+	// third dataset read would already be wrong.
+
+	// xor $r22, $r<readReg2>, $r<readReg3>
 	emit32(LA64::XOR | LA64::RegSpMix2 |
 		(LA64::IntRegMap[config.readReg2] << 5) |
 		(LA64::IntRegMap[config.readReg3] << 10), code, codePos);
+
+	// bstrpick.d $r22, $r22, 31, 0
+	emit32(LA64::BSTRPICK_D | LA64::RegSpMix2 | (LA64::RegSpMix2 << 5) | (31 << 16), code, codePos);
 
 	// Jump back to the static main loop
 	// The branch offset lives in bits 10-25 as a word distance
@@ -443,10 +456,17 @@ void JitCompilerLa64::generateProgramLight(Program& program, ProgramConfiguratio
 		(this->*engine[instr.opcode])(instr, codePos);
 	}
 
-	// Update spMix2: xor $r22, $r<readReg2>, $r<readReg3>
+	// Update spMix2, 32-bit wide exactly like
+	// the A64 "eor w20, w<r2>, w<r3>"; see the
+	// long note in generateProgram.
+
+	// xor $r22, $r<readReg2>, $r<readReg3>
 	emit32(LA64::XOR | LA64::RegSpMix2 |
 		(LA64::IntRegMap[config.readReg2] << 5) |
 		(LA64::IntRegMap[config.readReg3] << 10), code, codePos);
+
+	// bstrpick.d $r22, $r22, 31, 0
+	emit32(LA64::BSTRPICK_D | LA64::RegSpMix2 | (LA64::RegSpMix2 << 5) | (31 << 16), code, codePos);
 
 	// The v2 prefetch order, 8 bytes of the light tail
 	{
