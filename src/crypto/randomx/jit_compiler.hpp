@@ -34,6 +34,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/jit_compiler_a64.hpp"
 #elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
 #include "crypto/randomx/jit_compiler_rv64.hpp"
+#elif defined(__loongarch__) && (__SIZEOF_POINTER__ == 8)
+#include "crypto/randomx/jit_compiler_la64.hpp"
 #else
 #include "crypto/randomx/jit_compiler_fallback.hpp"
 #endif
