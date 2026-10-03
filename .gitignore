@@ -9,3 +9,5 @@ scripts/deps
 /build-interp
 /build-lsxonly
 /build-portable
+/build-control
+/build-pristine
