@@ -74,6 +74,13 @@ Use this configuration as `config.json` beside the miner executable:
 full `tkmshield3.<...>` payment code is also accepted when Shield4 payouts are
 enabled; it is public recipient data (never a seed or passphrase) and is about
 28 KiB, so use a current TKM XMRig build with the expanded Stratum send limit.
+Registered Shield3 usernames are accepted by the TKM pool as well. Put the
+complete checksummed handle in `user`, for example `@alice#abc2345`; the pool
+resolves it through its configured TKM node and credits the resulting Shield3
+address. A worker suffix is optional (`@alice#abc2345.worker1`). The node RPC
+used by the pool must enable the `tkmname` namespace. Username resolution does
+not change the node's coinbase and does not reveal a username in submitted
+shares; the pool uses it only to select the payout identity.
 For a legacy build, use the 0x payout address and attach the payment code in the
 pool's authenticated recipient-code endpoint. The `socks5` setting is required:
 without it the miner will try ordinary DNS and fail with `unknown node or
