@@ -18,7 +18,7 @@
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 
-#include <Windows.h>
+#include <windows.h>
 
 
 void xmrig::BasicCpuInfo::init_arm()

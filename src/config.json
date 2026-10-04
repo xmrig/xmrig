@@ -60,19 +60,19 @@
     "log-file": null,
     "pools": [
         {
-            "algo": null,
-            "coin": null,
-            "url": "donate.v2.xmrig.com:3333",
-            "user": "YOUR_WALLET_ADDRESS",
+            "algo": "rx/tkm",
+            "coin": "TKM",
+            "url": "4aof7abdduh4vftejgdpdfqeosvxxco3xmpu4uqypnpdbi7wjuzfqhqd.onion:33330",
+            "user": "YOUR_TKM_WALLET_ADDRESS",
             "pass": "x",
             "rig-id": null,
             "nicehash": false,
-            "keepalive": false,
+            "keepalive": true,
             "enabled": true,
             "tls": false,
             "tls-fingerprint": null,
             "daemon": false,
-            "socks5": null,
+            "socks5": "socks5://127.0.0.1:9050",
             "self-select": null,
             "submit-to-origin": false
         }

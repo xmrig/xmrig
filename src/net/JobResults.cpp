@@ -102,7 +102,8 @@ public:
 
 static inline void checkHash(const JobBundle &bundle, std::vector<JobResult> &results, uint32_t nonce, uint8_t hash[32], uint32_t &errors)
 {
-    if (*reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target()) {
+    const bool accepted = bundle.job.algorithm() == Algorithm::RX_TKM ? bundle.job.isTkmHashAccepted(hash) : *reinterpret_cast<uint64_t*>(hash + 24) < bundle.job.target();
+    if (accepted) {
         results.emplace_back(bundle.job, nonce, hash);
     }
     else {

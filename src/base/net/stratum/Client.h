@@ -56,7 +56,10 @@ public:
 
     constexpr static uint64_t kConnectTimeout   = 20 * 1000;
     constexpr static uint64_t kResponseTimeout  = 20 * 1000;
-    constexpr static size_t kMaxSendBufferSize  = 1024 * 16;
+    // TKM Shield3 payment codes carry a ML-DSA-87 key, signature and
+    // encrypted stamp and are about 28 KiB when used as the Stratum login.
+    // Keep a bounded limit while allowing that authenticated public payload.
+    constexpr static size_t kMaxSendBufferSize  = 1024 * 64;
 
     Client(int id, const char *agent, IClientListener *listener);
     ~Client() override;

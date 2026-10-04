@@ -179,7 +179,9 @@ else()
         )
 
     if (XMRIG_OS_ANDROID)
-        set(EXTRA_LIBS pthread rt dl log)
+        # Android's bionic libc provides pthread and realtime APIs directly;
+        # standalone -lpthread/-lrt archives do not exist in the NDK.
+        set(EXTRA_LIBS dl log)
     elseif (XMRIG_OS_LINUX)
         list(APPEND SOURCES_OS
             src/crypto/common/LinuxMemory.h
@@ -252,5 +254,5 @@ if (WIN32)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_BUILD_TYPE STREQUAL Release AND NOT CMAKE_GENERATOR STREQUAL Xcode)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>")
+    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>")
 endif()
