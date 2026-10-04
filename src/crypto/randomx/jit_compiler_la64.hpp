@@ -85,6 +85,23 @@ namespace randomx {
 		size_t allocatedSize = 0;
 		uint32_t vm_flags = 0;
 
+#		ifdef XMRIG_FEATURE_LASX
+		/*
+		 * The 256 bit ( LASX ) dataset item function, a
+		 * separate buffer of jit_compiler_la64_lasx.cpp.
+		 * It is built ONLY when the running CPU
+		 * reports LASX, and the 128 bit
+		 * layer stays in " code "
+		 * above.
+		 */
+		uint8_t* lasxCode = nullptr;
+		size_t lasxCodeSize = 0;
+		uint8_t* lasxInitFunc = nullptr;
+
+		bool lasxEnable() const;
+		void generateSuperscalarHashLasx(SuperscalarProgram* programs, size_t accesses);
+#		endif
+
 		void allocate(size_t size);
 
 		static void emit32(uint32_t val, uint8_t* code, uint32_t& codePos)

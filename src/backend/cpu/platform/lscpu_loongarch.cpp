@@ -33,10 +33,11 @@ struct loongarch_cpu_desc
     String model;
     String family;
     String prid;
+    bool found = false;
     bool has_lsx = false;
     bool has_lasx = false;
 
-    inline bool isReady() const { return !model.isNull(); }
+    inline bool isReady() const { return found; }
 };
 
 static bool lookup_loongarch(char *line, const char *pattern, String &value)
@@ -86,32 +87,36 @@ static bool read_loongarch_cpuinfo(loongarch_cpu_desc *desc)
 
     char buf[2048];
     while (fgets(buf, sizeof(buf), fp) != nullptr) {
-        lookup_loongarch(buf, "Model Name", desc->model);
-        lookup_loongarch(buf, "CPU Family", desc->family);
-
-        if (lookup_loongarch(buf, "PRID", desc->prid)) {
-            continue;
+        /*
+         * Every field is looked for, and the
+         * feature word of the processor
+         * stands behind its name
+         * (/proc/cpuinfo), so
+         * the whole file
+         * is read.
+         */
+        if (lookup_loongarch(buf, "Model Name", desc->model)) {
+            desc->found = true;
         }
-
-        static const char *kFeatures = "Features";
-        char *p = strstr(buf, kFeatures);
-
-        if (p) {
+        else if (lookup_loongarch(buf, "CPU Family", desc->family)) {
+            desc->found = true;
+        }
+        else if (lookup_loongarch(buf, "PRID", desc->prid)) {
+            desc->found = true;
+        }
+        else {
             String features;
-            if (lookup_loongarch(buf, kFeatures, features)) {
-                desc->has_lsx = has_word(features, "lsx");
+            if (lookup_loongarch(buf, "Features", features)) {
+                desc->has_lsx  = has_word(features, "lsx");
                 desc->has_lasx = has_word(features, "lasx");
+                desc->found   = true;
             }
-        }
-
-        if (desc->isReady()) {
-            break;
         }
     }
 
     fclose(fp);
 
-    return desc->isReady();
+    return desc->found;
 }
 
 String cpu_name_loongarch()
