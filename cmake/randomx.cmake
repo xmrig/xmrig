@@ -85,6 +85,18 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_la64_static.S
              src/crypto/randomx/jit_compiler_la64.cpp
             )
+        # The 256 bit item function of the same JIT is a
+        # separate unit: it lives only where the build
+        # itself proved that this machine has LASX.
+        if (XMRIG_FEATURE_LASX)
+            list(APPEND SOURCES_CRYPTO
+                 src/crypto/randomx/jit_compiler_la64_lasx_static.S
+                 src/crypto/randomx/jit_compiler_la64_lasx.cpp
+                )
+            set_source_files_properties(src/crypto/randomx/jit_compiler_la64_lasx_static.S PROPERTIES COMPILE_FLAGS "-O3 -mlasx")
+            set_source_files_properties(src/crypto/randomx/jit_compiler_la64_lasx.cpp PROPERTIES COMPILE_FLAGS "-O3 -mlasx")
+            set_property(SOURCE src/crypto/randomx/jit_compiler_la64_lasx_static.S PROPERTY LANGUAGE C)
+        endif ()
         # cheat because cmake and ccache hate each other
         set_property(SOURCE src/crypto/randomx/jit_compiler_la64_static.S PROPERTY LANGUAGE C)
     elseif (XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)

@@ -75,6 +75,10 @@ THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <cstring>
 #include "crypto/randomx/jit_compiler_la64.hpp"
+#ifdef XMRIG_FEATURE_LASX
+#include "backend/cpu/Cpu.h"
+#include "crypto/randomx/jit_compiler_la64_lasx.hpp"
+#endif
 #include "crypto/common/VirtualMemory.h"
 #include "crypto/randomx/common.hpp"
 #include "crypto/randomx/program.hpp"
@@ -268,6 +272,11 @@ JitCompilerLa64::JitCompilerLa64(bool hugePagesEnable, bool optimizedInitDataset
 JitCompilerLa64::~JitCompilerLa64()
 {
 	freePagedMemory(code, allocatedSize);
+#ifdef XMRIG_FEATURE_LASX
+	if (lasxCode) {
+		freePagedMemory(lasxCode, lasxCodeSize);
+	}
+#endif
 }
 
 void JitCompilerLa64::enableWriting() const
@@ -277,6 +286,12 @@ void JitCompilerLa64::enableWriting() const
 
 void JitCompilerLa64::enableExecution() const
 {
+#ifdef XMRIG_FEATURE_LASX
+	if (lasxCode) {
+		xmrig::VirtualMemory::protectRX(lasxCode, lasxCodeSize);
+	}
+#endif
+
 	xmrig::VirtualMemory::protectRX(code, allocatedSize);
 }
 
@@ -295,6 +310,12 @@ DatasetInitFunc* JitCompilerLa64::getDatasetInitFunc() const
 #	ifdef XMRIG_SECURE_JIT
 	enableExecution();
 #	endif
+
+#ifdef XMRIG_FEATURE_LASX
+	if (lasxInitFunc) {
+		return (DatasetInitFunc*)lasxInitFunc;
+	}
+#endif
 
 	return (DatasetInitFunc*)(code + (((uint8_t*)randomx_init_dataset_la64) - ((uint8_t*)randomx_program_la64)));
 }
@@ -536,6 +557,19 @@ void JitCompilerLa64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 #ifdef XMRIG_SECURE_JIT
 	else {
 		enableWriting();
+	}
+#endif
+
+#ifdef XMRIG_FEATURE_LASX
+	/*
+	 * The 256 bit item function is the one the
+	 * dataset uses; it is built into a buffer
+	 * of its own.  The 128 bit code below
+	 * still runs, it is the fallback of the
+	 * machines without LASX.
+	 */
+	if (lasxEnable()) {
+		generateSuperscalarHashLasx(programs, RandomX_ConfigurationBase::CacheAccesses);
 	}
 #endif
 
