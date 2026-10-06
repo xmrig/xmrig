@@ -34,6 +34,7 @@
 
 #include "backend/cpu/platform/HwlocCpuInfo.h"
 #include "base/io/log/Log.h"
+#include "base/kernel/Platform.h"
 
 
 #if HWLOC_API_VERSION < 0x20000
@@ -197,11 +198,89 @@ bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
         return false;
     }
 
-#   if HWLOC_API_VERSION >= 0x20000
-    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+    if (hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0) {
+        return true;
+    }
+
+    /* Fallback: on Windows with >64 CPUs hwloc's membind can fail because it internally calls
+       SetThreadAffinityMask() which accepts only a 64-bit mask (one processor group). */
+     
+    hwloc_bitmap_t fallback_cpuset = hwloc_bitmap_alloc();
+    if (fallback_cpuset) {
+        hwloc_bitmap_zero(fallback_cpuset);
+
+        for (hwloc_obj_t node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, nullptr); node; node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) {
+            if (hwloc_bitmap_isset(nodeset, node->os_index)) {
+                hwloc_bitmap_or(fallback_cpuset, fallback_cpuset, node->cpuset);
+            }
+        }
+
+        if (hwloc_bitmap_weight(fallback_cpuset) > 0) {
+            if (hwloc_set_cpubind(m_topology, fallback_cpuset, HWLOC_CPUBIND_THREAD) >= 0) {
+                hwloc_bitmap_free(fallback_cpuset);
+                return true;
+            }
+
+            // cpubind failed — fall through to thread affinity
+            hwloc_bitmap_free(fallback_cpuset);
+        }
+    }
+
+    /* Set thread affinity to a CPU in the target NUMA node using native Windows APIs.
+       Platform::setThreadAffinity() (hwloc path) also uses hwloc_set_cpubind which fails for
+       cross-group cpusets on >64 CPUs, so we call SetThreadGroupAffinity directly here. */
+#   ifdef _WIN32
+    static bool (*pSetThreadAffinity)(unsigned) = nullptr;
+    if (!pSetThreadAffinity) {
+        pSetThreadAffinity = [](unsigned cpu_id) -> bool {
+            if (cpu_id >= 64) {
+                typedef BOOL (WINAPI *PFN_SETTHREADGROUPAFFINITY)(HANDLE, const GROUP_AFFINITY*, PGROUP_AFFINITY);
+                static PFN_SETTHREADGROUPAFFINITY pSetThreadGroupAffinity = nullptr;
+
+                if (!pSetThreadGroupAffinity) {
+                    HMODULE kernel32 = GetModuleHandleW(L"kernel32.dll");
+                    pSetThreadGroupAffinity = reinterpret_cast<PFN_SETTHREADGROUPAFFINITY>(GetProcAddress(kernel32, "SetThreadGroupAffinity"));
+                }
+
+                if (pSetThreadGroupAffinity) {
+                    WORD group = static_cast<WORD>(cpu_id / 64);
+                    ULONG_PTR mask = 1ULL << (cpu_id % 64);
+                    GROUP_AFFINITY aff{};
+                    aff.Group     = group;
+                    aff.Mask      = mask;
+                    const bool result = pSetThreadGroupAffinity(GetCurrentThread(), &aff, nullptr) != 0;
+                    Sleep(1);
+                    return result;
+                }
+            }
+
+            // Fallback for CPU < 64 (or if SetThreadGroupAffinity unavailable)
+            const bool result = (SetThreadAffinityMask(GetCurrentThread(), 1ULL << cpu_id) != 0);
+            Sleep(1);
+            return result;
+        };
+    }
+
+    for (hwloc_obj_t node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, nullptr); node; node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) {
+        if (hwloc_bitmap_isset(nodeset, node->os_index)) {
+            int first_cpu = hwloc_bitmap_first(node->cpuset);
+            if (first_cpu >= 0) {
+                return pSetThreadAffinity(static_cast<unsigned>(first_cpu));
+            }
+        }
+    }
 #   else
-    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+    for (hwloc_obj_t node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, nullptr); node; node = hwloc_get_next_obj_by_type(m_topology, HWLOC_OBJ_NUMANODE, node)) {
+        if (hwloc_bitmap_isset(nodeset, node->os_index)) {
+            int first_cpu = hwloc_bitmap_first(node->cpuset);
+            if (first_cpu >= 0) {
+                return Platform::setThreadAffinity(static_cast<uint64_t>(first_cpu));
+            }
+        }
+    }
 #   endif
+
+    return false;
 }
 
 
