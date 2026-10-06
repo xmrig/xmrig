@@ -80,8 +80,13 @@ xmrig::Coin::Coin(const rapidjson::Value &value)
 }
 
 
-xmrig::Algorithm xmrig::Coin::algorithm(uint8_t) const
+xmrig::Algorithm xmrig::Coin::algorithm(uint8_t blobVersion) const
 {
+    // Monero uses RandomX v2 after the FCMP++ hardfork (v17)
+    if ((m_id == MONERO) && (blobVersion >= 17)) {
+        return Algorithm::RX_V2;
+    }
+
     return coinInfo[m_id].algorithm;
 }
 
