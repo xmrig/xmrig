@@ -20,7 +20,7 @@ set(SOURCES_BACKEND_COMMON
     src/backend/common/Workers.cpp
    )
 
-if (WITH_RANDOMX AND WITH_BENCHMARK)
+if (WITH_BENCHMARK AND (WITH_RANDOMX OR WITH_GHOSTRIDER))
     list(APPEND HEADERS_BACKEND_COMMON
         src/backend/common/benchmark/Benchmark.h
         src/backend/common/benchmark/BenchState_test.h
