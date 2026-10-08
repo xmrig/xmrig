@@ -5,7 +5,7 @@ XMRig's HTTP API is available when XMRig is built with HTTP support (`-DWITH_HTT
 Example configuration:
 
 ```json
-`"api": {
+"api": {
 	"id": null,
 	"worker-id": null
 },
