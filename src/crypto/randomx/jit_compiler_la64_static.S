@@ -234,20 +234,12 @@ randomx_program_la64_vm_instructions_end:
 
 	# mx <-> ma
 	# 16 bytes in total, the JIT compiler copies the v1 or the v2
-	# template of exactly this length over the block above.
+	# template of exactly this length over the block above.  The
+	# templates themselves live behind the epilogue ret below,
+	# outside the execution path, exactly like the A64 original:
+	# when they sat right here the four word block above ran three
+	# times in a row and the dataset read used a twice mixed ma.
 	rotri.d	$r19, $r19, 32
-
-randomx_program_la64_vm_instructions_end_v1:
-	srli.d	$r21, $r19, 32
-	xor	$r19, $r19, $r22
-	bstrpick.d	$r22, $r19, 31, 0
-	rotri.d	$r19, $r19, 32
-
-randomx_program_la64_vm_instructions_end_v2:
-	srli.d	$r21, $r19, 32
-	rotri.d	$r19, $r19, 32
-	xor	$r19, $r19, $r22
-	bstrpick.d	$r22, $r19, 31, 0
 
 	# 12 bytes (3 words) each, overwritten in place by the
 	# JIT compiler with the CacheLineAlignMask of the dataset.
@@ -358,6 +350,25 @@ randomx_program_la64_FE_store:
 	ld.d	$r23, $r3, 16
 	addi.d	$r3, $r3, 32
 	ret
+
+# The two prefetch order templates for the full memory tail.
+# 16 bytes (4 words) each.  The JIT compiler copies one of them
+# over the four words at randomx_program_la64_vm_instructions_end.
+# They sit behind the ret above and are never executed here:
+# the code at vm_instructions_end runs exactly one of these
+# blocks (the copied one) and then falls into the cache line
+# align mask, like the A64 original does.
+randomx_program_la64_vm_instructions_end_v1:
+	srli.d	$r21, $r19, 32
+	xor	$r19, $r19, $r22
+	bstrpick.d	$r22, $r19, 31, 0
+	rotri.d	$r19, $r19, 32
+
+randomx_program_la64_vm_instructions_end_v2:
+	srli.d	$r21, $r19, 32
+	rotri.d	$r19, $r19, 32
+	xor	$r19, $r19, $r22
+	bstrpick.d	$r22, $r19, 31, 0
 
 # The light program is reached through a branch written by the JIT
 # compiler at the end of the generated program.
