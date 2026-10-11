@@ -189,6 +189,24 @@ constexpr uint32_t RegMask = 23;
 constexpr uint32_t RegTempFp = 12;
 
 /*
+ * The scratchpad address masks live in the callee saved $r24-$r28:
+ * $r24-$r27 carry AddressMask_Calculated[0..3] in order, $r28 the
+ * L3 mask for ISTORE.  The prologue materializes them once per
+ * program and every memory opcode of the generated code "and"s
+ * with its register instead of rebuilding the constant.  Rebuilding
+ * cost two extra words on each of the ~59 memory opcodes of every
+ * iteration, and the generated loop runs at IPC 3.6 on the 3A6000,
+ * so those words were real issue slots.
+ *
+ * $r24-$r28 are saved and restored by the prologue and the
+ * epilogue of the program function.  The light mode item call
+ * preserves them too: the static blocks of the item function and
+ * the generated superscalar code only ever touch $r4-$r11 and
+ * $r23, and the dataset init loop never runs inside a program.
+ */
+constexpr uint32_t RegSpMaskBase = 24;
+
+/*
  * The three vector register groups:
  * $vr0-$vr3 = f, $vr4-$vr7 = e, $vr8-$vr11 = a
  * (see the contract in jit_compiler_la64_static.S,
@@ -338,6 +356,24 @@ void JitCompilerLa64::emitMaskRegister(uint32_t dst, uint32_t src, uint32_t mask
 	emit32(LA64::AND | dst | (src << 5) | (LA64::RegMask << 10), code, codePos);
 }
 
+void JitCompilerLa64::emitScratchpadMaskRegisters(uint8_t* code, uint32_t& codePos)
+{
+	/* $r24-$r27 = AddressMask_Calculated[0..3], $r28 = the L3 mask
+	 * of ISTORE.  The masks the generated memory opcodes "and" with.
+	 * Called by both program generators, full and light. */
+	codePos = ((uint8_t*)randomx_program_la64_scratchpad_masks) - ((uint8_t*)randomx_program_la64);
+
+	for (uint32_t m = 0; m < 4; ++m) {
+		const uint32_t v = RandomX_CurrentConfig.AddressMask_Calculated[m];
+		emit32(LA64::LU12I_W | (LA64::RegSpMaskBase + m) | (((v >> 12) & 0xFFFFF) << 5), code, codePos);
+		emit32(LA64::ORI | (LA64::RegSpMaskBase + m) | ((LA64::RegSpMaskBase + m) << 5) | ((v & 0xFFF) << 10), code, codePos);
+	}
+
+	const uint32_t v = RandomX_CurrentConfig.ScratchpadL3Mask_Calculated;
+	emit32(LA64::LU12I_W | (LA64::RegSpMaskBase + 4) | (((v >> 12) & 0xFFFFF) << 5), code, codePos);
+	emit32(LA64::ORI | (LA64::RegSpMaskBase + 4) | ((LA64::RegSpMaskBase + 4) << 5) | ((v & 0xFFF) << 10), code, codePos);
+}
+
 void JitCompilerLa64::generateProgram(Program& program, ProgramConfiguration& config, uint32_t flags)
 {
 	if (!allocatedSize) {
@@ -444,7 +480,13 @@ void JitCompilerLa64::generateProgram(Program& program, ProgramConfiguration& co
 		memcpy(code + dst, code + src, 16);
 	}
 
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+	// The three scratchpad address masks of the generated memory
+	// opcodes, see emitScratchpadMaskRegisters.
+	emitScratchpadMaskRegisters(code, codePos);
+
+	// The flush starts at the buffer head: the mask slot sits in
+	// the prologue, below the main loop.
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), codePos);
 }
 
 void JitCompilerLa64::generateProgramLight(Program& program, ProgramConfiguration& config, uint32_t datasetOffset)
@@ -545,7 +587,13 @@ void JitCompilerLa64::generateProgramLight(Program& program, ProgramConfiguratio
 	emit32(LA64::ORI | LA64::RegTemp | (LA64::RegTemp << 5) | ((lines & 0xFFF) << 10), code, codePos);
 	emit32(LA64::ADD_D | LA64::RegScratchpad | (LA64::RegScratchpad << 5) | (LA64::RegTemp << 10), code, codePos);
 
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+	// The three scratchpad address masks of the generated memory
+	// opcodes, see emitScratchpadMaskRegisters.
+	emitScratchpadMaskRegisters(code, codePos);
+
+	// The flush starts at the buffer head: the mask slot sits in
+	// the prologue, below the main loop.
+	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), codePos);
 }
 
 template<size_t N>
@@ -792,7 +840,6 @@ void JitCompilerLa64::emitMemLoad(uint32_t dst, uint32_t src, Instruction& instr
  */
 void JitCompilerLa64::emitScratchpadAddress(uint32_t tmp_reg, uint32_t src, Instruction& instr, uint8_t* code, uint32_t& codePos)
 {
-	const uint32_t mask = RandomX_CurrentConfig.AddressMask_Calculated[instr.getModMem()];
 	const uint32_t imm = instr.getImm32();
 
 	if (imm) {
@@ -803,7 +850,10 @@ void JitCompilerLa64::emitScratchpadAddress(uint32_t tmp_reg, uint32_t src, Inst
 		emit32(LA64::OR | tmp_reg | (src << 5), code, codePos);
 	}
 
-	emitMaskRegister(tmp_reg, tmp_reg, mask, code, codePos);
+	// and tmp_reg, tmp_reg, $r24 + modMem -- the mask lives in a
+	// register, see RegSpMaskBase above
+	emit32(LA64::AND | tmp_reg | (tmp_reg << 5) |
+		((LA64::RegSpMaskBase + instr.getModMem()) << 10), code, codePos);
 }
 
 template<uint32_t tmp_reg_fp>
@@ -811,7 +861,6 @@ void JitCompilerLa64::emitMemLoadFP(uint32_t src, Instruction& instr, uint8_t* c
 {
 	uint32_t k = codePos;
 
-	const uint32_t mask = RandomX_CurrentConfig.AddressMask_Calculated[instr.getModMem()];
 	const uint32_t imm = instr.getImm32();
 
 	if (imm) {
@@ -822,7 +871,9 @@ void JitCompilerLa64::emitMemLoadFP(uint32_t src, Instruction& instr, uint8_t* c
 		emit32(LA64::OR | LA64::RegTemp | (src << 5), code, k);
 	}
 
-	emitMaskRegister(LA64::RegTemp, LA64::RegTemp, mask, code, k);
+	// and $r21, $r21, $r24 + modMem -- the mask lives in a register
+	emit32(LA64::AND | LA64::RegTemp | (LA64::RegTemp << 5) |
+		((LA64::RegSpMaskBase + instr.getModMem()) << 10), code, k);
 
 	// add.d $r21, $r6, $r21
 	emit32(LA64::ADD_D | LA64::RegTemp | (LA64::RegScratchpad << 5) | (LA64::RegTemp << 10), code, k);
@@ -1374,8 +1425,13 @@ void JitCompilerLa64::h_ISTORE(Instruction& instr, uint32_t& codePos)
 		(instr.getModMem() ? RandomX_CurrentConfig.ScratchpadL1_Size : RandomX_CurrentConfig.ScratchpadL2_Size) :
 		RandomX_CurrentConfig.ScratchpadL3_Size;
 
+	/* the same three values the address masks carry, only picked by
+	 * the store condition instead of the mod bits: modMem ? the L1
+	 * mask of $r25 : the L2 mask of $r24, and the L3 mask of $r28 */
+	const uint32_t maskReg = LA64::RegSpMaskBase +
+		((instr.getModCond() < StoreL3Condition) ? (instr.getModMem() ? 1 : 0) : 4);
+
 	const uint32_t imm = instr.getImm32() & (size - 1);
-	const uint32_t mask = size - 8;
 
 	if (imm) {
 		emitAddImmediate(LA64::RegTemp, dst, imm, code, k);
@@ -1385,10 +1441,8 @@ void JitCompilerLa64::h_ISTORE(Instruction& instr, uint32_t& codePos)
 		emit32(LA64::OR | LA64::RegTemp | (dst << 5), code, k);
 	}
 
-	// and $r21, $r21, $r23 (the mask word below)
-	emit32(LA64::LU12I_W | LA64::RegMask | (((mask >> 12) & 0xFFFFF) << 5), code, k);
-	emit32(LA64::ORI | LA64::RegMask | (LA64::RegMask << 5) | ((mask & 0xFFF) << 10), code, k);
-	emit32(LA64::AND | LA64::RegTemp | (LA64::RegTemp << 5) | (LA64::RegMask << 10), code, k);
+	// and $r21, $r21, $r24 + index
+	emit32(LA64::AND | LA64::RegTemp | (LA64::RegTemp << 5) | (maskReg << 10), code, k);
 
 	// stx.d src, $r6, $r21  --  [$r6 + $r21], the scratchpad
 	// is the base, exactly like the AArch64
