@@ -77,4 +77,5 @@ namespace randomx {
 
 	template class CompiledVm<false>;
 	template class CompiledVm<true>;
+	template class CompiledVm<2>;
 }
