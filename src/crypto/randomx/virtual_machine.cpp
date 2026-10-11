@@ -141,4 +141,5 @@ namespace randomx {
 
 	template class VmBase<false>;
 	template class VmBase<true>;
+	template class VmBase<2>;
 }
