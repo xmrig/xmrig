@@ -116,6 +116,10 @@ namespace randomx {
 			codePos += sizeof(val);
 		}
 
+		/* The three scratchpad address masks of the generated
+		 * memory opcodes, into the prologue slot. */
+		static void emitScratchpadMaskRegisters(uint8_t* code, uint32_t& codePos);
+
 		void emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code, uint32_t& codePos);
 		void emitMov64Immediate(uint32_t dst, uint64_t imm, uint8_t* code, uint32_t& codePos);
 		void emitAddImmediate(uint32_t dst, uint32_t src, uint32_t imm, uint8_t* code, uint32_t& codePos);

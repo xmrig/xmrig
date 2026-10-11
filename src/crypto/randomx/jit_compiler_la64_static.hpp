@@ -33,6 +33,7 @@ extern "C" {
 	extern void randomx_program_la64_main_loop();
 	extern void randomx_program_la64_main_loop_mask0();
 	extern void randomx_program_la64_main_loop_mask1();
+	extern void randomx_program_la64_scratchpad_masks();
 	extern void randomx_program_la64_vm_instructions();
 	extern void randomx_program_la64_vm_instructions_end();
 	extern void randomx_program_la64_cacheline_align_mask1();

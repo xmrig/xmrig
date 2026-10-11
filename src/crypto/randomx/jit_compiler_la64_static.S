@@ -37,6 +37,11 @@
 # $r22 -> temporary, also the handoff register: the last instruction of the
 #          generated program writes r[readReg2] ^ r[readReg3] here (A64: x20)
 # $r23 -> temporary used by this file only
+# $r24-$r28 -> the scratchpad address masks: $r24-$r27 carry
+#          AddressMask[0..3] in order, $r28 the L3 mask of ISTORE.
+#          Written by the prologue slot below, read by the generated
+#          memory opcodes.  Callee saved: saved and restored around
+#          the program function.
 #
 # $vr0-$vr3   -> "f0"-"f3"
 # $vr4-$vr7   -> "e0"-"e3"
@@ -57,6 +62,7 @@
 	.global	randomx_program_la64_main_loop
 	.global	randomx_program_la64_main_loop_mask0
 	.global	randomx_program_la64_main_loop_mask1
+	.global	randomx_program_la64_scratchpad_masks
 	.global	randomx_program_la64_vm_instructions
 	.global	randomx_program_la64_vm_instructions_end
 	.global	randomx_program_la64_cacheline_align_mask1
@@ -99,10 +105,18 @@ randomx_program_la64:
 	# $r22 is $fp and $r23 is $s0.  The soft AES
 	# routines are called with "bl" below, and that
 	# clobbers $r1, so $r1 is saved here as well.
-	addi.d	$r3, $r3, -32
+	# $r24-$r28 carry the scratchpad address masks for
+	# the generated memory opcodes, they are callee
+	# saved too and are restored by the epilogue.
+	addi.d	$r3, $r3, -64
 	st.d	$r1, $r3, 0
 	st.d	$r22, $r3, 8
 	st.d	$r23, $r3, 16
+	st.d	$r24, $r3, 24
+	st.d	$r25, $r3, 32
+	st.d	$r26, $r3, 40
+	st.d	$r27, $r3, 48
+	st.d	$r28, $r3, 56
 
 	# Zero integer registers
 	move	$r8, $r0
@@ -142,6 +156,25 @@ randomx_program_la64:
 
 	# Read $fcsr0
 	movfcsr2gr	$r18, $fcsr0
+
+randomx_program_la64_scratchpad_masks:
+	# The JIT compiler overwrites these ten words with the
+	# materialization of the five scratchpad address masks:
+	#   lu12i.w $r2X, <hi20> / ori $r2X, $r2X, <lo12>
+	# for X = 4, 5, 6, 7, 8.  $r24-$r27 carry AddressMask[0..3],
+	# $r28 the L3 mask of ISTORE.  The generated memory opcodes
+	# "and" with these registers instead of rebuilding the
+	# constants.
+	lu12i.w	$r24, 0
+	ori	$r24, $r24, 0
+	lu12i.w	$r25, 0
+	ori	$r25, $r25, 0
+	lu12i.w	$r26, 0
+	ori	$r26, $r26, 0
+	lu12i.w	$r27, 0
+	ori	$r27, $r27, 0
+	lu12i.w	$r28, 0
+	ori	$r28, $r28, 0
 
 randomx_program_la64_main_loop:
 	# spAddr0 = spMix1 & ScratchpadL3Mask64;
@@ -348,7 +381,12 @@ randomx_program_la64_FE_store:
 	ld.d	$r1, $r3, 0
 	ld.d	$r22, $r3, 8
 	ld.d	$r23, $r3, 16
-	addi.d	$r3, $r3, 32
+	ld.d	$r24, $r3, 24
+	ld.d	$r25, $r3, 32
+	ld.d	$r26, $r3, 40
+	ld.d	$r27, $r3, 48
+	ld.d	$r28, $r3, 56
+	addi.d	$r3, $r3, 64
 	ret
 
 # The two prefetch order templates for the full memory tail.
