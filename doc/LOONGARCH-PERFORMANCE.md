@@ -109,14 +109,65 @@ Linear up to the four physical cores, then about 20 H/s per SMT sibling. Two mea
 
 Deployment guidance follows directly: one thread per physical core is near optimal, `-t 8` buys about 10% more total throughput at half the per thread efficiency, and that is a power and heat decision rather than a software one.
 
-## 7. The walls that remain
+## 7. The CryptoNight family
+
+CN was verified (105 of 105 reference inputs, see the port notes) and then optimized with the same method. Its profile is nothing like RandomX's.
+
+Where the time goes. One `cn/2` hash is 301M instructions and 107M cycles at IPC 2.9 before the fix. The main loop is 167 instructions per iteration and healthy: one soft AES round of about 80 instructions (16 table lookups, 12 xors, 4 inserts to reassemble), the variant 2 shuffle and integer math, and hardware `div.du`, `mod.du`, `fsqrt.d` inline. The bulk of the instruction stream, about seven tenths, is the scratchpad passes: `cn_explode_scratchpad` and `cn_implode_scratchpad` run a full 10-round AES over every 16-byte block of the 2 MiB scratchpad in both directions, about 2.6M soft rounds per hash. That is six times the AES work of a RandomX hash, and it is why CN lands at 24 H/s where RandomX reaches 220: the two share the same ~80-instruction soft round, and CN simply runs many more of them. This is the algorithm, not the port.
+
+The one change. Upstream marks the soft `aes_round` NOINLINE for x86 code size. On LoongArch each scratchpad pass calls it ten times per eight-block group with nine pointer arguments; the argument traffic and spills cost real issue slots, 2.6M calls per hash. The port inlines the soft round on LoongArch, the AES-NI path was always inlined upstream. Family-wide effect, single thread:
+
+| variant | before | after | gain |
+| --- | --- | --- | --- |
+| cn/0 | 24.2 | 25.8 | +6.6% |
+| cn/1 | 24.3 | 25.4 | +4.5% |
+| cn/2 | 23.8 | 25.0 | +5.0% |
+| cn/r | 9.4 | 9.7 | +3.2% |
+| cn/half | 34.0 | 36.9 | +8.5% |
+| cn/msr | 34.0 | 37.2 | +9.4% |
+| cn/xao | 15.2 | 15.7 | +3.3% |
+| cn/rto | 24.2 | 25.6 | +5.8% |
+| cn/rwz | 28.2 | 29.8 | +5.7% |
+| cn/zls | 27.7 | 29.9 | +7.9% |
+| cn/ccx | 33.6 | 36.2 | +7.7% |
+| cn/double | 14.5 | 15.2 | +4.8% |
+| cn-lite/0 | 52.8 | 55.5 | +5.1% |
+| cn-lite/1 | 51.8 | 55.0 | +6.2% |
+| cn-heavy/0 | 14.2 | 15.9 | +12.0% |
+| cn-heavy/xhv | 14.4 | 15.8 | +9.7% |
+| cn-heavy/tube | 14.1 | 15.6 | +10.6% |
+| cn-pico/trtl | 214.4 | 233.2 | +8.8% |
+| cn-pico/tlo | 218.3 | 233.9 | +7.1% |
+| cn/upx2 | 597.0 | 655.3 | +9.7% |
+
+The heavy variants gain the most because they make three scratchpad passes. `cn/r` gains the least because the Monero tweak dominates its loop. Nothing further is available: scalarizing the round (GPR in and out, direct stores) trades the four vector inserts for four scalar xors and comes out even, and the 16 lookups plus 12 xors are the table floor, the same wall RandomX hit.
+
+Threads. The CN curve differs from RandomX's exactly where the two bottlenecks differ. `cn/2`, 10 s per point, pinning physical first:
+
+| threads | H/s | versus one thread |
+| --- | --- | --- |
+| 1 | 24.7 | 1.00x |
+| 2 | 49.6 | 2.01x |
+| 3 | 74.6 | 3.02x |
+| 4 | 99.3 | 4.02x |
+| 5 | 108.1 | 4.38x |
+| 6 | 117.1 | 4.74x |
+| 7 | 125.8 | 5.09x |
+| 8 | 131.3 | 5.31x |
+
+`cn-pico/trtl` (256 KiB scratchpad) on the same pattern: 228.2 at one thread, 927.7 at four (perfectly linear), 1143.3 at eight.
+
+Linear on the physical cores, same as RandomX. Past four the two split: RandomX takes 10% from SMT, CN takes 32% (pico 23%). The CN iteration is latency-bound - the integer divide chain costs tens of cycles per iteration and holds single-thread IPC near 0.9 in the loop - so a sibling thread fills the stalls; RandomX is issue-bound at IPC 3.6 and has no stalls to fill. Deployment guidance is therefore the opposite of RandomX's: for CN, `-t 8` is worth the per-thread efficiency loss on this machine.
+
+LASX. There is nothing for it in CN. The AES state is 16 bytes, so the algorithm is SSE shaped; the round is 16 scalar lookups and LoongArch has no gather; and 128-bit operations do not preserve the LASX upper halves, so pairing blocks into 256-bit registers pays the same extraction tax that stopped the RandomX vector work. All twenty variants measure identically in both build trees, before and after the inline fix.
+
+## 8. The walls that remain
 
 - **The RandomX program itself.** 65% of every hash is the latency structure the algorithm prescribes: dependent chains, scratchpad and dataset latency, long FP operations. The port cannot change it without changing the algorithm.
 - **The issue width.** At IPC 3.61 the generated loop leaves about 10% of the issue slots on the table, and the remaining fat is thin: the CBRANCH emitter could still lose about one word per occurrence (~0.8%), and the loop top materializes the same L3 mask twice (~0.07%).
 - **The huge page accounting.** The dataset sits on 32 MiB transparent huge pages the whole time, but the miner counts explicit 2 MiB pages and prints `huge pages 0% 0/1168`. Accounting only, not performance, but wrong and worth fixing.
-- **The CryptoNight family is verified but not benchmarked here.** All 105 reference inputs of `CryptoNight_test.h` match (see the port notes), but this document measures RandomX only, so nothing about CN speed is claimed.
 
-## 8. The uniform session
+## 9. The uniform session
 
 Final tree, one session on an idle machine, nothing else running, every run a full 1M benchmark. The two discarded runs of the first attempt are left out; see section 1 for how they failed.
 
@@ -133,7 +184,7 @@ Two conclusions read directly off the table:
 - **The two builds mine at the same speed.** 904.3 against 903.9 to 909.1 H/s is inside the noise, on the same binary generation, same hour. The choice between the trees is decided by the dataset init time and by whether the machine has LASX at all, never by the hash rate.
 - **SMT buys about 10%.** 1000.35 against 906.5 H/s on the midpoints is a 10.4% gain for doubling the thread count, at half the per thread efficiency.
 
-## 9. What this means in practice
+## 10. What this means in practice
 
 - On a machine with LASX, build the main tree: same mining speed as the LSX only tree, 2.3x faster dataset init.
 - On a machine without LASX, build with `-DWITH_LASX=OFF`: the binary carries no LASX instruction and mines at the same rate.

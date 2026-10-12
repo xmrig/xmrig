@@ -151,7 +151,17 @@ The later RandomX JIT work raised the bar further:
 | mining speed, idle 3A6000 | about 900 H/s on 4 threads, about 1012 H/s on 8 |
 | dataset init, 8 threads | 2.8 s with the LASX item function, 6.6 s with the 128 bit one |
 
-## 8. Known gaps
+## 8. The CryptoNight family
+
+The CN code compiles through the same shadow header as everything else: `CryptoNight_x86.h` over `sse2lsx.h`, software AES because no LoongArch core has the instruction, and the x86 assembly templates off, so the C++ implementations run. Two port specific facts came out of the verification work:
+
+One: the two float converts of the shadow header were bit reinterpretations, not numeric conversions, because a C style cast between vectors of different element types means exactly that in GCC. Only the Conceal variant exercises the float path (`cn/ccx`), and its hashes were wrong until the converts went through `vffint.s.w` and `vftintrz.w.s`. After the fix every CN variant matches its reference vectors, 105 of 105 inputs.
+
+Two: upstream marks the soft `aes_round` NOINLINE, an x86 code size decision. Every scratchpad pass calls it ten times per eight block group, and on LoongArch the nine pointer arguments plus the spills of the calling convention are real issue slots, over two and a half million calls per hash. The port inlines the soft round on LoongArch (the AES-NI path was always inlined upstream) and keeps the x86 behavior untouched. The family gains 3 to 12 percent, the heavy variants the most, three scratchpad passes each.
+
+There is no LASX for CN. The AES state is 16 bytes wide, so the algorithm is SSE shaped; the round is 16 scalar table lookups, and LoongArch has no gather; and the 128-bit instructions do not preserve the LASX upper halves, so pairing two blocks per 256-bit register runs into the same roundtrip tax that stopped the RandomX vector experiments. Measured, all twenty variants run identically in both build trees.
+
+## 9. Known gaps
 
 One: **the huge page accounting is hardcoded to 2 MiB and 1 GiB**, while these machines only carry a 32 MiB page pool:
 
@@ -162,7 +172,7 @@ One: **the huge page accounting is hardcoded to 2 MiB and 1 GiB**, while these m
 
 The dataset itself sits on transparent huge pages the whole time, so the `0/1168` line is an accounting artifact, but the accounting is still wrong and worth fixing.
 
-## 9. What could come next
+## 10. What could come next
 
 ```
 huge pages: ask by the machine's own page size
