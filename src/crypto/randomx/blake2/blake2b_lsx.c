@@ -2,6 +2,7 @@
  * Copyright (c) 2018-2019, tevador <tevador@gmail.com>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026, RESBI       <https://github.com/RESBI>
 
 All rights reserved.
 
