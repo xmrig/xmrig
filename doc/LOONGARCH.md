@@ -147,14 +147,13 @@ The later RandomX JIT work raised the bar further:
 | compiled programs against the byte code machine | all digest tests agree |
 | the offline 1M benchmark | hash sum `898B6E0431C28A6B`, stable across every build and every optimization round |
 | pool mining | shares accepted, on the order of hours |
+| the CryptoNight family against the reference vectors of `CryptoNight_test.h` | 105 of 105 inputs: five 76 byte blocks per variant for nineteen variants, ten height carrying inputs for cn/r |
 | mining speed, idle 3A6000 | about 900 H/s on 4 threads, about 1012 H/s on 8 |
 | dataset init, 8 threads | 2.8 s with the LASX item function, 6.6 s with the 128 bit one |
 
 ## 8. Known gaps
 
-One: **the CryptoNight family is not verified on LoongArch**. The reference vectors in the source were fed the `test_input` in 76 byte chunks and compared cell by cell, 19 variants and 100 comparisons, and not one matched. The reason is that the file keeps inputs and outputs apart, which input belongs to which output cell is not written down, and no companion program survives. That is not evidence of wrong answers, but it is not evidence of right ones either: to actually use the CN family here, a different ruler is needed, real job hashes against another binary, or a reference build without the shadow headers.
-
-Two: **the huge page accounting is hardcoded to 2 MiB and 1 GiB**, while these machines only carry a 32 MiB page pool:
+One: **the huge page accounting is hardcoded to 2 MiB and 1 GiB**, while these machines only carry a 32 MiB page pool:
 
 ```
 2336 MiB /  2 MiB = 1168 pages, of which the miner finds 0
@@ -169,10 +168,7 @@ The dataset itself sits on transparent huge pages the whole time, so the `0/1168
 huge pages: ask by the machine's own page size
         |
         v
-CryptoNight family: find a ruler
-        |
-        v
 upstream sync discipline
 ```
 
-The first two are small with direct payoff. Beyond that, the big pieces of the port (the JIT, the interpreter's vector layer, the fast AES round) are done, and the remaining performance work is emitter level tuning, where the wall is the issue width of the core rather than anything a port can change.
+The first is small with direct payoff. Beyond that, the big pieces of the port (the JIT, the interpreter's vector layer, the fast AES round, the CryptoNight verification) are done, and the remaining performance work is emitter level tuning, where the wall is the issue width of the core rather than anything a port can change.

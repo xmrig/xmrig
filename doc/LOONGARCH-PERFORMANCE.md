@@ -114,7 +114,7 @@ Deployment guidance follows directly: one thread per physical core is near optim
 - **The RandomX program itself.** 65% of every hash is the latency structure the algorithm prescribes: dependent chains, scratchpad and dataset latency, long FP operations. The port cannot change it without changing the algorithm.
 - **The issue width.** At IPC 3.61 the generated loop leaves about 10% of the issue slots on the table, and the remaining fat is thin: the CBRANCH emitter could still lose about one word per occurrence (~0.8%), and the loop top materializes the same L3 mask twice (~0.07%).
 - **The huge page accounting.** The dataset sits on 32 MiB transparent huge pages the whole time, but the miner counts explicit 2 MiB pages and prints `huge pages 0% 0/1168`. Accounting only, not performance, but wrong and worth fixing.
-- **The CryptoNight family** remains unverified on LoongArch (see the port notes), so nothing about its speed is claimed here.
+- **The CryptoNight family is verified but not benchmarked here.** All 105 reference inputs of `CryptoNight_test.h` match (see the port notes), but this document measures RandomX only, so nothing about CN speed is claimed.
 
 ## 8. The uniform session
 
