@@ -13,25 +13,24 @@ This is the record of moving XMRig 6.26.0 (upstream commit `b2ca724`) to LoongAr
 
 One compiler fact matters a lot here: **there are no `__LSX__` or `__LASX__` macros**, only `__loongarch_sx` and `__loongarch_asx`, plus `__loongarch_simd_width`. Upstream XMRig decides whether to build the vector layers from `__SSE2__` and `__AVX2__`, and on LoongArch neither of those ever holds, so everything fell through to the portable fallback. That is where the work started.
 
-$$
-\text{upstream test:}\;\texttt{\_\_SSE2\_\_}\;\Rightarrow\;\text{LSX}
-\qquad
-\texttt{\_\_AVX2\_\_}\;\Rightarrow\;\text{LASX}
-$$
+```
+upstream test        what it should mean here
+__SSE2__         =>  LSX
+__AVX2__         =>  LASX
+```
 
 ## 2. The two vector layers
 
-```mermaid
-flowchart TB
-    A["configure time: two probe programs compiled in place"] --> B{"which layer compiles"}
-    B --> |"`-mlsx`"| C["LSX shadow header sse2lsx.h"]
-    B --> |"`-mlsx -mlasx`"| D["LASX shadow headers blake2b-common.h"]
-    C --> E["BLAKE2b / CryptoNight family on LSX"]
-    D --> F["BLAKE2b on LASX"]
-    E --> G["run time: pick a layer by the CPU flags"]
-    F --> G
-    style C fill:#e8f4ea
-    style F fill:#e8f4ea
+```
+configure time: two probe programs compiled in place
+        |
+        v
+  which layer compiles?
+  |--  -mlsx           -->  LSX shadow header, sse2lsx.h      -->  BLAKE2b and the CryptoNight family on LSX
+  `--  -mlsx -mlasx    -->  LASX shadow headers, blake2b-common.h  -->  BLAKE2b on LASX
+        |
+        v
+run time: pick a layer by the CPU flags
 ```
 
 The point of the layering: on a machine with only LSX, the LASX layer is not built at all, not merely left unused, so there is no way to end up executing an unsupported instruction.
@@ -157,20 +156,23 @@ One: **the CryptoNight family is not verified on LoongArch**. The reference vect
 
 Two: **the huge page accounting is hardcoded to 2 MiB and 1 GiB**, while these machines only carry a 32 MiB page pool:
 
-$$
-\frac{2336\ \text{MiB}}{2\ \text{MiB}} = 1168 \;(0\ \text{hit})
-\qquad
-\frac{2336\ \text{MiB}}{32\ \text{MiB}} = 73
-$$
+```
+2336 MiB /  2 MiB = 1168 pages, of which the miner finds 0
+2336 MiB / 32 MiB =   73 pages, which is what the kernel could actually give
+```
 
 The dataset itself sits on transparent huge pages the whole time, so the `0/1168` line is an accounting artifact, but the accounting is still wrong and worth fixing.
 
 ## 9. What could come next
 
-```mermaid
-flowchart LR
-    A["huge pages: ask by the machine's own page size"] --> B["CN family: find a ruler"] --> C["upstream sync discipline"]
-    style A fill:#e8f4ea
+```
+huge pages: ask by the machine's own page size
+        |
+        v
+CryptoNight family: find a ruler
+        |
+        v
+upstream sync discipline
 ```
 
 The first two are small with direct payoff. Beyond that, the big pieces of the port (the JIT, the interpreter's vector layer, the fast AES round) are done, and the remaining performance work is emitter level tuning, where the wall is the issue width of the core rather than anything a port can change.
