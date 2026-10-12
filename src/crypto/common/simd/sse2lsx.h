@@ -231,14 +231,22 @@ XMRIG_LSX_INLINE __m128 _mm_mul_ps(__m128 a, __m128 b)
     return (__m128)((v4f32)a * (v4f32)b);
 }
 
+/*
+ * A C style cast between vectors of different element types is a
+ * bit level reinterpretation in GCC, not an element wise numeric
+ * conversion, so the converts must go through the real LSX
+ * conversion instructions.  vffint.s.w follows the current
+ * rounding mode exactly like CVTDQ2PS, vftintrz.w.s truncates
+ * toward zero exactly like CVTTPS2DQ.
+ */
 XMRIG_LSX_INLINE __m128 _mm_cvtepi32_ps(__m128i a)
 {
-    return (__m128)((v4f32)((v4i32)a));
+    return (__m128)__lsx_vffint_s_w(a);
 }
 
 XMRIG_LSX_INLINE __m128i _mm_cvttps_epi32(__m128 a)
 {
-    return (__m128i)((v4i32)((v4f32)a));
+    return (__m128i)__lsx_vftintrz_w_s(a);
 }
 
 /* MOVHLPS: the upper half of the second operand, the upper half of the
