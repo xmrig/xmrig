@@ -234,8 +234,20 @@ static FORCEINLINE __m128i soft_aesenc(const void* __restrict ptr, const __m128i
 template<bool SOFT_AES>
 void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7);
 
+/*
+ * The out of line soft round is an x86 code size decision: the
+ * call overhead sits next to a cheap AES-NI-free round there.
+ * On LoongArch every scratchpad pass calls it ten times per eight
+ * block group, and the nine pointer arguments plus the spills of
+ * the calling convention cost real issue slots, so the soft round
+ * gets the same always inline treatment as the AES-NI one.
+ */
 template<>
+#ifdef XMRIG_LOONGARCH
+FORCEINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+#else
 NOINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+#endif
 {
     *x0 = soft_aesenc((uint32_t*)x0, key, (const uint32_t*)saes_table);
     *x1 = soft_aesenc((uint32_t*)x1, key, (const uint32_t*)saes_table);
