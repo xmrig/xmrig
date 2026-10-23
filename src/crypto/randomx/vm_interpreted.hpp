@@ -65,6 +65,11 @@ namespace randomx {
 		InstructionByteCode bytecode[RANDOMX_PROGRAM_MAX_SIZE];
 	};
 
+	/* Software AES on LoongArch takes the <2> round, see vm_compiled.hpp */
+#if defined(__loongarch__)
+	using InterpretedVmDefault = InterpretedVm<2>;
+#else
 	using InterpretedVmDefault = InterpretedVm<1>;
+#endif
 	using InterpretedVmHardAes = InterpretedVm<0>;
 }

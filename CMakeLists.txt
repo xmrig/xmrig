@@ -119,20 +119,27 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/cn/c_blake256.c
-    src/crypto/cn/c_groestl.c
-    src/crypto/cn/c_jh.c
-    src/crypto/cn/c_skein.c
-    src/crypto/cn/CnCtx.cpp
-    src/crypto/cn/CnHash.cpp
     src/crypto/common/HugePagesInfo.cpp
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
    )
 
-if (CMAKE_C_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
+# The CryptoNight family is built on the SSE2 intrinsics shim, the LoongArch
+# build supplies it through its LSX layer, see XMRIG_FEATURE_LSX.
+if (XMRIG_FEATURE_LSX OR NOT XMRIG_LOONGARCH)
+    list(APPEND SOURCES_CRYPTO
+        src/crypto/cn/c_blake256.c
+        src/crypto/cn/c_groestl.c
+        src/crypto/cn/c_jh.c
+        src/crypto/cn/c_skein.c
+        src/crypto/cn/CnCtx.cpp
+        src/crypto/cn/CnHash.cpp
+       )
+
+    if (CMAKE_C_COMPILER_ID MATCHES GNU)
+        set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
+    endif()
 endif()
 
 if (WITH_VAES)
@@ -190,6 +197,23 @@ else()
     elseif (XMRIG_OS_FREEBSD)
         set(EXTRA_LIBS kvm pthread)
     endif()
+endif()
+
+# The CryptoNight family and GhostRider are built on the x86 SSE2
+# intrinsics layer.  LSX serves the CryptoNight family only.
+if (XMRIG_LOONGARCH)
+    set(WITH_GHOSTRIDER  OFF)
+
+    if (NOT XMRIG_FEATURE_LSX)
+        set(WITH_CN_LITE     OFF)
+        set(WITH_CN_HEAVY    OFF)
+        set(WITH_CN_PICO     OFF)
+        set(WITH_CN_FEMTO    OFF)
+
+        message(STATUS "LoongArch: CryptoNight family needs LSX, it is not built")
+    endif()
+
+    message(STATUS "LoongArch: GhostRider family is not built")
 endif()
 
 add_definitions(-DXMRIG_MINER_PROJECT -DXMRIG_JSON_SINGLE_LINE_ARRAY)

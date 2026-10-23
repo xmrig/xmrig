@@ -130,6 +130,7 @@ void hashAes1Rx4(const void *input, size_t inputSize, void *hash)
 
 template void hashAes1Rx4<false>(const void *input, size_t inputSize, void *hash);
 template void hashAes1Rx4<true>(const void *input, size_t inputSize, void *hash);
+template void hashAes1Rx4<2>(const void *input, size_t inputSize, void *hash);
 
 #define AES_GEN_1R_KEY0 0xb4f44917, 0xdbb5552b, 0x62716609, 0x6daca553
 #define AES_GEN_1R_KEY1 0x0da1dc4e, 0x1725d378, 0x846a710d, 0x6d7caf07
@@ -199,6 +200,7 @@ void fillAes1Rx4(void *state, size_t outputSize, void *buffer)
 
 template void fillAes1Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes1Rx4<false>(void *state, size_t outputSize, void *buffer);
+template void fillAes1Rx4<2>(void *state, size_t outputSize, void *buffer);
 
 static constexpr randomx::Instruction inst{ 0xFF, 7, 7, 0xFF, 0xFFFFFFFFU };
 alignas(16) static const randomx::Instruction inst_mask[2] = { inst, inst };
@@ -280,6 +282,7 @@ void fillAes4Rx4(void *state, size_t outputSize, void *buffer)
 
 template void fillAes4Rx4<true>(void *state, size_t outputSize, void *buffer);
 template void fillAes4Rx4<false>(void *state, size_t outputSize, void *buffer);
+template void fillAes4Rx4<2>(void *state, size_t outputSize, void *buffer);
 
 #ifdef XMRIG_VAES
 void hashAndFillAes1Rx4_VAES512(void *scratchpad, size_t scratchpadSize, void *hash, void* fill_state);
