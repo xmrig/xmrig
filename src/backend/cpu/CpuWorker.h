@@ -71,7 +71,9 @@ protected:
     inline void jobEarlyNotification(const Job&) override   {}
 
 private:
+#   ifdef XMRIG_ALGO_CN
     inline cn_hash_fun fn(const Algorithm &algorithm) const { return CnHash::fn(algorithm, m_av, m_assembly); }
+#   endif
 
 #   ifdef XMRIG_ALGO_RANDOMX
     void allocateRandomX_VM();
@@ -79,8 +81,10 @@ private:
 
     bool nextRound();
     bool verify(const Algorithm &algorithm, const uint8_t *referenceValue);
+#   ifdef XMRIG_ALGO_CN
     bool verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
     void allocateCnCtx();
+#   endif
     void consumeJob();
 
     alignas(8) uint8_t m_commitment[N * 32]{ 0 };
@@ -89,10 +93,14 @@ private:
     const Assembly m_assembly;
     const bool m_hwAES;
     const bool m_yield;
+#   ifdef XMRIG_ALGO_CN
     const CnHash::AlgoVariant m_av;
+#   endif
     const Miner *m_miner;
     const size_t m_threads;
+#   ifdef XMRIG_ALGO_CN
     cryptonight_ctx *m_ctx[N];
+#   endif
     VirtualMemory *m_memory = nullptr;
     WorkerJob<N> m_job;
 
@@ -111,8 +119,10 @@ private:
 };
 
 
+#ifdef XMRIG_ALGO_CN
 template<>
 bool CpuWorker<1>::verify2(const Algorithm &algorithm, const uint8_t *referenceValue);
+#endif
 
 
 extern template class CpuWorker<1>;
