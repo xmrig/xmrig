@@ -180,11 +180,11 @@ public:
         }
     #   endif
 
-        mutex.lock();
+        {
+            std::lock_guard<std::mutex> lock(mutex);
 
-        pages += status.hugePages();
-
-        mutex.unlock();
+            pages += status.hugePages();
+        }
 
         rapidjson::Value hugepages;
 
@@ -380,13 +380,13 @@ void xmrig::CpuBackend::setJob(const Job &job)
 
 void xmrig::CpuBackend::start(IWorker *worker, bool ready)
 {
-    mutex.lock();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
 
-    if (d_ptr->status.started(worker, ready)) {
-        d_ptr->status.print();
+        if (d_ptr->status.started(worker, ready)) {
+            d_ptr->status.print();
+        }
     }
-
-    mutex.unlock();
 
     if (ready) {
         worker->start();
