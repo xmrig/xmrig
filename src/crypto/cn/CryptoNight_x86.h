@@ -852,12 +852,16 @@ extern "C" void cnv1_single_mainloop_asm(cryptonight_ctx * *ctx);
 extern "C" void cnv1_double_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv1_quad_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_ivybridge_asm(cryptonight_ctx **ctx);
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern "C" void cnv2_mainloop_ryzen_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_mainloop_bulldozer_asm(cryptonight_ctx **ctx);
+#endif
 extern "C" void cnv2_double_mainloop_sandybridge_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_mainloop_asm(cryptonight_ctx **ctx);
 extern "C" void cnv2_rwz_double_mainloop_asm(cryptonight_ctx **ctx);
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern "C" void cnv2_upx_double_mainloop_zen3_asm(cryptonight_ctx **ctx);
+#endif
 
 
 namespace xmrig {
@@ -867,28 +871,38 @@ typedef void (*cn_mainloop_fun)(cryptonight_ctx **ctx);
 
 
 extern cn_mainloop_fun cn_half_mainloop_ivybridge_asm;
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern cn_mainloop_fun cn_half_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_half_mainloop_bulldozer_asm;
+#endif
 extern cn_mainloop_fun cn_half_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_trtl_mainloop_ivybridge_asm;
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern cn_mainloop_fun cn_trtl_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_trtl_mainloop_bulldozer_asm;
+#endif
 extern cn_mainloop_fun cn_trtl_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_tlo_mainloop_ivybridge_asm;
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern cn_mainloop_fun cn_tlo_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_tlo_mainloop_bulldozer_asm;
+#endif
 extern cn_mainloop_fun cn_tlo_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_zls_mainloop_ivybridge_asm;
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern cn_mainloop_fun cn_zls_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_zls_mainloop_bulldozer_asm;
+#endif
 extern cn_mainloop_fun cn_zls_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_double_mainloop_ivybridge_asm;
+#ifdef XMRIG_FEATURE_ASM_AMD
 extern cn_mainloop_fun cn_double_mainloop_ryzen_asm;
 extern cn_mainloop_fun cn_double_mainloop_bulldozer_asm;
+#endif
 extern cn_mainloop_fun cn_double_double_mainloop_sandybridge_asm;
 
 extern cn_mainloop_fun cn_upx2_mainloop_asm;
@@ -964,46 +978,54 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         if (ASM == Assembly::INTEL) {
             cnv2_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cnv2_mainloop_ryzen_asm(ctx);
         }
         else {
             cnv2_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
     else if (ALGO == Algorithm::CN_HALF) {
         if (ASM == Assembly::INTEL) {
             cn_half_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cn_half_mainloop_ryzen_asm(ctx);
         }
         else {
             cn_half_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
 #   ifdef XMRIG_ALGO_CN_PICO
     else if (ALGO == Algorithm::CN_PICO_0) {
         if (ASM == Assembly::INTEL) {
             cn_trtl_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cn_trtl_mainloop_ryzen_asm(ctx);
         }
         else {
             cn_trtl_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
     else if (ALGO == Algorithm::CN_PICO_TLO) {
         if (ASM == Assembly::INTEL) {
             cn_tlo_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cn_tlo_mainloop_ryzen_asm(ctx);
         }
         else {
             cn_tlo_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {
@@ -1013,23 +1035,27 @@ inline void cryptonight_single_hash_asm(const uint8_t *__restrict__ input, size_
         if (ASM == Assembly::INTEL) {
             cn_zls_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cn_zls_mainloop_ryzen_asm(ctx);
         }
         else {
             cn_zls_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
     else if (ALGO == Algorithm::CN_DOUBLE) {
         if (ASM == Assembly::INTEL) {
             cn_double_mainloop_ivybridge_asm(ctx);
         }
+#       ifdef XMRIG_FEATURE_ASM_AMD
         else if (ASM == Assembly::RYZEN) {
             cn_double_mainloop_ryzen_asm(ctx);
         }
         else {
             cn_double_mainloop_bulldozer_asm(ctx);
         }
+#       endif
     }
 #   ifdef XMRIG_ALGO_CN_FEMTO
     else if (ALGO == Algorithm::CN_UPX2) {
@@ -1094,12 +1120,16 @@ inline void cryptonight_double_hash_asm(const uint8_t *__restrict__ input, size_
 #   endif
 #   ifdef XMRIG_ALGO_CN_FEMTO
     else if (ALGO == Algorithm::CN_UPX2) {
+#       ifdef XMRIG_FEATURE_ASM_AMD
         if (Cpu::info()->arch() == ICpuInfo::ARCH_ZEN3) {
             cnv2_upx_double_mainloop_zen3_asm(ctx);
         }
         else {
             cn_upx2_double_mainloop_asm(ctx);
         }
+#       else
+        cn_upx2_double_mainloop_asm(ctx);
+#       endif
     }
 #   endif
     else if (ALGO == Algorithm::CN_RWZ) {

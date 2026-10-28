@@ -5,12 +5,16 @@
 .global cnv1_double_mainloop_asm
 .global cnv1_quad_mainloop_asm
 .global cnv2_mainloop_ivybridge_asm
+#ifdef XMRIG_FEATURE_ASM_AMD
 .global cnv2_mainloop_ryzen_asm
 .global cnv2_mainloop_bulldozer_asm
+#endif
 .global cnv2_double_mainloop_sandybridge_asm
 .global cnv2_rwz_mainloop_asm
 .global cnv2_rwz_double_mainloop_asm
+#ifdef XMRIG_FEATURE_ASM_AMD
 .global cnv2_upx_double_mainloop_zen3_asm
+#endif
 
 ALIGN(64)
 cnv1_single_mainloop_asm:
@@ -36,6 +40,7 @@ cnv2_mainloop_ivybridge_asm:
 	ret 0
 	mov eax, 3735929054
 
+#ifdef XMRIG_FEATURE_ASM_AMD
 ALIGN(64)
 cnv2_mainloop_ryzen_asm:
 	#include "../cn2/cnv2_main_loop_ryzen.inc"
@@ -47,6 +52,7 @@ cnv2_mainloop_bulldozer_asm:
 	#include "../cn2/cnv2_main_loop_bulldozer.inc"
 	ret 0
 	mov eax, 3735929054
+#endif
 
 ALIGN(64)
 cnv2_double_mainloop_sandybridge_asm:
@@ -66,8 +72,10 @@ cnv2_rwz_double_mainloop_asm:
 	ret 0
 	mov eax, 3735929054
 
+#ifdef XMRIG_FEATURE_ASM_AMD
 ALIGN(64)
 cnv2_upx_double_mainloop_zen3_asm:
 	#include "cn2/cnv2_upx_double_mainloop_zen3.inc"
 	ret 0
 	mov eax, 3735929054
+#endif
