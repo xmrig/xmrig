@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <errno.h>
 #include <hwloc.h>
 
 
@@ -191,16 +192,25 @@ xmrig::HwlocCpuInfo::~HwlocCpuInfo()
 }
 
 
-bool xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
+int8_t xmrig::HwlocCpuInfo::membind(hwloc_const_bitmap_t nodeset)
 {
     if (!hwloc_topology_get_support(m_topology)->membind->set_thisthread_membind) {
-        return false;
+        return MEMBIND_FAIL_SUPP;
     }
 
 #   if HWLOC_API_VERSION >= 0x20000
-    return hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET) >= 0;
+    int rv = hwloc_set_membind(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD | HWLOC_MEMBIND_BYNODESET);
+    int error = errno;
+
+    if (rv < 0) {
+        LOG_WARN("hwloc_set_membind() error: \"%s\"\n", strerror(error));
+        return MEMBIND_FAIL_BIND;
+    }
+
+    return MEMBIND_SUCCESS;
 #   else
-    return hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0;
+    return (hwloc_set_membind_nodeset(m_topology, nodeset, HWLOC_MEMBIND_BIND, HWLOC_MEMBIND_THREAD) >= 0)
+        ? MEMBIND_SUCCESS : MEMBIND_FAIL_BIND;
 #   endif
 }
 
