@@ -32,8 +32,10 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
 #include "base/net/stratum/NetworkState.h"
+#include "base/tools/Chrono.h"
 #include "base/tools/Object.h"
 #include "base/tools/Timer.h"
+#include "crypto/common/Nonce.h"
 #include "core/config/Config.h"
 #include "core/Controller.h"
 #include "crypto/common/Nonce.h"
@@ -369,6 +371,7 @@ public:
 
         Log::print(MAGENTA_BOLD_S " - DIFFICULTY");
 
+        // Difficulty the current job requires (network target)
         Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-19s") CYAN_BOLD("%s") BLACK_BOLD(" (%llu)"),
                    "job difficulty",
                    NetworkState::humanDiff(job.diff()).c_str(),
@@ -378,6 +381,39 @@ public:
                    "job target",
                    NetworkState::humanDiff(job.target()).c_str(),
                    static_cast<unsigned long long>(job.target()));
+
+        // Best hash (lowest raw value = highest difficulty) computed this job
+        const uint64_t bestJob = Nonce::bestHashValue();
+        if (bestJob) {
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-19s") CYAN_BOLD("%s") BLACK_BOLD(" (%llu)"),
+                       "best hash (job)",
+                       NetworkState::humanDiff(Job::toDiff(bestJob)).c_str(),
+                       static_cast<unsigned long long>(Job::toDiff(bestJob)));
+        }
+
+        // Best hash computed this session
+        const uint64_t bestSession = Nonce::sessionBestHashValue();
+        if (bestSession) {
+            Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-19s") CYAN_BOLD("%s") BLACK_BOLD(" (%llu)"),
+                       "best hash (session)",
+                       NetworkState::humanDiff(Job::toDiff(bestSession)).c_str(),
+                       static_cast<unsigned long long>(Job::toDiff(bestSession)));
+        }
+
+        // Session top-10 record list
+        uint64_t records[kBestHashListSize];
+        size_t count = 0;
+        Nonce::readBestHashList(records, count);
+
+        if (count) {
+            Log::print(MAGENTA_BOLD_S " - TOP %zu", count);
+            Log::print(WHITE_BOLD_S "  # | DIFFICULTY |");
+
+            for (size_t i = 0; i < count; ++i) {
+                Log::print("%3zu | %10s |", i + 1,
+                           NetworkState::humanDiff(Job::toDiff(records[i])).c_str());
+            }
+        }
     }
 
 
@@ -406,6 +442,8 @@ public:
     String userJobId;
     Timer *timer        = nullptr;
     uint64_t ticks      = 0;
+    uint64_t lastBestHashValue = 0;
+    uint64_t lastRecordLogMSecs = 0;
 
     Taskbar m_taskbar;
 };
@@ -709,6 +747,24 @@ void xmrig::Miner::onTimer(const Timer *)
     const auto printTime = config->printTime();
     if (printTime && d_ptr->ticks && (d_ptr->ticks % (printTime * 2)) == 0) {
         d_ptr->printHashrate(false);
+    }
+
+    // Best (most difficult) actual hash produced since the miner started. Log a line
+    // whenever the session best improves, but at most once per minute to avoid a burst
+    // of records early on.
+    const uint64_t sessionBest = Nonce::sessionBestHashValue();
+    if (sessionBest != d_ptr->lastBestHashValue) {
+        d_ptr->lastBestHashValue = sessionBest;
+
+        const uint64_t now = Chrono::steadyMSecs();
+        if (!d_ptr->lastRecordLogMSecs || (now - d_ptr->lastRecordLogMSecs) >= 60000) {
+            d_ptr->lastRecordLogMSecs = now;
+
+            LOG_INFO("%s " WHITE_BOLD("best hash diff this session") " " CYAN_BOLD("%s") " (" CYAN("%llu") ")",
+                     Tags::miner(),
+                     NetworkState::humanDiff(Job::toDiff(sessionBest)).c_str(),
+                     static_cast<unsigned long long>(Job::toDiff(sessionBest)));
+        }
     }
 
     d_ptr->ticks++;
