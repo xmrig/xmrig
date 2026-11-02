@@ -129,6 +129,18 @@ size_t xmrig::Pools::active() const
 }
 
 
+bool xmrig::Pools::isDaemon() const
+{
+    for (const Pool &pool : m_data) {
+        if (pool.isEnabled() && pool.mode() == Pool::MODE_DAEMON) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+
 void xmrig::Pools::load(const IJsonReader &reader)
 {
     m_data.clear();

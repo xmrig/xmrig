@@ -210,7 +210,7 @@ void xmrig::DaemonClient::connect()
         m_pool.setAlgo(m_coin.algorithm());
     }
 
-    if ((m_apiVersion == API_MONERO) && !m_walletAddress.isValid()) {
+    if ((m_apiVersion == API_MONERO) && !m_rawTemplate && !m_walletAddress.isValid()) {
         return connectError("Invalid wallet address.");
     }
 
@@ -241,6 +241,8 @@ void xmrig::DaemonClient::setPool(const Pool &pool)
     if (!m_coin.isValid() && pool.algorithm() == Algorithm::RX_WOW) {
         m_coin = Coin::WOWNERO;
     }
+
+    m_rawTemplate = pool.rawTemplate() || m_coin == Coin::TARI;
 }
 
 
@@ -396,28 +398,30 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
         return jobError("Empty block template received from daemon."); // FIXME
     }
 
-    if (!m_blocktemplate.parse(blocktemplate, m_coin)) {
-        return jobError("Invalid block template received from daemon.");
-    }
+    if (!m_rawTemplate) {
+        if (!m_blocktemplate.parse(blocktemplate, m_coin)) {
+            return jobError("Invalid block template received from daemon.");
+        }
 
-#   ifdef XMRIG_PROXY_PROJECT
-    const size_t k = m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_OFFSET);
-    job.setMinerTx(
-        m_blocktemplate.blob() + k,
-        m_blocktemplate.blob() + m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_END_OFFSET),
-        m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) - k,
-        m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) - k,
-        m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) - k,
-        m_blocktemplate.txExtraNonce().size(),
-        m_blocktemplate.minerTxMerkleTreeBranch(),
-        m_blocktemplate.minerTxMerkleTreePath(),
-        m_blocktemplate.outputType() == 3
-    );
-#   endif
+#       ifdef XMRIG_PROXY_PROJECT
+        const size_t k = m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_OFFSET);
+        job.setMinerTx(
+            m_blocktemplate.blob() + k,
+            m_blocktemplate.blob() + m_blocktemplate.offset(BlockTemplate::MINER_TX_PREFIX_END_OFFSET),
+            m_blocktemplate.offset(BlockTemplate::EPH_PUBLIC_KEY_OFFSET) - k,
+            m_blocktemplate.offset(BlockTemplate::TX_PUBKEY_OFFSET) - k,
+            m_blocktemplate.offset(BlockTemplate::TX_EXTRA_NONCE_OFFSET) - k,
+            m_blocktemplate.txExtraNonce().size(),
+            m_blocktemplate.minerTxMerkleTreeBranch(),
+            m_blocktemplate.minerTxMerkleTreePath(),
+            m_blocktemplate.outputType() == 3
+        );
+#       endif
+    }
 
     m_blockhashingblob = Json::getString(params, kBlockhashingBlob);
 
-    if (m_blocktemplate.hasMinerSignature()) {
+    if (!m_rawTemplate && m_blocktemplate.hasMinerSignature()) {
         if (m_pool.spendSecretKey().isEmpty()) {
             return jobError("Secret spend key is not set.");
         }
@@ -471,7 +475,7 @@ bool xmrig::DaemonClient::parseJob(const rapidjson::Value &params, int *code)
 #       endif
     }
 
-    if (m_coin.isValid()) {
+    if (!m_rawTemplate && m_coin.isValid()) {
         job.setAlgorithm(m_coin.algorithm(m_blocktemplate.majorVersion()));
     }
 

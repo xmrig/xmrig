@@ -31,6 +31,7 @@
 #include "base/io/log/Tags.h"
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Job.h"
+#include "base/net/stratum/NetworkState.h"
 #include "base/tools/Object.h"
 #include "base/tools/Timer.h"
 #include "core/config/Config.h"
@@ -357,6 +358,29 @@ public:
     }
 
 
+    // Same block style as NetworkState::printConnection() ('c') and printResults() ('s').
+    void printDifficulty()
+    {
+        if (!job.isValid()) {
+            LOG_NOTICE(YELLOW_BOLD_S "no job yet");
+
+            return;
+        }
+
+        Log::print(MAGENTA_BOLD_S " - DIFFICULTY");
+
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-19s") CYAN_BOLD("%s") BLACK_BOLD(" (%llu)"),
+                   "job difficulty",
+                   NetworkState::humanDiff(job.diff()).c_str(),
+                   static_cast<unsigned long long>(job.diff()));
+
+        Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-19s") CYAN_BOLD("%s") BLACK_BOLD(" (%llu)"),
+                   "job target",
+                   NetworkState::humanDiff(job.target()).c_str(),
+                   static_cast<unsigned long long>(job.target()));
+    }
+
+
 #   ifdef XMRIG_ALGO_RANDOMX
     inline bool initRX() const { return Rx::init(job, controller->config()->rx(), controller->config()->cpu()); }
 #   endif
@@ -475,6 +499,16 @@ void xmrig::Miner::execCommand(char command)
     case 'h':
     case 'H':
         d_ptr->printHashrate(true);
+        break;
+
+    case 'd':
+    case 'D':
+        if (d_ptr->controller->config()->pools().isDaemon()) {
+            d_ptr->printDifficulty();
+        }
+        else {
+            LOG_NOTICE(YELLOW_BOLD_S "difficulty info is only available in daemon mode");
+        }
         break;
 
     case 'p':
