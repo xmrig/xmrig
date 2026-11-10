@@ -22,15 +22,9 @@ set(SOURCES_BACKEND_CPU
    )
 
 if (WITH_HWLOC)
-    if (CMAKE_CXX_COMPILER_ID MATCHES MSVC)
-        add_subdirectory(src/3rdparty/hwloc)
-        include_directories(src/3rdparty/hwloc/include)
-        set(CPUID_LIB hwloc)
-    else()
-        find_package(HWLOC REQUIRED)
-        include_directories(${HWLOC_INCLUDE_DIR})
-        set(CPUID_LIB ${HWLOC_LIBRARY})
-    endif()
+    find_package(HWLOC REQUIRED)
+    include_directories(${HWLOC_INCLUDE_DIR})
+    set(CPUID_LIB ${HWLOC_LIBRARY})
 
     add_definitions(/DXMRIG_FEATURE_HWLOC)
 
