@@ -44,6 +44,7 @@ template<Algorithm::Family FAMILY>
 static inline size_t generate(Threads<OclThreads> &, const std::vector<OclDevice> &) { return 0; }
 
 
+#ifdef XMRIG_ALGO_CN
 template<>
 size_t inline generate<Algorithm::CN>(Threads<OclThreads> &threads, const std::vector<OclDevice> &devices)
 {
@@ -59,6 +60,7 @@ size_t inline generate<Algorithm::CN>(Threads<OclThreads> &threads, const std::v
 
     return count;
 }
+#endif
 
 
 #ifdef XMRIG_ALGO_CN_LITE

@@ -100,6 +100,8 @@ public:
     };
 
     static const char *kINVALID;
+
+#   ifdef XMRIG_ALGO_CN
     static const char *kCN;
     static const char *kCN_0;
     static const char *kCN_1;
@@ -113,6 +115,7 @@ public:
     static const char *kCN_ZLS;
     static const char *kCN_DOUBLE;
     static const char *kCN_CCX;
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     static const char *kCN_LITE;

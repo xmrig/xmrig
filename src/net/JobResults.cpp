@@ -29,8 +29,16 @@
 #include "base/io/log/Log.h"
 #include "base/kernel/interfaces/IAsyncListener.h"
 #include "base/tools/Object.h"
+#include "crypto/common/Assembly.h"
 #include "net/interfaces/IJobResultListener.h"
 #include "net/JobResult.h"
+
+
+#ifdef XMRIG_ALGO_CN
+#   include "crypto/cn/CnCtx.h"
+#   include "crypto/cn/CnHash.h"
+#   include "crypto/cn/CryptoNight.h"
+#endif
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -48,9 +56,6 @@
 
 #if defined(XMRIG_FEATURE_OPENCL) || defined(XMRIG_FEATURE_CUDA)
 #   include "base/tools/Baton.h"
-#   include "crypto/cn/CnCtx.h"
-#   include "crypto/cn/CnHash.h"
-#   include "crypto/cn/CryptoNight.h"
 #   include "crypto/common/VirtualMemory.h"
 #endif
 
@@ -178,6 +183,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 #       endif
     }
     else {
+#       ifdef XMRIG_ALGO_CN
         cryptonight_ctx *ctx[1];
         CnCtx::create(ctx, memory->scratchpad(), memory->size(), 1);
 
@@ -188,6 +194,7 @@ static void getResults(JobBundle &bundle, std::vector<JobResult> &results, uint3
 
             checkHash(bundle, results, nonce, hash, errors);
         }
+#       endif
     }
 
     delete memory;
