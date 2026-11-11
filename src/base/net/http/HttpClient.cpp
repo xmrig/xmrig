@@ -25,6 +25,7 @@
 #include "base/net/dns/Dns.h"
 #include "base/net/dns/DnsRecords.h"
 #include "base/net/tools/NetBuffer.h"
+#include "base/net/tools/Socks5Handshake.h"
 #include "base/tools/Timer.h"
 
 
@@ -59,7 +60,11 @@ xmrig::HttpClient::HttpClient(const char *tag, FetchRequest &&req, const std::we
 
 bool xmrig::HttpClient::connect()
 {
-    m_dns = Dns::resolve(m_req.host, this);
+    if (m_req.proxyPort > 0) {
+        m_socks5 = std::make_shared<Socks5Handshake>(m_req.host, m_req.port);
+    }
+
+    m_dns = Dns::resolve(m_socks5 ? m_req.proxyHost : m_req.host, this);
 
     return true;
 }
@@ -75,13 +80,22 @@ void xmrig::HttpClient::onResolved(const DnsRecords &records, int status, const 
             LOG_ERR("%s " RED("DNS error: ") RED_BOLD("\"%s\""), tag(), error);
         }
 
-        return;
+        return close(status);
     }
 
     auto req  = new uv_connect_t;
     req->data = this;
 
-    uv_tcp_connect(req, m_tcp, records.get().addr(port()), onConnect);
+    const int rc = uv_tcp_connect(req, m_tcp, records.get().addr(m_socks5 ? m_req.proxyPort : port()), onConnect);
+    if (rc < 0) {
+        delete req;
+
+        if (!isQuiet()) {
+            LOG_ERR("%s " RED("connect error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(rc));
+        }
+
+        close(rc);
+    }
 }
 
 
@@ -152,7 +166,7 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             auto client = static_cast<HttpClient*>(tcp->data);
 
             if (nread >= 0) {
-                client->read(buf->base, static_cast<size_t>(nread));
+                client->onRead(buf->base, static_cast<size_t>(nread));
             } else {
                 if (!client->isQuiet() && nread != UV_EOF) {
                     LOG_ERR("%s " RED("read error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(static_cast<int>(nread)));
@@ -164,5 +178,42 @@ void xmrig::HttpClient::onConnect(uv_connect_t *req, int status)
             NetBuffer::release(buf);
         });
 
+    if (client->m_socks5) {
+        return client->HttpContext::write(Socks5Handshake::greeting(), false);
+    }
+
     client->handshake();
+}
+
+
+void xmrig::HttpClient::onRead(const char *data, size_t size)
+{
+    if (m_socks5) {
+        std::string out;
+
+        if (!m_socks5->read(data, size, out)) {
+            if (!isQuiet()) {
+                LOG_ERR("%s " RED("SOCKS5 error: ") RED_BOLD("\"%s\""), tag(), m_socks5->error());
+            }
+
+            return close(UV_EPROTO);
+        }
+
+        if (!out.empty()) {
+            HttpContext::write(std::move(out), false);
+        }
+
+        if (!m_socks5->isReady()) {
+            return;
+        }
+
+        m_socks5.reset();
+        handshake();
+
+        if (size == 0) {
+            return;
+        }
+    }
+
+    read(data, size);
 }

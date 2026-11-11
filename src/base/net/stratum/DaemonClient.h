@@ -50,6 +50,8 @@ namespace xmrig {
 
 
 class DnsRequest;
+class FetchRequest;
+class Socks5Handshake;
 
 
 class DaemonClient : public BaseClient, public IDnsListener, public ITimerListener, public IHttpListener
@@ -83,12 +85,14 @@ protected:
 
 private:
     bool isOutdated(uint64_t height, const char *hash) const;
+    bool isProxied() const;
     bool parseJob(const rapidjson::Value &params, int *code);
     bool parseResponse(int64_t id, const rapidjson::Value &result, const rapidjson::Value &error);
     int64_t getBlockTemplate();
     int64_t rpcSend(const rapidjson::Document &doc, const std::map<std::string, std::string> &headers = {});
     void retry();
     void send(const char *path);
+    void send(FetchRequest &&req);
     void setState(SocketState state);
 
     enum {
@@ -120,19 +124,21 @@ private:
     static void onZMQConnect(uv_connect_t* req, int status);
     static void onZMQRead(uv_stream_t* stream, ssize_t nread, const uv_buf_t* buf);
     static void onZMQClose(uv_handle_t* handle);
-    static void onZMQShutdown(uv_handle_t* handle);
 
     void ZMQConnected();
     bool ZMQWrite(const char* data, size_t size);
     void ZMQRead(ssize_t nread, const uv_buf_t* buf);
     void ZMQParse();
-    bool ZMQClose(bool shutdown = false);
+    bool ZMQClose(bool reconnect = true);
 
     std::shared_ptr<DnsRequest> m_dns;
+    std::shared_ptr<Socks5Handshake> m_ZMQSocks5;
     uv_tcp_t* m_ZMQSocket = nullptr;
 
     enum {
         ZMQ_NOT_CONNECTED,
+        ZMQ_CONNECTING,
+        ZMQ_SOCKS5,
         ZMQ_GREETING_1,
         ZMQ_GREETING_2,
         ZMQ_HANDSHAKE,
