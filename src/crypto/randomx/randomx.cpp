@@ -41,6 +41,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/jit_compiler_a64_static.hpp"
 #elif defined(__riscv) && defined(__riscv_xlen) && (__riscv_xlen == 64)
 #include "crypto/randomx/jit_compiler_rv64_static.hpp"
+#elif defined(__loongarch__) && (__SIZEOF_POINTER__ == 8)
+#include "crypto/randomx/jit_compiler_la64_static.hpp"
 #endif
 
 #include "backend/cpu/Cpu.h"
@@ -302,6 +304,17 @@ typedef void(randomx::JitCompilerX86::* InstructionGeneratorX86_2)(const randomx
 		randomx::JitCompilerRV64::inst_map[k] = static_cast<uint8_t>(randomx::InstructionType::x); \
 	} while (0)
 
+#elif defined(__loongarch__) && (__SIZEOF_POINTER__ == 8)
+
+/*
+ * LoongArch has no AES instructions, so the
+ * generated program always takes the software
+ * AES path of jit_compiler_la64_static.S, and
+ * the FSQRT/CFROUND shims are not needed at
+ * all: the compiler knows Shapes.
+ */
+#define JIT_HANDLE(x, prev) randomx::JitCompilerLa64::engine[k] = &randomx::JitCompilerLa64::h_##x
+
 #else
 #define JIT_HANDLE(x, prev)
 #endif
@@ -484,6 +497,19 @@ extern "C" {
 		assert(dataset != nullptr || !(flags & RANDOMX_FLAG_FULL_MEM));
 
 		randomx_vm* vm = nullptr;
+
+		/*
+		 * -DXMRIG_LOONGARCH_INTERPRETER belongs to the
+		 * differential build of scripts/160: that one
+		 * build, and only that one, takes the byte
+		 * code machine instead of the generated
+		 * program here, so a byte for byte equal
+		 * digest says the generated program and
+		 * the machine agree.
+		 */
+#if defined(XMRIG_LOONGARCH_INTERPRETER)
+		flags = static_cast<randomx_flags>(flags & ~RANDOMX_FLAG_JIT);
+#endif
 
 		std::lock_guard<std::mutex> lock(vm_pool_mutex);
 

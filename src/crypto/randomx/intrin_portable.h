@@ -538,6 +538,172 @@ FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
 
 #define RANDOMX_DEFAULT_FENV
 
+#elif defined(__loongarch_sx) && !defined(XMRIG_LOONGARCH_PORTABLE)
+
+/*
+ * LoongArch LSX ( 128 bit SIMD ), the counterpart of the SSE2 layer above.
+ *
+ * "lsx" means 128 bit, which is exactly the width of the RandomX register
+ * file, so one _mm_* operation of the layers above equals one LSX operation
+ * and nothing has to be assembled out of narrower vectors.  GCC publishes the
+ * LSX vector types under the SSE names ( __m128i, __m128d ) with the same
+ * layout, therefore only the rx_* names that the virtual machine and the
+ * bytecode machine call have to be written down, each one of them a thin
+ * wrapper over the matching LSX builtin.
+ *
+ * LASX is deliberately not used: it is 256 bit wide, while the register file
+ * above is 128 bit, so not one rx_* name in this block has an LASX
+ * counterpart.  A build that carries LASX reaches the 256 bit layer through
+ * the BLAKE2b compressor instead, which is dispatched at run time.
+ *
+ * A LoongArch CPU does not have to carry LSX at all, and this block is then
+ * not compiled a single instruction: the portable fallback below serves it.
+ * XMRIG_LOONGARCH_PORTABLE is defined by the differential build of the
+ * verification harness alone.  That build compiles the very same sources a
+ * second time with the portable layer, and the two builds are then compared
+ * hash for hash.
+ */
+
+#include <lsxintrin.h>
+#include <cmath>
+#include <cstdlib>
+#include <string.h>
+
+typedef __m128i rx_vec_i128;
+typedef __m128d rx_vec_f128;
+
+/*
+ * The SSE2 layer above holds __m128i and __m128d in the same register and
+ * therefore reinterprets the two types freely.  The LoongArch headers keep
+ * them apart, and GCC refuses a cast between two vector types unless
+ * -flax-vector-conversions is asked for.  The two ways between the types are
+ * written down as bit copies instead, and the compiler turns each one of them
+ * back into a plain register move.
+ */
+
+static FORCE_INLINE __m128i rx_f128_i128(rx_vec_f128 a) {
+    __m128i x;
+    memcpy(&x, &a, sizeof(x));
+
+    return x;
+}
+
+static FORCE_INLINE rx_vec_f128 rx_i128_f128(__m128i a) {
+    rx_vec_f128 x;
+    memcpy(&x, &a, sizeof(x));
+
+    return x;
+}
+
+#ifdef HAVE_POSIX_MEMALIGN
+static inline void* rx_aligned_alloc(size_t size, size_t align) {
+    void* p;
+    if (posix_memalign(&p, align, size) == 0)
+        return p;
+
+    return 0;
+};
+#   define rx_aligned_free(a) free(a)
+#elif defined(HAVE_ALIGNED_MALLOC)
+#   define rx_aligned_alloc(a, b) _aligned_malloc(a, b)
+#   define rx_aligned_free(a) _aligned_free(a)
+#else
+#   define rx_aligned_alloc(a, b) malloc(a)
+#   define rx_aligned_free(a) free(a)
+#endif
+
+static FORCE_INLINE void rx_prefetch_nta(const void* ptr) {
+    __builtin_prefetch(ptr, 0, 0);
+}
+
+static FORCE_INLINE void rx_prefetch_t0(const void* ptr) {
+    __builtin_prefetch(ptr, 0, 3);
+}
+
+/* vld/vst are unaligned by definition, so the alignment the SSE2 layer
+   demands of rx_load_vec_f128 does not apply here. */
+
+static FORCE_INLINE rx_vec_f128 rx_load_vec_f128(const double* pd) {
+    return rx_i128_f128(__lsx_vld(pd, 0));
+}
+
+static FORCE_INLINE void rx_store_vec_f128(double* mem_addr, rx_vec_f128 val) {
+    __lsx_vst(rx_f128_i128(val), mem_addr, 0);
+}
+
+/* The swap is written down as a shuffle instead of a vshuf4i.d immediate,
+   so the result does not rest on the encoding of that immediate. */
+
+static FORCE_INLINE rx_vec_f128 rx_swap_vec_f128(rx_vec_f128 a) {
+    return __builtin_shufflevector(a, a, 1, 0);
+}
+
+static FORCE_INLINE rx_vec_f128 rx_add_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return __lsx_vfadd_d(a, b); }
+static FORCE_INLINE rx_vec_f128 rx_sub_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return __lsx_vfsub_d(a, b); }
+static FORCE_INLINE rx_vec_f128 rx_mul_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return __lsx_vfmul_d(a, b); }
+static FORCE_INLINE rx_vec_f128 rx_div_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return __lsx_vfdiv_d(a, b); }
+static FORCE_INLINE rx_vec_f128 rx_sqrt_vec_f128(rx_vec_f128 a)     { return __lsx_vfsqrt_d(a); }
+
+static FORCE_INLINE rx_vec_f128 rx_set_vec_f128(uint64_t x1, uint64_t x0) {
+    __m128i v = __lsx_vreplgr2vr_d((long long) x0);
+
+    return rx_i128_f128(__lsx_vinsgr2vr_d(v, (long long) x1, 1));
+}
+
+static FORCE_INLINE rx_vec_f128 rx_set1_vec_f128(uint64_t x) {
+    return rx_i128_f128(__lsx_vreplgr2vr_d((long long) x));
+}
+
+static FORCE_INLINE rx_vec_f128 rx_xor_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return rx_i128_f128(__lsx_vxor_v(rx_f128_i128(a), rx_f128_i128(b))); }
+static FORCE_INLINE rx_vec_f128 rx_and_vec_f128(rx_vec_f128 a, rx_vec_f128 b) { return rx_i128_f128(__lsx_vand_v(rx_f128_i128(a), rx_f128_i128(b))); }
+static FORCE_INLINE rx_vec_i128 rx_and_vec_i128(rx_vec_i128 a, rx_vec_i128 b) { return __lsx_vand_v(a, b); }
+static FORCE_INLINE rx_vec_f128 rx_or_vec_f128(rx_vec_f128 a, rx_vec_f128 b)  { return rx_i128_f128(__lsx_vor_v(rx_f128_i128(a), rx_f128_i128(b))); }
+
+static FORCE_INLINE rx_vec_i128 rx_set1_long_vec_i128(uint64_t a) {
+    return __lsx_vreplgr2vr_d((long long) a);
+}
+
+static FORCE_INLINE rx_vec_f128 rx_vec_i128_vec_f128(rx_vec_i128 a) {
+    return rx_i128_f128(a);
+}
+
+static FORCE_INLINE int rx_vec_i128_x(rx_vec_i128 a) { return __lsx_vpickve2gr_w(a, 0); }
+static FORCE_INLINE int rx_vec_i128_y(rx_vec_i128 a) { return __lsx_vpickve2gr_w(a, 1); }
+static FORCE_INLINE int rx_vec_i128_z(rx_vec_i128 a) { return __lsx_vpickve2gr_w(a, 2); }
+static FORCE_INLINE int rx_vec_i128_w(rx_vec_i128 a) { return __lsx_vpickve2gr_w(a, 3); }
+
+static FORCE_INLINE rx_vec_i128 rx_set_int_vec_i128(int _I3, int _I2, int _I1, int _I0) {
+    __m128i v = __lsx_vreplgr2vr_w(_I0);
+
+    v = __lsx_vinsgr2vr_w(v, _I1, 1);
+    v = __lsx_vinsgr2vr_w(v, _I2, 2);
+
+    return __lsx_vinsgr2vr_w(v, _I3, 3);
+}
+
+static FORCE_INLINE rx_vec_i128 rx_xor_vec_i128(rx_vec_i128 a, rx_vec_i128 b) { return __lsx_vxor_v(a, b); }
+
+static FORCE_INLINE rx_vec_i128 rx_load_vec_i128(rx_vec_i128 const* _P) {
+    return __lsx_vld(_P, 0);
+}
+
+static FORCE_INLINE void rx_store_vec_i128(rx_vec_i128* _P, rx_vec_i128 _B) {
+    __lsx_vst(_B, _P, 0);
+}
+
+/*
+ * The two low words of the address become two doubles, which is what the SSE2
+ * layer obtains from movq + cvtepi32_pd.  An int32 is always representable as
+ * a double, so neither the conversion nor the rounding mode can alter a value,
+ * and the portable layer computes the very same two doubles.
+ */
+
+static FORCE_INLINE rx_vec_f128 rx_cvt_packed_int_vec_f128(const void* addr) {
+    return __lsx_vffintl_d_w(__lsx_vld(addr, 0));
+}
+
+#define RANDOMX_DEFAULT_FENV
+
 #else //portable fallback
 
 #include <cstdint>

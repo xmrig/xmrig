@@ -86,6 +86,9 @@ void xmrig::Rx::init(IRxListener *listener)
 
 
 #include "crypto/randomx/blake2/blake2.h"
+#if defined(XMRIG_FEATURE_LASX)
+#   include "crypto/randomx/blake2/lasx/blake2b.h"
+#endif
 #if defined(XMRIG_FEATURE_AVX2)
 #include "crypto/randomx/blake2/avx2/blake2b.h"
 #endif
@@ -148,6 +151,18 @@ bool xmrig::Rx::init(const T &seed, const RxConfig &config, const CpuConfig &cpu
 #       if defined(XMRIG_FEATURE_SSE4_1)
         if (Cpu::info()->has(ICpuInfo::FLAG_SSE41)) {
             rx_blake2b_compress = rx_blake2b_compress_sse41;
+        }
+#       endif
+
+#       if defined(XMRIG_FEATURE_LSX)
+        if (Cpu::info()->has(ICpuInfo::FLAG_LSX)) {
+            rx_blake2b_compress = rx_blake2b_compress_lsx;
+        }
+#       endif
+
+#       if defined(XMRIG_FEATURE_LASX)
+        if (Cpu::info()->has(ICpuInfo::FLAG_LASX)) {
+            rx_blake2b = blake2b_lasx;
         }
 #       endif
 

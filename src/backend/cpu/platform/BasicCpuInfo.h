@@ -66,7 +66,7 @@ protected:
     inline Vendor vendor() const override                       { return m_vendor; }
     inline uint32_t model() const override
     {
-#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_LOONGARCH)
         return m_model;
 #   else
         return 0;
@@ -81,7 +81,7 @@ protected:
     Vendor m_vendor         = VENDOR_UNKNOWN;
 
 private:
-#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_LOONGARCH)
     uint32_t m_procInfo     = 0;
     uint32_t m_family       = 0;
     uint32_t m_model        = 0;

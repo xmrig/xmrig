@@ -52,6 +52,8 @@ char *xmrig::Platform::createUserAgent()
 
 #   if defined(__x86_64__)
     length += snprintf(buf + length, max - length, "x86_64) libuv/%s", uv_version_string());
+#   elif defined(__loongarch64)
+    length += snprintf(buf + length, max - length, "loongarch64) libuv/%s", uv_version_string());
 #   elif defined(__aarch64__)
     length += snprintf(buf + length, max - length, "aarch64) libuv/%s", uv_version_string());
 #   elif defined(__arm__)
