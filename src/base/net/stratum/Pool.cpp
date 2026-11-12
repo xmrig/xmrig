@@ -82,6 +82,7 @@ const char *Pool::kUrl                    = "url";
 const char *Pool::kUser                   = "user";
 const char *Pool::kSpendSecretKey         = "spend-secret-key";
 const char *Pool::kNicehashHost           = "nicehash.com";
+const char *Pool::kTari                   = "tari";
 
 
 } // namespace xmrig
@@ -139,6 +140,8 @@ xmrig::Pool::Pool(const rapidjson::Value &object) :
     m_flags.set(FLAG_NICEHASH, Json::getBool(object, kNicehash) || m_url.host().contains(kNicehashHost));
     m_flags.set(FLAG_TLS,      Json::getBool(object, kTls) || m_url.isTLS());
     m_flags.set(FLAG_SNI,      Json::getBool(object, kSni));
+
+    m_rawTemplate = Json::getBool(object, kTari, m_rawTemplate);
 
     setKeepAlive(Json::getValue(object, kKeepalive));
 
@@ -217,6 +220,7 @@ bool xmrig::Pool::isEqual(const Pool &other) const
             && m_jobTimeout   == other.m_jobTimeout
             && m_daemon       == other.m_daemon
             && m_proxy        == other.m_proxy
+            && m_rawTemplate  == other.m_rawTemplate
             );
 }
 
@@ -310,6 +314,7 @@ rapidjson::Value xmrig::Pool::toJSON(rapidjson::Document &doc) const
         obj.AddMember(StringRef(kDaemonPollInterval), m_pollInterval, allocator);
         obj.AddMember(StringRef(kDaemonJobTimeout), m_jobTimeout, allocator);
         obj.AddMember(StringRef(kDaemonZMQPort), m_zmqPort, allocator);
+        obj.AddMember(StringRef(kTari), m_rawTemplate, allocator);
     }
     else {
         obj.AddMember(StringRef(kSelfSelect),     m_daemon.url().toJSON(), allocator);
