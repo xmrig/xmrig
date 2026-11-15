@@ -76,6 +76,7 @@ public:
     static const char *kSpendSecretKey;
     static const char *kDaemonZMQPort;
     static const char *kNicehashHost;
+    static const char *kTari;
 
     constexpr static int kKeepAliveTimeout         = 60;
     constexpr static uint16_t kDefaultPort         = 3333;
@@ -125,6 +126,8 @@ public:
     inline bool operator!=(const Pool &other) const     { return !isEqual(other); }
     inline bool operator==(const Pool &other) const     { return isEqual(other); }
 
+    inline bool rawTemplate() const                     { return m_rawTemplate; }
+
     bool isEnabled() const;
     bool isEqual(const Pool &other) const;
     IClient *createClient(int id, IClientListener *listener) const;
@@ -151,6 +154,7 @@ private:
 
     Algorithm m_algorithm;
     bool m_submitToOrigin           = false;
+    bool m_rawTemplate              = false;
     Coin m_coin;
     int m_keepAlive                 = 0;
     Mode m_mode                     = MODE_POOL;

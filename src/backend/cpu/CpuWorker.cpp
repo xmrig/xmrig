@@ -355,6 +355,8 @@ void xmrig::CpuWorker<N>::start()
                 for (size_t i = 0; i < N; ++i) {
                     const uint64_t value = *reinterpret_cast<uint64_t*>(m_hash + (i * 32) + 24);
 
+                    Nonce::submitHashValue(value);
+
 #                   ifdef XMRIG_FEATURE_BENCHMARK
                     if (m_benchSize) {
                         if (current_job_nonces[i] < m_benchSize) {
