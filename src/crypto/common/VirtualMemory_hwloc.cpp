@@ -34,8 +34,13 @@ uint32_t xmrig::VirtualMemory::bindToNUMANode(int64_t affinity)
 
     auto pu = hwloc_get_pu_obj_by_os_index(Cpu::info()->topology(), static_cast<unsigned>(affinity));
 
-    if (pu == nullptr || !Cpu::info()->membind(pu->nodeset)) {
-        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory\"", affinity);
+    if (pu == nullptr) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory: hwloc_get_pu_obj_by_os_index() failed\"", affinity);
+
+        return 0;
+    }
+    if (Cpu::info()->membind(pu->nodeset) < 0) {
+        LOG_WARN("CPU #%02" PRId64 " warning: \"can't bind memory: Cpu::info()->membind() failed\"", affinity);
 
         return 0;
     }
