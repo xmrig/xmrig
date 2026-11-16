@@ -37,6 +37,8 @@ namespace xmrig {
 
 
 const char *Algorithm::kINVALID         = "invalid";
+
+#ifdef XMRIG_ALGO_CN
 const char *Algorithm::kCN              = "cn";
 const char *Algorithm::kCN_0            = "cn/0";
 const char *Algorithm::kCN_1            = "cn/1";
@@ -50,6 +52,7 @@ const char *Algorithm::kCN_RWZ          = "cn/rwz";
 const char *Algorithm::kCN_ZLS          = "cn/zls";
 const char *Algorithm::kCN_DOUBLE       = "cn/double";
 const char *Algorithm::kCN_CCX          = "cn/ccx";
+#endif
 
 #ifdef XMRIG_ALGO_CN_LITE
 const char *Algorithm::kCN_LITE         = "cn-lite";
@@ -109,6 +112,7 @@ const char* Algorithm::kGHOSTRIDER_RTM  = "ghostrider";
 
 
 static const std::map<uint32_t, const char *> kAlgorithmNames = {
+#   ifdef XMRIG_ALGO_CN
     ALGO_NAME(CN_0),
     ALGO_NAME(CN_1),
     ALGO_NAME(CN_2),
@@ -121,6 +125,7 @@ static const std::map<uint32_t, const char *> kAlgorithmNames = {
     ALGO_NAME(CN_ZLS),
     ALGO_NAME(CN_DOUBLE),
     ALGO_NAME(CN_CCX),
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     ALGO_NAME(CN_LITE_0),
@@ -175,6 +180,7 @@ struct aliasCompare
 
 
 static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAliases = {
+#   ifdef XMRIG_ALGO_CN
     ALGO_ALIAS_AUTO(CN_0),          ALGO_ALIAS(CN_0,            "cryptonight/0"),
                                     ALGO_ALIAS(CN_0,            "cryptonight"),
                                     ALGO_ALIAS(CN_0,            "cn"),
@@ -199,6 +205,7 @@ static const std::map<const char *, Algorithm::Id, aliasCompare> kAlgorithmAlias
     ALGO_ALIAS_AUTO(CN_CCX),        ALGO_ALIAS(CN_CCX,          "cryptonight/ccx"),
                                     ALGO_ALIAS(CN_CCX,          "cryptonight/conceal"),
                                     ALGO_ALIAS(CN_CCX,          "cn/conceal"),
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     ALGO_ALIAS_AUTO(CN_LITE_0),     ALGO_ALIAS(CN_LITE_0,       "cryptonight-lite/0"),

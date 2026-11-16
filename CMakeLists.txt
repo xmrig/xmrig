@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.10)
 project(xmrig)
 
 option(WITH_HWLOC           "Enable hwloc support" ON)
+option(WITH_CN              "Enable CryptoNight algorithms family" ON)
 option(WITH_CN_LITE         "Enable CryptoNight-Lite algorithms family" ON)
 option(WITH_CN_HEAVY        "Enable CryptoNight-Heavy algorithms family" ON)
 option(WITH_CN_PICO         "Enable CryptoNight-Pico algorithm" ON)
@@ -28,7 +29,7 @@ option(WITH_INTERLEAVE_DEBUG_LOG "Enable debug log for threads interleave" OFF)
 option(WITH_PROFILING       "Enable profiling for developers" OFF)
 option(WITH_SSE4_1          "Enable SSE 4.1 for Blake2" ON)
 option(WITH_AVX2            "Enable AVX2 for Blake2" ON)
-option(WITH_VAES            "Enable VAES instructions for Cryptonight" ON)
+option(WITH_VAES            "Enable VAES instructions for CryptoNight and RandomX" ON)
 option(WITH_BENCHMARK       "Enable builtin RandomX benchmark and stress test" ON)
 option(WITH_SECURE_JIT      "Enable secure access to JIT memory" OFF)
 option(WITH_DMI             "Enable DMI/SMBIOS reader" ON)
@@ -38,6 +39,9 @@ option(ARM_V8               "Force ARMv8 (64 bit) architecture, use with caution
 option(ARM_V7               "Force ARMv7 (32 bit) architecture, use with caution if automatic detection fails, but you sure it may work" OFF)
 option(HWLOC_DEBUG          "Enable hwloc debug helpers and log" OFF)
 
+if (NOT WITH_CN)
+    set(WITH_GHOSTRIDER OFF)
+endif()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
 
@@ -73,33 +77,12 @@ set(HEADERS
 
 set(HEADERS_CRYPTO
     src/backend/common/interfaces/IMemoryPool.h
-    src/crypto/cn/asm/CryptonightR_template.h
-    src/crypto/cn/c_blake256.h
-    src/crypto/cn/c_groestl.h
-    src/crypto/cn/c_jh.h
-    src/crypto/cn/c_skein.h
-    src/crypto/cn/CnAlgo.h
-    src/crypto/cn/CnCtx.h
-    src/crypto/cn/CnHash.h
-    src/crypto/cn/CryptoNight_monero.h
-    src/crypto/cn/CryptoNight_test.h
-    src/crypto/cn/CryptoNight.h
-    src/crypto/cn/groestl_tables.h
-    src/crypto/cn/hash.h
-    src/crypto/cn/skein_port.h
-    src/crypto/cn/soft_aes.h
     src/crypto/common/HugePagesInfo.h
     src/crypto/common/MemoryPool.h
     src/crypto/common/Nonce.h
     src/crypto/common/portable/mm_malloc.h
     src/crypto/common/VirtualMemory.h
    )
-
-if (XMRIG_ARM OR XMRIG_RISCV)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_arm.h)
-else()
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86.h)
-endif()
 
 set(SOURCES
     "${SOURCES_BASE}"
@@ -119,29 +102,14 @@ set(SOURCES
    )
 
 set(SOURCES_CRYPTO
-    src/crypto/cn/c_blake256.c
-    src/crypto/cn/c_groestl.c
-    src/crypto/cn/c_jh.c
-    src/crypto/cn/c_skein.c
-    src/crypto/cn/CnCtx.cpp
-    src/crypto/cn/CnHash.cpp
     src/crypto/common/HugePagesInfo.cpp
     src/crypto/common/MemoryPool.cpp
     src/crypto/common/Nonce.cpp
     src/crypto/common/VirtualMemory.cpp
    )
 
-if (CMAKE_C_COMPILER_ID MATCHES GNU)
-    set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
-endif()
-
 if (WITH_VAES)
     add_definitions(-DXMRIG_VAES)
-    set(HEADERS_CRYPTO "${HEADERS_CRYPTO}" src/crypto/cn/CryptoNight_x86_vaes.h)
-    set(SOURCES_CRYPTO "${SOURCES_CRYPTO}" src/crypto/cn/CryptoNight_x86_vaes.cpp)
-    if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
-        set_source_files_properties(src/crypto/cn/CryptoNight_x86_vaes.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize -mavx2 -mvaes")
-    endif()
 endif()
 
 if (WITH_HWLOC)
@@ -204,6 +172,55 @@ include(cmake/kawpow.cmake)
 include(cmake/ghostrider.cmake)
 include(cmake/OpenSSL.cmake)
 include(cmake/asm.cmake)
+
+if (WITH_CN)
+    add_definitions(-DXMRIG_ALGO_CN)
+
+    list(APPEND HEADERS_CRYPTO
+        src/crypto/cn/asm/CryptonightR_template.h
+        src/crypto/cn/c_blake256.h
+        src/crypto/cn/c_groestl.h
+        src/crypto/cn/c_jh.h
+        src/crypto/cn/c_skein.h
+        src/crypto/cn/CnAlgo.h
+        src/crypto/cn/CnCtx.h
+        src/crypto/cn/CnHash.h
+        src/crypto/cn/CryptoNight_monero.h
+        src/crypto/cn/CryptoNight_test.h
+        src/crypto/cn/CryptoNight.h
+        src/crypto/cn/groestl_tables.h
+        src/crypto/cn/hash.h
+        src/crypto/cn/skein_port.h
+        src/crypto/cn/soft_aes.h
+    )
+
+    if (XMRIG_ARM OR XMRIG_RISCV)
+        list(APPEND HEADERS_CRYPTO src/crypto/cn/CryptoNight_arm.h)
+    else()
+        list(APPEND HEADERS_CRYPTO src/crypto/cn/CryptoNight_x86.h)
+    endif()
+
+    list(APPEND SOURCES_CRYPTO
+        src/crypto/cn/c_blake256.c
+        src/crypto/cn/c_groestl.c
+        src/crypto/cn/c_jh.c
+        src/crypto/cn/c_skein.c
+        src/crypto/cn/CnCtx.cpp
+        src/crypto/cn/CnHash.cpp
+    )
+
+    if (CMAKE_C_COMPILER_ID MATCHES GNU)
+        set_source_files_properties(src/crypto/cn/CnHash.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize")
+    endif()
+
+    if (WITH_VAES)
+        list(APPEND HEADERS_CRYPTO src/crypto/cn/CryptoNight_x86_vaes.h)
+        list(APPEND SOURCES_CRYPTO src/crypto/cn/CryptoNight_x86_vaes.cpp)
+        if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+            set_source_files_properties(src/crypto/cn/CryptoNight_x86_vaes.cpp PROPERTIES COMPILE_FLAGS "-Ofast -fno-tree-vectorize -mavx2 -mvaes")
+        endif()
+    endif()
+endif()
 
 if (WITH_CN_LITE)
     add_definitions(/DXMRIG_ALGO_CN_LITE)

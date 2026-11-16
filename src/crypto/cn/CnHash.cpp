@@ -312,6 +312,7 @@ static const xmrig::CnHash cnHash;
 
 xmrig::CnHash::CnHash()
 {
+#   ifdef XMRIG_ALGO_CN
     ADD_FN(Algorithm::CN_0);
     ADD_FN(Algorithm::CN_1);
     ADD_FN(Algorithm::CN_2);
@@ -330,6 +331,7 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_RWZ);
     ADD_FN_ASM(Algorithm::CN_ZLS);
     ADD_FN_ASM(Algorithm::CN_DOUBLE);
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_LITE
     ADD_FN(Algorithm::CN_LITE_0);
@@ -349,7 +351,9 @@ xmrig::CnHash::CnHash()
     ADD_FN_ASM(Algorithm::CN_PICO_TLO);
 #   endif
 
+#   ifdef XMRIG_ALGO_CN
     ADD_FN(Algorithm::CN_CCX);
+#   endif
 
 #   ifdef XMRIG_ALGO_CN_FEMTO
     ADD_FN(Algorithm::CN_UPX2);
