@@ -27,7 +27,9 @@
 #define XMRIG_CRYPTONIGHT_X86_H
 
 
-#ifdef __GNUC__
+#if defined(XMRIG_LOONGARCH)
+#   include "crypto/common/simd/sse2lsx.h"
+#elif defined(__GNUC__)
 #   include <x86intrin.h>
 #else
 #   include <intrin.h>
@@ -232,8 +234,20 @@ static FORCEINLINE __m128i soft_aesenc(const void* __restrict ptr, const __m128i
 template<bool SOFT_AES>
 void aes_round(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7);
 
+/*
+ * The out of line soft round is an x86 code size decision: the
+ * call overhead sits next to a cheap AES-NI-free round there.
+ * On LoongArch every scratchpad pass calls it ten times per eight
+ * block group, and the nine pointer arguments plus the spills of
+ * the calling convention cost real issue slots, so the soft round
+ * gets the same always inline treatment as the AES-NI one.
+ */
 template<>
+#ifdef XMRIG_LOONGARCH
+FORCEINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+#else
 NOINLINE void aes_round<true>(__m128i key, __m128i* x0, __m128i* x1, __m128i* x2, __m128i* x3, __m128i* x4, __m128i* x5, __m128i* x6, __m128i* x7)
+#endif
 {
     *x0 = soft_aesenc((uint32_t*)x0, key, (const uint32_t*)saes_table);
     *x1 = soft_aesenc((uint32_t*)x1, key, (const uint32_t*)saes_table);
@@ -808,7 +822,12 @@ inline void cryptonight_single_hash(const uint8_t *__restrict__ input, size_t si
 
             int64_t d5;
 
-#           if defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
+/*
+ * The direct OR is the plain C form of the instruction, and it is what the
+ * LoongArch build needs: the inline assembly below spells out the x86
+ * encoding of it.
+ */
+#           if defined(XMRIG_LOONGARCH) || defined(_MSC_VER) || (defined(__GNUC__) && (__GNUC__ == 8)) || !defined(XMRIG_64_BIT)
             d5 = d | 5;
 #           else
             // Workaround for stupid GCC which converts to 32 bit before doing "| 5" and then converts back to 64 bit

@@ -62,7 +62,7 @@ if (WITH_RANDOMX)
              src/crypto/randomx/jit_compiler_x86_static.asm
              src/crypto/randomx/jit_compiler_x86.cpp
             )
-    elseif (WITH_ASM AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+    elseif (WITH_ASM AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND NOT XMRIG_LOONGARCH AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.S
              src/crypto/randomx/jit_compiler_x86.cpp
@@ -80,6 +80,25 @@ if (WITH_RANDOMX)
         else()
             set_property(SOURCE src/crypto/randomx/jit_compiler_a64_static.S PROPERTY LANGUAGE C)
         endif()
+    elseif (XMRIG_LOONGARCH AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_la64_static.S
+             src/crypto/randomx/jit_compiler_la64.cpp
+            )
+        # The 256 bit item function of the same JIT is a
+        # separate unit: it lives only where the build
+        # itself proved that this machine has LASX.
+        if (XMRIG_FEATURE_LASX)
+            list(APPEND SOURCES_CRYPTO
+                 src/crypto/randomx/jit_compiler_la64_lasx_static.S
+                 src/crypto/randomx/jit_compiler_la64_lasx.cpp
+                )
+            set_source_files_properties(src/crypto/randomx/jit_compiler_la64_lasx_static.S PROPERTIES COMPILE_FLAGS "-O3 -mlasx")
+            set_source_files_properties(src/crypto/randomx/jit_compiler_la64_lasx.cpp PROPERTIES COMPILE_FLAGS "-O3 -mlasx")
+            set_property(SOURCE src/crypto/randomx/jit_compiler_la64_lasx_static.S PROPERTY LANGUAGE C)
+        endif ()
+        # cheat because cmake and ccache hate each other
+        set_property(SOURCE src/crypto/randomx/jit_compiler_la64_static.S PROPERTY LANGUAGE C)
     elseif (XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_rv64_static.S
@@ -135,6 +154,29 @@ if (WITH_RANDOMX)
         endif()
     endif()
 
+    # The LoongArch layers are built from the very same BLAKE2b source as AVX2,
+    # both are detected on their own because LSX and LASX do not have to appear
+    # together, see cmake/cpu.cmake.
+    if (XMRIG_FEATURE_LSX)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/blake2/blake2b_lsx.c
+            )
+
+        if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+            set_source_files_properties(src/crypto/randomx/blake2/blake2b_lsx.c PROPERTIES COMPILE_FLAGS "-Ofast -mlsx")
+        endif()
+    endif()
+
+    if (XMRIG_FEATURE_LASX)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/blake2/lasx/blake2b_lasx.c
+            )
+
+        if (CMAKE_C_COMPILER_ID MATCHES GNU OR CMAKE_C_COMPILER_ID MATCHES Clang)
+            set_source_files_properties(src/crypto/randomx/blake2/lasx/blake2b_lasx.c PROPERTIES COMPILE_FLAGS "-Ofast -mlasx")
+        endif()
+    endif()
+
     if (CMAKE_CXX_COMPILER_ID MATCHES Clang)
         set_source_files_properties(src/crypto/randomx/jit_compiler_x86.cpp PROPERTIES COMPILE_FLAGS -Wno-unused-const-variable)
     endif()
@@ -149,7 +191,7 @@ if (WITH_RANDOMX)
             )
     endif()
 
-    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
+    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND NOT XMRIG_LOONGARCH AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_MSR)
         add_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=ON")

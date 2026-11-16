@@ -125,4 +125,5 @@ namespace randomx {
 
 	template class InterpretedVm<false>;
 	template class InterpretedVm<true>;
+	template class InterpretedVm<2>;
 }

@@ -52,6 +52,11 @@ namespace randomx {
 		using CompiledVm<softAes>::datasetOffset;
 	};
 
+	/* Software AES on LoongArch takes the <2> round, see vm_compiled.hpp */
+#if defined(__loongarch__)
+	using CompiledLightVmDefault = CompiledLightVm<2>;
+#else
 	using CompiledLightVmDefault = CompiledLightVm<1>;
+#endif
 	using CompiledLightVmHardAes = CompiledLightVm<0>;
 }
