@@ -447,15 +447,15 @@ void xmrig::OclBackend::setJob(const Job &job)
 
 void xmrig::OclBackend::start(IWorker *worker, bool ready)
 {
-    mutex.lock();
+    {
+        std::lock_guard<std::mutex> lock(mutex);
 
-    if (d_ptr->status.started(ready)) {
-        d_ptr->status.print();
+        if (d_ptr->status.started(ready)) {
+            d_ptr->status.print();
 
-        OclWorker::ready = true;
+            OclWorker::ready = true;
+        }
     }
-
-    mutex.unlock();
 
     if (ready) {
         worker->start();
