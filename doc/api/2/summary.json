@@ -1,0 +1,76 @@
+{
+    "id": "51aca77da137cb62",
+    "worker_id": "tpad",
+    "uptime": 106,
+    "restricted": false,
+    "resources": {
+        "memory": {
+            "free": 4977348608,
+            "total": 16659546112,
+            "resident_set_memory": 16441344
+        },
+        "load_average": [3.4, 2.7, 2.44],
+        "hardware_concurrency": 8
+    },
+    "features": ["api", "asm", "http", "hwloc", "tls"],
+    "results": {
+        "diff_current": 37638,
+        "shares_good": 3,
+        "shares_total": 3,
+        "avg_time": 35,
+        "avg_time_ms": 35603,
+        "hashes_total": 165638,
+        "best": [358821, 344438, 73371, 0, 0, 0, 0, 0, 0, 0]
+    },
+    "algo": "rx/0",
+    "connection": {
+        "pool": "some.pool:20064",
+        "ip": "127.1.2.3",
+        "uptime": 106,
+        "uptime_ms": 106811,
+        "ping": 405,
+        "failures": 0,
+        "tls": "TLSv1.3",
+        "tls-fingerprint": null,
+        "algo": "rx/0",
+        "diff": 37638,
+        "accepted": 3,
+        "rejected": 0,
+        "avg_time": 35,
+        "avg_time_ms": 35603,
+        "hashes_total": 165638
+    },
+    "version": "6.17.1-dev",
+    "kind": "miner",
+    "ua": "XMRig/6.17.1-dev (Linux x86_64) libuv/1.43.0 gcc/9.4.0",
+    "cpu": {
+        "brand": "Intel(R) Core(TM) i7-4700MQ CPU @ 2.40GHz",
+        "family": 6,
+        "model": 60,
+        "stepping": 3,
+        "proc_info": 198339,
+        "aes": true,
+        "avx2": true,
+        "x64": true,
+        "64_bit": true,
+        "l2": 1048576,
+        "l3": 6291456,
+        "cores": 4,
+        "threads": 8,
+        "packages": 1,
+        "nodes": 1,
+        "backend": "hwloc/2.7.0",
+        "msr": "intel",
+        "assembly": "intel",
+        "arch": "x86_64",
+        "flags": ["aes", "avx", "avx2", "bmi2", "osxsave", "pdpe1gb", "sse2", "ssse3", "sse4.1", "popcnt"]
+    },
+    "donate_level": 0,
+    "paused": false,
+    "algorithms": ["cn/0", "cn/1", "cn/2", "cn/r", "cn/fast", "cn/half", "cn/xao", "cn/rto", "cn/rwz", "cn/zls", "cn/double", "cn/ccx", "cn-lite/1", "cn-heavy/0", "cn-heavy/tube", "cn-heavy/xhv", "cn-pico", "cn-pico/tlo", "cn/upx2", "rx/0", "rx/wow", "rx/arq", "rx/graft", "rx/sfx", "rx/keva", "argon2/chukwa", "argon2/chukwav2", "argon2/ninja", "astrobwt/v2", "ghostrider"],
+    "hashrate": {
+        "total": [1207.19, 1210.82, null],
+        "highest": 1316.85
+    },
+    "hugepages": [6, 6]
+}

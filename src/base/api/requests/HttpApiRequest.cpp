@@ -67,10 +67,33 @@ xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
     m_res(req.id()),
     m_url(req.url.c_str())
 {
-    if (method() == METHOD_GET) {
-        if (url() == "/1/summary" || url() == "/2/summary" || url() == "/api.json") {
-            m_type = REQ_SUMMARY;
+    if (url().size() > 4 && memcmp(url().data(), "/", 1) == 0 && memcmp(url().data()+2, "/", 1) == 0) {
+        if (memcmp(url().data(), "/2/", 3) == 0) {
+            m_version = 2;
+        } else if (memcmp(url().data(), "/1/", 3) == 0) {
+            m_version = 1;
         }
+        switch (url().size()) {
+        case 9:
+            if (memcmp(url().data()+3, "config", 6) == 0) {
+                m_type = REQ_CONFIG;
+            }
+            break;
+        case 10:
+            if (memcmp(url().data()+3, "summary", 7) == 0) {
+                m_type = REQ_SUMMARY;
+            }
+            break;
+        case 11:
+            if (memcmp(url().data()+3, "backends", 8) == 0) {
+                m_type = REQ_BACKENDS;
+            }
+            break;
+        }
+    }
+
+    if (url() == "/api.json") {
+            m_type = REQ_SUMMARY;
     }
 
     if (method() == METHOD_POST && url() == "/json_rpc") {
@@ -93,12 +116,6 @@ xmrig::HttpApiRequest::HttpApiRequest(const HttpData &req, bool restricted) :
         m_state = STATE_NEW;
 
         return;
-    }
-
-    if (url().size() > 4) {
-        if (memcmp(url().data(), "/2/", 3) == 0) {
-            m_version = 2;
-        }
     }
 }
 
