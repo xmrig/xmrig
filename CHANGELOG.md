@@ -1,3 +1,26 @@
+# v6.27.0
+- [#3805](https://github.com/xmrig/xmrig/pull/3805) ARM64 JIT: optimized Group E register conversion.
+- [#3807](https://github.com/xmrig/xmrig/pull/3807) Updated FCMP++ block template layout.
+- [#3808](https://github.com/xmrig/xmrig/pull/3808) Fixed build with OpenSSL 4.0.
+- [#3812](https://github.com/xmrig/xmrig/pull/3812) RandomX: 2.5% faster dataset init on RISC-V.
+- [#3815](https://github.com/xmrig/xmrig/pull/3815) ARM64: RandomX JIT optimizations.
+- [#3816](https://github.com/xmrig/xmrig/pull/3816) ARM64: RandomX optimizations.
+- [#3820](https://github.com/xmrig/xmrig/pull/3820) ARM64 RandomX JIT: dataset prefetch and non-temporal loads (~8% faster on Apple M4).
+- [#3826](https://github.com/xmrig/xmrig/pull/3826) Fixed `ISUB_R` in the ARM and RISC-V JIT compilers.
+- [#3835](https://github.com/xmrig/xmrig/pull/3835) Added ARMv9 CPU detection and optimized build flags.
+- [#3837](https://github.com/xmrig/xmrig/pull/3837) Fixed `madvise` calls: its values are not bit masks, so they are passed one by one.
+- [#3841](https://github.com/xmrig/xmrig/pull/3841) RISC-V: avoid indexed loads and stores in the RVV AES kernels.
+- [#3844](https://github.com/xmrig/xmrig/pull/3844) Fixed RandomX v2 with the Apple assembler (`;` is a comment there).
+- [#3845](https://github.com/xmrig/xmrig/pull/3845) ARM64: reduced JIT cache invalidation.
+- [#3848](https://github.com/xmrig/xmrig/pull/3848) Updated FCMP++ solo mining code for beta stressnet v3.
+- [#3857](https://github.com/xmrig/xmrig/pull/3857) DaemonClient: check TLS fingerprint, use SOCKS5 if configured, fixed socket leak when ZMQ connect fails.
+- MSVC builds now use hwloc from xmrig-deps instead of the bundled copy, the new xmrig-deps is required.
+- Fixed build with OpenSSL 3 and newer built without the deprecated API.
+- Fixed build with libuv 1.53.0 on Windows.
+- Fixed build with Clang on Windows ARM64 (MSYS2).
+- Updated the dependencies build scripts: libuv 1.53.0, hwloc 2.15.0 and OpenSSL 3.5.9 without unused features.
+- macOS: added support for the new xmrig-deps; `CMAKE_OSX_ARCHITECTURES=x86_64` alone builds x64 on Apple Silicon.
+
 # v6.26.0
 - [#3769](https://github.com/xmrig/xmrig/pull/3769), [#3772](https://github.com/xmrig/xmrig/pull/3772), [#3774](https://github.com/xmrig/xmrig/pull/3774), [#3775](https://github.com/xmrig/xmrig/pull/3775), [#3776](https://github.com/xmrig/xmrig/pull/3776), [#3782](https://github.com/xmrig/xmrig/pull/3782), [#3783](https://github.com/xmrig/xmrig/pull/3783) **Added support for RandomX v2.**
 - [#3746](https://github.com/xmrig/xmrig/pull/3746) RISC-V: vectorized RandomX main loop.
