@@ -38,7 +38,6 @@
 #include <fstream>
 #include <limits>
 
-
 #include "base/kernel/Platform.h"
 #include "version.h"
 
@@ -172,8 +171,61 @@ bool xmrig::Platform::isOnBatteryPower()
     return false;
 }
 
+#if defined(XMRIG_OS_LINUX) && defined(XMRIG_X11_FOUND)
+
+#include <dlfcn.h>
+#include <X11/extensions/scrnsaver.h>
+
+template<typename T>
+void bind_symbol(T& var, void *library, const char* name) {
+    var = reinterpret_cast<T>(::dlsym(library, name));
+}
 
 uint64_t xmrig::Platform::idleTime()
 {
+    // libX11
+    static Display* (*XOpenDisplay)(const char *name) = {};
+
+    // libXss
+    static XScreenSaverInfo* (*XScreenSaverAllocInfo)() = {};
+    static Status (*XScreenSaverQueryInfo)(Display *dpy, Drawable drawable,
+    XScreenSaverInfo *saver_info) = {};
+
+    static bool initialized = false;
+    static Display *dpy = {}; 
+    static XScreenSaverInfo *info = {};
+
+    if(!initialized) {
+        static void *libx11 = dlopen("/usr/lib/libX11.so", RTLD_LAZY);
+        static void *libxss = dlopen("/usr/lib/libXss.so", RTLD_LAZY);
+
+        if(!libxss || !libx11) {
+            initialized = true;
+            return std::numeric_limits<uint64_t>::max();
+        }
+
+        bind_symbol(XOpenDisplay, libx11, "XOpenDisplay");
+        bind_symbol(XScreenSaverAllocInfo, libxss, "XScreenSaverAllocInfo");
+        bind_symbol(XScreenSaverQueryInfo, libxss, "XScreenSaverQueryInfo");
+
+        dpy = XOpenDisplay(nullptr);
+        info = XScreenSaverAllocInfo();
+
+        initialized = true;
+    }
+
+    if (!dpy) {
+        return std::numeric_limits<uint64_t>::max();
+    }
+ 
+    XScreenSaverQueryInfo(dpy, DefaultRootWindow(dpy), info);
+
+    return info->idle;
+}
+#else
+
+uint64_t xmrig::Platform::idleTime() { 
     return std::numeric_limits<uint64_t>::max();
 }
+
+#endif
