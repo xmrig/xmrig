@@ -124,6 +124,16 @@ size_t inline generate<Algorithm::RANDOM_X>(Threads<OclThreads> &threads, const 
 
     count += threads.move(Algorithm::kRX, std::move(rx));
 
+    // CPU only. Left enabled, "rx/pcoin" would inherit the generic "rx" OpenCL
+    // profile and the backend would claim it, then compile a kernel with an ALGO
+    // id no .cl defines -- an undefined identifier in an OpenCL #if evaluates to 0,
+    // so no constants header is included and it fails as a confusing kernel-build
+    // error instead of a clean "unsupported".
+    if (!threads.isExist(Algorithm::RX_PCOIN)) {
+        threads.disable(Algorithm::RX_PCOIN);
+        ++count;
+    }
+
     return count;
 }
 #endif

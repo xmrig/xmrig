@@ -427,7 +427,17 @@ bool xmrig::Client::parseJob(const rapidjson::Value &params, int *code)
         return false;
     }
 
-    if (m_pool.mode() != Pool::MODE_SELF_SELECT && job.algorithm().family() == Algorithm::RANDOM_X && !job.setSeedHash(Json::getString(params, "seed_hash"))) {
+    if (job.algorithm().id() == Algorithm::RX_PCOIN) {
+        // PCoin's RandomX key is a FIXED 16-byte ASCII string and never rotates, so
+        // the pool sends no "seed_hash" and the generic gate below would reject every
+        // job with code 7 -- the miner would log in, receive work, and silently drop
+        // all of it. RxCache::init() early-returns on an unchanged seed, so the cache
+        // is built exactly once: no seed height, no dataset transition, no two-VM
+        // boundary of the kind Monero requires every 2048 blocks.
+        static const uint8_t kPcoinSeed[16] = { 'P','C','o','i','n','/','R','a','n','d','o','m','X','/','v','1' };
+        job.setSeedRaw(kPcoinSeed, sizeof(kPcoinSeed));
+    }
+    else if (m_pool.mode() != Pool::MODE_SELF_SELECT && job.algorithm().family() == Algorithm::RANDOM_X && !job.setSeedHash(Json::getString(params, "seed_hash"))) {
         *code = 7;
         return false;
     }

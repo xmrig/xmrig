@@ -92,6 +92,21 @@ bool xmrig::Job::setBlob(const char *blob)
 }
 
 
+bool xmrig::Job::setSeedRaw(const uint8_t *data, size_t size)
+{
+    // PCoin's RandomX key is 16 raw bytes, not 32 bytes of hex, so setSeedHash()
+    // cannot express it. Do NOT pad or re-hash to 32 bytes: randomx_init_cache()
+    // is length-sensitive and a padded key silently produces a different cache.
+    if (!data || size == 0 || size > kMaxSeedSize) {
+        return false;
+    }
+
+    m_seed.assign(data, data + size);
+
+    return true;
+}
+
+
 bool xmrig::Job::setSeedHash(const char *hash)
 {
     if (!hash || (strlen(hash) != kMaxSeedSize * 2)) {
@@ -113,6 +128,30 @@ bool xmrig::Job::setTarget(const char *target)
     static auto parse = [](const char *target, size_t size, const Algorithm &algorithm) -> uint64_t {
         if (algorithm == Algorithm::RX_YADA) {
             return strtoull(target, nullptr, 16);
+        }
+
+        // PCoin sends a 32-byte BIG-ENDIAN target (64 hex chars). The share test
+        // in CpuWorker compares only the most significant 64 bits of the hash, so
+        // take the most significant 8 target bytes. Truncating downward only makes
+        // the local test stricter, never looser -- no false accepts.
+        //
+        // Assembled by hand rather than reusing the 32-byte case below: that path
+        // reads the bytes as a NATIVE little-endian uint64 because Monero sends LE
+        // targets. PCoin sends BE, and getting it backwards is wrong by ~2^64 with
+        // identical logs.
+        if (algorithm == Algorithm::RX_PCOIN) {
+            const auto raw = Cvt::fromHex(target, size);
+            if (raw.size() != 32) {
+                return 0;
+            }
+
+            uint64_t t = 0;
+            for (size_t i = 0; i < 8; ++i) {
+                t = (t << 8) | raw[i];
+            }
+
+            // Never hand back 0 -- setTarget() reads that as "reject this job".
+            return t ? t : 1;
         }
 
         const auto raw = Cvt::fromHex(target, size);
@@ -167,6 +206,14 @@ size_t xmrig::Job::nonceOffset() const
 
     if (algorithm() == Algorithm::RX_YADA) {
         return 147;
+    }
+
+    // PCoin hashes the canonical 80-byte Bitcoin header; the nonce is a uint32 LE
+    // at offset 76. Without this it falls through to the CryptoNote default of 39,
+    // which writes the nonce inside the merkle root: hashes look healthy, and not
+    // one share is ever valid.
+    if (algorithm() == Algorithm::RX_PCOIN) {
+        return 76;
     }
 
     return 39;
