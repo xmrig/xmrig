@@ -31,7 +31,7 @@
 #include "base/kernel/Platform.h"
 #include "base/net/stratum/Client.h"
 
-#if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
+#if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_ANIMICA
 #   include "base/net/stratum/AutoClient.h"
 #   include "base/net/stratum/EthStratumClient.h"
 #endif
@@ -226,9 +226,27 @@ xmrig::IClient *xmrig::Pool::createClient(int id, IClientListener *listener) con
     IClient *client = nullptr;
 
     if (m_mode == MODE_POOL) {
-#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
+#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER || defined XMRIG_ALGO_ANIMICA
         const uint32_t f = m_algorithm.family();
+        bool useV1 = false;
+#       if defined XMRIG_ALGO_KAWPOW || defined XMRIG_ALGO_GHOSTRIDER
         if ((f == Algorithm::KAWPOW) || (f == Algorithm::GHOSTRIDER) || (m_coin == Coin::RAVEN)) {
+            useV1 = true;
+        }
+#       endif
+#       if defined XMRIG_ALGO_ANIMICA
+        // Animica uses Bitcoin-style Stratum v1 (mining.subscribe /
+        // mining.authorize / mining.notify / mining.submit) — the same
+        // wire format EthStratumClient already speaks for KawPow /
+        // RavenCoin. Server-side framing differs in two places (the
+        // 8-byte nonce vs Ethereum's 4-byte one, and the `mining.aicf.*`
+        // useful-work extension), both of which are handled inside the
+        // client by a small Animica-specific dispatch.
+        if (f == Algorithm::ANIMICA) {
+            useV1 = true;
+        }
+#       endif
+        if (useV1) {
             client = new EthStratumClient(id, Platform::userAgent(), listener);
         }
         else

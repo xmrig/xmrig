@@ -151,6 +151,15 @@ size_t inline generate<Algorithm::GHOSTRIDER>(Threads<CpuThreads>& threads, uint
 #endif
 
 
+#ifdef XMRIG_ALGO_ANIMICA
+template<>
+size_t inline generate<Algorithm::ANIMICA>(Threads<CpuThreads>& threads, uint32_t limit)
+{
+    return generate(Algorithm::kANIMICA, threads, Algorithm::ANIMICA_SHA3, limit);
+}
+#endif
+
+
 } /* namespace xmrig */
 
 

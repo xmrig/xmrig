@@ -139,6 +139,15 @@ size_t inline generate<Algorithm::KAWPOW>(Threads<CudaThreads> &threads, const s
 #endif
 
 
+#ifdef XMRIG_ALGO_ANIMICA
+template<>
+size_t inline generate<Algorithm::ANIMICA>(Threads<CudaThreads> &threads, const std::vector<CudaDevice> &devices)
+{
+    return generate(Algorithm::kANIMICA, threads, Algorithm::ANIMICA_SHA3, devices);
+}
+#endif
+
+
 } /* namespace xmrig */
 
 

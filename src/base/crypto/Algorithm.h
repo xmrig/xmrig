@@ -83,6 +83,7 @@ public:
         AR2_CHUKWA_V2   = 0x61140000,   // "argon2/chukwav2"  Argon2id (Chukwa v2).
         AR2_WRKZ        = 0x61120000,   // "argon2/wrkz"      Argon2id (WRKZ)
         KAWPOW_RVN      = 0x6b0f0000,   // "kawpow/rvn"       KawPow (RVN)
+        ANIMICA_SHA3    = 0x41010000,   // "animica"          Animica hashshare PoW (SHA3-256 over prefix||nonce_le8)
     };
 
     enum Family : uint32_t {
@@ -96,7 +97,8 @@ public:
         RANDOM_X        = 0x72000000,
         ARGON2          = 0x61000000,
         KAWPOW          = 0x6b000000,
-        GHOSTRIDER      = 0x6c000000
+        GHOSTRIDER      = 0x6c000000,
+        ANIMICA         = 0x41000000    // hashshare PoW family (currently only SHA3-256)
     };
 
     static const char *kINVALID;
@@ -153,6 +155,11 @@ public:
     static const char *kAR2_CHUKWA;
     static const char *kAR2_CHUKWA_V2;
     static const char *kAR2_WRKZ;
+#   endif
+
+#   ifdef XMRIG_ALGO_ANIMICA
+    static const char *kANIMICA;
+    static const char *kANIMICA_SHA3;
 #   endif
 
 #   ifdef XMRIG_ALGO_KAWPOW

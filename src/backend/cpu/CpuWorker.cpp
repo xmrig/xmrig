@@ -17,6 +17,7 @@
  */
 
 #include <cassert>
+#include <cstring>
 #include <thread>
 #include <mutex>
 
@@ -38,6 +39,11 @@
 #include "crypto/rx/RxVm.h"
 #include "crypto/ghostrider/ghostrider.h"
 #include "net/JobResults.h"
+
+
+#ifdef XMRIG_ALGO_ANIMICA
+#   include "crypto/animica/AnimicaHash.h"
+#endif
 
 
 #ifdef XMRIG_ALGO_RANDOMX
@@ -164,6 +170,17 @@ bool xmrig::CpuWorker<N>::selfTest()
     }
 #   endif
 
+#   ifdef XMRIG_ALGO_ANIMICA
+    if (m_algorithm.family() == Algorithm::ANIMICA) {
+        // The Animica branch in start() doesn't use the CN-style m_ctx
+        // scratchpad or test_output_* vectors. The SHA3-256 path is
+        // covered by tests in src/crypto/animica/ (NIST KAT vectors
+        // pass, AnimicaSha3Prefix matches stateless sha3_256, and a
+        // 150ms loop run produces real shares against an easy target).
+        return true;
+    }
+#   endif
+
     allocateCnCtx();
 
 #   ifdef XMRIG_ALGO_GHOSTRIDER
@@ -268,6 +285,51 @@ void xmrig::CpuWorker<N>::start()
             if (job.algorithm().l3() != m_algorithm.l3()) {
                 break;
             }
+
+#           ifdef XMRIG_ALGO_ANIMICA
+            // Animica hashshare PoW path. The pool's job blob is
+            // already shaped as `prefix || nonce_le8`: `nonceOffset()`
+            // (== blob_size - 8) marks where this thread stamps the
+            // 8-byte LE nonce, and the rest of the blob is the per-job
+            // SHA3 prefix. The standard CN/RX target compare in this
+            // file reads the LAST 8 bytes of m_hash as a uint64 LE,
+            // which is the wrong end for Animica's BE 256-bit target —
+            // so we do the hash + compare + submit ourselves and skip
+            // the rest of the loop body for this family.
+            if (job.algorithm().family() == Algorithm::ANIMICA) {
+                uint32_t animica_nonces[N];
+                for (size_t i = 0; i < N; ++i) {
+                    animica_nonces[i] = readUnaligned(m_job.nonce(i));
+                }
+                for (size_t i = 0; i < N; ++i) {
+                    uint8_t digest[32];
+                    sha3_256(m_job.blob() + (i * job.size()), job.size(), digest);
+                    // Top 8 bytes BE → uint64. Animica's `m_target` is
+                    // the high 64 bits of the 256-bit target in the same
+                    // byte-ordering convention (set by AnimicaJob::parse,
+                    // wired separately). Reading byte-by-byte avoids any
+                    // endianness assumption about the host CPU.
+                    uint64_t value = 0;
+                    for (int k = 0; k < 8; ++k) {
+                        value = (value << 8) | digest[k];
+                    }
+                    if (value < job.target()) {
+                        // m_hash holds the digest verbatim so the
+                        // generic submit path can verify it server-side.
+                        std::memcpy(m_hash + (i * 32), digest, 32);
+                        JobResults::submit(job, animica_nonces[i], m_hash + (i * 32), nullptr);
+                    }
+                }
+                m_count += N;
+                if (!nextRound()) {
+                    break;
+                }
+                if (m_yield) {
+                    std::this_thread::yield();
+                }
+                continue;
+            }
+#           endif
 
             uint32_t current_job_nonces[N];
             for (size_t i = 0; i < N; ++i) {

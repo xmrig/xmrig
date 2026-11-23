@@ -20,6 +20,9 @@
 #include "backend/opencl/OclWorker.h"
 #include "backend/common/Tags.h"
 #include "backend/opencl/runners/OclCnRunner.h"
+#ifdef XMRIG_ALGO_ANIMICA
+#   include "backend/opencl/runners/OclAnimicaRunner.h"
+#endif
 #include "backend/opencl/runners/tools/OclSharedData.h"
 #include "backend/opencl/runners/tools/OclSharedState.h"
 #include "base/io/log/Log.h"
@@ -91,6 +94,12 @@ xmrig::OclWorker::OclWorker(size_t id, const OclLaunchData &data) :
         m_runner = new OclKawPowRunner(id, data);
 #       endif
         break;
+
+#   ifdef XMRIG_ALGO_ANIMICA
+    case Algorithm::ANIMICA:
+        m_runner = new OclAnimicaRunner(id, data);
+        break;
+#   endif
 
     default:
         m_runner = new OclCnRunner(id, data);

@@ -243,6 +243,40 @@ bool xmrig::CudaLib::kawPowStopHash(nvid_ctx *ctx) noexcept
 }
 
 
+#ifdef XMRIG_ALGO_ANIMICA
+
+// Animica plugin symbol — dlsym'd best-effort at plugin load time.
+// When the loaded xmrig-cuda plugin doesn't ship the symbol (stock
+// upstream builds don't), pAnimicaHash stays nullptr and the runner
+// falls back to a clean "not supported" path.
+using animicaHash_t = bool (*)(nvid_ctx *, uint8_t *, uint64_t,
+                                uint32_t, uint32_t *, uint32_t *, uint32_t *);
+static animicaHash_t pAnimicaHash = nullptr;
+
+static const char *kAnimicaHash = "animicaHash";
+
+
+bool xmrig::CudaLib::hasAnimicaSupport() noexcept
+{
+    return pAnimicaHash != nullptr;
+}
+
+
+bool xmrig::CudaLib::animicaHash(nvid_ctx *ctx, uint8_t *job_blob, uint64_t target,
+                                  uint32_t startNonce, uint32_t *rescount, uint32_t *resnonce,
+                                  uint32_t *skipped_hashes) noexcept
+{
+    if (!pAnimicaHash) {
+        *rescount = 0;
+        if (skipped_hashes) *skipped_hashes = 0;
+        return false;
+    }
+    return pAnimicaHash(ctx, job_blob, target, startNonce, rescount, resnonce, skipped_hashes);
+}
+
+#endif // XMRIG_ALGO_ANIMICA
+
+
 bool xmrig::CudaLib::setJob(nvid_ctx *ctx, const void *data, size_t size, const Algorithm &algorithm) noexcept
 {
     const Algorithm algo = RxAlgo::id(algorithm);
@@ -421,6 +455,12 @@ void xmrig::CudaLib::load()
     }
 
     uv_dlsym(&cudaLib, kRxUpdateDataset, reinterpret_cast<void**>(&pRxUpdateDataset));
+
+#   ifdef XMRIG_ALGO_ANIMICA
+    // Best-effort. Stock xmrig-cuda doesn't carry this symbol; the
+    // animica-enabled fork of xmrig-cuda does.
+    uv_dlsym(&cudaLib, kAnimicaHash, reinterpret_cast<void**>(&pAnimicaHash));
+#   endif
 
     pInit();
 }
