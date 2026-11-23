@@ -1,0 +1,167 @@
+name: Release Binaries
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  linux:
+    name: Linux (x86_64)
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git build-essential cmake libuv1-dev libssl-dev libhwloc-dev
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DWITH_HWLOC=ON -DWITH_OPENCL=OFF -DWITH_CUDA=OFF
+          make -j$(nproc)
+
+      - name: Package
+        run: |
+          cd build
+          tar czf ../xmrig-marscoin-linux-x64.tar.gz xmrig
+          cd ..
+          sha256sum xmrig-marscoin-linux-x64.tar.gz > xmrig-marscoin-linux-x64.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: linux-x64
+          path: |
+            xmrig-marscoin-linux-x64.tar.gz
+            xmrig-marscoin-linux-x64.tar.gz.sha256
+
+  macos-arm:
+    name: macOS (Apple Silicon)
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: brew install cmake libuv openssl hwloc
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DWITH_HWLOC=ON -DWITH_OPENCL=OFF -DWITH_CUDA=OFF -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Package
+        run: |
+          cd build
+          tar czf ../xmrig-marscoin-macos-arm64.tar.gz xmrig
+          cd ..
+          shasum -a 256 xmrig-marscoin-macos-arm64.tar.gz > xmrig-marscoin-macos-arm64.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm64
+          path: |
+            xmrig-marscoin-macos-arm64.tar.gz
+            xmrig-marscoin-macos-arm64.tar.gz.sha256
+
+  macos-intel:
+    name: macOS (Intel)
+    runs-on: macos-13
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps
+        run: brew install cmake libuv openssl hwloc
+
+      - name: Build
+        run: |
+          mkdir build && cd build
+          cmake .. -DWITH_HWLOC=ON -DWITH_OPENCL=OFF -DWITH_CUDA=OFF -DOPENSSL_ROOT_DIR=$(brew --prefix openssl)
+          make -j$(sysctl -n hw.ncpu)
+
+      - name: Package
+        run: |
+          cd build
+          tar czf ../xmrig-marscoin-macos-x64.tar.gz xmrig
+          cd ..
+          shasum -a 256 xmrig-marscoin-macos-x64.tar.gz > xmrig-marscoin-macos-x64.tar.gz.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-x64
+          path: |
+            xmrig-marscoin-macos-x64.tar.gz
+            xmrig-marscoin-macos-x64.tar.gz.sha256
+
+  windows:
+    name: Windows (x86_64)
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install deps via vcpkg
+        shell: bash
+        run: |
+          vcpkg install libuv:x64-windows-static openssl:x64-windows-static hwloc:x64-windows-static
+
+      - name: Build
+        shell: bash
+        run: |
+          mkdir build && cd build
+          cmake .. -G "Visual Studio 17 2022" -A x64 \
+            -DCMAKE_TOOLCHAIN_FILE=$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake \
+            -DVCPKG_TARGET_TRIPLET=x64-windows-static \
+            -DWITH_HWLOC=ON -DWITH_OPENCL=OFF -DWITH_CUDA=OFF
+          cmake --build . --config Release -j
+
+      - name: Package
+        shell: bash
+        run: |
+          cd build/Release
+          7z a ../../xmrig-marscoin-windows-x64.zip xmrig.exe
+          cd ../..
+          certutil -hashfile xmrig-marscoin-windows-x64.zip SHA256 > xmrig-marscoin-windows-x64.zip.sha256
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-x64
+          path: |
+            xmrig-marscoin-windows-x64.zip
+            xmrig-marscoin-windows-x64.zip.sha256
+
+  release:
+    name: Publish Release
+    needs: [linux, macos-arm, macos-intel, windows]
+    runs-on: ubuntu-22.04
+    if: startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: artifacts/**/*
+          generate_release_notes: true
+          body: |
+            Marscoin-patched xmrig with `rx/mars` algorithm for Marscoin's marsqnet testnet.
+
+            ## Usage
+
+            ```
+            ./xmrig -a rx/mars -o stratum+tcp://mining-mars.com:3434 -u YOUR_WORKER_NAME -p x
+            ```
+
+            ## Upstream status
+
+            This fork adds a single RandomX variant for Bitcoin-style 80-byte headers with nonce at offset 76. Upstream PR: https://github.com/xmrig/xmrig/pull/3803
+
+            ## Verification
+
+            Each archive is accompanied by a SHA-256 checksum file.
