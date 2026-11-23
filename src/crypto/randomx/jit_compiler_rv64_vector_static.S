@@ -129,6 +129,8 @@ v10-v17	= sshash constants
 v18	= temporary
 
 v19	= dataset item store offsets
+
+v24-v31 = temporary
 */
 
 DECL(randomx_riscv64_vector_sshash_dataset_init):
@@ -180,6 +182,7 @@ DECL(randomx_riscv64_vector_sshash_dataset_init):
 	slli x13, x13, 6
 	add x13, x13, x11
 
+.balign 64
 init_item:
 	// Step 1. Init r0-r7
 
@@ -216,28 +219,7 @@ DECL(randomx_riscv64_vector_sshash_generated_instructions):
 
 DECL(randomx_riscv64_vector_sshash_generated_instructions_end):
 	// Step 9. Concatenate registers r0-r7 in little endian format to get the final Dataset item data.
-	vsuxei64.v v0, (x11), v19
-
-	add x5, x11, 8
-	vsuxei64.v v1, (x5), v19
-
-	add x5, x11, 16
-	vsuxei64.v v2, (x5), v19
-
-	add x5, x11, 24
-	vsuxei64.v v3, (x5), v19
-
-	add x5, x11, 32
-	vsuxei64.v v4, (x5), v19
-
-	add x5, x11, 40
-	vsuxei64.v v5, (x5), v19
-
-	add x5, x11, 48
-	vsuxei64.v v6, (x5), v19
-
-	add x5, x11, 56
-	vsuxei64.v v7, (x5), v19
+	vsuxseg8ei64.v v0, (x11), v19
 
 	// Iterate to the next 4 items
 	vadd.vi v8, v8, 4
@@ -293,36 +275,15 @@ DECL(randomx_riscv64_vector_sshash_cache_prefetch):
 
 // Step 6. XOR all registers with data loaded from randomx cache
 DECL(randomx_riscv64_vector_sshash_xor):
-	vluxei64.v v18, (x10), v9
-	vxor.vv v0, v0, v18
-
-	add x5, x10, 8
-	vluxei64.v v18, (x5), v9
-	vxor.vv v1, v1, v18
-
-	add x5, x10, 16
-	vluxei64.v v18, (x5), v9
-	vxor.vv v2, v2, v18
-
-	add x5, x10, 24
-	vluxei64.v v18, (x5), v9
-	vxor.vv v3, v3, v18
-
-	add x5, x10, 32
-	vluxei64.v v18, (x5), v9
-	vxor.vv v4, v4, v18
-
-	add x5, x10, 40
-	vluxei64.v v18, (x5), v9
-	vxor.vv v5, v5, v18
-
-	add x5, x10, 48
-	vluxei64.v v18, (x5), v9
-	vxor.vv v6, v6, v18
-
-	add x5, x10, 56
-	vluxei64.v v18, (x5), v9
-	vxor.vv v7, v7, v18
+	vluxseg8ei64.v v24, (x10), v9
+	vxor.vv v0, v0, v24
+	vxor.vv v1, v1, v25
+	vxor.vv v2, v2, v26
+	vxor.vv v3, v3, v27
+	vxor.vv v4, v4, v28
+	vxor.vv v5, v5, v29
+	vxor.vv v6, v6, v30
+	vxor.vv v7, v7, v31
 
 DECL(randomx_riscv64_vector_sshash_end):
 
@@ -564,6 +525,7 @@ DECL(randomx_riscv64_vector_program_v2_soft_aes_init):
 
 	vsetivli zero, 2, e64, m1, ta, ma
 
+.balign 64
 DECL(randomx_riscv64_vector_program_main_loop):
 	and x5, x15, x9		// x5 = spAddr0 & 64-byte aligned L3 mask
 	add x5, x5, x12		// x5 = &scratchpad[spAddr0 & 64-byte aligned L3 mask]

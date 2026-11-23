@@ -814,9 +814,16 @@ namespace randomx {
 			state.emit(rvi(rv64::SUB, regR(isn.dst), regR(isn.dst), regR(isn.src)));
 		}
 		else {
-			int32_t imm = unsigned32ToSigned2sCompl(-isn.getImm32()); //convert to add
-			//x{dst} = x{dst} + {-imm}
-			emitImm32(state, imm, regR(isn.dst), regR(isn.dst), Tmp1Reg);
+			const uint32_t uimm = isn.getImm32();
+			if (uimm == 0x80000000ul) {
+				state.emit(rv64::LUI | (0x80000 << 12) | rvrd(Tmp1Reg));
+				state.emit(rvi(rv64::SUB, regR(isn.dst), regR(isn.dst), Tmp1Reg));
+			}
+			else {
+				int32_t imm = unsigned32ToSigned2sCompl(-uimm); //convert to add
+				//x{dst} = x{dst} + {-imm}
+				emitImm32(state, imm, regR(isn.dst), regR(isn.dst), Tmp1Reg);
+			}
 		}
 	}
 

@@ -109,7 +109,7 @@
 # v26 -> "a2"
 # v27 -> "a3"
 # v28 -> temporary
-# v29 -> E 'and' mask = 0x00ffffffffffffff'00ffffffffffffff
+# v29 -> E 'and' mask = 0x00ffffffffc00000'00ffffffffc00000
 # v30 -> E 'or' mask  = 0x3*00000000******'3*00000000******
 # v31 -> scale mask   = 0x80f0000000000000'80f0000000000000
 
@@ -151,7 +151,9 @@ DECL(randomx_program_aarch64):
 	ldp	q26, q27, [x0, 224]
 
 	# Load E 'and' mask
-	movi	v29.2d, #0x00FFFFFFFFFFFFFF
+	mov	x16, 0x00FFFFFFFFC00000
+	ins	v29.d[0], x16
+	ins	v29.d[1], x16
 
 	# Load E 'or' mask (stored in reg.f[0])
 	ldr	q30, [x0, 64]
@@ -185,6 +187,7 @@ DECL(randomx_program_aarch64):
 	ldp	x27, x28, [x30, -32]	// literal_x27
 	ldp	x29, x30, [x30, -16]	// literal_x29
 
+	.balign 64
 DECL(randomx_program_aarch64_main_loop):
 	# spAddr0 = spMix1 & ScratchpadL3Mask64;
 	# spAddr1 = (spMix1 >> 32) & ScratchpadL3Mask64;
@@ -213,40 +216,34 @@ DECL(randomx_program_aarch64_main_loop):
 	eor	x14, x14, x20
 	eor	x15, x15, x19
 
-	# Load group F registers (spAddr1)
-	ldr	q17, [x17]
-	sxtl	v16.2d, v17.2s
-	scvtf	v16.2d, v16.2d
-	sxtl2	v17.2d, v17.4s
-	scvtf	v17.2d, v17.2d
+	# Load group F/E registers (spAddr1)
+	ldp	q17, q19, [x17]
+	ldp	q21, q23, [x17, 32]
 
-	ldr q19, [x17, 16]
+	sxtl	v16.2d, v17.2s
+	sxtl2	v17.2d, v17.4s
 	sxtl	v18.2d, v19.2s
-	scvtf	v18.2d, v18.2d
 	sxtl2	v19.2d, v19.4s
+
+	scvtf	v16.2d, v16.2d
+	scvtf	v17.2d, v17.2d
+	scvtf	v18.2d, v18.2d
 	scvtf	v19.2d, v19.2d
 
-	# Load group E registers (spAddr1)
-	ldr	q21, [x17, 32]
 	sxtl	v20.2d, v21.2s
-	scvtf	v20.2d, v20.2d
 	sxtl2	v21.2d, v21.4s
-	scvtf	v21.2d, v21.2d
-
-	ldr	q23, [x17, 48]
 	sxtl	v22.2d, v23.2s
-	scvtf	v22.2d, v22.2d
 	sxtl2	v23.2d, v23.4s
+
+	scvtf	v20.2d, v20.2d
+	scvtf	v21.2d, v21.2d
+	scvtf	v22.2d, v22.2d
 	scvtf	v23.2d, v23.2d
 
-	and	v20.16b, v20.16b, v29.16b
-	and	v21.16b, v21.16b, v29.16b
-	and	v22.16b, v22.16b, v29.16b
-	and	v23.16b, v23.16b, v29.16b
-	orr	v20.16b, v20.16b, v30.16b
-	orr	v21.16b, v21.16b, v30.16b
-	orr	v22.16b, v22.16b, v30.16b
-	orr	v23.16b, v23.16b, v30.16b
+	bif	v20.16b, v30.16b, v29.16b
+	bif	v21.16b, v30.16b, v29.16b
+	bif	v22.16b, v30.16b, v29.16b
+	bif	v23.16b, v30.16b, v29.16b
 
 	# Execute VM instructions
 DECL(randomx_program_aarch64_vm_instructions):
@@ -285,6 +282,7 @@ literal_v13: .fill 2,8,0
 literal_v14: .fill 2,8,0
 literal_v15: .fill 2,8,0
 
+	.balign 64
 DECL(randomx_program_aarch64_vm_instructions_end):
 	# Calculate dataset pointer for dataset read
 	# Do it here to break false dependency from readReg2 and readReg3 (see next line)
@@ -305,7 +303,7 @@ DECL(randomx_program_aarch64_cacheline_align_mask1):
 	add	x20, x20, x1
 
 	# Prefetch dataset data
-	prfm	pldl2strm, [x20]
+	prfm	pldl1strm, [x20]
 
 DECL(randomx_program_aarch64_cacheline_align_mask2):
 	# Actual mask will be inserted by JIT compiler
@@ -314,16 +312,16 @@ DECL(randomx_program_aarch64_cacheline_align_mask2):
 
 DECL(randomx_program_aarch64_xor_with_dataset_line):
 	# xor integer registers with dataset data
-	ldp	x20, x19, [x10]
+	ldnp	x20, x19, [x10]
 	eor	x4, x4, x20
 	eor	x5, x5, x19
-	ldp	x20, x19, [x10, 16]
+	ldnp	x20, x19, [x10, 16]
 	eor	x6, x6, x20
 	eor	x7, x7, x19
-	ldp	x20, x19, [x10, 32]
+	ldnp	x20, x19, [x10, 32]
 	eor	x12, x12, x20
 	eor	x13, x13, x19
-	ldp	x20, x19, [x10, 48]
+	ldnp	x20, x19, [x10, 48]
 	eor	x14, x14, x20
 	eor	x15, x15, x19
 
@@ -347,14 +345,21 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 
 	# f0 = aesenc(f0, e0), f1 = aesdec(f1, e0), f2 = aesenc(f2, e0), f3 = aesdec(f3, e0)
 
-	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
+	# Quote from ARM optimization guides for basically all ARM Cortex CPUs starting from Cortex-A53:
+	#
+	# "pairs of dependent AESE/AESMC and AESD/AESIMC instructions are higher performance
+	# when they are adjacent in the program code and both instructions use the same
+	# destination register since they are fused"
+	#
+	# Same applies to all Apple silicon CPUs
 
+	aese	v16.16b, v28.16b
 	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
 	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
 	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
 	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v20.16b
@@ -365,13 +370,12 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 	# f0 = aesenc(f0, e1), f1 = aesdec(f1, e1), f2 = aesenc(f2, e1), f3 = aesdec(f3, e1)
 
 	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
 	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
 	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
 	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
 	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v21.16b
@@ -382,13 +386,12 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 	# f0 = aesenc(f0, e2), f1 = aesdec(f1, e2), f2 = aesenc(f2, e2), f3 = aesdec(f3, e2)
 
 	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
 	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
 	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
 	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
 	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v22.16b
@@ -399,13 +402,12 @@ DECL(randomx_program_aarch64_v2_FE_mix):
 	# f0 = aesenc(f0, e3), f1 = aesdec(f1, e3), f2 = aesenc(f2, e3), f3 = aesdec(f3, e3)
 
 	aese	v16.16b, v28.16b
-	aesd	v17.16b, v28.16b
-	aese	v18.16b, v28.16b
-	aesd	v19.16b, v28.16b
-
 	aesmc	v16.16b, v16.16b
+	aesd	v17.16b, v28.16b
 	aesimc	v17.16b, v17.16b
+	aese	v18.16b, v28.16b
 	aesmc	v18.16b, v18.16b
+	aesd	v19.16b, v28.16b
 	aesimc	v19.16b, v19.16b
 
 	eor	v16.16b, v16.16b, v23.16b

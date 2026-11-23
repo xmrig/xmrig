@@ -57,7 +57,9 @@ public:
     String fingerprint;
     String host;
     String path;
+    String proxyHost;
     uint16_t port           = 0;
+    uint16_t proxyPort      = 0;
     uint64_t timeout        = 0;
 };
 

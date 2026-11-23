@@ -41,6 +41,7 @@
 #include "base/net/http/HttpListener.h"
 #include "base/net/stratum/SubmitResult.h"
 #include "base/net/tools/NetBuffer.h"
+#include "base/net/tools/Socks5Handshake.h"
 #include "base/tools/bswap_64.h"
 #include "base/tools/cryptonote/Signatures.h"
 #include "base/tools/Cvt.h"
@@ -55,7 +56,13 @@
 
 #include <algorithm>
 #include <cassert>
+#include <cstring>
 #include <random>
+
+
+#ifdef _MSC_VER
+#   define strcasecmp _stricmp
+#endif
 
 
 namespace xmrig {
@@ -80,6 +87,34 @@ static constexpr size_t kZMQGreetingSize1 = 11;
 static const char kZMQHandshake[] = "\4\x19\5READY\xbSocket-Type\0\0\0\3SUB";
 static const char kZMQSubscribe[] = "\0\x18\1json-minimal-chain_main";
 
+
+static bool isLocalHost(const String &host)
+{
+    if (host.isEmpty()) {
+        return false;
+    }
+
+    if (strcasecmp(host.data(), "localhost") == 0) {
+        return true;
+    }
+
+    sockaddr_in addr4{};
+    if (uv_ip4_addr(host.data(), 0, &addr4) == 0) {
+        return reinterpret_cast<const uint8_t *>(&addr4.sin_addr)[0] == 127;
+    }
+
+    sockaddr_in6 addr6{};
+    if (uv_ip6_addr(host.data(), 0, &addr6) == 0) {
+        static const uint8_t loopback[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1 };
+        static const uint8_t v4mapped[12] = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0xFF, 0xFF };
+        const auto *addr = reinterpret_cast<const uint8_t *>(&addr6.sin6_addr);
+
+        return memcmp(addr, loopback, sizeof(loopback)) == 0 || (memcmp(addr, v4mapped, sizeof(v4mapped)) == 0 && addr[12] == 127);
+    }
+
+    return false;
+}
+
 } // namespace xmrig
 
 
@@ -95,17 +130,21 @@ xmrig::DaemonClient::DaemonClient(int id, IClientListener *listener) :
 xmrig::DaemonClient::~DaemonClient()
 {
     delete m_timer;
-    delete m_ZMQSocket;
 }
 
 
 void xmrig::DaemonClient::deleteLater()
 {
-    if (m_pool.zmq_port() >= 0) {
-        ZMQClose(true);
+    m_listener = nullptr;
+    m_httpListener.reset();
+    m_dns.reset();
+    m_timer->stop();
+
+    if (m_ZMQSocket) {
+        ZMQClose(false);
     }
     else {
-        delete this;
+        m_storage.remove(m_key);
     }
 }
 
@@ -214,8 +253,8 @@ void xmrig::DaemonClient::connect()
         return connectError("Invalid wallet address.");
     }
 
-    if (m_pool.zmq_port() >= 0) {
-        m_dns = Dns::resolve(m_pool.host(), this);
+    if (m_pool.zmq_port() >= 0 && !m_ZMQSocket) {
+        m_dns = Dns::resolve(isProxied() ? m_pool.proxy().host() : m_pool.host(), this);
     }
     else {
         getBlockTemplate();
@@ -349,23 +388,30 @@ void xmrig::DaemonClient::onResolved(const DnsRecords &records, int status, cons
     const auto &record = records.get();
     m_ip = record.ip();
 
-    auto req = new uv_connect_t;
-    req->data = m_storage.ptr(m_key);
-
-    uv_tcp_t* s = new uv_tcp_t;
-    s->data = m_storage.ptr(m_key);
-
-    uv_tcp_init(uv_default_loop(), s);
-    uv_tcp_nodelay(s, 1);
-
-    if (Platform::hasKeepalive()) {
-        uv_tcp_keepalive(s, 1, 60);
+    if (m_pool.zmq_port() <= 0 || m_ZMQSocket) {
+        return;
     }
 
-    if (m_pool.zmq_port() > 0) {
-        delete m_ZMQSocket;
-        m_ZMQSocket = s;
-        uv_tcp_connect(req, s, record.addr(m_pool.zmq_port()), onZMQConnect);
+    m_ZMQSocket       = new uv_tcp_t();
+    m_ZMQSocket->data = m_storage.ptr(m_key);
+
+    uv_tcp_init(uv_default_loop(), m_ZMQSocket);
+    uv_tcp_nodelay(m_ZMQSocket, 1);
+
+    if (Platform::hasKeepalive()) {
+        uv_tcp_keepalive(m_ZMQSocket, 1, 60);
+    }
+
+    m_ZMQConnectionState = ZMQ_CONNECTING;
+
+    auto req  = new uv_connect_t;
+    req->data = m_storage.ptr(m_key);
+
+    const int rc = uv_tcp_connect(req, m_ZMQSocket, record.addr(isProxied() ? m_pool.proxy().port() : m_pool.zmq_port()), onZMQConnect);
+    if (rc < 0) {
+        delete req;
+        LOG_ERR("%s " RED("ZMQ connect error: ") RED_BOLD("\"%s\""), tag(), uv_strerror(rc));
+        ZMQClose();
     }
 }
 
@@ -373,6 +419,12 @@ void xmrig::DaemonClient::onResolved(const DnsRecords &records, int status, cons
 bool xmrig::DaemonClient::isOutdated(uint64_t height, const char *hash) const
 {
     return m_job.height() != height || m_prevHash != hash || Chrono::steadyMSecs() >= m_jobSteadyMs + m_pool.jobTimeout();
+}
+
+
+bool xmrig::DaemonClient::isProxied() const
+{
+    return m_pool.proxy().isValid() && !isLocalHost(m_pool.host());
 }
 
 
@@ -570,7 +622,7 @@ int64_t xmrig::DaemonClient::rpcSend(const rapidjson::Document &doc, const std::
         req.headers.insert(header);
     }
 
-    fetch(tag(), std::move(req), m_httpListener);
+    send(std::move(req));
 
     return m_sequence++;
 }
@@ -589,12 +641,7 @@ void xmrig::DaemonClient::retry()
         setState(ConnectingState);
     }
 
-    if ((m_ZMQConnectionState != ZMQ_NOT_CONNECTED) && (m_ZMQConnectionState != ZMQ_DISCONNECTING)) {
-        if (Platform::hasKeepalive()) {
-            uv_tcp_keepalive(m_ZMQSocket, 0, 60);
-        }
-        uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), onZMQClose);
-    }
+    ZMQClose(false);
 
     m_timer->stop();
     m_timer->start(m_retryPause, 0);
@@ -603,7 +650,19 @@ void xmrig::DaemonClient::retry()
 
 void xmrig::DaemonClient::send(const char *path)
 {
-    FetchRequest req(HTTP_GET, m_pool.host(), m_pool.port(), path, m_pool.isTLS(), isQuiet());
+    send(FetchRequest(HTTP_GET, m_pool.host(), m_pool.port(), path, m_pool.isTLS(), isQuiet()));
+}
+
+
+void xmrig::DaemonClient::send(FetchRequest &&req)
+{
+    req.fingerprint = m_pool.fingerprint();
+
+    if (isProxied()) {
+        req.proxyHost = m_pool.proxy().host();
+        req.proxyPort = m_pool.proxy().port();
+    }
+
     fetch(tag(), std::move(req), m_httpListener);
 }
 
@@ -649,13 +708,13 @@ void xmrig::DaemonClient::onZMQConnect(uv_connect_t* req, int status)
     DaemonClient* client = getClient(req->data);
     delete req;
 
-    if (!client) {
+    if (!client || client->m_ZMQConnectionState != ZMQ_CONNECTING) {
         return;
     }
 
     if (status < 0) {
         LOG_ERR("%s " RED("ZMQ connect error: ") RED_BOLD("\"%s\""), client->tag(), uv_strerror(status));
-        client->retry();
+        client->ZMQClose();
         return;
     }
 
@@ -677,23 +736,20 @@ void xmrig::DaemonClient::onZMQRead(uv_stream_t* stream, ssize_t nread, const uv
 void xmrig::DaemonClient::onZMQClose(uv_handle_t* handle)
 {
     DaemonClient* client = getClient(handle->data);
-    if (client) {
-#       ifdef APP_DEBUG
-        LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" disconnected"), client->m_pool.host().data(), client->m_pool.zmq_port());
-#       endif
-        client->m_ZMQConnectionState = ZMQ_NOT_CONNECTED;
+    delete reinterpret_cast<uv_tcp_t*>(handle);
+
+    if (!client) {
+        return;
     }
-}
 
+#   ifdef APP_DEBUG
+    LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" %s"), client->m_pool.host().data(), client->m_pool.zmq_port(), client->m_listener ? "disconnected" : "shutdown");
+#   endif
 
-void xmrig::DaemonClient::onZMQShutdown(uv_handle_t* handle)
-{
-    DaemonClient* client = getClient(handle->data);
-    if (client) {
-#       ifdef APP_DEBUG
-        LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" shutdown"), client->m_pool.host().data(), client->m_pool.zmq_port());
-#       endif
-        client->m_ZMQConnectionState = ZMQ_NOT_CONNECTED;
+    client->m_ZMQSocket          = nullptr;
+    client->m_ZMQConnectionState = ZMQ_NOT_CONNECTED;
+
+    if (!client->m_listener) {
         m_storage.remove(client->m_key);
     }
 }
@@ -705,11 +761,25 @@ void xmrig::DaemonClient::ZMQConnected()
     LOG_DEBUG(CYAN("tcp-zmq://%s:%u") BLACK_BOLD(" connected"), m_pool.host().data(), m_pool.zmq_port());
 #   endif
 
-    m_ZMQConnectionState = ZMQ_GREETING_1;
     m_ZMQSendBuf.reserve(256);
     m_ZMQRecvBuf.reserve(256);
+    m_ZMQRecvBuf.clear();
 
-    if (ZMQWrite(kZMQGreeting, kZMQGreetingSize1)) {
+    bool ok = false;
+
+    if (isProxied()) {
+        m_ZMQConnectionState = ZMQ_SOCKS5;
+        m_ZMQSocks5          = std::make_shared<Socks5Handshake>(m_pool.host(), static_cast<uint16_t>(m_pool.zmq_port()));
+
+        const std::string greeting = Socks5Handshake::greeting();
+        ok = ZMQWrite(greeting.data(), greeting.size());
+    }
+    else {
+        m_ZMQConnectionState = ZMQ_GREETING_1;
+        ok = ZMQWrite(kZMQGreeting, kZMQGreetingSize1);
+    }
+
+    if (ok) {
         uv_read_start(reinterpret_cast<uv_stream_t*>(m_ZMQSocket), NetBuffer::onAlloc, onZMQRead);
     }
 }
@@ -743,7 +813,35 @@ void xmrig::DaemonClient::ZMQRead(ssize_t nread, const uv_buf_t* buf)
         return;
     }
 
-    m_ZMQRecvBuf.insert(m_ZMQRecvBuf.end(), buf->base, buf->base + nread);
+    const char *data = buf->base;
+    size_t size      = static_cast<size_t>(nread);
+
+    if (m_ZMQConnectionState == ZMQ_SOCKS5) {
+        std::string out;
+
+        if (!m_ZMQSocks5->read(data, size, out)) {
+            LOG_ERR("%s " RED("ZMQ SOCKS5 error: ") RED_BOLD("\"%s\""), tag(), m_ZMQSocks5->error());
+            ZMQClose();
+            return;
+        }
+
+        if (!out.empty() && !ZMQWrite(out.data(), out.size())) {
+            return;
+        }
+
+        if (!m_ZMQSocks5->isReady()) {
+            return;
+        }
+
+        m_ZMQSocks5.reset();
+        m_ZMQConnectionState = ZMQ_GREETING_1;
+
+        if (!ZMQWrite(kZMQGreeting, kZMQGreetingSize1)) {
+            return;
+        }
+    }
+
+    m_ZMQRecvBuf.insert(m_ZMQRecvBuf.end(), data, data + size);
 
     do {
         switch (m_ZMQConnectionState) {
@@ -908,27 +1006,23 @@ void xmrig::DaemonClient::ZMQParse()
 }
 
 
-bool xmrig::DaemonClient::ZMQClose(bool shutdown)
+bool xmrig::DaemonClient::ZMQClose(bool reconnect)
 {
-    if ((m_ZMQConnectionState == ZMQ_NOT_CONNECTED) || (m_ZMQConnectionState == ZMQ_DISCONNECTING)) {
-        if (shutdown) {
-            m_storage.remove(m_key);
-        }
+    if (!m_ZMQSocket || uv_is_closing(reinterpret_cast<uv_handle_t*>(m_ZMQSocket))) {
         return false;
     }
 
     m_ZMQConnectionState = ZMQ_DISCONNECTING;
 
-    if (uv_is_closing(reinterpret_cast<uv_handle_t*>(m_ZMQSocket)) == 0) {
-        if (Platform::hasKeepalive()) {
-            uv_tcp_keepalive(m_ZMQSocket, 0, 60);
-        }
-        uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), shutdown ? onZMQShutdown : onZMQClose);
-        if (!shutdown) {
-            retry();
-        }
-        return true;
+    if (Platform::hasKeepalive()) {
+        uv_tcp_keepalive(m_ZMQSocket, 0, 60);
     }
 
-    return false;
+    uv_close(reinterpret_cast<uv_handle_t*>(m_ZMQSocket), onZMQClose);
+
+    if (reconnect) {
+        retry();
+    }
+
+    return true;
 }

@@ -243,9 +243,11 @@ static void imm_to_x5(uint32_t imm, uint8_t*& p)
 		return;
 	}
 
-	if (imm_hi < (32 << 12)) {
+	const int32_t simm_hi = static_cast<int32_t>(imm_hi);
+
+	if ((simm_hi >= -(32 << 12)) && (simm_hi < (32 << 12))) {
 		//c.lui x5, imm_hi
-		emit16(0x6281 + (imm_hi >> 10));
+		emit16(0x6281 | ((imm_hi & 0x1F000) >> 10) | ((simm_hi < 0) ? 0x1000 : 0));
 	}
 	else {
 		// lui x5, imm_hi
@@ -441,6 +443,12 @@ void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguratio
 			if (src != dst) {
 				// sub x20 + dst, x20 + dst, x20 + src
 				emit32(0x414A0A33 + (dst << 7) + (dst << 15) + (src << 20));
+			}
+			else if (imm == 0x80000000U) {
+				// lui x5, 0x80000000U
+				emit32(0x800002B7);
+				// sub x20 + dst, x20 + dst, x5
+				emit32(0x405A0A33 + (dst << 7) + (dst << 15));
 			}
 			else {
 				imm_to_x5(-imm, p);

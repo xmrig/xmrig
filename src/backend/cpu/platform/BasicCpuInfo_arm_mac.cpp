@@ -18,15 +18,37 @@
 
 #include "backend/cpu/platform/BasicCpuInfo.h"
 
+#include <cstdio>
+#include <cstring>
 #include <sys/sysctl.h>
 
 
 void xmrig::BasicCpuInfo::init_arm()
 {
-#   if __ARM_FEATURE_CRYPTO
-    m_flags.set(FLAG_AES, true); // FIXME
-#   endif
+    int aes = 0;
+    size_t aesSize = sizeof(aes);
+
+    if (sysctlbyname("hw.optional.arm.FEAT_AES",
+                     &aes, &aesSize, nullptr, 0) == 0 && aes == 1) {
+        m_flags.set(FLAG_AES, true);
+    }
 
     size_t buflen = sizeof(m_brand);
-    sysctlbyname("machdep.cpu.brand_string", &m_brand, &buflen, nullptr, 0);
+
+    if (sysctlbyname("machdep.cpu.brand_string",
+                     m_brand, &buflen, nullptr, 0) != 0) {
+        std::snprintf(m_brand, sizeof(m_brand), "Apple ARM");
+    }
+
+    m_brand[sizeof(m_brand) - 1] = '\0';
+
+    if (std::strncmp(m_brand, "Apple M4", 8) == 0 ||
+        std::strncmp(m_brand, "Apple M5", 8) == 0) {
+        constexpr const char suffix[] = " (ARMv9)";
+        const size_t used = std::strlen(m_brand);
+
+        if (used + sizeof(suffix) <= sizeof(m_brand)) {
+            std::memcpy(m_brand + used, suffix, sizeof(suffix));
+        }
+    }
 }

@@ -178,7 +178,7 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+bool xmrig::VirtualMemory::protectRX(void *p, size_t size, bool)
 {
     DWORD oldProtect;
 

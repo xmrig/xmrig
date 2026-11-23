@@ -68,7 +68,10 @@ namespace randomx {
 		}
 
 		DatasetInitFunc* getDatasetInitFunc() const;
-		uint8_t* getCode() { return code; }
+		uint8_t* getCode() {
+			alwaysFlushWholeAllocation = true;
+			return code;
+		}
 		size_t getCodeSize();
 
 		void enableWriting() const;
@@ -85,7 +88,12 @@ namespace randomx {
 		size_t allocatedSize = 0;
 		uint32_t vm_flags = 0;
 
+		size_t generatedProgramEnd = 0;
+		mutable bool initialCacheFlushDone = false;
+		bool alwaysFlushWholeAllocation = false;
+
 		void allocate(size_t size);
+		void flushInstructionCache() const;
 
 		static void emit32(uint32_t val, uint8_t* code, uint32_t& codePos)
 		{

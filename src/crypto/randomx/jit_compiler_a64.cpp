@@ -64,6 +64,8 @@ constexpr uint32_t MOVN        = 0x92800000;
 constexpr uint32_t MOVK        = 0xF2800000;
 constexpr uint32_t ADD_IMM_LO  = 0x91000000;
 constexpr uint32_t ADD_IMM_HI  = 0x91400000;
+constexpr uint32_t SUB_IMM_LO  = 0xD1000000;
+constexpr uint32_t SUB_IMM_HI  = 0xD1400000;
 constexpr uint32_t LDR_LITERAL = 0x58000000;
 constexpr uint32_t ROR         = 0x9AC02C00;
 constexpr uint32_t ROR_IMM     = 0x93C00000;
@@ -139,7 +141,7 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 
 	codePos = PrologueSize;
 	literalPos = ImulRcpLiteralsEnd;
-	num32bitLiterals = 0;
+	num32bitLiterals = 64; // effectively disabled because it's slower than plain movn/movz+movk
 
 	for (uint32_t i = 0; i < RegistersCount; ++i)
 		reg_changed_offset[i] = codePos;
@@ -157,6 +159,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 	// Jump back to the main loop
 	const uint32_t offset = (((uint8_t*)randomx_program_aarch64_vm_instructions_end) - ((uint8_t*)randomx_program_aarch64)) - codePos;
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
+
+	generatedProgramEnd = codePos;
 
 	mask = ((RandomX_CurrentConfig.Log2_DatasetBaseSize - 7) << 10);
 	// and w20, w20, CacheLineAlignMask
@@ -209,8 +213,8 @@ void JitCompilerA64::generateProgram(Program& program, ProgramConfiguration& con
 		memcpy(code + dst, code + src, 16);
 	}
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
@@ -235,7 +239,7 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 
 	codePos = PrologueSize;
 	literalPos = ImulRcpLiteralsEnd;
-	num32bitLiterals = 0;
+	num32bitLiterals = 64; // effectively disabled because it's slower than plain movn/movz+movk
 
 	for (uint32_t i = 0; i < RegistersCount; ++i)
 		reg_changed_offset[i] = codePos;
@@ -265,6 +269,8 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	// Jump back to the main loop
 	const uint32_t offset = (((uint8_t*)randomx_program_aarch64_vm_instructions_end_light) - ((uint8_t*)randomx_program_aarch64)) - codePos;
 	emit32(ARMV8A::B | (offset / 4), code, codePos);
+
+	generatedProgramEnd = codePos;
 
 	// and w2, w2, CacheLineAlignMask
 	codePos = (((uint8_t*)randomx_program_aarch64_light_cacheline_align_mask) - ((uint8_t*)randomx_program_aarch64));
@@ -310,14 +316,16 @@ void JitCompilerA64::generateProgramLight(Program& program, ProgramConfiguration
 	emit32(ARMV8A::ADD_IMM_LO | 2 | (2 << 5) | (imm_lo << 10), code, codePos);
 	emit32(ARMV8A::ADD_IMM_HI | 2 | (2 << 5) | (imm_hi << 10), code, codePos);
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + MainLoopBegin), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
 template<size_t N>
 void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 {
+	alwaysFlushWholeAllocation = true;
+
 	if (!allocatedSize) {
 		allocate(CodeSize + CalcDatasetItemSize());
 	}
@@ -437,8 +445,8 @@ void JitCompilerA64::generateSuperscalarHash(SuperscalarProgram(&programs)[N])
 	memcpy(code + codePos, p1, p2 - p1);
 	codePos += p2 - p1;
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code + CodeSize), codePos - MainLoopBegin);
+#	ifndef XMRIG_SECURE_JIT
+	flushInstructionCache();
 #	endif
 }
 
@@ -465,7 +473,27 @@ void JitCompilerA64::enableWriting() const
 
 void JitCompilerA64::enableExecution() const
 {
-	xmrig::VirtualMemory::protectRX(code, allocatedSize);
+	if (xmrig::VirtualMemory::protectRX(code, allocatedSize, false)) {
+		flushInstructionCache();
+	}
+}
+
+
+void JitCompilerA64::flushInstructionCache() const
+{
+	const size_t reservedLiteralsBegin = ImulRcpLiteralsEnd - 12 * sizeof(uint64_t);
+	const size_t suffixBegin = literalPos < reservedLiteralsBegin ? literalPos : reservedLiteralsBegin;
+	if (initialCacheFlushDone && !alwaysFlushWholeAllocation &&
+		allocatedSize == CodeSize && generatedProgramEnd >= PrologueSize &&
+		generatedProgramEnd < suffixBegin && suffixBegin >= PrologueSize &&
+		suffixBegin <= allocatedSize && literalPos <= ImulRcpLiteralsEnd) {
+		xmrig::VirtualMemory::flushInstructionCache(code, generatedProgramEnd);
+		xmrig::VirtualMemory::flushInstructionCache(code + suffixBegin, allocatedSize - suffixBegin);
+	}
+	else {
+		xmrig::VirtualMemory::flushInstructionCache(code, allocatedSize);
+		initialCacheFlushDone = true;
+	}
 }
 
 
@@ -474,11 +502,10 @@ void JitCompilerA64::allocate(size_t size)
 	allocatedSize = size;
 	code = static_cast<uint8_t*>(allocExecutableMemory(allocatedSize, hugePages));
 
-	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
+	initialCacheFlushDone = false;
+	generatedProgramEnd = 0;
 
-#	ifndef XMRIG_OS_APPLE
-	xmrig::VirtualMemory::flushInstructionCache(reinterpret_cast<char*>(code), CodeSize);
-#	endif
+	memcpy(code, reinterpret_cast<const void *>(randomx_program_aarch64), CodeSize);
 }
 
 
@@ -486,13 +513,31 @@ void JitCompilerA64::emitMovImmediate(uint32_t dst, uint32_t imm, uint8_t* code,
 {
 	uint32_t k = codePos;
 
+	// 196606 different values can be encoded with a single instruction, the rest requires smov/umov load, or movn/movz+movk pair
 	if (imm < (1 << 16))
 	{
+		// Sign-extended 64-bit value: 0x000000000000xxxx
 		// movz tmp_reg, imm32 (16 low bits)
 		emit32(ARMV8A::MOVZ | dst | (imm << 5), code, k);
 	}
+	else if ((imm >> 16) == 0xFFFF) {
+		// Sign-extended 64-bit value: 0xFFFFFFFFFFFFxxxx
+		// movn tmp_reg, ~imm32 (16 low bits)
+		emit32(ARMV8A::MOVN | dst | ((~imm & 0xFFFF) << 5), code, k);
+	}
+	else if (((imm & 0xFFFF) == 0xFFFF) && (static_cast<int32_t>(imm) < 0)) {
+		// Sign-extended 64-bit value: 0xFFFFFFFFxxxxFFFF
+		// movn tmp_reg, ~imm32 (16 high bits)
+		emit32(ARMV8A::MOVN | dst | (1 << 21) | ((~imm >> 16) << 5), code, k);
+	}
+	else if (((imm & 0xFFFF) == 0) && (static_cast<int32_t>(imm) >= 0)) {
+		// Sign-extended 64-bit value: 0x00000000xxxx0000
+		// movz tmp_reg, imm32 (16 high bits)
+		emit32(ARMV8A::MOVZ | dst | (1 << 21) | ((imm >> 16) << 5), code, k);
+	}
 	else
 	{
+		// Full sign-extended 64-bit value: 0x00000000xxxxxxxx or 0xFFFFFFFFxxxxxxxx
 		if (num32bitLiterals < 64)
 		{
 			if (static_cast<int32_t>(imm) < 0)
@@ -534,23 +579,40 @@ void JitCompilerA64::emitAddImmediate(uint32_t dst, uint32_t src, uint32_t imm, 
 {
 	uint32_t k = codePos;
 
-	if (imm < (1 << 24))
-	{
-		const uint32_t imm_lo = imm & ((1 << 12) - 1);
-		const uint32_t imm_hi = imm >> 12;
+	if (imm == 0) {
+		if (dst != src) {
+			emit32(ARMV8A::MOV_REG | dst | (src << 16), code, k);
+		}
 
-		if (imm_lo && imm_hi)
-		{
-			emit32(ARMV8A::ADD_IMM_LO | dst | (src << 5) | (imm_lo << 10), code, k);
-			emit32(ARMV8A::ADD_IMM_HI | dst | (dst << 5) | (imm_hi << 10), code, k);
-		}
-		else if (imm_lo)
-		{
-			emit32(ARMV8A::ADD_IMM_LO | dst | (src << 5) | (imm_lo << 10), code, k);
-		}
-		else
-		{
-			emit32(ARMV8A::ADD_IMM_HI | dst | (src << 5) | (imm_hi << 10), code, k);
+		codePos = k;
+		return;
+	}
+
+	const int32_t simm = static_cast<int32_t>(imm);
+
+	uint32_t mag, opLo, opHi;
+
+	if (simm > 0) {
+		mag  = imm;
+		opLo = ARMV8A::ADD_IMM_LO;
+		opHi = ARMV8A::ADD_IMM_HI;
+	} else {
+		mag  = static_cast<uint32_t>(-static_cast<int64_t>(simm));
+		opLo = ARMV8A::SUB_IMM_LO;
+		opHi = ARMV8A::SUB_IMM_HI;
+	}
+
+	if (mag < (1u << 24)) {
+		const uint32_t lo = mag & ((1u << 12) - 1);
+		const uint32_t hi = mag >> 12;
+
+		if (lo && hi) {
+			emit32(opLo | dst | (src << 5) | (lo << 10), code, k);
+			emit32(opHi | dst | (dst << 5) | (hi << 10), code, k);
+		} else if (lo) {
+			emit32(opLo | dst | (src << 5) | (lo << 10), code, k);
+		} else {
+			emit32(opHi | dst | (src << 5) | (hi << 10), code, k);
 		}
 	}
 	else
@@ -592,17 +654,16 @@ void JitCompilerA64::emitMemLoad(uint32_t dst, uint32_t src, Instruction& instr,
 	else
 	{
 		imm = (imm & ScratchpadL3Mask) >> 3;
-		if (imm)
+		if (imm < 4096) {
+			// ldr tmp_reg, [x2, #imm*8]
+			emit32(0xf9400040 | tmp_reg | (imm << 10), code, k);
+		}
+		else
 		{
 			emitMovImmediate(tmp_reg, imm, code, k);
 
 			// ldr tmp_reg, [x2, tmp_reg, lsl 3]
 			emit32(0xf8607840 | tmp_reg | (tmp_reg << 16), code, k);
-		}
-		else
-		{
-			// ldr tmp_reg, [x2]
-			emit32(0xf9400040 | tmp_reg, code, k);
 		}
 	}
 
@@ -690,7 +751,16 @@ void JitCompilerA64::h_ISUB_R(Instruction& instr, uint32_t& codePos)
 	}
 	else
 	{
-		emitAddImmediate(dst, dst, -instr.getImm32(), code, k);
+		const uint32_t imm = instr.getImm32();
+
+		if (imm == 0x80000000ul) {
+			constexpr uint32_t tmp_reg = 20;
+			emit32(ARMV8A::MOVZ | tmp_reg | (1u << 21) | (0x8000u << 5), code, k);
+			emit32(ARMV8A::ADD | dst | (dst << 5) | (tmp_reg << 16), code, k);
+		}
+		else {
+			emitAddImmediate(dst, dst, -instr.getImm32(), code, k);
+		}
 	}
 
 	reg_changed_offset[instr.dst] = k;
@@ -744,7 +814,7 @@ void JitCompilerA64::h_IMUL_M(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg = 20;
 	emitMemLoad<tmp_reg>(dst, src, instr, code, k);
 
-	// sub dst, dst, tmp_reg
+	// mul dst, dst, tmp_reg
 	emit32(ARMV8A::MUL | dst | (dst << 5) | (tmp_reg << 16), code, k);
 
 	reg_changed_offset[instr.dst] = k;
@@ -1059,11 +1129,8 @@ void JitCompilerA64::h_FDIV_M(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg_fp = 28;
 	emitMemLoadFP<tmp_reg_fp>(src, instr, code, k);
 
-	// and tmp_reg_fp, tmp_reg_fp, and_mask_reg
-	emit32(0x4E201C00 | tmp_reg_fp | (tmp_reg_fp << 5) | (29 << 16), code, k);
-
-	// orr tmp_reg_fp, tmp_reg_fp, or_mask_reg
-	emit32(0x4EA01C00 | tmp_reg_fp | (tmp_reg_fp << 5) | (30 << 16), code, k);
+	// bif tmp_reg_fp, or_mask_reg, and_mask_reg
+	emit32(0x6EE01C00 | tmp_reg_fp | (30 << 5) | (29 << 16), code, k);
 
 	emit32(ARMV8A::FDIV | dst | (dst << 5) | (tmp_reg_fp << 16), code, k);
 
@@ -1112,16 +1179,18 @@ void JitCompilerA64::h_CFROUND(Instruction& instr, uint32_t& codePos)
 	constexpr uint32_t tmp_reg = 20;
 	constexpr uint32_t fpcr_tmp_reg = 8;
 
-	// ror tmp_reg, src, imm
-	emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
-
 	if (RandomX_CurrentConfig.Tweak_V2_CFROUND) {
-		// tst tmp_reg, 60
-		emit32(0xF27E0E9F, code, k);
+		const uint32_t immr = (62 - instr.getImm32()) & 63;
+
+		// tst src, ROR(60, -(instr.getImm32() & 63))
+		emit32(0xF2400C1F | (immr << 16) | (src << 5), code, k);
 
 		// bne next
-		emit32(0x54000081, code, k);
+		emit32(0x540000A1, code, k);
 	}
+
+	// ror tmp_reg, src, imm
+	emit32(ARMV8A::ROR_IMM | tmp_reg | (src << 5) | ((instr.getImm32() & 63) << 10) | (src << 16), code, k);
 
 	// bfi fpcr_tmp_reg, tmp_reg, 40, 2
 	emit32(0xB3580400 | fpcr_tmp_reg | (tmp_reg << 5), code, k);

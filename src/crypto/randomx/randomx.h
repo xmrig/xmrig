@@ -163,7 +163,7 @@ extern RandomX_ConfigurationGraft RandomX_GraftConfig;
 extern RandomX_ConfigurationSafex RandomX_SafexConfig;
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
 
-extern RandomX_ConfigurationBase RandomX_CurrentConfig;
+alignas(64) extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 template<typename T>
 void randomx_apply_config(const T& config)

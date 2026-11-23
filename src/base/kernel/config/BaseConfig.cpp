@@ -142,7 +142,13 @@ void xmrig::BaseConfig::printVersions()
     snprintf(buf, sizeof buf, "MSVC/%d", MSVC_VERSION);
 #   endif
 
-    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s") WHITE_BOLD(" (built for %s") WHITE_BOLD(" %s,") WHITE_BOLD(" %s)"), "ABOUT", APP_NAME, APP_VERSION, buf, APP_OS, APP_ARCH, APP_BITS);
+    const char *appArch = APP_ARCH;
+
+#   if defined(XMRIG_ARM_V9)
+    appArch = "ARMv9";
+#   endif
+
+    Log::print(GREEN_BOLD(" * ") WHITE_BOLD("%-13s") CYAN_BOLD("%s/%s") WHITE_BOLD(" %s") WHITE_BOLD(" (built for %s") WHITE_BOLD(" %s,") WHITE_BOLD(" %s)"), "ABOUT", APP_NAME, APP_VERSION, buf, APP_OS, appArch, APP_BITS);
 
     std::string libs;
 
