@@ -56,7 +56,11 @@ if (WITH_RANDOMX)
         src/crypto/rx/RxVm.cpp
     )
 
-    if (WITH_ASM AND CMAKE_C_COMPILER_ID MATCHES MSVC)
+    if (XMRIG_PPC)
+        list(APPEND SOURCES_CRYPTO
+             src/crypto/randomx/jit_compiler_ppc.cpp
+            )
+    elseif (WITH_ASM AND CMAKE_C_COMPILER_ID MATCHES MSVC)
         enable_language(ASM_MASM)
         list(APPEND SOURCES_CRYPTO
              src/crypto/randomx/jit_compiler_x86_static.asm
@@ -149,7 +153,7 @@ if (WITH_RANDOMX)
             )
     endif()
 
-    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
+    if (WITH_MSR AND NOT XMRIG_ARM AND NOT XMRIG_RISCV AND NOT XMRIG_PPC AND CMAKE_SIZEOF_VOID_P EQUAL 8 AND (XMRIG_OS_WIN OR XMRIG_OS_LINUX))
         add_definitions(/DXMRIG_FEATURE_MSR)
         add_definitions(/DXMRIG_FIX_RYZEN)
         message("-- WITH_MSR=ON")

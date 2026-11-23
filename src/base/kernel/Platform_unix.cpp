@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2025 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -56,6 +57,14 @@ char *xmrig::Platform::createUserAgent()
     length += snprintf(buf + length, max - length, "aarch64) libuv/%s", uv_version_string());
 #   elif defined(__arm__)
     length += snprintf(buf + length, max - length, "arm) libuv/%s", uv_version_string());
+#   elif defined(__powerpc64__) || defined(__ppc64__)
+#       if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+    length += snprintf(buf + length, max - length, "ppc64le) libuv/%s", uv_version_string());
+#       else
+    length += snprintf(buf + length, max - length, "ppc64) libuv/%s", uv_version_string());
+#       endif
+#   elif defined(__powerpc__) || defined(__ppc__) || defined(_ARCH_PPC)
+    length += snprintf(buf + length, max - length, "ppc) libuv/%s", uv_version_string());
 #   else
     length += snprintf(buf + length, max - length, "i686) libuv/%s", uv_version_string());
 #   endif

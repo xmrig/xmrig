@@ -9,6 +9,7 @@
  * Copyright 2018      Lee Clagett <https://github.com/vtnerd>
  * Copyright 2018-2020 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2020 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -29,6 +30,8 @@
 
 #ifdef XMRIG_RISCV
 #   include "crypto/cn/sse2rvv.h"
+#elif defined(XMRIG_PPC)
+#   include "crypto/cn/sse2ppc.h"
 #endif
 
 #include "base/crypto/keccak.h"

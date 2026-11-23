@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright 2018-2023 SChernykh   <https://github.com/SChernykh>
  * Copyright 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright 2025 PalindromicBreadLoaf <https://github.com/palindromicbreadloaf>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -60,6 +61,9 @@
 #elif defined(XMRIG_RISCV)
     // RISC-V doesn't have SSE/NEON, provide minimal compatibility
 #   define _mm_pause() __asm__ __volatile__("nop")
+#elif defined(XMRIG_PPC)
+    // PowerPC has no SSE/NEON pause intrinsic; this is the SMT low-priority hint.
+#   define _mm_pause() __asm__ __volatile__("or 27,27,27")
 #elif defined(__GNUC__)
 #   include <x86intrin.h>
 #else

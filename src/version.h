@@ -1,6 +1,7 @@
 /* XMRig
  * Copyright (c) 2018-2026 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2026 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *
  * SPDX-License-Identifier: GPL-3.0-or-later
  */
@@ -70,6 +71,16 @@
 #   define APP_ARCH "ARMv" STR2(XMRIG_ARM)
 #elif defined(XMRIG_RISCV)
 #   define APP_ARCH "RISC-V"
+#elif defined(XMRIG_PPC)
+#   if defined(XMRIG_PPC_BITS) && (XMRIG_PPC_BITS == 64)
+#       if defined(__LITTLE_ENDIAN__) || (defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__))
+#           define APP_ARCH "PowerPC64LE"
+#       else
+#           define APP_ARCH "PowerPC64"
+#       endif
+#   else
+#       define APP_ARCH "PowerPC"
+#   endif
 #else
 #   if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
 #       define APP_ARCH "x86-64"

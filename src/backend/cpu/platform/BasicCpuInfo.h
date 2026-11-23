@@ -2,7 +2,7 @@
  * Copyright (c) 2017-2019 XMR-Stak    <https://github.com/fireice-uk>, <https://github.com/psychocrypt>
  * Copyright (c) 2018-2025 SChernykh   <https://github.com/SChernykh>
  * Copyright (c) 2016-2025 XMRig       <support@xmrig.com>
- *
+ * Copyright (c) 2026 PalindromicBreadLoaf  <palindromicbreadloaf@tuta.com>
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
  *   the Free Software Foundation, either version 3 of the License, or
@@ -66,7 +66,7 @@ protected:
     inline Vendor vendor() const override                       { return m_vendor; }
     inline uint32_t model() const override
     {
-#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_PPC)
         return m_model;
 #   else
         return 0;
@@ -81,12 +81,12 @@ protected:
     Vendor m_vendor         = VENDOR_UNKNOWN;
 
 private:
-#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV)
+#   if !defined(XMRIG_ARM) && !defined(XMRIG_RISCV) && !defined(XMRIG_PPC)
     uint32_t m_procInfo     = 0;
     uint32_t m_family       = 0;
     uint32_t m_model        = 0;
     uint32_t m_stepping     = 0;
-#   else
+#   elif defined(XMRIG_ARM)
     void init_arm();
 #   endif
 
