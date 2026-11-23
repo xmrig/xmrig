@@ -50,6 +50,9 @@ const RandomX_ConfigurationBase *xmrig::RxAlgo::base(Algorithm::Id algorithm)
     case Algorithm::RX_YADA:
         return &RandomX_YadaConfig;
 
+    case Algorithm::RX_SCASH:
+        return &RandomX_ScashConfig;
+
     default:
         break;
     }
