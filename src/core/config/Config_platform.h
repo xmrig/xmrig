@@ -85,6 +85,7 @@ static const option options[] = {
     { "no-title",              0, nullptr, IConfig::NoTitleKey            },
     { "pause-on-battery",      0, nullptr, IConfig::PauseOnBatteryKey     },
     { "pause-on-active",       1, nullptr, IConfig::PauseOnActiveKey      },
+    { "start-paused",          0, nullptr, IConfig::StartPausedKey        },
     { "ipv4",                  0, nullptr, IConfig::DnsIPv4Key            },
     { "ipv6",                  0, nullptr, IConfig::DnsIPv6Key            },
     { "dns-ttl",               1, nullptr, IConfig::DnsTtlKey             },

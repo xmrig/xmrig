@@ -183,6 +183,7 @@ static inline const std::string &usage()
 #   endif
     u += "      --pause-on-battery        pause mine on battery power\n";
     u += "      --pause-on-active=N       pause mine when the user is active (resume after N seconds of last activity)\n";
+    u += "      --start-paused            complete initialization but keep miner paused until resumed\n";
 
 #   ifdef XMRIG_FEATURE_BENCHMARK
     u += "      --stress                  run continuous stress test to check system stability\n";
