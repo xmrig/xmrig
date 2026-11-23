@@ -21,8 +21,15 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <openssl/rsa.h>
 #include <stdexcept>
 #include <fstream>
+
+
+#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#   define X509_getm_notBefore X509_get_notBefore
+#   define X509_getm_notAfter  X509_get_notAfter
+#endif
 
 
 namespace xmrig {
@@ -111,13 +118,15 @@ bool xmrig::TlsGen::generate_x509(const char *commonName)
     }
 
     ASN1_INTEGER_set(X509_get_serialNumber(m_x509), 1);
-    X509_gmtime_adj(X509_get_notBefore(m_x509), 0);
-    X509_gmtime_adj(X509_get_notAfter(m_x509), 315360000L);
+    X509_gmtime_adj(X509_getm_notBefore(m_x509), 0);
+    X509_gmtime_adj(X509_getm_notAfter(m_x509), 315360000L);
 
-    auto name = X509_get_subject_name(m_x509);
+    auto name = X509_NAME_new();
     X509_NAME_add_entry_by_txt(name, "CN", MBSTRING_ASC, reinterpret_cast<const uint8_t *>(commonName), -1, -1, 0);
 
+    X509_set_subject_name(m_x509, name);
     X509_set_issuer_name(m_x509, name);
+    X509_NAME_free(name);
 
     return X509_sign(m_x509, m_pkey, EVP_sha256());
 }

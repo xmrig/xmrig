@@ -12,7 +12,7 @@
 #define APP_NAME      "XMRig"
 #define APP_DESC      "XMRig miner"
 // MoneroOcean: mark this runtime fork build distinctly from upstream XMRig.
-#define APP_VERSION   "6.26.0-mo5"
+#define APP_VERSION   "6.27.0"
 // End MoneroOcean
 #define APP_DOMAIN    "xmrig.com"
 #define APP_SITE      "www.xmrig.com"
@@ -20,7 +20,7 @@
 #define APP_KIND      "miner"
 
 #define APP_VER_MAJOR  6
-#define APP_VER_MINOR  26
+#define APP_VER_MINOR  27
 #define APP_VER_PATCH  0
 
 #ifdef _MSC_VER

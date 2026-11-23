@@ -236,7 +236,7 @@ jobs:
           mkdir -p /tmp/xmrig
           tar -xzf /tmp/xmrig-docker/source.tar.gz -C /tmp/xmrig
           cd /tmp/xmrig
-          (cd scripts && ./build.uv.sh && ./build.hwloc1.sh && ./build.openssl.sh)
+          (cd scripts && UV_VERSION=1.44.2 ./build.uv.sh && ./build.hwloc1.sh && ./build.openssl.sh)
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DXMRIG_DEPS=scripts/deps
           cmake --build build --parallel "${JOBS}"
           cmake -S tests/hash -B build/hash-tests -DCMAKE_BUILD_TYPE=Release

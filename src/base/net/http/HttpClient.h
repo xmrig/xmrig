@@ -33,6 +33,7 @@ namespace xmrig {
 
 
 class DnsRequest;
+class Socks5Handshake;
 
 
 class HttpClient : public HttpContext, public IDnsListener, public ITimerListener
@@ -63,9 +64,12 @@ protected:
 private:
     static void onConnect(uv_connect_t *req, int status);
 
+    void onRead(const char *data, size_t size);
+
     const char *m_tag;
     FetchRequest m_req;
     std::shared_ptr<DnsRequest> m_dns;
+    std::shared_ptr<Socks5Handshake> m_socks5;
     std::shared_ptr<Timer> m_timer;
 };
 

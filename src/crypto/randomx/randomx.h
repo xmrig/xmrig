@@ -184,7 +184,7 @@ extern RandomX_ConfigurationScala RandomX_ScalaConfig;
 // End MoneroOcean
 extern RandomX_ConfigurationYada RandomX_YadaConfig;
 
-extern RandomX_ConfigurationBase RandomX_CurrentConfig;
+alignas(64) extern RandomX_ConfigurationBase RandomX_CurrentConfig;
 
 template<typename T>
 void randomx_apply_config(const T& config)

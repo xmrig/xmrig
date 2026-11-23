@@ -77,6 +77,11 @@
 #endif
 
 
+#ifndef MADV_COLLAPSE
+#   define MADV_COLLAPSE 25
+#endif
+
+
 #if defined(XMRIG_OS_LINUX) || (!defined(XMRIG_OS_APPLE) && !defined(XMRIG_OS_FREEBSD))
 static inline int hugePagesFlag(size_t size)
 {
@@ -124,7 +129,7 @@ bool xmrig::VirtualMemory::protectRWX(void *p, size_t size)
 }
 
 
-bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
+bool xmrig::VirtualMemory::protectRX(void *p, size_t size, bool flushICache)
 {
     bool result = true;
 
@@ -135,7 +140,9 @@ bool xmrig::VirtualMemory::protectRX(void *p, size_t size)
 #   endif
 
 #   if defined(XMRIG_ARM)
-    flushInstructionCache(p, size);
+    if (flushICache) {
+        flushInstructionCache(p, size);
+    }
 #   endif
 
     return result;
@@ -243,7 +250,8 @@ bool xmrig::VirtualMemory::allocateLargePagesMemory()
     if (m_scratchpad) {
         m_flags.set(FLAG_HUGEPAGES, true);
 
-        madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
+        madvise(m_scratchpad, m_size, MADV_RANDOM);
+        madvise(m_scratchpad, m_size, MADV_WILLNEED);
 
         if (mlock(m_scratchpad, m_size) == 0) {
             m_flags.set(FLAG_LOCK, true);
@@ -266,7 +274,8 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
     if (m_scratchpad) {
         m_flags.set(FLAG_1GB_PAGES, true);
 
-        madvise(m_scratchpad, m_size, MADV_RANDOM | MADV_WILLNEED);
+        madvise(m_scratchpad, m_size, MADV_RANDOM);
+        madvise(m_scratchpad, m_size, MADV_WILLNEED);
 
         if (mlock(m_scratchpad, m_size) == 0) {
             m_flags.set(FLAG_LOCK, true);
@@ -281,8 +290,9 @@ bool xmrig::VirtualMemory::allocateOneGbPagesMemory()
 
 bool xmrig::VirtualMemory::adviseLargePages(void *p, size_t size)
 {
-#   ifdef XMRIG_OS_LINUX
-    return (madvise(p, size, MADV_HUGEPAGE) == 0);
+#   if defined(XMRIG_OS_ANDROID) || defined(XMRIG_OS_LINUX)
+    // MADV_COLLAPSE works even if /sys/kernel/mm/transparent_hugepage/enabled is set to "never", but only on Linux 6.1+
+    return (madvise(p, size, MADV_COLLAPSE) == 0) || (madvise(p, size, MADV_HUGEPAGE) == 0);
 #   else
     return false;
 #   endif

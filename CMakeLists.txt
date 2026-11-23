@@ -180,7 +180,7 @@ if (XMRIG_OS_WIN)
         )
 
     # MoneroOcean: COM libraries are required by fork runtime integration on Windows.
-    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv dbghelp ole32 oleaut32)
+    set(EXTRA_LIBS ws2_32 psapi iphlpapi userenv dbghelp synchronization ole32 oleaut32)
     # End MoneroOcean
 elseif (XMRIG_OS_APPLE)
     list(APPEND SOURCES_OS
@@ -296,5 +296,5 @@ if (WIN32)
 endif()
 
 if (CMAKE_CXX_COMPILER_ID MATCHES Clang AND CMAKE_BUILD_TYPE STREQUAL Release AND NOT CMAKE_GENERATOR STREQUAL Xcode)
-    add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>")
+    add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD COMMAND ${CMAKE_STRIP} "$<TARGET_FILE:${CMAKE_PROJECT_NAME}>")
 endif()
