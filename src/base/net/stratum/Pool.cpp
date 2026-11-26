@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2026 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2026 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -326,9 +326,17 @@ std::string xmrig::Pool::printableName() const
 
     if (m_coin.isValid()) {
         out += std::string(" coin ") + WHITE_BOLD_S + m_coin.name() + CLEAR;
+
+        if (m_coin.isDeprecated()) {
+            out += YELLOW_BOLD(" (deprecated)");
+        }
     }
     else {
         out += std::string(" algo ") + WHITE_BOLD_S + (m_algorithm.isValid() ? m_algorithm.name() : "auto") + CLEAR;
+
+        if (m_algorithm.isDeprecated()) {
+            out += YELLOW_BOLD(" (deprecated)");
+        }
     }
 
     if (m_mode == MODE_SELF_SELECT) {

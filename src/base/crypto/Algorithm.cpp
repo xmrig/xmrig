@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2018      Lee Clagett <https://github.com/vtnerd>
- * Copyright (c) 2018-2021 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2021 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2026 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2026 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -343,6 +343,41 @@ xmrig::Algorithm::Id xmrig::Algorithm::parse(const char *name)
 size_t xmrig::Algorithm::count()
 {
     return kAlgorithmNames.size();
+}
+
+
+bool xmrig::Algorithm::isDeprecated(Id id)
+{
+    // No live coin uses these algorithms anymore (checked 2026-11).
+    // They still work, but will be removed in the next major release (v7.0).
+    switch (id) {
+    case CN_0:
+    case CN_1:
+    case CN_2:
+    case CN_R:
+    case CN_FAST:
+    case CN_HALF:
+    case CN_XAO:
+    case CN_RTO:
+    case CN_RWZ:
+    case CN_ZLS:
+    case CN_DOUBLE:
+    case CN_LITE_0:
+    case CN_LITE_1:
+    case CN_HEAVY_0:
+    case CN_HEAVY_TUBE:
+    case CN_HEAVY_XHV:
+    case CN_PICO_TLO:
+    case RX_GRAFT:
+    case AR2_CHUKWA_V2:
+    case AR2_WRKZ:
+        return true;
+
+    default:
+        break;
+    }
+
+    return false;
 }
 
 

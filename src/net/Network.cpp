@@ -1,7 +1,7 @@
 /* XMRig
  * Copyright (c) 2019      Howard Chu  <https://github.com/hyc>
- * Copyright (c) 2018-2023 SChernykh   <https://github.com/SChernykh>
- * Copyright (c) 2016-2023 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
+ * Copyright (c) 2018-2026 SChernykh   <https://github.com/SChernykh>
+ * Copyright (c) 2016-2026 XMRig       <https://github.com/xmrig>, <support@xmrig.com>
  *
  *   This program is free software: you can redistribute it and/or modify
  *   it under the terms of the GNU General Public License as published by
@@ -55,6 +55,29 @@
 #include <ctime>
 #include <iterator>
 #include <memory>
+#include <set>
+
+
+namespace xmrig {
+
+
+// Warns once per algorithm and once per coin, they still work until removal in v7.0.
+static void printDeprecated(const Coin &coin, const Algorithm &algorithm)
+{
+    static std::set<uint32_t> coins;
+    static std::set<uint32_t> algorithms;
+
+    if (coin.isDeprecated() && coins.insert(coin.id()).second) {
+        LOG_WARN("%s " YELLOW_BOLD("coin %s is deprecated and will be removed in v7.0"), Tags::network(), coin.name());
+    }
+
+    if (algorithm.isDeprecated() && algorithms.insert(algorithm.id()).second) {
+        LOG_WARN("%s " YELLOW_BOLD("algo %s is deprecated and will be removed in v7.0"), Tags::network(), algorithm.name());
+    }
+}
+
+
+} // namespace xmrig
 
 
 xmrig::Network::Network(Controller *controller) :
@@ -289,6 +312,10 @@ void xmrig::Network::setJob(IClient *client, const Job &job, bool donate)
 
         LOG_INFO("%s " MAGENTA_BOLD("new job") " from " WHITE_BOLD("%s:%d%s") " diff " WHITE_BOLD("%" PRIu64 "%s") " algo " WHITE_BOLD("%s") "%s%s",
                  Tags::network(), client->pool().host().data(), client->pool().port(), zmq_buf, diff, scale, job.algorithm().name(), height_buf, tx_buf);
+    }
+
+    if (!donate) {
+        printDeprecated(client->pool().coin(), job.algorithm());
     }
 
     if (!donate && m_donate) {
