@@ -41,21 +41,20 @@ struct CoinInfo
     const uint64_t target;
     const uint64_t units;
     const char *tag;
-    const bool deprecated;
 };
 
 
 static const CoinInfo coinInfo[] = {
-    { Algorithm::INVALID,         nullptr,    nullptr,        0,      0,              nullptr,                                          false },
-    { Algorithm::RX_0,            "XMR",      "Monero",       120,    1000000000000,  YELLOW_BG_BOLD( WHITE_BOLD_S " monero  "),        false },
-    { Algorithm::CN_R,            "SUMO",     "Sumokoin",     240,    1000000000,     BLUE_BG_BOLD(   WHITE_BOLD_S " sumo    "),        true  },
-    { Algorithm::RX_ARQ,          "ARQ",      "ArQmA",        120,    1000000000,     BLUE_BG_BOLD(   WHITE_BOLD_S " arqma   "),        false },
-    { Algorithm::RX_GRAFT,        "GRFT",     "Graft",        120,    10000000000,    BLUE_BG_BOLD(   WHITE_BOLD_S " graft   "),        true  },
-    { Algorithm::KAWPOW_RVN,      "RVN",      "Ravencoin",    0,      0,              BLUE_BG_BOLD(   WHITE_BOLD_S " raven   "),        false },
-    { Algorithm::RX_WOW,          "WOW",      "Wownero",      300,    100000000000,   MAGENTA_BG_BOLD(WHITE_BOLD_S " wownero "),        false },
-    { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(   WHITE_BOLD_S " zephyr  "),        false },
-    { Algorithm::RX_0,            "Townforge","Townforge",    30,     100000000,      MAGENTA_BG_BOLD(WHITE_BOLD_S " townforge "),      true  },
-    { Algorithm::RX_YADA,         "YDA",      "YadaCoin",     120,    100000000,      BLUE_BG_BOLD(   WHITE_BOLD_S " yada    "),        false },
+    { Algorithm::INVALID,         nullptr,    nullptr,        0,      0,              nullptr },
+    { Algorithm::RX_0,            "XMR",      "Monero",       120,    1000000000000,  YELLOW_BG_BOLD( WHITE_BOLD_S " monero  ") },
+    { Algorithm::CN_R,            "SUMO",     "Sumokoin",     240,    1000000000,     BLUE_BG_BOLD(   WHITE_BOLD_S " sumo    ") },
+    { Algorithm::RX_ARQ,          "ARQ",      "ArQmA",        120,    1000000000,     BLUE_BG_BOLD(   WHITE_BOLD_S " arqma   ") },
+    { Algorithm::RX_GRAFT,        "GRFT",     "Graft",        120,    10000000000,    BLUE_BG_BOLD(   WHITE_BOLD_S " graft   ") },
+    { Algorithm::KAWPOW_RVN,      "RVN",      "Ravencoin",    0,      0,              BLUE_BG_BOLD(   WHITE_BOLD_S " raven   ") },
+    { Algorithm::RX_WOW,          "WOW",      "Wownero",      300,    100000000000,   MAGENTA_BG_BOLD(WHITE_BOLD_S " wownero ") },
+    { Algorithm::RX_0,            "ZEPH",     "Zephyr",       120,    1000000000000,  BLUE_BG_BOLD(   WHITE_BOLD_S " zephyr  ") },
+    { Algorithm::RX_0,            "Townforge","Townforge",    30,     100000000,      MAGENTA_BG_BOLD(WHITE_BOLD_S " townforge ") },
+    { Algorithm::RX_YADA,         "YDA",      "YadaCoin",     120,    100000000,      BLUE_BG_BOLD(   WHITE_BOLD_S " yada    ") },
 };
 
 
@@ -83,7 +82,17 @@ xmrig::Coin::Coin(const rapidjson::Value &value)
 
 bool xmrig::Coin::isDeprecated() const
 {
-    return coinInfo[m_id].deprecated;
+    switch (m_id) {
+    case SUMO:
+    case GRAFT:
+    case TOWNFORGE:
+        return true;
+
+    default:
+        break;
+    }
+
+    return false;
 }
 
 
