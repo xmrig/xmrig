@@ -32,7 +32,11 @@
 #endif
 
 	.arch armv8-a+crypto
+#if defined(__ELF__)
+	.section .rodata
+#else
 	.text
+#endif
 	.global DECL(randomx_program_aarch64)
 	.global DECL(randomx_program_aarch64_main_loop)
 	.global DECL(randomx_program_aarch64_vm_instructions)
@@ -44,6 +48,9 @@
 	.global DECL(randomx_program_aarch64_v2_FE_mix)
 	.global DECL(randomx_program_aarch64_v1_FE_mix)
 	.global DECL(randomx_program_aarch64_v2_FE_mix_soft_aes)
+	#ifndef __APPLE__
+	.hidden DECL(randomx_program_aarch64_aes_lut_pointers)
+	#endif
 	.global DECL(randomx_program_aarch64_aes_lut_pointers)
 	.global DECL(randomx_program_aarch64_vm_instructions_end_light)
 	.global DECL(randomx_program_aarch64_vm_instructions_end_light_tweak)
@@ -109,9 +116,9 @@
 # v26 -> "a2"
 # v27 -> "a3"
 # v28 -> temporary
-# v29 -> E 'and' mask = 0x00ffffffffc00000'00ffffffffc00000
-# v30 -> E 'or' mask  = 0x3*00000000******'3*00000000******
-# v31 -> scale mask   = 0x80f0000000000000'80f0000000000000
+# v29 -> E 'and' mask = 0x00ffffffffc0000000ffffffffc00000
+# v30 -> E 'or' mask  = 0x3*00000000******3*00000000******
+# v31 -> scale mask   = 0x81f000000000000081f0000000000000
 
 	.balign 4
 DECL(randomx_program_aarch64):
@@ -166,8 +173,8 @@ DECL(randomx_program_aarch64):
 	mrs	x8, fpcr
 	rbit	x8, x8
 
-	# Save x0
-	str	x0, [sp, -16]!
+	# Save x0 and reserve stack space for light mode
+	str	x0, [sp, -112]!
 
 	# Read literals
 	adr	x30, literal_v0
@@ -186,6 +193,9 @@ DECL(randomx_program_aarch64):
 	ldp	x25, x26, [x30, -48]	// literal_x25
 	ldp	x27, x28, [x30, -32]	// literal_x27
 	ldp	x29, x30, [x30, -16]	// literal_x29
+
+	# Jump over the padding bytes
+	b DECL(randomx_program_aarch64_main_loop)
 
 	.balign 64
 DECL(randomx_program_aarch64_main_loop):
@@ -434,7 +444,7 @@ randomx_program_aarch64_FE_store:
 	bne	DECL(randomx_program_aarch64_main_loop)
 	
 	# Restore x0
-	ldr	x0, [sp], 16
+	ldr	x0, [sp], 112
 
 	# Store integer registers
 	stp	x4, x5, [x0, 0]
@@ -466,9 +476,8 @@ randomx_program_aarch64_FE_store:
 	ret
 
 DECL(randomx_program_aarch64_vm_instructions_end_light):
-	sub	sp, sp, 96
-	stp	x0, x1, [sp, 64]
-	stp	x2, x30, [sp, 80]
+	stp	x0, x1, [sp, 80]
+	stp	x2, x30, [sp, 96]
 
 	lsr	x2, x9, 32
 
@@ -487,7 +496,7 @@ DECL(randomx_program_aarch64_vm_instructions_end_light_tweak):
 	mov	x0, x1
 
 	# x1 -> pointer to output
-	mov	x1, sp
+	add	x1, sp, 16
 
 	# x2 -> item number
 	lsr	x2, x2, 6
@@ -499,10 +508,9 @@ DECL(randomx_program_aarch64_light_dataset_offset):
 
 	bl	DECL(randomx_calc_dataset_item_aarch64)
 
-	mov	x10, sp
-	ldp	x0, x1, [sp, 64]
-	ldp	x2, x30, [sp, 80]
-	add	sp, sp, 96
+	add	x10, sp, 16
+	ldp	x0, x1, [sp, 80]
+	ldp	x2, x30, [sp, 96]
 
 	b	DECL(randomx_program_aarch64_xor_with_dataset_line)
 
@@ -880,3 +888,7 @@ DECL(randomx_calc_dataset_item_aarch64_store_result):
 	ret
 
 DECL(randomx_calc_dataset_item_aarch64_end):
+
+#if defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
