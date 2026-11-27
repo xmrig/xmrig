@@ -49,6 +49,19 @@ static void init_dataset_wrapper(randomx_dataset *dataset, randomx_cache *cache,
         randomx_init_dataset(dataset, cache, startItem + itemCount - 4, 4);
     }
 #endif
+#ifdef XMRIG_FEATURE_LASX
+    /*
+     * The 256 bit item function of the LoongArch
+     * JIT walks the dataset four items per
+     * call, so the count must be a whole
+     * number of fours.  See
+     * src/crypto/randomx/jit_compiler_la64_lasx.cpp.
+     */
+    else if (Cpu::info()->has(ICpuInfo::FLAG_LASX) && (itemCount % 4)) {
+        randomx_init_dataset(dataset, cache, startItem, itemCount - (itemCount % 4));
+        randomx_init_dataset(dataset, cache, startItem + itemCount - 4, 4);
+    }
+#endif
     else {
         randomx_init_dataset(dataset, cache, startItem, itemCount);
     }

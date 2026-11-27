@@ -85,6 +85,21 @@ static void print_pages(const Config *config)
 }
 
 
+#ifdef XMRIG_LOONGARCH
+static const char *loongarchVectorMarker()
+{
+    static char marker[96];
+
+    const char *lsx  = Cpu::info()->has(ICpuInfo::FLAG_LSX)  ? GREEN_BOLD_S "LSX "  : RED_BOLD_S "-LSX ";
+    const char *lasx = Cpu::info()->has(ICpuInfo::FLAG_LASX) ? GREEN_BOLD_S "LASX " : RED_BOLD_S "-LASX ";
+
+    snprintf(marker, sizeof(marker), "%s%s", lsx, lasx);
+
+    return marker;
+}
+#endif
+
+
 static void print_cpu(const Config *)
 {
     const auto info = Cpu::info();
@@ -96,6 +111,8 @@ static void print_cpu(const Config *)
                ICpuInfo::is64bit()    ? GREEN_BOLD("64-bit") : RED_BOLD("32-bit"),
 #ifdef XMRIG_RISCV
                info->hasRISCV_Vector() ? GREEN_BOLD_S "RVV " : RED_BOLD_S "-RVV ",
+#elif defined(XMRIG_LOONGARCH)
+               loongarchVectorMarker(),
 #else
                "",
 #endif

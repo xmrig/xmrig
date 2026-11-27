@@ -62,4 +62,5 @@ namespace randomx {
 
 	template class CompiledLightVm<false>;
 	template class CompiledLightVm<true>;
+	template class CompiledLightVm<2>;
 }

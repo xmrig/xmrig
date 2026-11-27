@@ -86,13 +86,15 @@ public:
         FLAG_CAT_L3,
         FLAG_VM,
         FLAG_RISCV_VECTOR,
+        FLAG_LSX,
+        FLAG_LASX,
         FLAG_MAX
     };
 
     ICpuInfo()          = default;
     virtual ~ICpuInfo() = default;
 
-#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__) || defined(__riscv) && (__riscv_xlen == 64)
+#   if defined(__x86_64__) || defined(_M_AMD64) || defined (__arm64__) || defined (__aarch64__) || (defined(__riscv) && (__riscv_xlen == 64)) || (defined(__loongarch__) && defined(__loongarch64))
     inline constexpr static bool is64bit() { return true; }
 #   else
     inline constexpr static bool is64bit() { return false; }
