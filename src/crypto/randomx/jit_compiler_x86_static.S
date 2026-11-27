@@ -28,6 +28,9 @@
 #if defined(__APPLE__)
 .text
 #define DECL(x) _##x
+#elif defined(__ELF__)
+.section .rodata
+#define DECL(x) x
 #else
 .section .text
 #define DECL(x) x
@@ -50,6 +53,7 @@
 .global DECL(randomx_program_read_dataset)
 .global DECL(randomx_program_read_dataset_v2)
 .global DECL(randomx_program_read_dataset_sshash_init)
+.global DECL(randomx_program_read_dataset_sshash_init_v2)
 .global DECL(randomx_program_read_dataset_sshash_fin)
 .global DECL(randomx_program_loop_store)
 .global DECL(randomx_program_loop_store_hard_aes)
@@ -151,6 +155,9 @@ DECL(randomx_program_read_dataset_v2):
 
 DECL(randomx_program_read_dataset_sshash_init):
 	#include "asm/program_read_dataset_sshash_init.inc"
+
+DECL(randomx_program_read_dataset_sshash_init_v2):
+	#include "asm/program_read_dataset_sshash_init_v2.inc"
 
 DECL(randomx_program_read_dataset_sshash_fin):
 	#include "asm/program_read_dataset_sshash_fin.inc"
@@ -358,6 +365,8 @@ DECL(randomx_sshash_init):
 DECL(randomx_program_end):
 	nop
 
+.text
+.balign 64
 DECL(randomx_reciprocal_fast):
 #if !defined(WINABI)
 	mov rcx, rdi

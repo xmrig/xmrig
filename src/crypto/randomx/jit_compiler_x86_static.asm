@@ -41,6 +41,7 @@ PUBLIC randomx_program_start
 PUBLIC randomx_program_read_dataset
 PUBLIC randomx_program_read_dataset_v2
 PUBLIC randomx_program_read_dataset_sshash_init
+PUBLIC randomx_program_read_dataset_sshash_init_v2
 PUBLIC randomx_program_read_dataset_sshash_fin
 PUBLIC randomx_dataset_init
 PUBLIC randomx_dataset_init_avx2_prologue
@@ -149,6 +150,10 @@ randomx_program_read_dataset_v2 ENDP
 randomx_program_read_dataset_sshash_init PROC
 	include asm/program_read_dataset_sshash_init.inc
 randomx_program_read_dataset_sshash_init ENDP
+
+randomx_program_read_dataset_sshash_init_v2 PROC
+	include asm/program_read_dataset_sshash_init_v2.inc
+randomx_program_read_dataset_sshash_init_v2 ENDP
 
 randomx_program_read_dataset_sshash_fin PROC
 	include asm/program_read_dataset_sshash_fin.inc
