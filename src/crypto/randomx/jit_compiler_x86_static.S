@@ -65,6 +65,7 @@
 .global DECL(randomx_dataset_init_avx2_epilogue)
 .global DECL(randomx_dataset_init_avx2_ssh_load)
 .global DECL(randomx_dataset_init_avx2_ssh_prefetch)
+.global DECL(randomx_dataset_init_avx2_ssh_prefetch_end)
 .global DECL(randomx_program_epilogue)
 .global DECL(randomx_sshash_load)
 .global DECL(randomx_sshash_prefetch)
@@ -317,6 +318,8 @@ DECL(randomx_dataset_init_avx2_ssh_load):
 
 DECL(randomx_dataset_init_avx2_ssh_prefetch):
 	#include "asm/program_sshash_avx2_ssh_prefetch.inc"
+
+DECL(randomx_dataset_init_avx2_ssh_prefetch_end):
 
 .balign 64
 DECL(randomx_program_epilogue):

@@ -49,6 +49,7 @@ PUBLIC randomx_dataset_init_avx2_loop_end
 PUBLIC randomx_dataset_init_avx2_epilogue
 PUBLIC randomx_dataset_init_avx2_ssh_load
 PUBLIC randomx_dataset_init_avx2_ssh_prefetch
+PUBLIC randomx_dataset_init_avx2_ssh_prefetch_end
 PUBLIC randomx_program_loop_store
 PUBLIC randomx_program_loop_store_hard_aes
 PUBLIC randomx_program_loop_store_soft_aes
@@ -307,6 +308,9 @@ randomx_dataset_init_avx2_ssh_load ENDP
 randomx_dataset_init_avx2_ssh_prefetch PROC
 	include asm/program_sshash_avx2_ssh_prefetch.inc
 randomx_dataset_init_avx2_ssh_prefetch ENDP
+
+randomx_dataset_init_avx2_ssh_prefetch_end PROC
+randomx_dataset_init_avx2_ssh_prefetch_end ENDP
 
 randomx_program_epilogue PROC
 	include asm/program_epilogue_store.inc

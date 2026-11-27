@@ -154,26 +154,26 @@ void *xmrig::VirtualMemory::allocateExecutableMemory(size_t size, bool hugePages
     pthread_jit_write_protect_np(false);
 #   endif
 #   elif defined(XMRIG_OS_FREEBSD)
-    void *mem = nullptr;
+    void *mem = MAP_FAILED;
 
     if (hugePages) {
         mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_ALIGNED_SUPER | MAP_PREFAULT_READ, -1, 0);
     }
 
-    if (!mem) {
+    if (mem == MAP_FAILED) {
         mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
 #   elif defined(XMRIG_OS_HAIKU)
     void *mem = mmap(0, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
 #   else
 
-    void *mem = nullptr;
+    void *mem = MAP_FAILED;
 
     if (hugePages) {
         mem = mmap(0, align(size), PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS | MAP_POPULATE | hugePagesFlag(hugePageSize()), -1, 0);
     }
 
-    if (!mem) {
+    if (mem == MAP_FAILED) {
         mem = mmap(0, size, PROT_READ | PROT_WRITE | SECURE_PROT_EXEC, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
     }
 
