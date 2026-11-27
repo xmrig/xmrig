@@ -1267,9 +1267,9 @@ typedef struct ADLActivatableSource
     int iAdapterIndex;
     /// The number of Activatable Sources.
     int iNumActivatableSources;
-    /// The bit mask identifies the number of bits ActivatableSourceValue is using. (Not currnetly used)
+    /// The bit mask identifies the number of bits ActivatableSourceValue is using. (Not currently used)
     int iActivatableSourceMask;
-    /// The bit mask identifies the status.  (Not currnetly used)
+    /// The bit mask identifies the status.  (Not currently used)
     int iActivatableSourceValue;
 } ADLActivatableSource, *LPADLActivatableSource;
 
