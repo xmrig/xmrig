@@ -30,6 +30,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "crypto/randomx/dataset.hpp"
 #include "crypto/randomx/intrin_portable.h"
 #include "crypto/randomx/reciprocal.h"
+#include "crypto/randomx/soft_aes.h"
 
 namespace randomx {
 
@@ -89,8 +90,29 @@ namespace randomx {
 			for (unsigned i = 0; i < RegistersCount; ++i)
 				store64(scratchpad + spAddr1 + 8 * i, nreg.r[i]);
 
-			for (unsigned i = 0; i < RegisterCountFlt; ++i)
-				nreg.f[i] = rx_xor_vec_f128(nreg.f[i], nreg.e[i]);
+			if (RandomX_CurrentConfig.Tweak_V2_AES) {
+				rx_vec_i128 ekey[RegisterCountFlt];
+				rx_vec_i128 freg[RegisterCountFlt];
+
+				for (unsigned i = 0; i < RegisterCountFlt; ++i) {
+					ekey[i] = rx_cast_vec_f2i(nreg.e[i]);
+					freg[i] = rx_cast_vec_f2i(nreg.f[i]);
+				}
+
+				for (unsigned i = 0; i < RegisterCountFlt; ++i) {
+					freg[0] = aesenc<softAes || !HAVE_AES>(freg[0], ekey[i]);
+					freg[1] = aesdec<softAes || !HAVE_AES>(freg[1], ekey[i]);
+					freg[2] = aesenc<softAes || !HAVE_AES>(freg[2], ekey[i]);
+					freg[3] = aesdec<softAes || !HAVE_AES>(freg[3], ekey[i]);
+				}
+
+				for (unsigned i = 0; i < RegisterCountFlt; ++i)
+					nreg.f[i] = rx_cast_vec_i2f(freg[i]);
+			}
+			else {
+				for (unsigned i = 0; i < RegisterCountFlt; ++i)
+					nreg.f[i] = rx_xor_vec_f128(nreg.f[i], nreg.e[i]);
+			}
 
 			for (unsigned i = 0; i < RegisterCountFlt; ++i)
 				rx_store_vec_f128((double*)(scratchpad + spAddr0 + 16 * i), nreg.f[i]);

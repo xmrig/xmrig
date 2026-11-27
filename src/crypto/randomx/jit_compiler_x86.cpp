@@ -119,6 +119,7 @@ namespace randomx {
 	#define codeReadDataset ADDR(randomx_program_read_dataset)
 	#define codeReadDatasetV2 ADDR(randomx_program_read_dataset_v2)
 	#define codeReadDatasetLightSshInit ADDR(randomx_program_read_dataset_sshash_init)
+	#define codeReadDatasetLightSshInitV2 ADDR(randomx_program_read_dataset_sshash_init_v2)
 	#define codeReadDatasetLightSshFin ADDR(randomx_program_read_dataset_sshash_fin)
 	#define codeDatasetInit ADDR(randomx_dataset_init)
 	#define codeDatasetInitAVX2Prologue ADDR(randomx_dataset_init_avx2_prologue)
@@ -142,7 +143,8 @@ namespace randomx {
 	#define loopLoadXOPSize (codeProgramStart - codeLoopLoadXOP)
 	#define readDatasetSize (codeReadDatasetV2 - codeReadDataset)
 	#define readDatasetV2Size (codeReadDatasetLightSshInit - codeReadDatasetV2)
-	#define readDatasetLightInitSize (codeReadDatasetLightSshFin - codeReadDatasetLightSshInit)
+	#define readDatasetLightInitSize (codeReadDatasetLightSshInitV2 - codeReadDatasetLightSshInit)
+	#define readDatasetLightInitV2Size (codeReadDatasetLightSshFin - codeReadDatasetLightSshInitV2)
 	#define readDatasetLightFinSize (codeLoopStore - codeReadDatasetLightSshFin)
 	#define loopStoreSize (codeLoopStoreHardAES - codeLoopStore)
 	#define loopStoreHardAESSize (codeLoopStoreSoftAES - codeLoopStoreHardAES)
@@ -363,7 +365,12 @@ namespace randomx {
 
 	void JitCompilerX86::generateProgramLight(Program& prog, ProgramConfiguration& pcfg, uint32_t datasetOffset) {
 		generateProgramPrologue(prog, pcfg);
-		emit(codeReadDatasetLightSshInit, readDatasetLightInitSize, code, codePos);
+		if (RandomX_CurrentConfig.Tweak_V2_PREFETCH) {
+			emit(codeReadDatasetLightSshInitV2, readDatasetLightInitV2Size, code, codePos);
+		}
+		else {
+			emit(codeReadDatasetLightSshInit, readDatasetLightInitSize, code, codePos);
+		}
 		*(uint32_t*)(code + codePos) = 0xc381;
 		codePos += 2;
 		emit32(datasetOffset / CacheLineSize, code, codePos);
