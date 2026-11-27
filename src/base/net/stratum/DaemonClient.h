@@ -102,6 +102,7 @@ private:
 
     BlockTemplate m_blocktemplate;
     Coin m_coin;
+    bool m_rawTemplate = false;
     std::shared_ptr<IHttpListener> m_httpListener;
     String m_blockhashingblob;
     String m_blocktemplateRequestHash;
