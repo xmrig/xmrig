@@ -336,42 +336,46 @@ void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguratio
 		params[7] = (uint64_t) lutEncIndex;
 		params[8] = (uint64_t) lutDecIndex;
 
-		uint32_t* p1 = (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_v2_soft_aes_init));
+		uint8_t* p1 = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_v2_soft_aes_init);
 
 		// Restore vsetivli zero, 4, e32, m1, ta, ma
-		*p1 = 0xCD027057;
+		const uint32_t inst = 0xCD027057;
+		memcpy(p1, &inst, sizeof(inst));
 	}
 	else {
-		uint32_t* p1 = (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_v2_soft_aes_init));
+		uint8_t* p1 = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_v2_soft_aes_init);
 
 		// Emit "J randomx_riscv64_vector_program_main_loop" instruction
-		*p1 = JUMP(DIST(randomx_riscv64_vector_program_v2_soft_aes_init, randomx_riscv64_vector_program_main_loop));
+		const uint32_t inst = JUMP(DIST(randomx_riscv64_vector_program_v2_soft_aes_init, randomx_riscv64_vector_program_main_loop));
+		memcpy(p1, &inst, sizeof(inst));
 	}
 
 	uint64_t* imul_rcp_literals = (uint64_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_imul_rcp_literals));
 	uint64_t* cur_literal = imul_rcp_literals;
 
-	uint32_t* spaddr_xor	= (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_spaddr_xor));
-	uint32_t* spaddr_xor2	= (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_scratchpad_prefetch));
-	uint32_t* mx_xor	= (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_mx_xor));
-	uint32_t* mx_xor_light	= (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_mx_xor_light_mode));
+	uint8_t* spaddr_xor	= buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_spaddr_xor);
+	uint8_t* spaddr_xor2 = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_scratchpad_prefetch);
+	uint8_t* mx_xor = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_mx_xor);
+	uint8_t* mx_xor_light = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_mx_xor_light_mode);
 
-	*spaddr_xor			= 0x014A47B3 + (pcfg.readReg0 << 15) + (pcfg.readReg1 << 20);	// xor x15, readReg0, readReg1
-	*spaddr_xor2			= 0x014A42B3 + (pcfg.readReg0 << 15) + (pcfg.readReg1 << 20);	// xor x5,  readReg0, readReg1
+	const uint32_t spaddr_xor_value = 0x014A47B3 + (pcfg.readReg0 << 15) + (pcfg.readReg1 << 20);	// xor x15, readReg0, readReg1
+	const uint32_t spaddr_xor2_value = 0x014A42B3 + (pcfg.readReg0 << 15) + (pcfg.readReg1 << 20);	// xor x5,  readReg0, readReg1
 	const uint32_t mx_xor_value	= 0x014A42B3 + (pcfg.readReg2 << 15) + (pcfg.readReg3 << 20);	// xor x5,  readReg2, readReg3
 
-	*mx_xor = mx_xor_value;
-	*mx_xor_light = mx_xor_value;
+	memcpy(spaddr_xor, &spaddr_xor_value, sizeof(spaddr_xor_value));
+	memcpy(spaddr_xor2, &spaddr_xor2_value, sizeof(spaddr_xor2_value));
+	memcpy(mx_xor, &mx_xor_value, sizeof(mx_xor_value));
+	memcpy(mx_xor_light, &mx_xor_value, sizeof(mx_xor_value));
 
 	// "slli x5, x5, 32" for RandomX v2, "nop" for RandomX v1
 	const uint16_t mp_reg_value = RandomX_CurrentConfig.Tweak_V2_PREFETCH ? 0x1282 : 0x0001;
 
-	memcpy(((uint8_t*)mx_xor) + 8, &mp_reg_value, sizeof(mp_reg_value));
-	memcpy(((uint8_t*)mx_xor_light) + 8, &mp_reg_value, sizeof(mp_reg_value));
+	memcpy(mx_xor + 8, &mp_reg_value, sizeof(mp_reg_value));
+	memcpy(mx_xor_light + 8, &mp_reg_value, sizeof(mp_reg_value));
 
 	// "srli x5, x14, 32" for RandomX v2, "srli x5, x14, 0" for RandomX v1
 	const uint32_t mp_reg_value2 = RandomX_CurrentConfig.Tweak_V2_PREFETCH ? 0x02075293 : 0x00075293;
-	memcpy(((uint8_t*)mx_xor) + 14, &mp_reg_value2, sizeof(mp_reg_value2));
+	memcpy(mx_xor + 14, &mp_reg_value2, sizeof(mp_reg_value2));
 
 	if (entryDataInitScalar) {
 		void* light_mode_data = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_light_mode_data);
@@ -890,22 +894,25 @@ void* generateProgramVectorRV64(uint8_t* buf, Program& prog, ProgramConfiguratio
 	emit32(JUMP(e - p));
 
 	if (RandomX_CurrentConfig.Tweak_V2_AES) {
-		uint32_t* p1 = (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_fe_mix));
+		uint8_t* p1 = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_fe_mix);
 
 		if (hasAES) {
 			// Restore vsetivli zero, 4, e32, m1, ta, ma
-			*p1 = 0xCD027057;
+			const uint32_t inst = 0xCD027057;
+			memcpy(p1, &inst, sizeof(inst));
 		}
 		else {
 			// Emit "J randomx_riscv64_vector_program_main_loop_fe_mix_v2_soft_aes" instruction
-			*p1 = JUMP(DIST(randomx_riscv64_vector_program_main_loop_fe_mix, randomx_riscv64_vector_program_main_loop_fe_mix_v2_soft_aes));
+			const uint32_t inst = JUMP(DIST(randomx_riscv64_vector_program_main_loop_fe_mix, randomx_riscv64_vector_program_main_loop_fe_mix_v2_soft_aes));
+			memcpy(p1, &inst, sizeof(inst));
 		}
 	}
 	else {
-		uint32_t* p1 = (uint32_t*)(buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_fe_mix));
+		uint8_t* p1 = buf + DIST(randomx_riscv64_vector_code_begin, randomx_riscv64_vector_program_main_loop_fe_mix);
 
 		// Emit "J randomx_riscv64_vector_program_main_loop_fe_mix_v1" instruction
-		*p1 = JUMP(DIST(randomx_riscv64_vector_program_main_loop_fe_mix, randomx_riscv64_vector_program_main_loop_fe_mix_v1));
+		const uint32_t inst = JUMP(DIST(randomx_riscv64_vector_program_main_loop_fe_mix, randomx_riscv64_vector_program_main_loop_fe_mix_v1));
+		memcpy(p1, &inst, sizeof(inst));
 	}
 
 #ifdef __GNUC__

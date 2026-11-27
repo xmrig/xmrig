@@ -28,7 +28,11 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #define DECL(x) x
 
+#if defined(__ELF__)
+.section .rodata
+#else
 .text
+#endif
 .option rvc
 
 #include "configuration.h"
@@ -307,7 +311,9 @@ DECL(randomx_riscv64_prologue):
     fld f30, 208(x3)
     fld f31, 216(x3)
 
-.balign 4
+    j DECL(randomx_riscv64_loop_begin)
+
+.balign 64
 DECL(randomx_riscv64_loop_begin):
 loop_begin:
     /* mix integer registers */
@@ -1244,3 +1250,7 @@ DECL(randomx_riscv64_ssh_prefetch):
 
 DECL(randomx_riscv64_ssh_end):
     nop
+
+#if defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

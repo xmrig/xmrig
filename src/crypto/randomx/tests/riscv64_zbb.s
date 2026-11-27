@@ -7,3 +7,7 @@ main:
     ror x6, x6, x7
     li x10, 0
     ret
+
+#if defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif

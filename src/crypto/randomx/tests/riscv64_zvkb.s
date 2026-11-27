@@ -11,3 +11,7 @@ main:
 	vror.vi v0, v0, 1
 	li x10, 0
 	ret
+
+#if defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
