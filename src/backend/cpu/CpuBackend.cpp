@@ -352,7 +352,7 @@ void xmrig::CpuBackend::setJob(const Job &job)
     const auto &cpu = d_ptr->controller->config()->cpu();
 
     auto threads = cpu.get(d_ptr->controller->miner(), job.algorithm());
-    if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin())) {
+    if (!d_ptr->threads.empty() && d_ptr->threads.size() == threads.size() && std::equal(d_ptr->threads.begin(), d_ptr->threads.end(), threads.begin()) && d_ptr->algo == job.algorithm()) {
         return;
     }
 
