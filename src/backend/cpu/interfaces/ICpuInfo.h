@@ -28,6 +28,7 @@
 
 #ifdef XMRIG_FEATURE_HWLOC
 using hwloc_const_bitmap_t  = const struct hwloc_bitmap_s *;
+using hwloc_const_nodeset_t = hwloc_const_bitmap_t;
 using hwloc_topology_t      = struct hwloc_topology *;
 #endif
 
