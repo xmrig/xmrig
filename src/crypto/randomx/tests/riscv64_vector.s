@@ -10,3 +10,7 @@ main:
 	vxor.vv v0, v0, v0
 	sub x10, x5, x6
 	ret
+
+#if defined(__ELF__)
+.section .note.GNU-stack,"",%progbits
+#endif
